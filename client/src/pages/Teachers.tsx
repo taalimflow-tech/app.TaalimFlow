@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Teacher } from '@/types';
 import { apiRequest } from '@/lib/queryClient';
+import { X } from 'lucide-react';
 
 export default function Teachers() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
@@ -150,15 +150,20 @@ export default function Teachers() {
         )}
       </div>
       
-      {/* Message Dialog */}
+      {/* Custom Modal */}
       {selectedTeacher && (
-        <Dialog open={true} onOpenChange={(open) => {
-          if (!open) setSelectedTeacher(null);
-        }}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>إرسال رسالة إلى {selectedTeacher.name}</DialogTitle>
-            </DialogHeader>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">إرسال رسالة إلى {selectedTeacher.name}</h2>
+              <button
+                onClick={() => setSelectedTeacher(null)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
             <form onSubmit={handleSendMessage} className="space-y-4">
               <div>
                 <Label htmlFor="subject">الموضوع</Label>
@@ -187,8 +192,8 @@ export default function Teachers() {
                 {sendMessageMutation.isPending ? "جاري الإرسال..." : "إرسال الرسالة"}
               </Button>
             </form>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </div>
       )}
     </div>
   );
