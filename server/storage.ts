@@ -180,12 +180,16 @@ export class DatabaseStorage implements IStorage {
   async createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]> {
     const messagesToInsert = [];
     
+    // Get the first available teacher ID for admin messages
+    const firstTeacher = await db.select().from(teachers).limit(1);
+    const teacherId = firstTeacher.length > 0 ? firstTeacher[0].id : 1; // fallback to ID 1
+    
     for (const senderId of senderIds) {
       for (const receiverId of receiverIds) {
         messagesToInsert.push({
           senderId,
           receiverId,
-          teacherId: senderId, // assuming admin is sending as teacher
+          teacherId, // Use existing teacher ID
           subject,
           content,
           read: false
