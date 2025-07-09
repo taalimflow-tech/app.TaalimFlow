@@ -9,7 +9,7 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, role?: string) => Promise<void>;
+  register: (email: string, password: string, name: string, phone: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -47,13 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const register = async (email: string, password: string, name: string, role: string = 'user') => {
+  const register = async (email: string, password: string, name: string, phone: string, role: string = 'user') => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
     // Create user document in Firestore
     await setDoc(doc(db, 'users', userCredential.user.uid), {
       email,
       name,
+      phone,
       role,
       firebaseUid: userCredential.user.uid,
       createdAt: new Date(),

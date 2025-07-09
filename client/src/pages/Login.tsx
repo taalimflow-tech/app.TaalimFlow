@@ -6,14 +6,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +41,7 @@ export default function Login() {
     setLoading(true);
     
     try {
-      await register(email, password, name);
+      await register(email, password, name, phone);
       toast({ title: 'تم إنشاء الحساب بنجاح' });
     } catch (error) {
       toast({ 
@@ -119,6 +122,20 @@ export default function Login() {
                 </div>
                 
                 <div>
+                  <Label htmlFor="phone">رقم الهاتف</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="0555123456 أو +213555123456"
+                    pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
+                </div>
+                
+                <div>
                   <Label htmlFor="email">البريد الإلكتروني</Label>
                   <Input
                     id="email"
@@ -148,6 +165,16 @@ export default function Login() {
               </form>
             </TabsContent>
           </Tabs>
+          
+          <div className="mt-6 text-center">
+            <Button 
+              variant="link" 
+              className="text-sm text-gray-600"
+              onClick={() => navigate('/admin-login')}
+            >
+              تسجيل دخول المديرين والمعلمين
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

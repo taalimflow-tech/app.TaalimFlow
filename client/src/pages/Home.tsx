@@ -92,9 +92,11 @@ export default function Home() {
                 key={action.path}
                 variant="outline"
                 onClick={() => navigate(action.path)}
-                className="bg-white rounded-xl p-4 h-20 flex flex-col items-center justify-center space-y-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl p-4 h-20 flex flex-col items-center justify-center space-y-2 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:scale-105 group"
               >
-                <div className="text-2xl">{action.icon}</div>
+                <div className="text-2xl transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(168,85,247,0.5)] group-hover:scale-110">
+                  {action.icon}
+                </div>
                 <p className="text-sm font-medium text-gray-700">{action.label}</p>
               </Button>
             ))}

@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
+  phone: text("phone").notNull(),
   role: text("role").notNull().default("user"), // admin, teacher, user
   firebaseUid: text("firebase_uid").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -108,8 +109,11 @@ export const formationRegistrations = pgTable("formation_registrations", {
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
+  phone: true,
   role: true,
   firebaseUid: true,
+}).extend({
+  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
 });
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).pick({

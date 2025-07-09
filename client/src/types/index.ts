@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  phone: string;
   role: 'admin' | 'teacher' | 'user';
   firebaseUid: string;
   createdAt: Date;
