@@ -33,7 +33,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const validatedData = insertUserSchema.parse(req.body);
+      const { children: childrenData, ...userData } = req.body;
+      const validatedData = insertUserSchema.parse(userData);
       
       // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
@@ -47,12 +48,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
+      // Create user first
       const user = await storage.createUser(validatedData);
+      
+      // Create children if provided
+      if (childrenData && Array.isArray(childrenData) && childrenData.length > 0) {
+        const childrenPromises = childrenData.map(child => 
+          storage.createChild({
+            parentId: user.id,
+            name: child.name,
+            educationLevel: child.educationLevel,
+            grade: child.grade
+          })
+        );
+        await Promise.all(childrenPromises);
+      }
       
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
       res.status(201).json({ user: userWithoutPassword });
     } catch (error) {
+      console.error('Registration error:', error);
       res.status(400).json({ error: "بيانات غير صحيحة" });
     }
   });

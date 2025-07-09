@@ -1,4 +1,4 @@
-import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration } from "@shared/schema";
+import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -42,6 +42,10 @@ export interface IStorage {
   // Registration methods
   createGroupRegistration(registration: InsertGroupRegistration): Promise<GroupRegistration>;
   createFormationRegistration(registration: InsertFormationRegistration): Promise<FormationRegistration>;
+  
+  // Children methods
+  createChild(child: InsertChild): Promise<Child>;
+  getChildrenByParentId(parentId: number): Promise<Child[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -79,6 +83,18 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async createChild(insertChild: InsertChild): Promise<Child> {
+    const [child] = await db
+      .insert(children)
+      .values(insertChild)
+      .returning();
+    return child;
+  }
+
+  async getChildrenByParentId(parentId: number): Promise<Child[]> {
+    return await db.select().from(children).where(eq(children.parentId, parentId));
   }
 
   async getAnnouncements(): Promise<Announcement[]> {

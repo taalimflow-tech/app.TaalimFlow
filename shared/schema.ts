@@ -106,6 +106,15 @@ export const formationRegistrations = pgTable("formation_registrations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const children = pgTable("children", {
+  id: serial("id").primaryKey(),
+  parentId: integer("parent_id").references(() => users.id),
+  name: text("name").notNull(),
+  educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
+  grade: text("grade").notNull(), // specific grade within level
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -202,6 +211,13 @@ export const insertFormationRegistrationSchema = createInsertSchema(formationReg
   email: true,
 });
 
+export const insertChildSchema = createInsertSchema(children).pick({
+  parentId: true,
+  name: true,
+  educationLevel: true,
+  grade: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -223,3 +239,5 @@ export type GroupRegistration = typeof groupRegistrations.$inferSelect;
 export type InsertGroupRegistration = z.infer<typeof insertGroupRegistrationSchema>;
 export type FormationRegistration = typeof formationRegistrations.$inferSelect;
 export type InsertFormationRegistration = z.infer<typeof insertFormationRegistrationSchema>;
+export type Child = typeof children.$inferSelect;
+export type InsertChild = z.infer<typeof insertChildSchema>;
