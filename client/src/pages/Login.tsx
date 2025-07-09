@@ -167,14 +167,12 @@ export default function Login() {
           </Tabs>
           
           <div className="mt-6 text-center">
-            <Link href="/admin-login">
-              <Button 
-                variant="link" 
-                className="text-sm text-gray-600"
-              >
-                تسجيل دخول المديرين والمعلمين
-              </Button>
-            </Link>
+            <a 
+              href="/admin-login"
+              className="text-sm text-gray-600 hover:text-primary underline cursor-pointer"
+            >
+              تسجيل دخول المديرين والمعلمين
+            </a>
           </div>
         </CardContent>
       </Card>
