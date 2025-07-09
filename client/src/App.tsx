@@ -64,22 +64,23 @@ function AuthenticatedRoutes() {
 }
 
 function Router() {
+  console.log('Router rendering');
   return (
     <Switch>
       <Route path="/admin-login" component={AdminLogin} />
-      <Route path="/" component={AuthenticatedRoutes} />
-      <Route path="/schedule" component={AuthenticatedRoutes} />
-      <Route path="/teachers" component={AuthenticatedRoutes} />
-      <Route path="/messages" component={AuthenticatedRoutes} />
-      <Route path="/suggestions" component={AuthenticatedRoutes} />
-      <Route path="/blog" component={AuthenticatedRoutes} />
-      <Route path="/groups" component={AuthenticatedRoutes} />
-      <Route path="/formations" component={AuthenticatedRoutes} />
-      <Route path="/announcements" component={AuthenticatedRoutes} />
-      <Route path="/admin" component={AuthenticatedRoutes} />
-      <Route path="/admin/users" component={AuthenticatedRoutes} />
-      <Route path="/profile" component={AuthenticatedRoutes} />
-      <Route component={NotFound} />
+      <Route path="/admin">
+        {() => {
+          console.log('Admin route matched!');
+          return (
+            <AuthWrapper>
+              <Layout>
+                <AdminPanelTest />
+              </Layout>
+            </AuthWrapper>
+          );
+        }}
+      </Route>
+      <Route path="*" component={AuthenticatedRoutes} />
     </Switch>
   );
 }
