@@ -1,12 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User as FirebaseUser, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
 import { User } from '@/types';
 
 interface AuthContextType {
   user: User | null;
-  firebaseUser: FirebaseUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, phone: string, role?: string) => Promise<void>;
@@ -17,7 +13,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const { user } = await response.json();
     setUser(user);
-    setFirebaseUser(null);
   };
 
   const register = async (email: string, password: string, name: string, phone: string, role: string = 'user') => {
@@ -65,12 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const { user } = await response.json();
     setUser(user);
-    setFirebaseUser(null);
   };
 
   const logout = async () => {
     setUser(null);
-    setFirebaseUser(null);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -78,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
-    firebaseUser,
     loading,
     login,
     register,
