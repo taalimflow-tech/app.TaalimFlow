@@ -29,11 +29,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     );
   }
   
-  // Temporarily bypass authentication for development
-  // TODO: Re-enable when Firebase is properly configured
-  // if (!user) {
-  //   return <Login />;
-  // }
+  // Show login page if user is not authenticated
+  if (!user) {
+    return <Login />;
+  }
   
   return <>{children}</>;
 }

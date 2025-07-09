@@ -31,25 +31,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    // Temporarily create a mock user for development
+    // TODO: Replace with actual authentication
+    const mockUser: User = {
+      id: '1',
+      email: email,
+      name: 'مستخدم تجريبي',
+      phone: '0555123456',
+      role: 'user',
+      firebaseUid: '1',
+      createdAt: new Date(),
+    };
+    
+    setUser(mockUser);
+    setFirebaseUser(null);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
   };
 
   const register = async (email: string, password: string, name: string, phone: string, role: string = 'user') => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Create user document in Firestore
-    await setDoc(doc(db, 'users', userCredential.user.uid), {
-      email,
-      name,
-      phone,
-      role,
-      firebaseUid: userCredential.user.uid,
+    // Temporarily create a mock user for development
+    // TODO: Replace with actual authentication
+    const mockUser: User = {
+      id: '1',
+      email: email,
+      name: name,
+      phone: phone,
+      role: role as 'admin' | 'teacher' | 'user',
+      firebaseUid: '1',
       createdAt: new Date(),
-    });
+    };
+    
+    setUser(mockUser);
+    setFirebaseUser(null);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
   };
 
   const logout = async () => {
-    await signOut(auth);
+    setUser(null);
+    setFirebaseUser(null);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 200));
   };
 
   const value = {
