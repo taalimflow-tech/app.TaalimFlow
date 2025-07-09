@@ -33,10 +33,19 @@ export default function Teachers() {
       
       console.log('Sending message payload:', payload);
       
-      return apiRequest('/api/messages', {
+      const response = await fetch('/api/messages', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(payload),
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       console.log('Message sent successfully:', data);
