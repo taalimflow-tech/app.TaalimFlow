@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Shield, AlertCircle } from 'lucide-react';
 
 interface RoleProtectionProps {
