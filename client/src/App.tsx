@@ -17,6 +17,7 @@ import Formations from "@/pages/Formations";
 import AdminPanel from "@/pages/AdminPanel";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
+import Profile from "@/pages/Profile";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -54,6 +55,7 @@ function Router() {
               <Route path="/formations" component={Formations} />
               <Route path="/announcements" component={Announcements} />
               <Route path="/admin" component={AdminPanel} />
+              <Route path="/profile" component={Profile} />
               <Route component={NotFound} />
             </Switch>
           </Layout>
