@@ -1,6 +1,6 @@
 import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -10,6 +10,8 @@ export interface IStorage {
   getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   authenticateUser(email: string, password: string): Promise<User | null>;
+  getAllUsers(): Promise<User[]>;
+  searchUsers(query: string): Promise<User[]>;
   
   // Announcement methods
   getAnnouncements(): Promise<Announcement[]>;
@@ -26,6 +28,8 @@ export interface IStorage {
   // Message methods
   getMessages(): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  getMessagesByUserId(userId: number): Promise<Message[]>;
+  createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]>;
   
   // Suggestion methods
   getSuggestions(): Promise<Suggestion[]>;
@@ -84,6 +88,20 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    return await db.select().from(users).where(
+      or(
+        ilike(users.name, `%${query}%`),
+        ilike(users.email, `%${query}%`),
+        ilike(users.phone, `%${query}%`)
+      )
+    ).orderBy(desc(users.createdAt));
   }
 
   async createChild(insertChild: InsertChild): Promise<Child> {
@@ -148,6 +166,34 @@ export class DatabaseStorage implements IStorage {
       .values(insertMessage)
       .returning();
     return message;
+  }
+
+  async getMessagesByUserId(userId: number): Promise<Message[]> {
+    return await db.select().from(messages).where(
+      or(
+        eq(messages.senderId, userId),
+        eq(messages.receiverId, userId)
+      )
+    ).orderBy(desc(messages.createdAt));
+  }
+
+  async createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]> {
+    const messagesToInsert = [];
+    
+    for (const senderId of senderIds) {
+      for (const receiverId of receiverIds) {
+        messagesToInsert.push({
+          senderId,
+          receiverId,
+          teacherId: senderId, // assuming admin is sending as teacher
+          subject,
+          content,
+          read: false
+        });
+      }
+    }
+    
+    return await db.insert(messages).values(messagesToInsert).returning();
   }
 
   async getSuggestions(): Promise<Suggestion[]> {

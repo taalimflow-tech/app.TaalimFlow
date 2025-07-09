@@ -173,6 +173,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "تم تسجيل الخروج بنجاح" });
   });
 
+  // User management routes (Admin only)
+  app.get("/api/users", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const { search } = req.query;
+      let users;
+      
+      if (search && typeof search === 'string') {
+        users = await storage.searchUsers(search);
+      } else {
+        users = await storage.getAllUsers();
+      }
+      
+      // Remove passwords from response
+      const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "المستخدم غير موجود" });
+      }
+      
+      // Get user's children
+      const children = await storage.getChildrenByParentId(userId);
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      res.json({ ...userWithoutPassword, children });
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  app.get("/api/users/:id/messages", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const userId = parseInt(req.params.id);
+      const messages = await storage.getMessagesByUserId(userId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching user messages:', error);
+      res.status(500).json({ error: "Failed to fetch user messages" });
+    }
+  });
+
+  // Bulk messaging route (Admin only)
+  app.post("/api/messages/bulk", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const { receiverIds, subject, content } = req.body;
+      
+      if (!receiverIds || !Array.isArray(receiverIds) || receiverIds.length === 0) {
+        return res.status(400).json({ error: "يجب تحديد المستلمين" });
+      }
+      
+      if (!subject || !content) {
+        return res.status(400).json({ error: "العنوان والمحتوى مطلوبان" });
+      }
+      
+      const messages = await storage.createBulkMessage(
+        [currentUser.id], // sender
+        receiverIds,
+        subject,
+        content
+      );
+      
+      res.status(201).json({ 
+        message: "تم إرسال الرسائل بنجاح",
+        count: messages.length,
+        messages 
+      });
+    } catch (error) {
+      console.error('Error sending bulk messages:', error);
+      res.status(500).json({ error: "Failed to send bulk messages" });
+    }
+  });
+
   // Announcement routes
   app.get("/api/announcements", async (req, res) => {
     try {

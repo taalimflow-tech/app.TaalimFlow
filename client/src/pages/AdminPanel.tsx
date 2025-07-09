@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Users, FileText, MessageSquare, Lightbulb } from 'lucide-react';
+import { Shield, Users, FileText, MessageSquare, Lightbulb, Settings } from 'lucide-react';
 import { RoleProtection } from '@/components/RoleProtection';
+import { Link } from 'wouter';
 
 export default function AdminPanel() {
   const { user } = useAuth();
@@ -26,6 +27,35 @@ export default function AdminPanel() {
         <div className="flex items-center gap-2 mb-6">
           <Shield className="w-8 h-8 text-primary" />
           <h2 className="text-2xl font-bold text-gray-800">لوحة الإدارة</h2>
+        </div>
+
+        {/* Admin Navigation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <Link href="/admin/users">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Users className="w-12 h-12 text-purple-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة المستخدمين</h3>
+                <p className="text-sm text-gray-600">عرض وإدارة جميع المستخدمين المسجلين</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <MessageSquare className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة الرسائل</h3>
+              <p className="text-sm text-gray-600">عرض وإدارة جميع الرسائل</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <Settings className="w-12 h-12 text-green-600 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">إعدادات النظام</h3>
+              <p className="text-sm text-gray-600">تكوين إعدادات التطبيق</p>
+            </CardContent>
+          </Card>
         </div>
       
       <Tabs defaultValue="announcements" className="w-full">

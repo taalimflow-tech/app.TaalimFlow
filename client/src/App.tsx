@@ -13,6 +13,7 @@ import Blog from "@/pages/Blog";
 import Groups from "@/pages/Groups";
 import Formations from "@/pages/Formations";
 import AdminPanel from "@/pages/AdminPanel";
+import AdminUsers from "@/pages/AdminUsers";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
 import Profile from "@/pages/Profile";
@@ -55,6 +56,7 @@ function Router() {
               <Route path="/formations" component={Formations} />
               <Route path="/announcements" component={Announcements} />
               <Route path="/admin" component={AdminPanel} />
+              <Route path="/admin/users" component={AdminUsers} />
               <Route path="/profile" component={Profile} />
               <Route component={NotFound} />
             </Switch>
