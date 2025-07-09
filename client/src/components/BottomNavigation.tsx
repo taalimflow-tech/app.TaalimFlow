@@ -36,10 +36,7 @@ export function BottomNavigation() {
             return (
               <button
                 key={item.path}
-                onClick={() => {
-                  console.log('Navigating to:', item.path);
-                  navigate(item.path);
-                }}
+                onClick={() => navigate(item.path)}
                 className={`nav-item flex flex-col items-center py-3 px-4 relative transition-colors ${
                   isActive ? 'active text-primary' : 'text-gray-500 hover:text-gray-700'
                 }`}

@@ -64,20 +64,16 @@ function AuthenticatedRoutes() {
 }
 
 function Router() {
-  console.log('Router rendering');
   return (
     <Switch>
       <Route path="/admin-login" component={AdminLogin} />
-      <Route path="/admin" component={() => {
-        console.log('Admin route matched!');
-        return (
-          <AuthWrapper>
-            <Layout>
-              <AdminPanelTest />
-            </Layout>
-          </AuthWrapper>
-        );
-      }} />
+      <Route path="/admin" component={() => (
+        <AuthWrapper>
+          <Layout>
+            <AdminUsers />
+          </Layout>
+        </AuthWrapper>
+      )} />
       <Route component={AuthenticatedRoutes} />
     </Switch>
   );
