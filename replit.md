@@ -123,3 +123,14 @@ The application now uses a unified PostgreSQL database approach:
 - `formation_registrations` - Course enrollment data
 
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
+
+## Recent Changes
+- **January 2025**: Successfully implemented comprehensive children registration and management system
+  - Added children table to database schema with parent relationship
+  - Updated registration form to support up to 5 children per parent
+  - Changed "User Name" to "Parent Name" in registration forms
+  - Added complete education level system (الابتدائي, المتوسط, الثانوي) with proper grades
+  - Implemented profile page with children management (view, add, remove)
+  - Added children API endpoints for CRUD operations
+  - Fixed chat system with custom modal implementation (removed problematic Radix UI Dialog)
+  - Database migration completed successfully for children table

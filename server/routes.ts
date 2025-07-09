@@ -317,6 +317,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Children routes
+  app.get("/api/children", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const children = await storage.getChildrenByParentId(currentUser.id);
+      res.json(children);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch children" });
+    }
+  });
+
+  app.post("/api/children", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const childData = {
+        parentId: currentUser.id,
+        name: req.body.name,
+        educationLevel: req.body.educationLevel,
+        grade: req.body.grade
+      };
+      
+      const child = await storage.createChild(childData);
+      res.status(201).json(child);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid child data" });
+    }
+  });
+
+  app.delete("/api/children/:id", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const childId = parseInt(req.params.id);
+      await storage.deleteChild(childId);
+      res.json({ message: "تم حذف الطفل بنجاح" });
+    } catch (error) {
+      res.status(400).json({ error: "Failed to delete child" });
+    }
+  });
+
   // Registration routes
   app.post("/api/group-registrations", async (req, res) => {
     try {

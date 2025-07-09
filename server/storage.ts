@@ -46,6 +46,7 @@ export interface IStorage {
   // Children methods
   createChild(child: InsertChild): Promise<Child>;
   getChildrenByParentId(parentId: number): Promise<Child[]>;
+  deleteChild(childId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -95,6 +96,10 @@ export class DatabaseStorage implements IStorage {
 
   async getChildrenByParentId(parentId: number): Promise<Child[]> {
     return await db.select().from(children).where(eq(children.parentId, parentId));
+  }
+
+  async deleteChild(childId: number): Promise<void> {
+    await db.delete(children).where(eq(children.id, childId));
   }
 
   async getAnnouncements(): Promise<Announcement[]> {
