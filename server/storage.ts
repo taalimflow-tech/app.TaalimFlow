@@ -1,6 +1,6 @@
 import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -61,7 +61,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnnouncements(): Promise<Announcement[]> {
-    return await db.select().from(announcements).orderBy(announcements.createdAt);
+    return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
   }
 
   async createAnnouncement(insertAnnouncement: InsertAnnouncement): Promise<Announcement> {
@@ -73,7 +73,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBlogPosts(): Promise<BlogPost[]> {
-    return await db.select().from(blogPosts).orderBy(blogPosts.createdAt);
+    return await db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt));
   }
 
   async createBlogPost(insertBlogPost: InsertBlogPost): Promise<BlogPost> {
@@ -85,7 +85,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeachers(): Promise<Teacher[]> {
-    return await db.select().from(teachers).orderBy(teachers.createdAt);
+    return await db.select().from(teachers).orderBy(desc(teachers.createdAt));
   }
 
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
@@ -97,7 +97,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(): Promise<Message[]> {
-    return await db.select().from(messages).orderBy(messages.createdAt);
+    return await db.select().from(messages).orderBy(desc(messages.createdAt));
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
@@ -109,7 +109,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSuggestions(): Promise<Suggestion[]> {
-    return await db.select().from(suggestions).orderBy(suggestions.createdAt);
+    return await db.select().from(suggestions).orderBy(desc(suggestions.createdAt));
   }
 
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
@@ -121,7 +121,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGroups(): Promise<Group[]> {
-    return await db.select().from(groups).orderBy(groups.createdAt);
+    return await db.select().from(groups).orderBy(desc(groups.createdAt));
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
@@ -133,7 +133,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFormations(): Promise<Formation[]> {
-    return await db.select().from(formations).orderBy(formations.createdAt);
+    return await db.select().from(formations).orderBy(desc(formations.createdAt));
   }
 
   async createFormation(insertFormation: InsertFormation): Promise<Formation> {
