@@ -24,18 +24,23 @@ export default function Teachers() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { teacherId: number; subject: string; content: string }) => {
+      const payload = {
+        senderId: user?.id,
+        receiverId: user?.id, // For now, same as sender 
+        teacherId: data.teacherId,
+        subject: data.subject,
+        content: data.content
+      };
+      
+      console.log('Sending message payload:', payload);
+      
       return apiRequest('/api/messages', {
         method: 'POST',
-        body: JSON.stringify({
-          senderId: user?.id,
-          receiverId: user?.id, // For now, same as sender 
-          teacherId: data.teacherId,
-          subject: data.subject,
-          content: data.content
-        }),
+        body: JSON.stringify(payload),
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Message sent successfully:', data);
       toast({
         title: "تم إرسال الرسالة بنجاح",
         description: "سيتم الرد عليك في أقرب وقت ممكن",
@@ -44,6 +49,7 @@ export default function Teachers() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
     },
     onError: (error: any) => {
+      console.error('Error sending message:', error);
       toast({
         title: "خطأ في إرسال الرسالة",
         description: error.message || "حدث خطأ أثناء إرسال الرسالة",
@@ -54,11 +60,20 @@ export default function Teachers() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTeacher || !user) return;
+    console.log('Form submitted!');
+    console.log('Selected teacher:', selectedTeacher);
+    console.log('User:', user);
+    
+    if (!selectedTeacher || !user) {
+      console.log('Missing selectedTeacher or user');
+      return;
+    }
     
     const formData = new FormData(e.target as HTMLFormElement);
     const subject = formData.get('subject') as string;
     const content = formData.get('message') as string;
+    
+    console.log('Form data:', { subject, content });
     
     if (!subject.trim() || !content.trim()) {
       toast({
@@ -68,6 +83,12 @@ export default function Teachers() {
       });
       return;
     }
+    
+    console.log('Sending message mutation with:', {
+      teacherId: selectedTeacher.id,
+      subject: subject.trim(),
+      content: content.trim(),
+    });
     
     sendMessageMutation.mutate({
       teacherId: selectedTeacher.id,

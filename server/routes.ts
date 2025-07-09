@@ -229,10 +229,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messages", async (req, res) => {
     try {
+      console.log('Received message request:', req.body);
       const validatedData = insertMessageSchema.parse(req.body);
+      console.log('Validated data:', validatedData);
       const message = await storage.createMessage(validatedData);
+      console.log('Created message:', message);
       res.status(201).json(message);
     } catch (error) {
+      console.error('Error creating message:', error);
       res.status(400).json({ error: "Invalid message data" });
     }
   });
