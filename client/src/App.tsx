@@ -23,15 +23,17 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-bg">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
   
-  if (!user) {
-    return <Login />;
-  }
+  // Temporarily bypass authentication for development
+  // TODO: Re-enable when Firebase is properly configured
+  // if (!user) {
+  //   return <Login />;
+  // }
   
   return <>{children}</>;
 }

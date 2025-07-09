@@ -21,26 +21,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setFirebaseUser(firebaseUser);
-        
-        // Get user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUser({
-            id: firebaseUser.uid,
-            ...userDoc.data(),
-          } as User);
-        }
-      } else {
-        setFirebaseUser(null);
-        setUser(null);
-      }
+    // Temporarily bypass Firebase auth and set loading to false
+    // TODO: Fix Firebase configuration
+    const timer = setTimeout(() => {
       setLoading(false);
-    });
+    }, 1000);
 
-    return unsubscribe;
+    return () => clearTimeout(timer);
   }, []);
 
   const login = async (email: string, password: string) => {
