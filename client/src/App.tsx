@@ -15,7 +15,7 @@ import Formations from "@/pages/Formations";
 import AdminPanel from "@/pages/AdminPanel";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
-import Profile from "@/pages/Profile-simple";
+import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
