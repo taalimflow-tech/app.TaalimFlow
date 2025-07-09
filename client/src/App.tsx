@@ -39,23 +39,27 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 function Router() {
   return (
-    <AuthWrapper>
-      <Layout>
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/schedule" component={Schedule} />
-          <Route path="/teachers" component={Teachers} />
-          <Route path="/suggestions" component={Suggestions} />
-          <Route path="/blog" component={Blog} />
-          <Route path="/groups" component={Groups} />
-          <Route path="/formations" component={Formations} />
-          <Route path="/announcements" component={Announcements} />
-          <Route path="/admin" component={AdminPanel} />
-          <Route path="/admin-login" component={AdminLogin} />
-          <Route component={NotFound} />
-        </Switch>
-      </Layout>
-    </AuthWrapper>
+    <Switch>
+      <Route path="/admin-login" component={AdminLogin} />
+      <Route path="*">
+        <AuthWrapper>
+          <Layout>
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/schedule" component={Schedule} />
+              <Route path="/teachers" component={Teachers} />
+              <Route path="/suggestions" component={Suggestions} />
+              <Route path="/blog" component={Blog} />
+              <Route path="/groups" component={Groups} />
+              <Route path="/formations" component={Formations} />
+              <Route path="/announcements" component={Announcements} />
+              <Route path="/admin" component={AdminPanel} />
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        </AuthWrapper>
+      </Route>
+    </Switch>
   );
 }
 
