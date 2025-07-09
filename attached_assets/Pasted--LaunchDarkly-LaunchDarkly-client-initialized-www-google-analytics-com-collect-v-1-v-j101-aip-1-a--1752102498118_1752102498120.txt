@@ -1,0 +1,316 @@
+[LaunchDarkly] LaunchDarkly client initialized
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=3&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss&ul=en-us&de=UTF-8&dt=t%5BorgSlug%5D&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Experiment%20Variant%20Assigned&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=1334786810:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_REFUSEDUnderstand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=4&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss&ul=en-us&de=UTF-8&dt=t%5BorgSlug%5D&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Experiment%20Variant%20Assigned&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=420337485:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_REFUSEDUnderstand this error
+/t/clickdz-ofe0ss:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+chrome-extension://invalid/:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+m.stripe.network/inn…_[version]=acacia:1 Uncaught (in promise) undefinedUnderstand this error
+VM93 recaptcha__en.js:713 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://replit.com/public/fonts/ibm-plex-sans-v8-latin-600.woff2
+_app-cec9c109fc352724.js:6 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://replit.com/public/fonts/hack-regular.woff2?sha=3114f1256
+8240-577b595a8a1617a3.js:1 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://replit.com/public/fonts/replit-icons.woff
+8240-577b595a8a1617a3.js:1 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://replit.com/public/fonts/hack-italic.woff2?sha=3114f1256
+8240-577b595a8a1617a3.js:1 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://replit.com/public/fonts/hack-bold.woff2?sha=3114f1256
+8240-577b595a8a1617a3.js:1 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://replit.com/public/fonts/hack-bolditalic.woff2?sha=3114f1256
+ [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxK.woff2
+ [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxK.woff2
+ [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4.woff2
+ [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4.woff2
+stallwart.build.js:1 stallwart: failed ping 1
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+framework-95195118d5866a55.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'battery'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+framework-95195118d5866a55.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-95195118d5866a55.js:1Understand this warning
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 1
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+3920-8f81dc2073db0680.js:1 WebSocket is already in CLOSING or CLOSED state.
+send @ 3920-8f81dc2073db0680.js:1Understand this error
+2656-07a0482f8e3b06a9.js:1 WebSocket connection to 'wss://eval.worf.platform.replit.com/wsv2/v2.public.Q2dZSWpjbTd3d1lTQmdpczVidkRCaUlFZDI5eVpqQUFPc01CQ2lRNE56RmlPV0psT1MweE5qZzNMVFJtTW1NdE9ERTNOUzFsWlRWa01XSTBNRGt5WmprU0EyNXBlQm9XY21Wd2JHbDBMWEpsY0d3dFptbHNaWE10ZDI5eVppSUpRWEpoWW1salVGZEJLZ3B0YjNWaFpHaGhkWE14UWs0S0YzSmxjR3hwZEMxeVpYQnNMV0pzYjJOcmN5MTNiM0ptRWhWeVpYQnNhWFF0Y21Wd2JDMXRaWFJoTFhkdmNtWWFISEpsY0d4cGRDMXRZWEpuWVhKcGJtVXRZbXh2WTJ0ekxYZHZjbVpLQndqUTBxc1ZFQUZRQUhJS0NnWnZabVV3YzNNUUFuZ0FVaU1JQVJDQWdJQ0FRQmtBQUFBQUFBQWdRQ0VBQUFBQUFBQWdRQ2lBZ0lDQWdBZ3dBbUFBYWhFSTBOS3JGUklLYlc5MVlXUm9ZWFZ6TVlJQkFpb0FtZ0VLQ2dnd0xqQXVNVFE0T2FBQkFBPT2rpZZ2h8yv1lUNSRJm1BTRPe05LfDx7mIVPkBNvW0wW_W7DZho2PNygkfbth7iF02Mlku67bc1ZsYfwNEi5y8M.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+connect @ 2656-07a0482f8e3b06a9.js:1Understand this error
+r.stripe.com/b:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+r.stripe.com/b:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+shared-29d83e6dce5d23438c5f74a025ccf6d8.js:1 Uncaught (in promise) FetchError: Error fetching https://r.stripe.com/b: Failed to fetch
+    at shared-29d83e6dce5d23438c5f74a025ccf6d8.js:1:217281Understand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=16&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss%2Frepls%2FArabicPWA&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Workspace%20Tab%20Opened&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=1874326904:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Afa032eaa&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=64b3bdc4-e0bf-4165-a43b-76833f67c1c7:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+2656-07a0482f8e3b06a9.js:1 WebSocket connection to 'wss://eval.worf.platform.replit.com/wsv2/v2.public.Q2dZSWpjbTd3d1lTQmdpczVidkRCaUlFZDI5eVpqQUFPc01CQ2lRNE56RmlPV0psT1MweE5qZzNMVFJtTW1NdE9ERTNOUzFsWlRWa01XSTBNRGt5WmprU0EyNXBlQm9XY21Wd2JHbDBMWEpsY0d3dFptbHNaWE10ZDI5eVppSUpRWEpoWW1salVGZEJLZ3B0YjNWaFpHaGhkWE14UWs0S0YzSmxjR3hwZEMxeVpYQnNMV0pzYjJOcmN5MTNiM0ptRWhWeVpYQnNhWFF0Y21Wd2JDMXRaWFJoTFhkdmNtWWFISEpsY0d4cGRDMXRZWEpuWVhKcGJtVXRZbXh2WTJ0ekxYZHZjbVpLQndqUTBxc1ZFQUZRQUhJS0NnWnZabVV3YzNNUUFuZ0FVaU1JQVJDQWdJQ0FRQmtBQUFBQUFBQWdRQ0VBQUFBQUFBQWdRQ2lBZ0lDQWdBZ3dBbUFBYWhFSTBOS3JGUklLYlc5MVlXUm9ZWFZ6TVlJQkFpb0FtZ0VLQ2dnd0xqQXVNVFE0T2FBQkFBPT2rpZZ2h8yv1lUNSRJm1BTRPe05LfDx7mIVPkBNvW0wW_W7DZho2PNygkfbth7iF02Mlku67bc1ZsYfwNEi5y8M.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+connect @ 2656-07a0482f8e3b06a9.js:1Understand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Afa032eaa&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=05c7bc90-74b6-4c12-97cb-16cd9778d8ad:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Afa032eaa&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=965c8224-620b-460e-bd55-3e9c669ab59b:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Afa032eaa&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=9dfcaff2-00ea-4a65-83d0-5213a96c0cee:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+2656-07a0482f8e3b06a9.js:1 WebSocket connection to 'wss://eval.worf.platform.replit.com/wsv2/v2.public.Q2dZSWpjbTd3d1lTQmdpczVidkRCaUlFZDI5eVpqQUFPc01CQ2lRNE56RmlPV0psT1MweE5qZzNMVFJtTW1NdE9ERTNOUzFsWlRWa01XSTBNRGt5WmprU0EyNXBlQm9XY21Wd2JHbDBMWEpsY0d3dFptbHNaWE10ZDI5eVppSUpRWEpoWW1salVGZEJLZ3B0YjNWaFpHaGhkWE14UWs0S0YzSmxjR3hwZEMxeVpYQnNMV0pzYjJOcmN5MTNiM0ptRWhWeVpYQnNhWFF0Y21Wd2JDMXRaWFJoTFhkdmNtWWFISEpsY0d4cGRDMXRZWEpuWVhKcGJtVXRZbXh2WTJ0ekxYZHZjbVpLQndqUTBxc1ZFQUZRQUhJS0NnWnZabVV3YzNNUUFuZ0FVaU1JQVJDQWdJQ0FRQmtBQUFBQUFBQWdRQ0VBQUFBQUFBQWdRQ2lBZ0lDQWdBZ3dBbUFBYWhFSTBOS3JGUklLYlc5MVlXUm9ZWFZ6TVlJQkFpb0FtZ0VLQ2dnd0xqQXVNVFE0T2FBQkFBPT2rpZZ2h8yv1lUNSRJm1BTRPe05LfDx7mIVPkBNvW0wW_W7DZho2PNygkfbth7iF02Mlku67bc1ZsYfwNEi5y8M.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+connect @ 2656-07a0482f8e3b06a9.js:1Understand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+r.stripe.com/b:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+r.stripe.com/b:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Abeacon%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Afa032eaa&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=480c5318-cc48-4737-a28f-0903c097d5ed:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+sp.replit.com/v1/t:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_TIMED_OUTUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+2656-07a0482f8e3b06a9.js:1 WebSocket connection to 'wss://eval.worf.platform.replit.com/wsv2/v2.public.Q2dZSWpjbTd3d1lTQmdpczVidkRCaUlFZDI5eVpqQUFPc01CQ2lRNE56RmlPV0psT1MweE5qZzNMVFJtTW1NdE9ERTNOUzFsWlRWa01XSTBNRGt5WmprU0EyNXBlQm9XY21Wd2JHbDBMWEpsY0d3dFptbHNaWE10ZDI5eVppSUpRWEpoWW1salVGZEJLZ3B0YjNWaFpHaGhkWE14UWs0S0YzSmxjR3hwZEMxeVpYQnNMV0pzYjJOcmN5MTNiM0ptRWhWeVpYQnNhWFF0Y21Wd2JDMXRaWFJoTFhkdmNtWWFISEpsY0d4cGRDMXRZWEpuWVhKcGJtVXRZbXh2WTJ0ekxYZHZjbVpLQndqUTBxc1ZFQUZRQUhJS0NnWnZabVV3YzNNUUFuZ0FVaU1JQVJDQWdJQ0FRQmtBQUFBQUFBQWdRQ0VBQUFBQUFBQWdRQ2lBZ0lDQWdBZ3dBbUFBYWhFSTBOS3JGUklLYlc5MVlXUm9ZWFZ6TVlJQkFpb0FtZ0VLQ2dnd0xqQXVNVFE0T2FBQkFBPT2rpZZ2h8yv1lUNSRJm1BTRPe05LfDx7mIVPkBNvW0wW_W7DZho2PNygkfbth7iF02Mlku67bc1ZsYfwNEi5y8M.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+connect @ 2656-07a0482f8e3b06a9.js:1Understand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+/graphql:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_TIMED_OUTUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+/graphql:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_TIMED_OUTUnderstand this error
+/graphql:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_TIMED_OUTUnderstand this error
+sp.replit.com/v1/t:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+stallwart.build.js:1 stallwart: failed ping 1
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=30&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss%2Frepls%2FArabicPWA&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Agent%20Used&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=1674154323:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_REFUSEDUnderstand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=31&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss%2Frepls%2FArabicPWA&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Visual%20Selector%20Element%20Selected&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=949702477&gjid=1168819199&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=130477979:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_REFUSEDUnderstand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=32&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss%2Frepls%2FArabicPWA&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Agent%20Used&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=629293155:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_REFUSEDUnderstand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=33&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss%2Frepls%2FArabicPWA&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Visual%20Selector%20Enabled&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=875478804:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_REFUSEDUnderstand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=1585664245&t=event&ni=0&_s=36&dl=https%3A%2F%2Freplit.com%2Ft%2Fclickdz-ofe0ss&dp=%2Ft%2Fclickdz-ofe0ss%2Frepls%2FArabicPWA&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1536x864&vp=1521x703&je=0&ec=All&ea=Agent%20Used&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=278783061.1750720291&tid=UA-25629695-1&_gid=1987803097.1751899773&z=2091364892:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_REFUSEDUnderstand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+stallwart.build.js:1 stallwart: failed ping 1
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+stallwart.build.js:1 stallwart: failed ping 1
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+framework-95195118d5866a55.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-95195118d5866a55.js:1Understand this error
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+VM1043:7 SW registered:  ServiceWorkerRegistration
+BottomNavigation.tsx:40 Navigating to: /admin
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 3
+stallwart.build.js:1 stallwart: failed ping 4
+stallwart.build.js:1 stallwart: failed ping 5
+stallwart.build.js:1 stallwart: session stalled
+requests.js:1 Fetch finished loading: POST "https://replit.com/graphql".
+s.fetch @ requests.js:1
+(anonymous) @ traffic.js:1
+fetch @ traffic.js:1
+(anonymous) @ _app-cec9c109fc352724.js:38
+(anonymous) @ _app-cec9c109fc352724.js:6
+o @ _app-cec9c109fc352724.js:11
+(anonymous) @ _app-cec9c109fc352724.js:11
+e @ _app-cec9c109fc352724.js:14
+t.subscribe @ _app-cec9c109fc352724.js:14
+(anonymous) @ _app-cec9c109fc352724.js:25
+e @ _app-cec9c109fc352724.js:14
+t.subscribe @ _app-cec9c109fc352724.js:14
+e.try @ _app-cec9c109fc352724.js:25
+e.start @ _app-cec9c109fc352724.js:25
+t.request @ _app-cec9c109fc352724.js:25
+(anonymous) @ _app-cec9c109fc352724.js:14
+(anonymous) @ _app-cec9c109fc352724.js:14
+(anonymous) @ _app-cec9c109fc352724.js:25
+(anonymous) @ _app-cec9c109fc352724.js:14
+e.execute @ _app-cec9c109fc352724.js:14
+e.getObservableFromLink @ _app-cec9c109fc352724.js:11
+e.getResultsFromLink @ _app-cec9c109fc352724.js:11
+v @ _app-cec9c109fc352724.js:11
+e.fetchQueryByPolicy @ _app-cec9c109fc352724.js:11
+v @ _app-cec9c109fc352724.js:11
+e.fetchConcastWithInfo @ _app-cec9c109fc352724.js:11
+t.fetch @ _app-cec9c109fc352724.js:14
+t.reobserveAsConcast @ _app-cec9c109fc352724.js:14
+t.reobserve @ _app-cec9c109fc352724.js:14
+n @ _app-cec9c109fc352724.js:14
+n @ _app-cec9c109fc352724.js:38
+setTimeout
+(anonymous) @ _app-cec9c109fc352724.js:38
+o @ _app-cec9c109fc352724.js:14
+Promise.then
+n @ _app-cec9c109fc352724.js:14
+n @ _app-cec9c109fc352724.js:38
+requests.js:1 Fetch finished loading: POST "https://replit.com/graphql".

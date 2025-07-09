@@ -68,19 +68,17 @@ function Router() {
   return (
     <Switch>
       <Route path="/admin-login" component={AdminLogin} />
-      <Route path="/admin">
-        {() => {
-          console.log('Admin route matched!');
-          return (
-            <AuthWrapper>
-              <Layout>
-                <AdminPanelTest />
-              </Layout>
-            </AuthWrapper>
-          );
-        }}
-      </Route>
-      <Route path="*" component={AuthenticatedRoutes} />
+      <Route path="/admin" component={() => {
+        console.log('Admin route matched!');
+        return (
+          <AuthWrapper>
+            <Layout>
+              <AdminPanelTest />
+            </Layout>
+          </AuthWrapper>
+        );
+      }} />
+      <Route component={AuthenticatedRoutes} />
     </Switch>
   );
 }
