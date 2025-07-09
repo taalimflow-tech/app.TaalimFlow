@@ -14,6 +14,7 @@ import Groups from "@/pages/Groups";
 import Formations from "@/pages/Formations";
 import AdminPanel from "@/pages/AdminPanel";
 import AdminUsers from "@/pages/AdminUsers";
+import AdminPanelTest from "@/pages/AdminPanelTest";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
 import Profile from "@/pages/Profile";
@@ -55,7 +56,7 @@ function Router() {
               <Route path="/groups" component={Groups} />
               <Route path="/formations" component={Formations} />
               <Route path="/announcements" component={Announcements} />
-              <Route path="/admin" component={AdminPanel} />
+              <Route path="/admin" component={AdminPanelTest} />
               <Route path="/admin/users" component={AdminUsers} />
               <Route path="/profile" component={Profile} />
               <Route component={NotFound} />
