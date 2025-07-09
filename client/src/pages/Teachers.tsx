@@ -129,54 +129,17 @@ export default function Teachers() {
                   </div>
                 </div>
                 
-                <Dialog open={selectedTeacher?.id === teacher.id} onOpenChange={(open) => {
-                  if (!open) setSelectedTeacher(null);
-                }}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="w-full bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90"
-                      onClick={() => {
-                        console.log('Button clicked, setting teacher:', teacher);
-                        setSelectedTeacher(teacher);
-                      }}
-                    >
-                      إرسال رسالة
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>إرسال رسالة إلى {teacher.name}</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleSendMessage} className="space-y-4">
-                      <div>
-                        <Label htmlFor={`subject-${teacher.id}`}>الموضوع</Label>
-                        <Input
-                          id={`subject-${teacher.id}`}
-                          name="subject"
-                          placeholder="اكتب موضوع الرسالة"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`message-${teacher.id}`}>الرسالة</Label>
-                        <Textarea
-                          id={`message-${teacher.id}`}
-                          name="message"
-                          placeholder="اكتب رسالتك هنا..."
-                          rows={4}
-                          required
-                        />
-                      </div>
-                      <Button 
-                        type="submit" 
-                        className="w-full"
-                        disabled={sendMessageMutation.isPending}
-                      >
-                        {sendMessageMutation.isPending ? "جاري الإرسال..." : "إرسال الرسالة"}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                <div>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90"
+                    onClick={() => {
+                      console.log('Button clicked, setting teacher:', teacher);
+                      setSelectedTeacher(teacher);
+                    }}
+                  >
+                    إرسال رسالة
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))
@@ -186,6 +149,47 @@ export default function Teachers() {
           </div>
         )}
       </div>
+      
+      {/* Message Dialog */}
+      {selectedTeacher && (
+        <Dialog open={true} onOpenChange={(open) => {
+          if (!open) setSelectedTeacher(null);
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>إرسال رسالة إلى {selectedTeacher.name}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSendMessage} className="space-y-4">
+              <div>
+                <Label htmlFor="subject">الموضوع</Label>
+                <Input
+                  id="subject"
+                  name="subject"
+                  placeholder="اكتب موضوع الرسالة"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="message">الرسالة</Label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  placeholder="اكتب رسالتك هنا..."
+                  rows={4}
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={sendMessageMutation.isPending}
+              >
+                {sendMessageMutation.isPending ? "جاري الإرسال..." : "إرسال الرسالة"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
