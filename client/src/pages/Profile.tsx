@@ -6,12 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save } from 'lucide-react';
 
 export default function Profile() {
   const { user, logout } = useAuth();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -27,13 +25,9 @@ export default function Profile() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({ title: 'تم تحديث الملف الشخصي بنجاح' });
+      alert('تم تحديث الملف الشخصي بنجاح');
     } catch (error) {
-      toast({ 
-        title: 'خطأ في التحديث', 
-        description: 'حدث خطأ أثناء تحديث البيانات',
-        variant: 'destructive'
-      });
+      alert('حدث خطأ أثناء تحديث البيانات');
     } finally {
       setLoading(false);
     }
