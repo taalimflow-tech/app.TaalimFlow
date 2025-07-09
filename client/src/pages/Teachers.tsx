@@ -13,7 +13,6 @@ import { apiRequest } from '@/lib/queryClient';
 
 export default function Teachers() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,7 +44,7 @@ export default function Teachers() {
         title: "تم إرسال الرسالة بنجاح",
         description: "سيتم الرد عليك في أقرب وقت ممكن",
       });
-      setIsDialogOpen(false);
+      setSelectedTeacher(null);
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
     },
     onError: (error: any) => {
@@ -130,13 +129,15 @@ export default function Teachers() {
                   </div>
                 </div>
                 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Dialog open={selectedTeacher?.id === teacher.id} onOpenChange={(open) => {
+                  if (!open) setSelectedTeacher(null);
+                }}>
                   <DialogTrigger asChild>
                     <Button 
                       className="w-full bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90"
                       onClick={() => {
+                        console.log('Button clicked, setting teacher:', teacher);
                         setSelectedTeacher(teacher);
-                        setIsDialogOpen(true);
                       }}
                     >
                       إرسال رسالة
@@ -144,22 +145,22 @@ export default function Teachers() {
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
-                      <DialogTitle>إرسال رسالة إلى {selectedTeacher?.name}</DialogTitle>
+                      <DialogTitle>إرسال رسالة إلى {teacher.name}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSendMessage} className="space-y-4">
                       <div>
-                        <Label htmlFor="subject">الموضوع</Label>
+                        <Label htmlFor={`subject-${teacher.id}`}>الموضوع</Label>
                         <Input
-                          id="subject"
+                          id={`subject-${teacher.id}`}
                           name="subject"
                           placeholder="اكتب موضوع الرسالة"
                           required
                         />
                       </div>
                       <div>
-                        <Label htmlFor="message">الرسالة</Label>
+                        <Label htmlFor={`message-${teacher.id}`}>الرسالة</Label>
                         <Textarea
-                          id="message"
+                          id={`message-${teacher.id}`}
                           name="message"
                           placeholder="اكتب رسالتك هنا..."
                           rows={4}
