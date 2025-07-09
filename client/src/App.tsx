@@ -39,31 +39,47 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AuthenticatedRoutes() {
+  return (
+    <AuthWrapper>
+      <Layout>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/schedule" component={Schedule} />
+          <Route path="/teachers" component={Teachers} />
+          <Route path="/messages" component={Messages} />
+          <Route path="/suggestions" component={Suggestions} />
+          <Route path="/blog" component={Blog} />
+          <Route path="/groups" component={Groups} />
+          <Route path="/formations" component={Formations} />
+          <Route path="/announcements" component={Announcements} />
+          <Route path="/admin" component={AdminPanelTest} />
+          <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/profile" component={Profile} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
+    </AuthWrapper>
+  );
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/admin-login" component={AdminLogin} />
-      <Route path="*">
-        <AuthWrapper>
-          <Layout>
-            <Switch>
-              <Route path="/" component={Home} />
-              <Route path="/schedule" component={Schedule} />
-              <Route path="/teachers" component={Teachers} />
-              <Route path="/messages" component={Messages} />
-              <Route path="/suggestions" component={Suggestions} />
-              <Route path="/blog" component={Blog} />
-              <Route path="/groups" component={Groups} />
-              <Route path="/formations" component={Formations} />
-              <Route path="/announcements" component={Announcements} />
-              <Route path="/admin" component={AdminPanelTest} />
-              <Route path="/admin/users" component={AdminUsers} />
-              <Route path="/profile" component={Profile} />
-              <Route component={NotFound} />
-            </Switch>
-          </Layout>
-        </AuthWrapper>
-      </Route>
+      <Route path="/" component={AuthenticatedRoutes} />
+      <Route path="/schedule" component={AuthenticatedRoutes} />
+      <Route path="/teachers" component={AuthenticatedRoutes} />
+      <Route path="/messages" component={AuthenticatedRoutes} />
+      <Route path="/suggestions" component={AuthenticatedRoutes} />
+      <Route path="/blog" component={AuthenticatedRoutes} />
+      <Route path="/groups" component={AuthenticatedRoutes} />
+      <Route path="/formations" component={AuthenticatedRoutes} />
+      <Route path="/announcements" component={AuthenticatedRoutes} />
+      <Route path="/admin" component={AuthenticatedRoutes} />
+      <Route path="/admin/users" component={AuthenticatedRoutes} />
+      <Route path="/profile" component={AuthenticatedRoutes} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
