@@ -16,6 +16,7 @@ import AdminPanel from "@/pages/AdminPanel";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
 import Profile from "@/pages/Profile-simple";
+import Messages from "@/pages/Messages";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -47,6 +48,7 @@ function Router() {
               <Route path="/" component={Home} />
               <Route path="/schedule" component={Schedule} />
               <Route path="/teachers" component={Teachers} />
+              <Route path="/messages" component={Messages} />
               <Route path="/suggestions" component={Suggestions} />
               <Route path="/blog" component={Blog} />
               <Route path="/groups" component={Groups} />

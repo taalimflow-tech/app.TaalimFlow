@@ -1,24 +1,79 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Teacher } from '@/types';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function Teachers() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const { data: teachers = [], isLoading: loading } = useQuery<Teacher[]>({
     queryKey: ['/api/teachers'],
   });
 
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { teacherId: number; subject: string; content: string }) => {
+      return apiRequest('/api/messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          senderId: user?.id,
+          receiverId: user?.id, // For now, same as sender 
+          teacherId: data.teacherId,
+          subject: data.subject,
+          content: data.content
+        }),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم إرسال الرسالة بنجاح",
+        description: "سيتم الرد عليك في أقرب وقت ممكن",
+      });
+      setIsDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إرسال الرسالة",
+        description: error.message || "حدث خطأ أثناء إرسال الرسالة",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement message sending to Firebase
-    console.log('Sending message to teacher:', selectedTeacher?.id);
+    if (!selectedTeacher || !user) return;
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const subject = formData.get('subject') as string;
+    const content = formData.get('message') as string;
+    
+    if (!subject.trim() || !content.trim()) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "يرجى ملء جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    sendMessageMutation.mutate({
+      teacherId: selectedTeacher.id,
+      subject: subject.trim(),
+      content: content.trim(),
+    });
   };
 
   if (loading) {
@@ -54,24 +109,28 @@ export default function Teachers() {
                   </div>
                 </div>
                 
-                <Dialog>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button 
                       className="w-full bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90"
-                      onClick={() => setSelectedTeacher(teacher)}
+                      onClick={() => {
+                        setSelectedTeacher(teacher);
+                        setIsDialogOpen(true);
+                      }}
                     >
                       إرسال رسالة
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
-                      <DialogTitle>إرسال رسالة إلى {teacher.name}</DialogTitle>
+                      <DialogTitle>إرسال رسالة إلى {selectedTeacher?.name}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSendMessage} className="space-y-4">
                       <div>
                         <Label htmlFor="subject">الموضوع</Label>
                         <Input
                           id="subject"
+                          name="subject"
                           placeholder="اكتب موضوع الرسالة"
                           required
                         />
@@ -80,13 +139,18 @@ export default function Teachers() {
                         <Label htmlFor="message">الرسالة</Label>
                         <Textarea
                           id="message"
+                          name="message"
                           placeholder="اكتب رسالتك هنا..."
                           rows={4}
                           required
                         />
                       </div>
-                      <Button type="submit" className="w-full">
-                        إرسال الرسالة
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={sendMessageMutation.isPending}
+                      >
+                        {sendMessageMutation.isPending ? "جاري الإرسال..." : "إرسال الرسالة"}
                       </Button>
                     </form>
                   </DialogContent>

@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, Lightbulb } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Lightbulb, Mail } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 interface NavItem {
@@ -11,6 +11,7 @@ const navItems: NavItem[] = [
   { icon: Home, label: 'الرئيسية', path: '/' },
   { icon: Calendar, label: 'الجدول', path: '/schedule' },
   { icon: MessageCircle, label: 'المعلمين', path: '/teachers' },
+  { icon: Mail, label: 'الرسائل', path: '/messages' },
   { icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' },
 ];
 
