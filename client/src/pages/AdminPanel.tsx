@@ -9,23 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Users, FileText, MessageSquare, Lightbulb } from 'lucide-react';
+import { RoleProtection } from '@/components/RoleProtection';
 
 export default function AdminPanel() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  // Redirect if not admin
-  if (!user || user.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">غير مصرح</h2>
-          <p className="text-gray-600">ليس لديك صلاحيات للوصول لهذه الصفحة</p>
-        </div>
-      </div>
-    );
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,11 +21,12 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="px-4 py-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Shield className="w-8 h-8 text-primary" />
-        <h2 className="text-2xl font-bold text-gray-800">لوحة الإدارة</h2>
-      </div>
+    <RoleProtection allowedRoles={['admin']}>
+      <div className="px-4 py-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Shield className="w-8 h-8 text-primary" />
+          <h2 className="text-2xl font-bold text-gray-800">لوحة الإدارة</h2>
+        </div>
       
       <Tabs defaultValue="announcements" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -141,6 +130,7 @@ export default function AdminPanel() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </RoleProtection>
   );
 }

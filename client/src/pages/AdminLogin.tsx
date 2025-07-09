@@ -23,8 +23,22 @@ export default function AdminLogin() {
     
     try {
       await login(email, password);
-      toast({ title: 'تم تسجيل دخول المدير بنجاح' });
-      navigate('/admin');
+      
+      // Check user role after login
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const { user } = await response.json();
+        if (user.role !== 'admin') {
+          toast({ 
+            title: 'خطأ في الصلاحيات', 
+            description: 'هذا الحساب ليس حساب مدير',
+            variant: 'destructive'
+          });
+          return;
+        }
+        toast({ title: 'تم تسجيل دخول المدير بنجاح' });
+        navigate('/admin');
+      }
     } catch (error) {
       toast({ 
         title: 'خطأ في تسجيل الدخول', 
@@ -42,8 +56,22 @@ export default function AdminLogin() {
     
     try {
       await login(email, password);
-      toast({ title: 'تم تسجيل دخول المعلم بنجاح' });
-      navigate('/');
+      
+      // Check user role after login
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const { user } = await response.json();
+        if (user.role !== 'teacher') {
+          toast({ 
+            title: 'خطأ في الصلاحيات', 
+            description: 'هذا الحساب ليس حساب معلم',
+            variant: 'destructive'
+          });
+          return;
+        }
+        toast({ title: 'تم تسجيل دخول المعلم بنجاح' });
+        navigate('/');
+      }
     } catch (error) {
       toast({ 
         title: 'خطأ في تسجيل الدخول', 

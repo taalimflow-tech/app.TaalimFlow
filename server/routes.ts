@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, loginSchema } from "@shared/schema";
 
+// Simple session storage for demo (in production, use Redis or database)
+let currentUser: any = null;
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
@@ -11,6 +14,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.authenticateUser(email, password);
       
       if (user) {
+        // Store user session
+        currentUser = user;
         // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
         res.json({ user: userWithoutPassword });
@@ -40,6 +45,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       res.status(400).json({ error: "بيانات غير صحيحة" });
     }
+  });
+
+  // Get current user info (for role verification)
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      if (currentUser) {
+        const { password: _, ...userWithoutPassword } = currentUser;
+        res.json({ user: userWithoutPassword });
+      } else {
+        res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "خطأ في الخادم" });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/api/auth/logout", async (req, res) => {
+    currentUser = null;
+    res.json({ message: "تم تسجيل الخروج بنجاح" });
   });
 
   // Announcement routes
