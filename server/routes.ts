@@ -35,10 +35,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertUserSchema.parse(req.body);
       
-      // Check if user already exists
+      // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
+      }
+      
+      // Check if phone number already exists
+      const existingPhone = await storage.getUserByPhone(validatedData.phone);
+      if (existingPhone) {
+        return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
       const user = await storage.createUser(validatedData);
@@ -61,10 +67,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "مفتاح الإدارة غير صحيح" });
       }
       
-      // Check if user already exists
+      // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
+      }
+      
+      // Check if phone number already exists
+      const existingPhone = await storage.getUserByPhone(validatedData.phone);
+      if (existingPhone) {
+        return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
       // Create user with admin role
@@ -90,16 +102,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "مفتاح المعلم غير صحيح" });
       }
       
-      // Check if user already exists
+      // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
+      }
+      
+      // Check if phone number already exists
+      const existingPhone = await storage.getUserByPhone(validatedData.phone);
+      if (existingPhone) {
+        return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
       // Create user with teacher role
       const { teacherKey: _, ...userDataWithoutKey } = validatedData;
       const userWithRole = { ...userDataWithoutKey, role: 'teacher' };
       const user = await storage.createUser(userWithRole);
+      
+      // Create teacher profile in teachers table
+      const teacherData = {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        subject: "مادة عامة", // Default subject, can be updated later
+        available: true
+      };
+      await storage.createTeacher(teacherData);
       
       // Remove password from response
       const { password: __, ...userWithoutPassword } = user;
