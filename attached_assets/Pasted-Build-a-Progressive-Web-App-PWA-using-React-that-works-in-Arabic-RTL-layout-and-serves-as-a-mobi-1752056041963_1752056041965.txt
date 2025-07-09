@@ -1,0 +1,128 @@
+Build a Progressive Web App (PWA) using React that works in Arabic (RTL layout) and serves as a mobile portal for private schools and training centers.
+
+✅ Required Features:
+Full Arabic support (RTL layout, Arabic labels)
+
+Firebase Authentication (roles: admin, teacher, user)
+
+Firebase Firestore for all data (messages, posts, forms, groups)
+
+PWA: installable app with manifest.json and service worker
+
+🧩 Sections to Include:
+1. الرئيسية (Home):
+School/center name and logo (editable from Firebase)
+
+Welcome message
+
+Latest blog post preview
+
+2. المدونة (Blog):
+Admin can post articles (title, content, image)
+
+Display blog/news posts to all users
+
+3. التواصل مع المعلمين (Talk to Teachers):
+Parents/students can send messages to teachers
+
+Stored in Firebase Firestore
+
+Teachers can reply
+
+4. الاقتراحات (Suggestions Box):
+Users can submit suggestions/feedback
+
+Admin can view/delete suggestions
+
+📚 التعلم والأنشطة (Learning & Groups Section):
+Admin adds custom groups manually from the panel
+
+Each group has:
+
+عنوان المجموعة (Group Name)
+
+وصف (Description)
+
+فئة (Category): e.g., لغة، برمجة، علوم صحية، رياضة
+
+صورة (Image URL)
+
+Users can browse groups by category
+
+Each group has a “انضم الآن” (Join Now) button
+
+When clicked, users submit:
+
+الاسم الكامل (Full Name)
+
+رقم الهاتف (Phone Number)
+
+البريد الإلكتروني (Email)
+
+المجموعة المختارة (Auto-filled)
+
+Data is saved to Firestore and viewable by admin
+
+🧪 قسم التكوينات (Formations Section):
+Admin can manually add trainings like:
+
+برمجة (Programming)
+
+شبه طبي (Paramedical)
+
+تصميم (Design)
+
+إداري، لغة، تسويق، إلخ.
+
+Each formation includes:
+
+عنوان التكوين (Title)
+
+وصف (Description)
+
+المدة (Duration)
+
+السعر (Price)
+
+صورة رمزية (Optional image)
+
+Show them in a grid layout
+
+Include a Join Now button → shows same form as groups
+
+🛠️ لوحة الإدارة (Admin Panel):
+Admin login (Firebase Auth)
+
+Manage all data:
+
+Add/edit/delete teachers
+
+Add/edit/delete blog posts
+
+Add/edit/delete groups & categories
+
+Add/edit/delete formations
+
+View submitted forms from users (join requests)
+
+View suggestions
+
+🧱 Technologies to Use:
+React + React Router DOM
+
+Firebase Authentication (with role management)
+
+Firebase Firestore for all data
+
+Tailwind CSS with Arabic RTL support
+
+PWA manifest + offline support
+
+📌 Notes:
+Mobile-first layout, clean UI
+
+All UI in Arabic
+
+All sections controlled by admin panel
+
+Use dummy Arabic data where needed
