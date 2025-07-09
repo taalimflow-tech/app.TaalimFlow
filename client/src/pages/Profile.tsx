@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 
 interface Child {
   id: number;
@@ -178,7 +177,7 @@ export default function Profile() {
       case 'teacher':
         return 'معلم';
       default:
-        return 'طالب';
+        return 'ولي أمر';
     }
   };
 
@@ -471,127 +470,6 @@ export default function Profile() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-            البيانات الشخصية
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            الإعدادات
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="profile" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                تحديث البيانات الشخصية
-              </CardTitle>
-              <CardDescription>
-                يمكنك تحديث معلوماتك الشخصية من هنا
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">الاسم الكامل</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="الاسم الكامل"
-                    className="mt-1"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="email">البريد الإلكتروني</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="البريد الإلكتروني"
-                    className="mt-1"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="phone">رقم الهاتف</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="رقم الهاتف"
-                    className="mt-1"
-                  />
-                </div>
-                
-                <Button type="submit" disabled={loading} className="w-full">
-                  <Save className="w-4 h-4 mr-2" />
-                  {loading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                إعدادات الحساب
-              </CardTitle>
-              <CardDescription>
-                إدارة إعدادات حسابك والأمان
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">معلومات الحساب</h4>
-                  <p className="text-sm text-gray-600">عرض معلومات الحساب الأساسية</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="w-4 h-4" />
-                    {user.email}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-1">
-                    <Phone className="w-4 h-4" />
-                    {user.phone}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">نوع الحساب</h4>
-                  <p className="text-sm text-gray-600">صلاحياتك الحالية في النظام</p>
-                </div>
-                <Badge className={`${getRoleColor(user.role)} flex items-center gap-1`}>
-                  {getRoleIcon(user.role)}
-                  {getRoleLabel(user.role)}
-                </Badge>
-              </div>
-              
-              <div className="pt-4 border-t">
-                <Button 
-                  variant="destructive" 
-                  onClick={logout}
-                  className="w-full"
-                >
-                  تسجيل الخروج
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
