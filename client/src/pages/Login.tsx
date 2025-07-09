@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -167,13 +167,14 @@ export default function Login() {
           </Tabs>
           
           <div className="mt-6 text-center">
-            <Button 
-              variant="link" 
-              className="text-sm text-gray-600"
-              onClick={() => navigate('/admin-login')}
-            >
-              تسجيل دخول المديرين والمعلمين
-            </Button>
+            <Link href="/admin-login">
+              <Button 
+                variant="link" 
+                className="text-sm text-gray-600"
+              >
+                تسجيل دخول المديرين والمعلمين
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

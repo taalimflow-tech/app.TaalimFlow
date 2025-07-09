@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Shield, GraduationCap } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -147,13 +147,14 @@ export default function AdminLogin() {
           </Tabs>
           
           <div className="mt-6 text-center">
-            <Button 
-              variant="link" 
-              className="text-sm text-gray-600"
-              onClick={() => navigate('/')}
-            >
-              العودة لتسجيل دخول الطلاب
-            </Button>
+            <Link href="/">
+              <Button 
+                variant="link" 
+                className="text-sm text-gray-600"
+              >
+                العودة لتسجيل دخول الطلاب
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
