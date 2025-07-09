@@ -31,43 +31,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Temporarily create a mock user for development
-    // TODO: Replace with actual authentication
-    const mockUser: User = {
-      id: '1',
-      email: email,
-      name: 'مستخدم تجريبي',
-      phone: '0555123456',
-      role: 'user',
-      firebaseUid: '1',
-      createdAt: new Date(),
-    };
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
     
-    setUser(mockUser);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'خطأ في تسجيل الدخول');
+    }
+    
+    const { user } = await response.json();
+    setUser(user);
     setFirebaseUser(null);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
   };
 
   const register = async (email: string, password: string, name: string, phone: string, role: string = 'user') => {
-    // Temporarily create a mock user for development
-    // TODO: Replace with actual authentication
-    const mockUser: User = {
-      id: '1',
-      email: email,
-      name: name,
-      phone: phone,
-      role: role as 'admin' | 'teacher' | 'user',
-      firebaseUid: '1',
-      createdAt: new Date(),
-    };
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password, name, phone, role }),
+    });
     
-    setUser(mockUser);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'خطأ في إنشاء الحساب');
+    }
+    
+    const { user } = await response.json();
+    setUser(user);
     setFirebaseUser(null);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
   };
 
   const logout = async () => {

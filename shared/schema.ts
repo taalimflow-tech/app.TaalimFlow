@@ -5,10 +5,11 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
+  password: text("password").notNull(),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   role: text("role").notNull().default("user"), // admin, teacher, user
-  firebaseUid: text("firebase_uid").notNull().unique(),
+  firebaseUid: text("firebase_uid"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -108,12 +109,18 @@ export const formationRegistrations = pgTable("formation_registrations", {
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
+  password: true,
   name: true,
   phone: true,
   role: true,
-  firebaseUid: true,
 }).extend({
   phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("بريد إلكتروني غير صحيح"),
+  password: z.string().min(1, "كلمة المرور مطلوبة"),
 });
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).pick({

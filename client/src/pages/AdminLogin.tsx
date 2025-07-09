@@ -24,10 +24,11 @@ export default function AdminLogin() {
     try {
       await login(email, password);
       toast({ title: 'تم تسجيل دخول المدير بنجاح' });
+      navigate('/admin');
     } catch (error) {
       toast({ 
         title: 'خطأ في تسجيل الدخول', 
-        description: 'تأكد من صحة بيانات المدير',
+        description: error instanceof Error ? error.message : 'تأكد من صحة بيانات المدير',
         variant: 'destructive'
       });
     } finally {
@@ -42,10 +43,11 @@ export default function AdminLogin() {
     try {
       await login(email, password);
       toast({ title: 'تم تسجيل دخول المعلم بنجاح' });
+      navigate('/');
     } catch (error) {
       toast({ 
         title: 'خطأ في تسجيل الدخول', 
-        description: 'تأكد من صحة بيانات المعلم',
+        description: error instanceof Error ? error.message : 'تأكد من صحة بيانات المعلم',
         variant: 'destructive'
       });
     } finally {

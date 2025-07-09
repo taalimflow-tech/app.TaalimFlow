@@ -1,9 +1,47 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, loginSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = loginSchema.parse(req.body);
+      const user = await storage.authenticateUser(email, password);
+      
+      if (user) {
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+        res.json({ user: userWithoutPassword });
+      } else {
+        res.status(401).json({ error: "بيانات تسجيل الدخول غير صحيحة" });
+      }
+    } catch (error) {
+      res.status(400).json({ error: "بيانات غير صحيحة" });
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const validatedData = insertUserSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ error: "المستخدم موجود بالفعل" });
+      }
+      
+      const user = await storage.createUser(validatedData);
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(400).json({ error: "بيانات غير صحيحة" });
+    }
+  });
+
   // Announcement routes
   app.get("/api/announcements", async (req, res) => {
     try {

@@ -28,7 +28,7 @@ export default function Login() {
     } catch (error) {
       toast({ 
         title: 'خطأ في تسجيل الدخول', 
-        description: 'تأكد من صحة البيانات المدخلة',
+        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات المدخلة',
         variant: 'destructive'
       });
     } finally {
@@ -46,7 +46,7 @@ export default function Login() {
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
-        description: 'تأكد من صحة البيانات المدخلة',
+        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات المدخلة',
         variant: 'destructive'
       });
     } finally {
