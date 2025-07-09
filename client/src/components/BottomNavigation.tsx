@@ -1,5 +1,6 @@
-import { Home, Calendar, MessageCircle, Lightbulb, Mail } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Lightbulb, Mail, Shield } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -7,16 +8,22 @@ interface NavItem {
   path: string;
 }
 
-const navItems: NavItem[] = [
-  { icon: Home, label: 'الرئيسية', path: '/' },
-  { icon: Calendar, label: 'الجدول', path: '/schedule' },
-  { icon: MessageCircle, label: 'المعلمين', path: '/teachers' },
-  { icon: Mail, label: 'الرسائل', path: '/messages' },
-  { icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' },
-];
-
 export function BottomNavigation() {
   const [location, navigate] = useLocation();
+  const { user } = useAuth();
+
+  const baseNavItems: NavItem[] = [
+    { icon: Home, label: 'الرئيسية', path: '/' },
+    { icon: Calendar, label: 'الجدول', path: '/schedule' },
+    { icon: MessageCircle, label: 'المعلمين', path: '/teachers' },
+    { icon: Mail, label: 'الرسائل', path: '/messages' },
+    { icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' },
+  ];
+
+  // Add admin panel for admin users
+  const navItems = user?.role === 'admin' 
+    ? [...baseNavItems, { icon: Shield, label: 'الإدارة', path: '/admin' }]
+    : baseNavItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30">
