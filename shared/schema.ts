@@ -118,6 +118,14 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
 });
 
+export const insertAdminSchema = insertUserSchema.extend({
+  adminKey: z.string().min(1, "مفتاح الإدارة مطلوب"),
+});
+
+export const insertTeacherUserSchema = insertUserSchema.extend({
+  teacherKey: z.string().min(1, "مفتاح المعلم مطلوب"),
+});
+
 export const loginSchema = z.object({
   email: z.string().email("بريد إلكتروني غير صحيح"),
   password: z.string().min(1, "كلمة المرور مطلوبة"),

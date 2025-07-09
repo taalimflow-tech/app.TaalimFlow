@@ -1,10 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, loginSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, loginSchema } from "@shared/schema";
 
 // Simple session storage for demo (in production, use Redis or database)
 let currentUser: any = null;
+
+// Secret keys for admin and teacher registration
+const ADMIN_SECRET_KEY = "ADMIN_2024_SECRET_KEY";
+const TEACHER_SECRET_KEY = "TEACHER_2024_SECRET_KEY";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -41,6 +45,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(400).json({ error: "بيانات غير صحيحة" });
+    }
+  });
+
+  // Admin registration with secret key
+  app.post("/api/auth/register-admin", async (req, res) => {
+    try {
+      const validatedData = insertAdminSchema.parse(req.body);
+      
+      // Verify admin secret key
+      if (validatedData.adminKey !== ADMIN_SECRET_KEY) {
+        return res.status(403).json({ error: "مفتاح الإدارة غير صحيح" });
+      }
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ error: "المستخدم موجود بالفعل" });
+      }
+      
+      // Create user with admin role
+      const { adminKey: _, ...userDataWithoutKey } = validatedData;
+      const userWithRole = { ...userDataWithoutKey, role: 'admin' };
+      const user = await storage.createUser(userWithRole);
+      
+      // Remove password from response
+      const { password: __, ...userWithoutPassword } = user;
+      res.status(201).json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(400).json({ error: "بيانات غير صحيحة" });
+    }
+  });
+
+  // Teacher registration with secret key
+  app.post("/api/auth/register-teacher", async (req, res) => {
+    try {
+      const validatedData = insertTeacherUserSchema.parse(req.body);
+      
+      // Verify teacher secret key
+      if (validatedData.teacherKey !== TEACHER_SECRET_KEY) {
+        return res.status(403).json({ error: "مفتاح المعلم غير صحيح" });
+      }
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ error: "المستخدم موجود بالفعل" });
+      }
+      
+      // Create user with teacher role
+      const { teacherKey: _, ...userDataWithoutKey } = validatedData;
+      const userWithRole = { ...userDataWithoutKey, role: 'teacher' };
+      const user = await storage.createUser(userWithRole);
+      
+      // Remove password from response
+      const { password: __, ...userWithoutPassword } = user;
       res.status(201).json({ user: userWithoutPassword });
     } catch (error) {
       res.status(400).json({ error: "بيانات غير صحيحة" });

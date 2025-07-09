@@ -12,6 +12,9 @@ import { Shield, GraduationCap } from 'lucide-react';
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [secretKey, setSecretKey] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
@@ -83,6 +86,80 @@ export default function AdminLogin() {
     }
   };
 
+  const handleAdminRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/auth/register-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          phone, 
+          password, 
+          adminKey: secretKey 
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'خطأ في تسجيل المدير');
+      }
+      
+      toast({ title: 'تم تسجيل المدير بنجاح' });
+      navigate('/admin');
+    } catch (error) {
+      toast({ 
+        title: 'خطأ في تسجيل المدير', 
+        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات ومفتاح الإدارة',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTeacherRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/auth/register-teacher', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          phone, 
+          password, 
+          teacherKey: secretKey 
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'خطأ في تسجيل المعلم');
+      }
+      
+      toast({ title: 'تم تسجيل المعلم بنجاح' });
+      navigate('/');
+    } catch (error) {
+      toast({ 
+        title: 'خطأ في تسجيل المعلم', 
+        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات ومفتاح المعلم',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 p-4">
       <Card className="w-full max-w-md">
@@ -95,19 +172,27 @@ export default function AdminLogin() {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="admin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="admin" className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                مدير
+          <Tabs defaultValue="admin-login" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="admin-login" className="flex items-center gap-1 text-xs">
+                <Shield className="w-3 h-3" />
+                دخول مدير
               </TabsTrigger>
-              <TabsTrigger value="teacher" className="flex items-center gap-2">
-                <GraduationCap className="w-4 h-4" />
-                معلم
+              <TabsTrigger value="teacher-login" className="flex items-center gap-1 text-xs">
+                <GraduationCap className="w-3 h-3" />
+                دخول معلم
+              </TabsTrigger>
+              <TabsTrigger value="admin-register" className="flex items-center gap-1 text-xs">
+                <Shield className="w-3 h-3" />
+                تسجيل مدير
+              </TabsTrigger>
+              <TabsTrigger value="teacher-register" className="flex items-center gap-1 text-xs">
+                <GraduationCap className="w-3 h-3" />
+                تسجيل معلم
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="admin">
+            <TabsContent value="admin-login">
               <form onSubmit={handleAdminLogin} className="space-y-4">
                 <div>
                   <Label htmlFor="admin-email">البريد الإلكتروني</Label>
@@ -140,7 +225,7 @@ export default function AdminLogin() {
               </form>
             </TabsContent>
             
-            <TabsContent value="teacher">
+            <TabsContent value="teacher-login">
               <form onSubmit={handleTeacherLogin} className="space-y-4">
                 <div>
                   <Label htmlFor="teacher-email">البريد الإلكتروني</Label>
@@ -169,6 +254,134 @@ export default function AdminLogin() {
                 <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90" disabled={loading}>
                   <GraduationCap className="w-4 h-4 mr-2" />
                   {loading ? 'جاري تسجيل الدخول...' : 'دخول كمعلم'}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="admin-register">
+              <form onSubmit={handleAdminRegister} className="space-y-3">
+                <div>
+                  <Label htmlFor="admin-reg-name">الاسم الكامل</Label>
+                  <Input
+                    id="admin-reg-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    placeholder="الاسم الكامل"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="admin-reg-email">البريد الإلكتروني</Label>
+                  <Input
+                    id="admin-reg-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="admin@example.com"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="admin-reg-phone">رقم الهاتف</Label>
+                  <Input
+                    id="admin-reg-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    placeholder="0555123456"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="admin-reg-password">كلمة المرور</Label>
+                  <Input
+                    id="admin-reg-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="كلمة المرور"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="admin-secret-key">مفتاح الإدارة السري</Label>
+                  <Input
+                    id="admin-secret-key"
+                    type="password"
+                    value={secretKey}
+                    onChange={(e) => setSecretKey(e.target.value)}
+                    required
+                    placeholder="مفتاح الإدارة السري"
+                  />
+                </div>
+                <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90">
+                  <Shield className="w-4 h-4 mr-2" />
+                  {loading ? 'جاري التسجيل...' : 'تسجيل مدير جديد'}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="teacher-register">
+              <form onSubmit={handleTeacherRegister} className="space-y-3">
+                <div>
+                  <Label htmlFor="teacher-reg-name">الاسم الكامل</Label>
+                  <Input
+                    id="teacher-reg-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    placeholder="الاسم الكامل"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="teacher-reg-email">البريد الإلكتروني</Label>
+                  <Input
+                    id="teacher-reg-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="teacher@example.com"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="teacher-reg-phone">رقم الهاتف</Label>
+                  <Input
+                    id="teacher-reg-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    placeholder="0555123456"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="teacher-reg-password">كلمة المرور</Label>
+                  <Input
+                    id="teacher-reg-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="كلمة المرور"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="teacher-secret-key">مفتاح المعلم السري</Label>
+                  <Input
+                    id="teacher-secret-key"
+                    type="password"
+                    value={secretKey}
+                    onChange={(e) => setSecretKey(e.target.value)}
+                    required
+                    placeholder="مفتاح المعلم السري"
+                  />
+                </div>
+                <Button type="submit" disabled={loading} className="w-full bg-secondary hover:bg-secondary/90">
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  {loading ? 'جاري التسجيل...' : 'تسجيل معلم جديد'}
                 </Button>
               </form>
             </TabsContent>
