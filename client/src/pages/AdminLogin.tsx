@@ -150,7 +150,7 @@ export default function AdminLogin() {
             <Button 
               variant="link" 
               className="text-sm text-gray-600"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/')}
             >
               العودة لتسجيل دخول الطلاب
             </Button>
