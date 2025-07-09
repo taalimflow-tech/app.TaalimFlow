@@ -55,8 +55,8 @@ export default function AdminUsers() {
     queryKey: ['/api/users', searchQuery],
     queryFn: async () => {
       const url = searchQuery ? `/api/users?search=${encodeURIComponent(searchQuery)}` : '/api/users';
-      const response = await apiRequest(url);
-      return response;
+      const response = await apiRequest('GET', url);
+      return await response.json();
     },
     enabled: !!user && user.role === 'admin',
   });
@@ -64,8 +64,10 @@ export default function AdminUsers() {
   // Fetch specific user details
   const fetchUserDetails = async (userId: number) => {
     try {
-      const userDetails = await apiRequest(`/api/users/${userId}`);
-      const userMessages = await apiRequest(`/api/users/${userId}/messages`);
+      const userResponse = await apiRequest('GET', `/api/users/${userId}`);
+      const messagesResponse = await apiRequest('GET', `/api/users/${userId}/messages`);
+      const userDetails = await userResponse.json();
+      const userMessages = await messagesResponse.json();
       setViewingUser(userDetails);
       setViewingUserMessages(userMessages);
     } catch (error) {
@@ -76,10 +78,8 @@ export default function AdminUsers() {
   // Bulk message mutation
   const bulkMessageMutation = useMutation({
     mutationFn: async (data: { receiverIds: number[], subject: string, content: string }) => {
-      return await apiRequest('/api/messages/bulk', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('POST', '/api/messages/bulk', data);
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({ title: `تم إرسال ${data.count} رسالة بنجاح` });
