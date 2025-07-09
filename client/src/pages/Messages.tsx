@@ -16,11 +16,13 @@ export default function Messages() {
   // Filter messages for the current user/teacher
   const userMessages = messages.filter(message => {
     if (user?.role === 'teacher') {
-      // Teachers see messages sent to them
+      // Teachers see messages sent to them via teacherId
       return message.teacherId && message.teacherId.toString() === user.id.toString();
     } else {
-      // Regular users see messages they sent
-      return message.senderId && message.senderId.toString() === user?.id.toString();
+      // Regular users see messages they received (where they are the receiver)
+      // Also include messages they sent (where they are the sender)
+      return (message.receiverId && message.receiverId.toString() === user?.id.toString()) ||
+             (message.senderId && message.senderId.toString() === user?.id.toString());
     }
   });
 
@@ -62,7 +64,9 @@ export default function Messages() {
                   <p className="text-sm text-gray-500">
                     {user?.role === 'teacher' 
                       ? `رسالة من طالب` 
-                      : `رسالة إلى المعلم`
+                      : message.receiverId?.toString() === user?.id.toString()
+                        ? `رسالة من الإدارة`
+                        : `رسالة إلى المعلم`
                     }
                   </p>
                 </div>
