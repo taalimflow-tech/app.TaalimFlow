@@ -1,37 +1,13 @@
-import { useState, useEffect } from 'react';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useQuery } from '@tanstack/react-query';
 import { AnnouncementCard } from '@/components/AnnouncementCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Announcement } from '@/types';
 import { Megaphone } from 'lucide-react';
 
 export default function Announcements() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const q = query(
-          collection(db, 'announcements'),
-          orderBy('createdAt', 'desc')
-        );
-        const querySnapshot = await getDocs(q);
-        const announcementsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Announcement[];
-        setAnnouncements(announcementsData);
-      } catch (error) {
-        console.error('Error fetching announcements:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnnouncements();
-  }, []);
+  const { data: announcements = [], isLoading: loading } = useQuery<Announcement[]>({
+    queryKey: ['/api/announcements'],
+  });
 
   return (
     <div className="bg-background min-h-screen">

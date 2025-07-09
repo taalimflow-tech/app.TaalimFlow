@@ -103,10 +103,23 @@ Preferred communication style: Simple, everyday language.
 - **Push Notifications**: Integrated notification system
 
 ### Database Schema
-The application uses a hybrid approach:
-- **User management**: Stored in both Firebase and PostgreSQL
+The application now uses a unified PostgreSQL database approach:
+- **User management**: PostgreSQL with Firebase Auth for authentication
 - **Content data**: Announcements, blog posts, teachers stored in PostgreSQL
-- **Real-time data**: Messages, suggestions stored in Firebase Firestore
+- **Application data**: Messages, suggestions, groups, formations stored in PostgreSQL
+- **Registration data**: Group and formation registrations stored in PostgreSQL
 - **File storage**: Images and assets in Firebase Storage
 
-This architecture provides the benefits of Firebase's real-time capabilities while maintaining relational data integrity in PostgreSQL for structured content.
+#### Database Tables:
+- `users` - User profiles with phone numbers and roles
+- `announcements` - School announcements and news
+- `blog_posts` - Blog content with publishing status
+- `teachers` - Teacher profiles and availability
+- `messages` - Communication between users and teachers
+- `suggestions` - User feedback and suggestions
+- `groups` - Learning groups and activities
+- `formations` - Training courses and programs
+- `group_registrations` - Group enrollment data
+- `formation_registrations` - Course enrollment data
+
+This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.

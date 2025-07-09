@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { collection, getDocs, orderBy, query, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useQuery } from '@tanstack/react-query';
 import { AnnouncementCard } from '@/components/AnnouncementCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,33 +7,14 @@ import { useLocation } from 'wouter';
 import { Megaphone } from 'lucide-react';
 
 export default function Home() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
   const [, navigate] = useLocation();
+  
+  const { data: allAnnouncements = [], isLoading: loading } = useQuery<Announcement[]>({
+    queryKey: ['/api/announcements'],
+  });
 
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const q = query(
-          collection(db, 'announcements'),
-          orderBy('createdAt', 'desc'),
-          limit(3)
-        );
-        const querySnapshot = await getDocs(q);
-        const announcementsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Announcement[];
-        setAnnouncements(announcementsData);
-      } catch (error) {
-        console.error('Error fetching announcements:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnnouncements();
-  }, []);
+  // Get the latest 3 announcements
+  const announcements = allAnnouncements.slice(0, 3);
 
   const quickActions = [
     { label: 'المدونة', path: '/blog', icon: '📚' },

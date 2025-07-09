@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -10,28 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Teacher } from '@/types';
 
 export default function Teachers() {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'teachers'));
-        const teachersData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Teacher[];
-        setTeachers(teachersData);
-      } catch (error) {
-        console.error('Error fetching teachers:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeachers();
-  }, []);
+  
+  const { data: teachers = [], isLoading: loading } = useQuery<Teacher[]>({
+    queryKey: ['/api/teachers'],
+  });
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
