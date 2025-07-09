@@ -15,7 +15,7 @@ import Formations from "@/pages/Formations";
 import AdminPanel from "@/pages/AdminPanel";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
-import Profile from "@/pages/Profile";
+import Profile from "@/pages/Profile-simple";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -67,7 +67,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
+        <div className="min-h-screen bg-gray-50">
+          <div className="max-w-md mx-auto bg-white min-h-screen">
+            <Router />
+          </div>
+        </div>
       </AuthProvider>
     </QueryClientProvider>
   );
