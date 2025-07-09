@@ -1,7 +1,6 @@
 import { Bell, Menu, LogOut, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useLocation } from 'wouter';
 
 export function Header() {
@@ -11,33 +10,14 @@ export function Header() {
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
       <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="p-2 rounded-lg hover:bg-gray-50 transition-colors">
-              <Menu className="w-6 h-6 text-gray-600" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
-              <User className="w-4 h-4 mr-2" />
-              الملف الشخصي
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
-              <Settings className="w-4 h-4 mr-2" />
-              الإعدادات
-            </DropdownMenuItem>
-            {user?.role === 'admin' && (
-              <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer">
-                <Settings className="w-4 h-4 mr-2" />
-                لوحة الإدارة
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
-              <LogOut className="w-4 h-4 mr-2" />
-              تسجيل الخروج
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate('/profile')}
+          className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <Menu className="w-6 h-6 text-gray-600" />
+        </Button>
         
         <div className="flex items-center space-x-reverse space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-sm">
