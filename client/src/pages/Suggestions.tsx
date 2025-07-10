@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,20 +31,24 @@ export default function Suggestions() {
 
     setLoading(true);
     try {
-      await addDoc(collection(db, 'suggestions'), {
+      const response = await apiRequest('POST', '/api/suggestions', {
         userId: user.id,
         title,
         content,
         category,
-        status: 'pending',
-        createdAt: new Date(),
+        status: 'pending'
       });
 
-      toast({ title: 'تم إرسال الاقتراح بنجاح!' });
-      setTitle('');
-      setContent('');
-      setCategory('');
+      if (response.ok) {
+        toast({ title: 'تم إرسال الاقتراح بنجاح!' });
+        setTitle('');
+        setContent('');
+        setCategory('');
+      } else {
+        throw new Error('Failed to submit suggestion');
+      }
     } catch (error) {
+      console.error('Error submitting suggestion:', error);
       toast({ 
         title: 'خطأ في إرسال الاقتراح',
         description: 'يرجى المحاولة مرة أخرى',

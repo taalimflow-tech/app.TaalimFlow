@@ -5,9 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Announcement } from '@/types';
 import { useLocation } from 'wouter';
 import { Megaphone } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
   const [, navigate] = useLocation();
+  const { user } = useAuth();
   
   const { data: allAnnouncements = [], isLoading: loading } = useQuery<Announcement[]>({
     queryKey: ['/api/announcements'],
@@ -16,12 +18,16 @@ export default function Home() {
   // Get the latest 3 announcements
   const announcements = allAnnouncements.slice(0, 3);
 
-  const quickActions = [
+  const baseQuickActions = [
     { label: 'المدونة', path: '/blog', icon: '📚' },
     { label: 'المجموعات', path: '/groups', icon: '👥' },
-    { label: 'الاقتراحات', path: '/suggestions', icon: '💡' },
     { label: 'التكوينات', path: '/formations', icon: '🎓' },
   ];
+
+  // Add suggestions for non-admin users only
+  const quickActions = user?.role !== 'admin' 
+    ? [...baseQuickActions, { label: 'الاقتراحات', path: '/suggestions', icon: '💡' }]
+    : baseQuickActions;
 
   return (
     <div className="bg-background min-h-screen">

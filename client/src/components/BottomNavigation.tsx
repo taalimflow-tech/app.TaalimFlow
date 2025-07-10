@@ -17,13 +17,17 @@ export function BottomNavigation() {
     { icon: Calendar, label: 'الجدول', path: '/schedule' },
     { icon: MessageCircle, label: 'المعلمين', path: '/teachers' },
     { icon: Mail, label: 'الرسائل', path: '/messages' },
-    { icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' },
   ];
+
+  // Add suggestions for non-admin users only
+  const userNavItems = user?.role !== 'admin' 
+    ? [...baseNavItems, { icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' }]
+    : baseNavItems;
 
   // Add admin panel for admin users
   const navItems = user?.role === 'admin' 
-    ? [...baseNavItems, { icon: Shield, label: 'الإدارة', path: '/admin' }]
-    : baseNavItems;
+    ? [...userNavItems, { icon: Shield, label: 'الإدارة', path: '/admin' }]
+    : userNavItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30">

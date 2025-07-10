@@ -440,7 +440,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const suggestion = await storage.createSuggestion(validatedData);
       
       // Create notification for admins about new suggestion
-      const adminUsers = await storage.searchUsers('admin');
+      const allUsers = await storage.getAllUsers();
+      const adminUsers = allUsers.filter(u => u.role === 'admin');
       if (adminUsers.length > 0) {
         await storage.createNotificationForUsers(
           adminUsers.map(u => u.id),
@@ -471,6 +472,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertGroupSchema.parse(req.body);
       const group = await storage.createGroup(validatedData);
+      
+      // Create notifications for all users about new group
+      const allUsers = await storage.getAllUsers();
+      const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
+      if (nonAdminUsers.length > 0) {
+        await storage.createNotificationForUsers(
+          nonAdminUsers.map(u => u.id),
+          'group_update',
+          '👥 مجموعة جديدة',
+          `تم إنشاء مجموعة جديدة: "${group.name}"`,
+          group.id
+        );
+      }
+      
       res.status(201).json(group);
     } catch (error) {
       res.status(400).json({ error: "Invalid group data" });
@@ -505,6 +520,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertFormationSchema.parse(req.body);
       const formation = await storage.createFormation(validatedData);
+      
+      // Create notifications for all users about new formation
+      const allUsers = await storage.getAllUsers();
+      const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
+      if (nonAdminUsers.length > 0) {
+        await storage.createNotificationForUsers(
+          nonAdminUsers.map(u => u.id),
+          'formation_update',
+          '🎓 تدريب جديد',
+          `تم إنشاء تدريب جديد: "${formation.name}"`,
+          formation.id
+        );
+      }
+      
       res.status(201).json(formation);
     } catch (error) {
       res.status(400).json({ error: "Invalid formation data" });

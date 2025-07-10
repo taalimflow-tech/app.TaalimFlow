@@ -30,6 +30,7 @@ const getNotificationIcon = (type: string) => {
     case 'blog': return '📚';
     case 'announcement': return '📅';
     case 'group_update': return '👥';
+    case 'formation_update': return '🎓';
     default: return '🔔';
   }
 };
@@ -41,6 +42,7 @@ const getNotificationColor = (type: string) => {
     case 'blog': return 'bg-purple-100 text-purple-800';
     case 'announcement': return 'bg-orange-100 text-orange-800';
     case 'group_update': return 'bg-indigo-100 text-indigo-800';
+    case 'formation_update': return 'bg-yellow-100 text-yellow-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
@@ -147,6 +149,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                             {notification.type === 'blog' && 'مقال'}
                             {notification.type === 'announcement' && 'إعلان'}
                             {notification.type === 'group_update' && 'مجموعة'}
+                            {notification.type === 'formation_update' && 'تدريب'}
                           </Badge>
                           {!notification.read && (
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
