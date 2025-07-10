@@ -178,9 +178,9 @@ export default function AdminUsers() {
             <div className="flex items-center gap-2">
               <Button
                 onClick={() => navigate('/admin/content')}
-                className="bg-green-600 hover:bg-green-700 text-white text-sm"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm font-medium"
               >
-                <Plus className="w-4 h-4 mr-1" />
+                <Plus className="w-4 h-4 mr-2" />
                 إدارة المحتوى
               </Button>
               {selectedUsers.length > 0 && (

@@ -56,6 +56,7 @@ function AuthenticatedRoutes() {
           <Route path="/announcements" component={Announcements} />
           <Route path="/admin" component={AdminPanelTest} />
           <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/admin/content" component={AdminContent} />
           <Route path="/profile" component={Profile} />
           <Route component={NotFound} />
         </Switch>
