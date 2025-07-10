@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Users, Mail, Phone, Eye, Send, CheckSquare, Square, Baby, MessageSquare, Calendar } from 'lucide-react';
+import { Search, Users, Mail, Phone, Eye, Send, CheckSquare, Square, Baby, MessageSquare, Calendar, FileText, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
 
 interface User {
   id: number;
@@ -39,6 +41,7 @@ export default function AdminUsers() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
@@ -172,15 +175,24 @@ export default function AdminUsers() {
               <p className="text-gray-600">عرض وإدارة جميع المستخدمين المسجلين</p>
             </div>
             
-            {selectedUsers.length > 0 && (
-              <button
-                onClick={() => setShowBulkMessage(true)}
-                className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center gap-2"
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => navigate('/admin/content')}
+                className="bg-green-600 hover:bg-green-700 text-white text-sm"
               >
-                <Send className="w-4 h-4" />
-                إرسال رسالة جماعية ({selectedUsers.length})
-              </button>
-            )}
+                <Plus className="w-4 h-4 mr-1" />
+                إدارة المحتوى
+              </Button>
+              {selectedUsers.length > 0 && (
+                <button
+                  onClick={() => setShowBulkMessage(true)}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  إرسال رسالة جماعية ({selectedUsers.length})
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

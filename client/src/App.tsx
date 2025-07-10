@@ -14,6 +14,7 @@ import Groups from "@/pages/Groups";
 import Formations from "@/pages/Formations";
 import AdminPanel from "@/pages/AdminPanel";
 import AdminUsers from "@/pages/AdminUsers";
+import AdminContent from "@/pages/AdminContent";
 import AdminPanelTest from "@/pages/AdminPanelTest";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
@@ -71,6 +72,13 @@ function Router() {
         <AuthWrapper>
           <Layout>
             <AdminUsers />
+          </Layout>
+        </AuthWrapper>
+      )} />
+      <Route path="/admin/content" component={() => (
+        <AuthWrapper>
+          <Layout>
+            <AdminContent />
           </Layout>
         </AuthWrapper>
       )} />
