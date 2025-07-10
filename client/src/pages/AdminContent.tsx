@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, FileText, Users, BookOpen, X, ArrowLeft } from 'lucide-react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { Plus, FileText, Users, BookOpen, X, ArrowLeft, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -111,6 +111,84 @@ export default function AdminContent() {
     onError: () => {
       toast({ title: 'خطأ في إنشاء المعلم', variant: 'destructive' });
     }
+  });
+
+  // Delete mutations
+  const deleteBlogMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/blog-posts/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم حذف المقال بنجاح' });
+      queryClient.invalidateQueries({ queryKey: ['/api/blog-posts'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في حذف المقال', variant: 'destructive' });
+    }
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/groups/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم حذف المجموعة بنجاح' });
+      queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في حذف المجموعة', variant: 'destructive' });
+    }
+  });
+
+  const deleteFormationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/formations/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم حذف التكوين بنجاح' });
+      queryClient.invalidateQueries({ queryKey: ['/api/formations'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في حذف التكوين', variant: 'destructive' });
+    }
+  });
+
+  const deleteTeacherMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/teachers/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم حذف المعلم بنجاح' });
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في حذف المعلم', variant: 'destructive' });
+    }
+  });
+
+  // Fetch existing content
+  const { data: blogPosts = [] } = useQuery({
+    queryKey: ['/api/blog-posts'],
+    enabled: activeTab === 'blog'
+  });
+
+  const { data: groups = [] } = useQuery({
+    queryKey: ['/api/groups'],
+    enabled: activeTab === 'group'
+  });
+
+  const { data: formations = [] } = useQuery({
+    queryKey: ['/api/formations'],
+    enabled: activeTab === 'formation'
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['/api/teachers'],
+    enabled: activeTab === 'teacher'
   });
 
   const resetForm = () => {
@@ -463,6 +541,154 @@ export default function AdminContent() {
         </Card>
       )}
 
+      {/* Content List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {activeTab === 'blog' && `المقالات الموجودة (${blogPosts.length})`}
+            {activeTab === 'group' && `المجموعات الموجودة (${groups.length})`}
+            {activeTab === 'formation' && `التكوينات الموجودة (${formations.length})`}
+            {activeTab === 'teacher' && `المعلمين الموجودين (${teachers.length})`}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {/* Blog Posts List */}
+            {activeTab === 'blog' && (
+              <>
+                {blogPosts.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">لا توجد مقالات</p>
+                ) : (
+                  blogPosts.map((post: any) => (
+                    <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{post.title}</h4>
+                        <p className="text-sm text-gray-600 mt-1 truncate">{post.content}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(post.createdAt).toLocaleDateString('ar-DZ')}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => deleteBlogMutation.mutate(post.id)}
+                        disabled={deleteBlogMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {/* Groups List */}
+            {activeTab === 'group' && (
+              <>
+                {groups.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">لا توجد مجموعات</p>
+                ) : (
+                  groups.map((group: any) => (
+                    <div key={group.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{group.name}</h4>
+                        <p className="text-sm text-gray-600 mt-1">{group.description}</p>
+                        <div className="flex gap-4 mt-1">
+                          <span className="text-xs text-gray-500">الفئة: {group.category}</span>
+                          {group.maxMembers && (
+                            <span className="text-xs text-gray-500">أقصى عدد: {group.maxMembers}</span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => deleteGroupMutation.mutate(group.id)}
+                        disabled={deleteGroupMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {/* Formations List */}
+            {activeTab === 'formation' && (
+              <>
+                {formations.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">لا توجد تكوينات</p>
+                ) : (
+                  formations.map((formation: any) => (
+                    <div key={formation.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{formation.title}</h4>
+                        <p className="text-sm text-gray-600 mt-1">{formation.description}</p>
+                        <div className="flex gap-4 mt-1">
+                          <span className="text-xs text-gray-500">المدة: {formation.duration}</span>
+                          <span className="text-xs text-gray-500">السعر: {formation.price}</span>
+                          <span className="text-xs text-gray-500">الفئة: {formation.category}</span>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => deleteFormationMutation.mutate(formation.id)}
+                        disabled={deleteFormationMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {/* Teachers List */}
+            {activeTab === 'teacher' && (
+              <>
+                {teachers.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">لا يوجد معلمين</p>
+                ) : (
+                  teachers.map((teacher: any) => (
+                    <div key={teacher.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{teacher.name}</h4>
+                        <p className="text-sm text-gray-600 mt-1">المادة: {teacher.subject}</p>
+                        <div className="flex gap-4 mt-1">
+                          {teacher.email && (
+                            <span className="text-xs text-gray-500">البريد: {teacher.email}</span>
+                          )}
+                          {teacher.phone && (
+                            <span className="text-xs text-gray-500">الهاتف: {teacher.phone}</span>
+                          )}
+                        </div>
+                        {teacher.bio && (
+                          <p className="text-xs text-gray-500 mt-1 truncate">{teacher.bio}</p>
+                        )}
+                      </div>
+                      <Button
+                        onClick={() => deleteTeacherMutation.mutate(teacher.id)}
+                        disabled={deleteTeacherMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Instructions */}
       <Card className="bg-purple-50 border-purple-200">
         <CardContent className="p-4">
@@ -470,6 +696,9 @@ export default function AdminContent() {
           <ul className="text-sm text-purple-700 space-y-1">
             <li>• يمكنك إنشاء مقالات جديدة في المدونة</li>
             <li>• إضافة مجموعات تعليمية للطلاب</li>
+            <li>• إنشاء تكوينات مهنية</li>
+            <li>• إضافة معلمين جدد</li>
+            <li>• حذف أي محتوى غير مرغوب فيه باستخدام زر الحذف</li>
             <li>• إنشاء تكوينات ودورات تدريبية</li>
             <li>• إضافة معلمين جدد للمنصة</li>
             <li>• جميع المحتوى سيظهر للمستخدمين فور إنشائه</li>

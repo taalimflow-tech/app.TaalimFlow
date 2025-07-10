@@ -313,6 +313,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/blog-posts/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const id = parseInt(req.params.id);
+      await storage.deleteBlogPost(id);
+      res.json({ message: "تم حذف المقال بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete blog post" });
+    }
+  });
+
   // Teacher routes
   app.get("/api/teachers", async (req, res) => {
     try {
@@ -330,6 +344,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(teacher);
     } catch (error) {
       res.status(400).json({ error: "Invalid teacher data" });
+    }
+  });
+
+  app.delete("/api/teachers/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const id = parseInt(req.params.id);
+      await storage.deleteTeacher(id);
+      res.json({ message: "تم حذف المعلم بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete teacher" });
     }
   });
 
@@ -397,6 +425,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/groups/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const id = parseInt(req.params.id);
+      await storage.deleteGroup(id);
+      res.json({ message: "تم حذف المجموعة بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete group" });
+    }
+  });
+
   // Formation routes
   app.get("/api/formations", async (req, res) => {
     try {
@@ -414,6 +456,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(formation);
     } catch (error) {
       res.status(400).json({ error: "Invalid formation data" });
+    }
+  });
+
+  app.delete("/api/formations/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const id = parseInt(req.params.id);
+      await storage.deleteFormation(id);
+      res.json({ message: "تم حذف التكوين بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete formation" });
     }
   });
 

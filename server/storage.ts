@@ -20,10 +20,12 @@ export interface IStorage {
   // Blog post methods
   getBlogPosts(): Promise<BlogPost[]>;
   createBlogPost(blogPost: InsertBlogPost): Promise<BlogPost>;
+  deleteBlogPost(id: number): Promise<void>;
   
   // Teacher methods
   getTeachers(): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
+  deleteTeacher(id: number): Promise<void>;
   
   // Message methods
   getMessages(): Promise<Message[]>;
@@ -38,10 +40,12 @@ export interface IStorage {
   // Group methods
   getGroups(): Promise<Group[]>;
   createGroup(group: InsertGroup): Promise<Group>;
+  deleteGroup(id: number): Promise<void>;
   
   // Formation methods
   getFormations(): Promise<Formation[]>;
   createFormation(formation: InsertFormation): Promise<Formation>;
+  deleteFormation(id: number): Promise<void>;
   
   // Registration methods
   createGroupRegistration(registration: InsertGroupRegistration): Promise<GroupRegistration>;
@@ -144,6 +148,10 @@ export class DatabaseStorage implements IStorage {
     return blogPost;
   }
 
+  async deleteBlogPost(id: number): Promise<void> {
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
+  }
+
   async getTeachers(): Promise<Teacher[]> {
     return await db.select().from(teachers).orderBy(desc(teachers.createdAt));
   }
@@ -154,6 +162,10 @@ export class DatabaseStorage implements IStorage {
       .values(insertTeacher)
       .returning();
     return teacher;
+  }
+
+  async deleteTeacher(id: number): Promise<void> {
+    await db.delete(teachers).where(eq(teachers.id, id));
   }
 
   async getMessages(): Promise<Message[]> {
@@ -224,6 +236,10 @@ export class DatabaseStorage implements IStorage {
     return group;
   }
 
+  async deleteGroup(id: number): Promise<void> {
+    await db.delete(groups).where(eq(groups.id, id));
+  }
+
   async getFormations(): Promise<Formation[]> {
     return await db.select().from(formations).orderBy(desc(formations.createdAt));
   }
@@ -234,6 +250,10 @@ export class DatabaseStorage implements IStorage {
       .values(insertFormation)
       .returning();
     return formation;
+  }
+
+  async deleteFormation(id: number): Promise<void> {
+    await db.delete(formations).where(eq(formations.id, id));
   }
 
   async createGroupRegistration(insertGroupRegistration: InsertGroupRegistration): Promise<GroupRegistration> {
