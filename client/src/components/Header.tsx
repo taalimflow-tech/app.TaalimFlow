@@ -1,10 +1,21 @@
+import { useState } from 'react';
 import { Bell, Menu, LogOut, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { NotificationPanel } from './NotificationPanel';
 
 export function Header() {
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Fetch unread notification count
+  const { data: unreadCount = { count: 0 } } = useQuery({
+    queryKey: ['/api/notifications/unread-count'],
+    enabled: !!user,
+    refetchInterval: 30000 // Refetch every 30 seconds
+  });
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
@@ -30,9 +41,16 @@ export function Header() {
         </div>
         
         <div className="flex items-center space-x-reverse space-x-2">
-          <button className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors">
+          <button 
+            onClick={() => setShowNotifications(true)}
+            className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors"
+          >
             <Bell className="w-6 h-6 text-gray-600" />
-            <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+            {unreadCount.count > 0 && (
+              <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount.count > 9 ? '9+' : unreadCount.count}
+              </span>
+            )}
           </button>
           
           {user && (
@@ -45,6 +63,11 @@ export function Header() {
           )}
         </div>
       </div>
+      
+      <NotificationPanel 
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </header>
   );
 }

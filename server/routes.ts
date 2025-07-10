@@ -287,6 +287,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertAnnouncementSchema.parse(req.body);
       const announcement = await storage.createAnnouncement(validatedData);
+      
+      // Create notifications for all users about new announcement
+      const allUsers = await storage.getAllUsers();
+      const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
+      if (nonAdminUsers.length > 0) {
+        await storage.createNotificationForUsers(
+          nonAdminUsers.map(u => u.id),
+          'announcement',
+          '📅 إعلان جديد',
+          `إعلان جديد: "${announcement.title}"`,
+          announcement.id
+        );
+      }
+      
       res.status(201).json(announcement);
     } catch (error) {
       res.status(400).json({ error: "Invalid announcement data" });
@@ -307,6 +321,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertBlogPostSchema.parse(req.body);
       const blogPost = await storage.createBlogPost(validatedData);
+      
+      // Create notifications for all users about new blog post
+      const allUsers = await storage.getAllUsers();
+      const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
+      if (nonAdminUsers.length > 0) {
+        await storage.createNotificationForUsers(
+          nonAdminUsers.map(u => u.id),
+          'blog',
+          '📚 مقال جديد',
+          `تم نشر مقال جديد: "${blogPost.title}"`,
+          blogPost.id
+        );
+      }
+      
       res.status(201).json(blogPost);
     } catch (error) {
       res.status(400).json({ error: "Invalid blog post data" });
@@ -378,6 +406,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Validated data:', validatedData);
       const message = await storage.createMessage(validatedData);
       console.log('Created message:', message);
+      
+      // Create notification for message receiver
+      const sender = await storage.getUser(message.senderId);
+      await storage.createNotification({
+        userId: message.receiverId,
+        type: 'message',
+        title: '💬 رسالة جديدة',
+        message: `رسالة جديدة من ${sender?.name}: "${message.subject}"`,
+        relatedId: message.id
+      });
+      
       res.status(201).json(message);
     } catch (error) {
       console.error('Error creating message:', error);
@@ -399,6 +438,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertSuggestionSchema.parse(req.body);
       const suggestion = await storage.createSuggestion(validatedData);
+      
+      // Create notification for admins about new suggestion
+      const adminUsers = await storage.searchUsers('admin');
+      if (adminUsers.length > 0) {
+        await storage.createNotificationForUsers(
+          adminUsers.map(u => u.id),
+          'suggestion',
+          '📥 اقتراح جديد',
+          `تم تقديم اقتراح جديد: "${suggestion.title}"`,
+          suggestion.id
+        );
+      }
+      
       res.status(201).json(suggestion);
     } catch (error) {
       res.status(400).json({ error: "Invalid suggestion data" });
@@ -539,6 +591,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(registration);
     } catch (error) {
       res.status(400).json({ error: "Invalid formation registration data" });
+    }
+  });
+
+  // Notification routes
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const notifications = await storage.getNotifications(currentUser.id);
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const count = await storage.getUnreadNotificationCount(currentUser.id);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch unread count" });
+    }
+  });
+
+  app.post("/api/notifications/:id/read", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const notificationId = parseInt(req.params.id);
+      await storage.markNotificationAsRead(notificationId);
+      res.json({ message: "تم تحديث الإشعار" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  app.post("/api/notifications/mark-all-read", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      await storage.markAllNotificationsAsRead(currentUser.id);
+      res.json({ message: "تم تحديث جميع الإشعارات" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to mark all notifications as read" });
     }
   });
 

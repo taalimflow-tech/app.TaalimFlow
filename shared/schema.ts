@@ -115,6 +115,17 @@ export const children = pgTable("children", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'suggestion', 'message', 'blog', 'announcement', 'group_update'
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  read: boolean("read").default(false).notNull(),
+  relatedId: integer("related_id"), // ID of related entity (suggestion, message, etc.)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -218,6 +229,14 @@ export const insertChildSchema = createInsertSchema(children).pick({
   grade: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).pick({
+  userId: true,
+  type: true,
+  title: true,
+  message: true,
+  relatedId: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -241,3 +260,5 @@ export type FormationRegistration = typeof formationRegistrations.$inferSelect;
 export type InsertFormationRegistration = z.infer<typeof insertFormationRegistrationSchema>;
 export type Child = typeof children.$inferSelect;
 export type InsertChild = z.infer<typeof insertChildSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
