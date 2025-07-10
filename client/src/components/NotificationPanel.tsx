@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'wouter';
 
 interface Notification {
   id: number;
@@ -50,6 +51,43 @@ const getNotificationColor = (type: string) => {
 export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+
+  const handleNotificationClick = (notification: Notification) => {
+    // Mark as read first
+    if (!notification.read) {
+      markAsReadMutation.mutate(notification.id);
+    }
+
+    // Navigate based on notification type
+    switch (notification.type) {
+      case 'blog':
+        navigate('/blog');
+        break;
+      case 'announcement':
+        navigate('/');
+        break;
+      case 'group_update':
+        navigate('/groups');
+        break;
+      case 'formation_update':
+        navigate('/formations');
+        break;
+      case 'message':
+        navigate('/messages');
+        break;
+      case 'suggestion':
+        if (user?.role === 'admin') {
+          navigate('/admin/suggestions');
+        }
+        break;
+      default:
+        break;
+    }
+    
+    // Close the panel
+    onClose();
+  };
 
   // Fetch notifications
   const { data: notifications = [], isLoading } = useQuery({
@@ -130,7 +168,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 {notifications.map((notification: Notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 border-b hover:bg-gray-50 transition-colors ${
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer ${
                       !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                     }`}
                   >

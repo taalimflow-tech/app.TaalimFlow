@@ -16,6 +16,7 @@ import AdminPanel from "@/pages/AdminPanel";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminContent from "@/pages/AdminContent";
 import AdminPanelTest from "@/pages/AdminPanelTest";
+import AdminSuggestions from "@/pages/AdminSuggestions";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
 import Profile from "@/pages/Profile";
@@ -57,6 +58,7 @@ function AuthenticatedRoutes() {
           <Route path="/admin" component={AdminPanelTest} />
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/content" component={AdminContent} />
+          <Route path="/admin/suggestions" component={AdminSuggestions} />
           <Route path="/profile" component={Profile} />
           <Route component={NotFound} />
         </Switch>

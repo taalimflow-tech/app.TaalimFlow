@@ -1,22 +1,85 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, FileText, Lightbulb, Settings, BarChart3 } from 'lucide-react';
 
 export default function AdminPanelTest() {
   const { user } = useAuth();
-  
-  console.log('AdminPanelTest rendering with user:', user);
+  const [, navigate] = useLocation();
+
+  const adminSections = [
+    {
+      title: 'إدارة المستخدمين',
+      description: 'عرض وإدارة جميع المستخدمين المسجلين',
+      icon: <Users className="w-6 h-6" />,
+      path: '/admin/users',
+      color: 'bg-blue-500'
+    },
+    {
+      title: 'إدارة المحتوى',
+      description: 'إنشاء وتحرير المقالات والمجموعات والتكوينات',
+      icon: <FileText className="w-6 h-6" />,
+      path: '/admin/content',
+      color: 'bg-green-500'
+    },
+    {
+      title: 'الاقتراحات',
+      description: 'مراجعة الاقتراحات المقدمة من المستخدمين',
+      icon: <Lightbulb className="w-6 h-6" />,
+      path: '/admin/suggestions',
+      color: 'bg-yellow-500'
+    }
+  ];
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-gray-500">غير مسموح لك بالوصول إلى هذه الصفحة</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Admin Panel Test</h1>
-      <div className="bg-gray-100 p-4 rounded">
-        <h2 className="font-semibold mb-2">User Info:</h2>
-        <pre className="text-sm">{JSON.stringify(user, null, 2)}</pre>
+    <div className="px-4 py-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">لوحة التحكم الإدارية</h1>
+        <p className="text-gray-600">مرحباً {user.name}، يمكنك إدارة النظام من هنا</p>
       </div>
-      <div className="mt-4 p-4 bg-blue-100 rounded">
-        <h2 className="font-semibold mb-2">Route Status:</h2>
-        <p>✅ Route matched successfully</p>
-        <p>✅ Component is rendering</p>
-        <p>Current URL: {window.location.pathname}</p>
+
+      <div className="grid gap-4">
+        {adminSections.map((section) => (
+          <Card key={section.path} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${section.color} text-white`}>
+                  {section.icon}
+                </div>
+                <div>
+                  <CardTitle className="text-lg">{section.title}</CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">{section.description}</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Button 
+                onClick={() => navigate(section.path)}
+                className="w-full"
+              >
+                الدخول إلى {section.title}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-semibold mb-2 text-gray-800">معلومات المستخدم الحالي:</h3>
+        <div className="text-sm text-gray-600">
+          <p>الاسم: {user.name}</p>
+          <p>البريد الإلكتروني: {user.email}</p>
+          <p>الدور: {user.role}</p>
+        </div>
       </div>
     </div>
   );
