@@ -1,37 +1,13 @@
-import { useState, useEffect } from 'react';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BlogPost } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
 export default function Blog() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const q = query(
-          collection(db, 'blogPosts'),
-          orderBy('createdAt', 'desc')
-        );
-        const querySnapshot = await getDocs(q);
-        const postsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as BlogPost[];
-        setPosts(postsData.filter(post => post.published));
-      } catch (error) {
-        console.error('Error fetching blog posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []);
+  const { data: posts = [], isLoading: loading } = useQuery<BlogPost[]>({
+    queryKey: ['/api/blog-posts'],
+  });
 
   if (loading) {
     return (
@@ -47,16 +23,9 @@ export default function Blog() {
       
       <div className="space-y-4">
         {posts.length > 0 ? (
-          posts.map((post) => (
+          posts.filter(post => post.published).map((post) => (
             <Card key={post.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                {post.imageUrl && (
-                  <img 
-                    src={post.imageUrl} 
-                    alt={post.title}
-                    className="w-full h-48 object-cover rounded-lg mb-4"
-                  />
-                )}
                 <CardTitle className="text-xl">{post.title}</CardTitle>
                 <p className="text-sm text-gray-500">
                   {formatDistanceToNow(new Date(post.createdAt), { 
@@ -66,7 +35,7 @@ export default function Blog() {
                 </p>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{post.content}</p>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{post.content}</p>
               </CardContent>
             </Card>
           ))
