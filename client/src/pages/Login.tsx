@@ -62,6 +62,26 @@ export default function Login() {
     
     try {
       await login(email, password);
+      
+      // Check if user is admin or teacher after login
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const { user } = await response.json();
+        if (user.role === 'admin' || user.role === 'teacher') {
+          toast({ 
+            title: 'استخدم صفحة تسجيل دخول الإدارة', 
+            description: 'يرجى استخدام صفحة تسجيل دخول الإدارة للمديرين والمعلمين',
+            variant: 'destructive'
+          });
+          // Clear the session and redirect to admin login
+          await fetch('/api/auth/logout', { method: 'POST' });
+          setTimeout(() => {
+            window.location.href = '/admin-login';
+          }, 2000);
+          return;
+        }
+      }
+      
       toast({ title: 'تم تسجيل الدخول بنجاح' });
     } catch (error) {
       toast({ 
