@@ -126,14 +126,16 @@ This unified approach provides better data consistency, easier queries, and impr
 
 ## Recent Changes
 - **January 2025**: Successfully implemented comprehensive children registration and management system
-- **January 2025**: Added verification system for users, children, and students
-  - Added verification fields (verified, verificationNotes, verifiedAt, verifiedBy) to database schema
-  - Created AdminVerification page for manual verification process
-  - Added verification API endpoints for admin-only access
-  - Updated Profile page to show verification status
-  - System now supports document verification workflow for legitimate students
-  - Non-verified users see instructions to visit school for identity confirmation
+- **January 2025**: Refined verification system to focus only on children and students
+  - **IMPORTANT**: Verification system now applies only to children and students, not teachers, admins, or regular users
+  - Removed user verification requirements and endpoints - only children and students need document verification
+  - Added verified lists functionality with separate endpoints for verified children and students
+  - Created comprehensive AdminVerification page with 4 tabs: unverified children, unverified students, verified children, verified students
+  - Updated database storage methods to support refined verification scope
+  - Added verification fields (verified, verificationNotes, verifiedAt, verifiedBy) to children and students tables
+  - System supports document verification workflow specifically for legitimate students and children who visit school
   - Verification process includes admin notes and automatic notifications to verified users
+  - Fixed 404 routing error by replacing problematic Radix UI Dialog with custom modal implementation
 - **January 2025**: Enhanced authentication error handling with comprehensive user feedback
   - Fixed server crash issue by removing error throwing in error handler
   - Added specific Arabic error messages for all authentication scenarios

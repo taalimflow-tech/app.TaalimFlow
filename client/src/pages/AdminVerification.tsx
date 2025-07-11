@@ -4,21 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// Custom modal component instead of problematic Radix Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, User, Users, GraduationCap, Clock, Calendar } from 'lucide-react';
-
-interface UnverifiedUser {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  createdAt: string;
-  verified: boolean;
-}
+import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar } from 'lucide-react';
 
 interface UnverifiedChild {
   id: number;
@@ -39,43 +28,78 @@ interface UnverifiedStudent {
   verified: boolean;
 }
 
+interface VerifiedChild {
+  id: number;
+  parentId: number;
+  name: string;
+  educationLevel: string;
+  grade: string;
+  verified: boolean;
+  verifiedAt: string;
+  verifiedBy: number;
+  verificationNotes: string;
+}
+
+interface VerifiedStudent {
+  id: number;
+  userId: number;
+  educationLevel: string;
+  grade: string;
+  verified: boolean;
+  verifiedAt: string;
+  verifiedBy: number;
+  verificationNotes: string;
+}
+
 export default function AdminVerification() {
   const { user } = useAuth();
-  const [unverifiedUsers, setUnverifiedUsers] = useState<UnverifiedUser[]>([]);
   const [unverifiedChildren, setUnverifiedChildren] = useState<UnverifiedChild[]>([]);
   const [unverifiedStudents, setUnverifiedStudents] = useState<UnverifiedStudent[]>([]);
+  const [verifiedChildren, setVerifiedChildren] = useState<VerifiedChild[]>([]);
+  const [verifiedStudents, setVerifiedStudents] = useState<VerifiedStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [verificationNotes, setVerificationNotes] = useState('');
   const [selectedItem, setSelectedItem] = useState<{type: string, id: number} | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const fetchUnverifiedData = async () => {
+  const fetchData = async () => {
     try {
-      const [usersResponse, childrenResponse, studentsResponse] = await Promise.all([
-        fetch('/api/admin/unverified-users'),
+      const [
+        unverifiedChildrenResponse,
+        unverifiedStudentsResponse,
+        verifiedChildrenResponse,
+        verifiedStudentsResponse
+      ] = await Promise.all([
         fetch('/api/admin/unverified-children'),
-        fetch('/api/admin/unverified-students')
+        fetch('/api/admin/unverified-students'),
+        fetch('/api/admin/verified-children'),
+        fetch('/api/admin/verified-students')
       ]);
 
-      if (usersResponse.ok) {
-        const users = await usersResponse.json();
-        setUnverifiedUsers(users);
-      }
-
-      if (childrenResponse.ok) {
-        const children = await childrenResponse.json();
+      if (unverifiedChildrenResponse.ok) {
+        const children = await unverifiedChildrenResponse.json();
         setUnverifiedChildren(children);
       }
 
-      if (studentsResponse.ok) {
-        const students = await studentsResponse.json();
+      if (unverifiedStudentsResponse.ok) {
+        const students = await unverifiedStudentsResponse.json();
         setUnverifiedStudents(students);
       }
+
+      if (verifiedChildrenResponse.ok) {
+        const children = await verifiedChildrenResponse.json();
+        setVerifiedChildren(children);
+      }
+
+      if (verifiedStudentsResponse.ok) {
+        const students = await verifiedStudentsResponse.json();
+        setVerifiedStudents(students);
+      }
     } catch (error) {
-      console.error('Error fetching unverified data:', error);
+      console.error('Error fetching data:', error);
       toast({
         title: 'خطأ',
-        description: 'فشل في جلب البيانات غير المتحقق منها',
+        description: 'فشل في جلب البيانات',
         variant: 'destructive'
       });
     } finally {
@@ -96,11 +120,11 @@ export default function AdminVerification() {
       if (response.ok) {
         toast({
           title: 'تم التحقق بنجاح',
-          description: `تم التحقق من ${type === 'user' ? 'المستخدم' : type === 'child' ? 'الطفل' : 'الطالب'} بنجاح`,
+          description: `تم التحقق من ${type === 'child' ? 'الطفل' : 'الطالب'} بنجاح`,
         });
 
         // Refresh data
-        await fetchUnverifiedData();
+        await fetchData();
         setVerificationNotes('');
         setSelectedItem(null);
         setShowModal(false);
@@ -123,7 +147,7 @@ export default function AdminVerification() {
   };
 
   useEffect(() => {
-    fetchUnverifiedData();
+    fetchData();
   }, []);
 
   if (user?.role !== 'admin') {
@@ -155,88 +179,41 @@ export default function AdminVerification() {
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">لوحة التحقق من المستخدمين</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">لوحة التحقق من الأطفال والطلاب</h1>
         <p className="text-gray-600">
-          راجع وتحقق من المستخدمين والأطفال والطلاب الذين قدموا وثائقهم
+          راجع وتحقق من الأطفال والطلاب الذين قدموا وثائقهم في المدرسة
         </p>
       </div>
 
-      <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            المستخدمون ({unverifiedUsers.length})
+      <Tabs defaultValue="unverified-children" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="unverified-children" className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            أطفال غير متحقق منهم ({unverifiedChildren.length})
           </TabsTrigger>
-          <TabsTrigger value="children" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            الأطفال ({unverifiedChildren.length})
+          <TabsTrigger value="unverified-students" className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            طلاب غير متحقق منهم ({unverifiedStudents.length})
           </TabsTrigger>
-          <TabsTrigger value="students" className="flex items-center gap-2">
-            <GraduationCap className="w-4 h-4" />
-            الطلاب ({unverifiedStudents.length})
+          <TabsTrigger value="verified-children" className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            أطفال متحقق منهم ({verifiedChildren.length})
+          </TabsTrigger>
+          <TabsTrigger value="verified-students" className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            طلاب متحقق منهم ({verifiedStudents.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="users" className="space-y-4">
+        <TabsContent value="unverified-children" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                المستخدمون غير المتحقق منهم
-              </CardTitle>
-              <CardDescription>
-                قائمة المستخدمين الذين يحتاجون للتحقق من هوياتهم
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {unverifiedUsers.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <p className="text-gray-600">لا توجد مستخدمون بحاجة للتحقق</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {unverifiedUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{user.name}</h3>
-                        <p className="text-gray-600">{user.email}</p>
-                        <p className="text-gray-600">{user.phone}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">{user.role}</Badge>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(user.createdAt).toLocaleDateString('ar-SA')}
-                          </div>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={() => {
-                          setSelectedItem({type: 'user', id: user.id});
-                          setShowModal(true);
-                        }}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        تحقق
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="children" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
+                <Clock className="w-5 h-5" />
                 الأطفال غير المتحقق منهم
               </CardTitle>
               <CardDescription>
-                قائمة الأطفال الذين يحتاجون للتحقق من بياناتهم التعليمية
+                قائمة الأطفال الذين يحتاجون للتحقق من وثائقهم
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -251,11 +228,13 @@ export default function AdminVerification() {
                     <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{child.name}</h3>
-                        <p className="text-gray-600">المستوى التعليمي: {child.educationLevel}</p>
-                        <p className="text-gray-600">الصف: {child.grade}</p>
-                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-2">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(child.createdAt).toLocaleDateString('ar-SA')}
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary">{child.educationLevel}</Badge>
+                          <Badge variant="outline">{child.grade}</Badge>
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(child.createdAt).toLocaleDateString('ar-SA')}
+                          </div>
                         </div>
                       </div>
                       <Button 
@@ -266,7 +245,7 @@ export default function AdminVerification() {
                         className="bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        تحقق
+                        تحقق الآن
                       </Button>
                     </div>
                   ))}
@@ -276,15 +255,15 @@ export default function AdminVerification() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="students" className="space-y-4">
+        <TabsContent value="unverified-students" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5" />
+                <Clock className="w-5 h-5" />
                 الطلاب غير المتحقق منهم
               </CardTitle>
               <CardDescription>
-                قائمة الطلاب الذين يحتاجون للتحقق من بياناتهم التعليمية
+                قائمة الطلاب الذين يحتاجون للتحقق من وثائقهم
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -299,11 +278,13 @@ export default function AdminVerification() {
                     <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
-                        <p className="text-gray-600">المستوى التعليمي: {student.educationLevel}</p>
-                        <p className="text-gray-600">الصف: {student.grade}</p>
-                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-2">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(student.createdAt).toLocaleDateString('ar-SA')}
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary">{student.educationLevel}</Badge>
+                          <Badge variant="outline">{student.grade}</Badge>
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(student.createdAt).toLocaleDateString('ar-SA')}
+                          </div>
                         </div>
                       </div>
                       <Button 
@@ -314,8 +295,106 @@ export default function AdminVerification() {
                         className="bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        تحقق
+                        تحقق الآن
                       </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="verified-children" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                الأطفال المتحقق منهم
+              </CardTitle>
+              <CardDescription>
+                قائمة الأطفال الذين تم التحقق من وثائقهم بنجاح
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {verifiedChildren.length === 0 ? (
+                <div className="text-center py-8">
+                  <XCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">لا توجد أطفال متحقق منهم بعد</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {verifiedChildren.map((child) => (
+                    <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{child.name}</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary">{child.educationLevel}</Badge>
+                          <Badge variant="outline">{child.grade}</Badge>
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <Calendar className="w-4 h-4" />
+                            تم التحقق في: {new Date(child.verifiedAt).toLocaleDateString('ar-SA')}
+                          </div>
+                        </div>
+                        {child.verificationNotes && (
+                          <p className="text-sm text-gray-600 mt-2">
+                            <strong>ملاحظات التحقق:</strong> {child.verificationNotes}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        متحقق منه
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="verified-students" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                الطلاب المتحقق منهم
+              </CardTitle>
+              <CardDescription>
+                قائمة الطلاب الذين تم التحقق من وثائقهم بنجاح
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {verifiedStudents.length === 0 ? (
+                <div className="text-center py-8">
+                  <XCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">لا توجد طلاب متحقق منهم بعد</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {verifiedStudents.map((student) => (
+                    <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary">{student.educationLevel}</Badge>
+                          <Badge variant="outline">{student.grade}</Badge>
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <Calendar className="w-4 h-4" />
+                            تم التحقق في: {new Date(student.verifiedAt).toLocaleDateString('ar-SA')}
+                          </div>
+                        </div>
+                        {student.verificationNotes && (
+                          <p className="text-sm text-gray-600 mt-2">
+                            <strong>ملاحظات التحقق:</strong> {student.verificationNotes}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        متحقق منه
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -326,45 +405,43 @@ export default function AdminVerification() {
       </Tabs>
 
       {/* Custom Modal */}
-      {showModal && selectedItem && (
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">
-              التحقق من {selectedItem.type === 'user' ? 'المستخدم' : selectedItem.type === 'child' ? 'الطفل' : 'الطالب'}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              تأكد من صحة البيانات قبل التحقق
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
-                <Textarea
-                  id="notes"
-                  value={verificationNotes}
-                  onChange={(e) => setVerificationNotes(e.target.value)}
-                  placeholder="أضف ملاحظات حول عملية التحقق..."
-                  className="mt-2"
-                />
-              </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedItem(null);
-                    setVerificationNotes('');
-                    setShowModal(false);
-                  }}
-                >
-                  إلغاء
-                </Button>
-                <Button
-                  onClick={() => handleVerify(selectedItem.type, selectedItem.id)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  تأكيد التحقق
-                </Button>
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-4">
+                تحقق من {selectedItem?.type === 'child' ? 'الطفل' : 'الطالب'}
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="أدخل أي ملاحظات حول عملية التحقق..."
+                    value={verificationNotes}
+                    onChange={(e) => setVerificationNotes(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowModal(false);
+                      setVerificationNotes('');
+                      setSelectedItem(null);
+                    }}
+                  >
+                    إلغاء
+                  </Button>
+                  <Button
+                    onClick={() => selectedItem && handleVerify(selectedItem.type, selectedItem.id)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    تأكيد التحقق
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

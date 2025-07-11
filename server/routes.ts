@@ -714,19 +714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Verification routes (Admin only)
-  app.get("/api/admin/unverified-users", async (req, res) => {
-    try {
-      if (!currentUser || currentUser.role !== 'admin') {
-        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
-      }
-      
-      const unverifiedUsers = await storage.getUnverifiedUsers();
-      res.json(unverifiedUsers);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch unverified users" });
-    }
-  });
+  // Verification routes (Admin only) - Children and Students only
 
   app.get("/api/admin/unverified-children", async (req, res) => {
     try {
@@ -754,31 +742,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/verify-user/:id", async (req, res) => {
+  app.get("/api/admin/verified-children", async (req, res) => {
     try {
       if (!currentUser || currentUser.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      const userId = parseInt(req.params.id);
-      const { notes } = req.body;
-      
-      const verifiedUser = await storage.verifyUser(userId, currentUser.id, notes);
-      
-      // Create notification for the verified user
-      await storage.createNotification({
-        userId: verifiedUser.id,
-        type: 'verification',
-        title: '✅ تم التحقق من حسابك',
-        message: 'تم التحقق من حسابك بنجاح من قبل الإدارة',
-        relatedId: verifiedUser.id
-      });
-      
-      res.json({ message: "تم التحقق من المستخدم بنجاح", user: verifiedUser });
+      const verifiedChildren = await storage.getVerifiedChildren();
+      res.json(verifiedChildren);
     } catch (error) {
-      res.status(500).json({ error: "Failed to verify user" });
+      res.status(500).json({ error: "Failed to fetch verified children" });
     }
   });
+
+  app.get("/api/admin/verified-students", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const verifiedStudents = await storage.getVerifiedStudents();
+      res.json(verifiedStudents);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch verified students" });
+    }
+  });
+
+  // Verification endpoints removed for users - only children and students need verification
 
   app.post("/api/admin/verify-child/:id", async (req, res) => {
     try {
