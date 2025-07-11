@@ -161,8 +161,6 @@ export const teacherSpecializations = pgTable("teacher_specializations", {
   id: serial("id").primaryKey(),
   teacherId: integer("teacher_id").references(() => users.id), // Reference to teacher user
   moduleId: integer("module_id").references(() => teachingModules.id),
-  experienceYears: integer("experience_years"),
-  qualifications: text("qualifications"), // JSON string of qualifications
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -299,8 +297,6 @@ export const insertTeachingModuleSchema = createInsertSchema(teachingModules).pi
 export const insertTeacherSpecializationSchema = createInsertSchema(teacherSpecializations).pick({
   teacherId: true,
   moduleId: true,
-  experienceYears: true,
-  qualifications: true,
 });
 
 // Types

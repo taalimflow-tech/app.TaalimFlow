@@ -3,8 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Book, GraduationCap, Plus, X } from 'lucide-react';
@@ -23,8 +21,6 @@ interface TeacherSpecialization {
   id: number;
   teacherId: number;
   moduleId: number;
-  experienceYears: number;
-  qualifications: string;
   createdAt: string;
 }
 
@@ -41,8 +37,6 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
   const [specializations, setSpecializations] = useState<TeacherSpecialization[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
-  const [experienceYears, setExperienceYears] = useState<number>(0);
-  const [qualifications, setQualifications] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const educationLevels = [
@@ -114,8 +108,6 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
         body: JSON.stringify({
           teacherId: user.id,
           moduleId: selectedModule,
-          experienceYears,
-          qualifications,
         }),
       });
 
@@ -126,9 +118,8 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
         });
         
         // Reset form
+        setSelectedLevel('');
         setSelectedModule(null);
-        setExperienceYears(0);
-        setQualifications('');
         
         // Refresh specializations
         fetchSpecializations();
@@ -241,15 +232,8 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
-                          {spec.experienceYears} سنوات خبرة
-                        </Badge>
-                      </div>
-                      {spec.qualifications && (
-                        <p className="text-gray-700">{spec.qualifications}</p>
-                      )}
+                    <div className="text-sm">
+                      <p className="text-gray-700">{module?.description}</p>
                     </div>
                   </div>
                 );
@@ -316,32 +300,16 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="experience" className="text-sm font-medium">
-                سنوات الخبرة
-              </Label>
-              <Input
-                id="experience"
-                type="number"
-                min="0"
-                value={experienceYears}
-                onChange={(e) => setExperienceYears(parseInt(e.target.value) || 0)}
-                placeholder="أدخل عدد سنوات الخبرة"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="qualifications" className="text-sm font-medium">
-                المؤهلات والشهادات (اختياري)
-              </Label>
-              <Textarea
-                id="qualifications"
-                value={qualifications}
-                onChange={(e) => setQualifications(e.target.value)}
-                placeholder="أدخل المؤهلات والشهادات المتعلقة بهذه المادة..."
-                rows={3}
-              />
-            </div>
+            {selectedLevel && (
+              <div className="bg-blue-50 p-3 rounded-md">
+                <p className="text-sm text-blue-700">
+                  <strong>المستوى المحدد:</strong> {selectedLevel}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {filteredModules.length} مادة متاحة في هذا المستوى
+                </p>
+              </div>
+            )}
 
             <Button
               type="submit"

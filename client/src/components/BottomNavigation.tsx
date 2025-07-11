@@ -19,20 +19,18 @@ export function BottomNavigation() {
     { icon: Mail, label: 'الرسائل', path: '/messages' },
   ];
 
-  // Add suggestions for non-admin users only
-  const userNavItems = user?.role !== 'admin' 
-    ? [...baseNavItems, { icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' }]
-    : baseNavItems;
+  // Role-based navigation items
+  let roleSpecificItems: NavItem[] = [];
+  
+  if (user?.role === 'admin') {
+    roleSpecificItems = [{ icon: Shield, label: 'الإدارة', path: '/admin' }];
+  } else if (user?.role === 'teacher') {
+    roleSpecificItems = [{ icon: BookOpen, label: 'تخصصاتي', path: '/teacher-specializations' }];
+  } else if (user?.role !== 'admin') {
+    roleSpecificItems = [{ icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' }];
+  }
 
-  // Add teacher specializations for teachers
-  const teacherNavItems = user?.role === 'teacher'
-    ? [...userNavItems, { icon: BookOpen, label: 'تخصصاتي', path: '/teacher-specializations' }]
-    : userNavItems;
-
-  // Add admin panel for admin users
-  const navItems = user?.role === 'admin' 
-    ? [...teacherNavItems, { icon: Shield, label: 'الإدارة', path: '/admin' }]
-    : teacherNavItems;
+  const navItems = [...baseNavItems, ...roleSpecificItems];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30">
