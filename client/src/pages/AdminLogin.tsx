@@ -39,6 +39,17 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     
+    // Basic validation
+    if (!email || !password) {
+      toast({ 
+        title: 'بيانات مطلوبة', 
+        description: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+    
     try {
       await login(email, password);
       
@@ -79,15 +90,24 @@ export default function AdminLogin() {
           });
           return;
         }
-        toast({ title: 'تم تسجيل دخول المدير بنجاح' });
+        toast({ 
+          title: 'تم تسجيل دخول المدير بنجاح',
+          description: 'مرحباً بك في لوحة التحكم'
+        });
         window.location.href = '/admin';
       }
     } catch (error) {
+      // Enhanced error handling with specific messages
+      const errorMessage = error instanceof Error ? error.message : 'خطأ غير متوقع';
+      
       toast({ 
-        title: 'خطأ في تسجيل الدخول', 
-        description: error instanceof Error ? error.message : 'تأكد من صحة بيانات المدير',
+        title: 'فشل تسجيل الدخول', 
+        description: errorMessage,
         variant: 'destructive'
       });
+      
+      // Clear password field on failed login
+      setPassword('');
     } finally {
       setLoading(false);
     }
@@ -96,6 +116,17 @@ export default function AdminLogin() {
   const handleTeacherLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
+    // Basic validation
+    if (!email || !password) {
+      toast({ 
+        title: 'بيانات مطلوبة', 
+        description: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
     
     try {
       await login(email, password);
@@ -137,15 +168,24 @@ export default function AdminLogin() {
           });
           return;
         }
-        toast({ title: 'تم تسجيل دخول المعلم بنجاح' });
+        toast({ 
+          title: 'تم تسجيل دخول المعلم بنجاح',
+          description: 'مرحباً بك في النظام'
+        });
         window.location.href = '/';
       }
     } catch (error) {
+      // Enhanced error handling with specific messages
+      const errorMessage = error instanceof Error ? error.message : 'خطأ غير متوقع';
+      
       toast({ 
-        title: 'خطأ في تسجيل الدخول', 
-        description: error instanceof Error ? error.message : 'تأكد من صحة بيانات المعلم',
+        title: 'فشل تسجيل الدخول', 
+        description: errorMessage,
         variant: 'destructive'
       });
+      
+      // Clear password field on failed login
+      setPassword('');
     } finally {
       setLoading(false);
     }

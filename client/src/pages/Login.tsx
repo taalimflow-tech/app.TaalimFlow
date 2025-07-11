@@ -62,17 +62,37 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     
+    // Basic validation
+    if (!email || !password) {
+      toast({ 
+        title: 'بيانات مطلوبة', 
+        description: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+    
     try {
       await login(email, password);
       
       // Login successful for all users
-      toast({ title: 'تم تسجيل الدخول بنجاح' });
-    } catch (error) {
       toast({ 
-        title: 'خطأ في تسجيل الدخول', 
-        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات المدخلة',
+        title: 'تم تسجيل الدخول بنجاح',
+        description: 'مرحباً بك في النظام'
+      });
+    } catch (error) {
+      // Enhanced error handling with specific messages
+      const errorMessage = error instanceof Error ? error.message : 'خطأ غير متوقع';
+      
+      toast({ 
+        title: 'فشل تسجيل الدخول', 
+        description: errorMessage,
         variant: 'destructive'
       });
+      
+      // Clear password field on failed login
+      setPassword('');
     } finally {
       setLoading(false);
     }
