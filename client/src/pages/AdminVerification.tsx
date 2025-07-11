@@ -186,24 +186,30 @@ export default function AdminVerification() {
       </div>
 
       <Tabs defaultValue="unverified-children" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
-          <TabsTrigger value="unverified-children" className="flex flex-col items-center gap-1 p-3 text-center">
-            <Clock className="w-4 h-4" />
-            <span className="text-xs">أطفال غير متحقق ({unverifiedChildren.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="unverified-students" className="flex flex-col items-center gap-1 p-3 text-center">
-            <Clock className="w-4 h-4" />
-            <span className="text-xs">طلاب غير متحقق ({unverifiedStudents.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="verified-children" className="flex flex-col items-center gap-1 p-3 text-center">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-xs">أطفال متحقق ({verifiedChildren.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="verified-students" className="flex flex-col items-center gap-1 p-3 text-center">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-xs">طلاب متحقق ({verifiedStudents.length})</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-4 min-w-[600px]">
+            <TabsTrigger value="unverified-children" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
+              <Clock className="w-4 h-4 shrink-0" />
+              <span className="text-xs leading-tight">أطفال غير متحقق</span>
+              <span className="text-xs opacity-70">({unverifiedChildren.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="unverified-students" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
+              <Clock className="w-4 h-4 shrink-0" />
+              <span className="text-xs leading-tight">طلاب غير متحقق</span>
+              <span className="text-xs opacity-70">({unverifiedStudents.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="verified-children" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              <span className="text-xs leading-tight">أطفال متحقق</span>
+              <span className="text-xs opacity-70">({verifiedChildren.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="verified-students" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              <span className="text-xs leading-tight">طلاب متحقق</span>
+              <span className="text-xs opacity-70">({verifiedStudents.length})</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="unverified-children" className="space-y-4">
           <Card>
