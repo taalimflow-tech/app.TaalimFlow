@@ -221,7 +221,7 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h3 className="font-semibold text-gray-900">{module?.nameAr}</h3>
-                        <p className="text-sm text-gray-600">{module?.educationLevel} - {module?.grade}</p>
+                        <p className="text-sm text-gray-600">{module?.educationLevel}</p>
                       </div>
                       <Button
                         variant="ghost"
@@ -291,7 +291,7 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
                         value={module.id.toString()}
                         disabled={isModuleAlreadySelected(module.id)}
                       >
-                        {module.nameAr} - {module.grade}
+                        {module.nameAr}
                         {isModuleAlreadySelected(module.id) && ' (مضاف مسبقاً)'}
                       </SelectItem>
                     ))}
