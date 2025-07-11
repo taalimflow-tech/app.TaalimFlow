@@ -54,12 +54,22 @@ export function Header() {
           </button>
           
           {user && (
-            <button 
-              onClick={() => navigate('/profile')}
-              className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <User className="w-5 h-5 text-gray-600" />
-            </button>
+            <>
+              <button 
+                onClick={() => navigate('/profile')}
+                className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <User className="w-5 h-5 text-gray-600" />
+              </button>
+              
+              <button 
+                onClick={() => logout()}
+                className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                title="تسجيل الخروج"
+              >
+                <LogOut className="w-5 h-5 text-gray-600" />
+              </button>
+            </>
           )}
         </div>
       </div>

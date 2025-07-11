@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby } from 'lucide-react';
+import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -466,6 +466,28 @@ export default function Profile() {
           </TabsContent>
         )}
       </Tabs>
+      
+      {/* Logout Section */}
+      <div className="mt-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-gray-800">تسجيل الخروج</h3>
+                <p className="text-sm text-gray-600">الخروج من حسابك الحالي</p>
+              </div>
+              <Button 
+                onClick={() => logout()}
+                variant="outline"
+                className="flex items-center gap-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                <LogOut className="w-4 h-4" />
+                تسجيل الخروج
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

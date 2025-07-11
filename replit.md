@@ -181,3 +181,7 @@ This unified approach provides better data consistency, easier queries, and impr
     - Clean, intuitive interface with clear headings and descriptions for each step
     - Maintained all existing functionality while improving user experience
     - Removed confusing tabs and replaced with guided workflow
+  - **Logout Functionality**: Added logout buttons for better user experience
+    - Added logout icon button in header next to profile button for quick access
+    - Added dedicated logout section in Profile page with clear button and description
+    - Both buttons properly call the logout function from AuthContext
