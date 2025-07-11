@@ -22,6 +22,8 @@ export default function Login() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [children, setChildren] = useState<Child[]>([{ name: '', educationLevel: '', grade: '' }]);
+  const [studentEducationLevel, setStudentEducationLevel] = useState('');
+  const [studentGrade, setStudentGrade] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const { toast } = useToast();
@@ -124,6 +126,37 @@ export default function Login() {
     }
   };
 
+  const handleStudentRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    if (!studentEducationLevel || !studentGrade) {
+      toast({ 
+        title: 'خطأ في البيانات', 
+        description: 'يجب اختيار المستوى التعليمي والسنة الدراسية',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      await register(email, password, name, phone, undefined, 'student', {
+        educationLevel: studentEducationLevel,
+        grade: studentGrade
+      });
+      toast({ title: 'تم إنشاء الحساب بنجاح' });
+    } catch (error) {
+      toast({ 
+        title: 'خطأ في إنشاء الحساب', 
+        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات المدخلة',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-bg p-4">
       <Card className="w-full max-w-md">
@@ -140,9 +173,10 @@ export default function Login() {
         
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
-              <TabsTrigger value="register">إنشاء حساب</TabsTrigger>
+              <TabsTrigger value="register">حساب ولي أمر</TabsTrigger>
+              <TabsTrigger value="student">حساب طالب</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
@@ -322,6 +356,107 @@ export default function Login() {
                 
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
+                </Button>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="student">
+              <form onSubmit={handleStudentRegister} className="space-y-4">
+                <div>
+                  <Label htmlFor="student-name">اسم الطالب</Label>
+                  <Input
+                    id="student-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="أدخل اسم الطالب"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="student-phone">رقم الهاتف</Label>
+                  <Input
+                    id="student-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="0555123456 أو +213555123456"
+                    pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="student-email">البريد الإلكتروني</Label>
+                  <Input
+                    id="student-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="أدخل بريدك الإلكتروني"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="student-password">كلمة المرور</Label>
+                  <Input
+                    id="student-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="أدخل كلمة المرور"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="student-education-level">المستوى التعليمي</Label>
+                  <Select
+                    value={studentEducationLevel}
+                    onValueChange={(value) => {
+                      setStudentEducationLevel(value);
+                      setStudentGrade(''); // Reset grade when education level changes
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر المستوى التعليمي" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(educationLevels).map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {studentEducationLevel && (
+                  <div>
+                    <Label htmlFor="student-grade">السنة الدراسية</Label>
+                    <Select
+                      value={studentGrade}
+                      onValueChange={setStudentGrade}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر السنة الدراسية" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {educationLevels[studentEducationLevel as keyof typeof educationLevels]?.map((grade) => (
+                          <SelectItem key={grade} value={grade}>
+                            {grade}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب طالب'}
                 </Button>
               </form>
             </TabsContent>

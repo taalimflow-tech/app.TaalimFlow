@@ -5,7 +5,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, phone: string, children?: any[], role?: string) => Promise<void>;
+  register: (email: string, password: string, name: string, phone: string, children?: any[], role?: string, studentData?: { educationLevel: string, grade: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -43,13 +43,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(user);
   };
 
-  const register = async (email: string, password: string, name: string, phone: string, children: any[] = [], role: string = 'user') => {
+  const register = async (email: string, password: string, name: string, phone: string, children: any[] = [], role: string = 'user', studentData?: { educationLevel: string, grade: string }) => {
+    const requestBody: any = { email, password, name, phone, role };
+    
+    if (role === 'student' && studentData) {
+      requestBody.educationLevel = studentData.educationLevel;
+      requestBody.grade = studentData.grade;
+    } else if (role === 'user' && children) {
+      requestBody.children = children;
+    }
+    
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, name, phone, children, role }),
+      body: JSON.stringify(requestBody),
     });
     
     if (!response.ok) {

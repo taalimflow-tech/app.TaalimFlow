@@ -60,10 +60,10 @@ export default function Profile() {
     ]
   };
 
-  // Fetch children data only for non-student users
+  // Fetch children data
   const { data: children = [], isLoading: childrenLoading } = useQuery<Child[]>({
     queryKey: ['/api/children'],
-    enabled: !!user && user.role !== 'student',
+    enabled: !!user,
   });
 
   // Add child mutation
@@ -317,152 +317,168 @@ export default function Profile() {
         {user.role !== 'student' && (
           <TabsContent value="children" className="space-y-4">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Baby className="w-5 h-5" />
-                      إدارة الأطفال
-                    </CardTitle>
-                    <CardDescription>
-                      عرض وإدارة بيانات الأطفال المسجلين
-                    </CardDescription>
-                  </div>
-                  <Button 
-                    onClick={() => setShowAddChild(true)}
-                    disabled={children.length >= 5}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    إضافة طفل
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Baby className="w-5 h-5" />
+                    إدارة الأطفال
+                  </CardTitle>
+                  <CardDescription>
+                    عرض وإدارة بيانات الأطفال المسجلين
+                  </CardDescription>
+                </div>
+                <Button 
+                  onClick={() => setShowAddChild(true)}
+                  disabled={children.length >= 5}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  إضافة طفل
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {childrenLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-sm text-gray-500 mt-2">جاري تحميل البيانات...</p>
+                </div>
+              ) : children.length === 0 ? (
+                <div className="text-center py-8">
+                  <Baby className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">لا يوجد أطفال مسجلين</h3>
+                  <p className="text-sm text-gray-500 mb-4">يمكنك إضافة بيانات الأطفال من هنا</p>
+                  <Button onClick={() => setShowAddChild(true)} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    إضافة الطفل الأول
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {childrenLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-sm text-gray-500 mt-2">جاري تحميل البيانات...</p>
-                  </div>
-                ) : children.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Baby className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">لا توجد أطفال مسجلين</h3>
-                    <p className="text-gray-600 mb-4">يمكنك إضافة حتى 5 أطفال للمتابعة</p>
-                    <Button 
-                      onClick={() => setShowAddChild(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      إضافة طفل
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {children.map((child: Child) => (
-                      <div key={child.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
-                            <Baby className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-800">{child.name}</h4>
-                            <p className="text-sm text-gray-600">{child.educationLevel} - {child.grade}</p>
+              ) : (
+                <div className="grid gap-4">
+                  {children.map((child) => (
+                    <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                          <Baby className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800">{child.name}</h4>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Badge variant="secondary">{child.educationLevel}</Badge>
+                            <span>{child.grade}</span>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteChild(child.id)}
-                          className="text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            {showAddChild && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                  <h3 className="text-lg font-semibold mb-4">إضافة طفل جديد</h3>
-                  <form onSubmit={handleAddChild} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="childName">اسم الطفل</Label>
-                      <Input
-                        id="childName"
-                        value={newChild.name}
-                        onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
-                        placeholder="أدخل اسم الطفل"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="childEducationLevel">المستوى التعليمي</Label>
-                      <Select
-                        value={newChild.educationLevel}
-                        onValueChange={(value) => setNewChild({ ...newChild, educationLevel: value, grade: '' })}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteChild(child.id)}
+                        className="text-red-500 hover:text-red-700"
+                        disabled={deleteChildMutation.isPending}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر المستوى التعليمي" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(educationLevels).map((level) => (
-                            <SelectItem key={level} value={level}>
-                              {level}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {newChild.educationLevel && (
-                      <div className="space-y-2">
-                        <Label htmlFor="childGrade">السنة الدراسية</Label>
-                        <Select
-                          value={newChild.grade}
-                          onValueChange={(value) => setNewChild({ ...newChild, grade: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر السنة الدراسية" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {educationLevels[newChild.educationLevel as keyof typeof educationLevels]?.map((grade) => (
-                              <SelectItem key={grade} value={grade}>
-                                {grade}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    
-                    <div className="flex gap-2">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setShowAddChild(false)}
-                        className="flex-1"
-                      >
-                        إلغاء
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        className="flex-1"
-                        disabled={addChildMutation.isPending}
-                      >
-                        {addChildMutation.isPending ? 'جاري الإضافة...' : 'إضافة الطفل'}
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </form>
+                  ))}
                 </div>
+              )}
+              
+              <div className="mt-4 text-xs text-gray-500">
+                عدد الأطفال المسجلين: {children.length} / 5
               </div>
-            )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Add Child Modal */}
+      {showAddChild && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">إضافة طفل جديد</h2>
+              <button
+                onClick={() => setShowAddChild(false)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddChild} className="space-y-4">
+              <div>
+                <Label htmlFor="child-name">اسم الطفل</Label>
+                <Input
+                  id="child-name"
+                  type="text"
+                  value={newChild.name}
+                  onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
+                  placeholder="أدخل اسم الطفل"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="child-level">المرحلة التعليمية</Label>
+                <Select
+                  value={newChild.educationLevel}
+                  onValueChange={(value) => setNewChild({ ...newChild, educationLevel: value, grade: '' })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر المرحلة التعليمية" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="الابتدائي">الابتدائي</SelectItem>
+                    <SelectItem value="المتوسط">المتوسط</SelectItem>
+                    <SelectItem value="الثانوي">الثانوي</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {newChild.educationLevel && (
+                <div>
+                  <Label htmlFor="child-grade">السنة الدراسية</Label>
+                  <Select
+                    value={newChild.grade}
+                    onValueChange={(value) => setNewChild({ ...newChild, grade: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر السنة الدراسية" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {educationLevels[newChild.educationLevel as keyof typeof educationLevels]?.map((grade) => (
+                        <SelectItem key={grade} value={grade}>
+                          {grade}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowAddChild(false)}
+                  className="flex-1"
+                >
+                  إلغاء
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  disabled={addChildMutation.isPending}
+                >
+                  {addChildMutation.isPending ? 'جاري الإضافة...' : 'إضافة الطفل'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
           </TabsContent>
         )}
       </Tabs>

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, loginSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema } from "@shared/schema";
 
 // Simple session storage for demo (in production, use Redis or database)
 let currentUser: any = null;
@@ -33,8 +33,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { children: childrenData, ...userData } = req.body;
-      const validatedData = insertUserSchema.parse(userData);
+      const { children: childrenData, educationLevel, grade, ...userData } = req.body;
+      
+      // Validate based on role
+      let validatedData;
+      if (userData.role === 'student') {
+        validatedData = insertStudentSchema.parse({
+          ...userData,
+          educationLevel,
+          grade
+        });
+      } else {
+        validatedData = insertUserSchema.parse(userData);
+      }
       
       // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
@@ -49,9 +60,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create user first
-      const user = await storage.createUser(validatedData);
+      const { educationLevel: _, grade: __, ...userDataOnly } = validatedData;
+      const user = await storage.createUser(userDataOnly);
       
-      // Create children if provided
+      // Create student record if this is a student
+      if (userData.role === 'student' && educationLevel && grade) {
+        await storage.createStudent({
+          userId: user.id,
+          educationLevel,
+          grade
+        });
+      }
+      
+      // Create children if provided (for parents)
       if (childrenData && Array.isArray(childrenData) && childrenData.length > 0) {
         const childrenPromises = childrenData.map(child => 
           storage.createChild({
@@ -65,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Remove password from response
-      const { password: _, ...userWithoutPassword } = user;
+      const { password: ___, ...userWithoutPassword } = user;
       res.status(201).json({ user: userWithoutPassword });
     } catch (error) {
       console.error('Registration error:', error);

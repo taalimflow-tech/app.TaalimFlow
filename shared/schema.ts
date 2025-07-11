@@ -8,7 +8,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
-  role: text("role").notNull().default("user"), // admin, teacher, user
+  role: text("role").notNull().default("user"), // admin, teacher, user, student
   firebaseUid: text("firebase_uid"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -115,6 +115,14 @@ export const children = pgTable("children", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const students = pgTable("students", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
+  grade: text("grade").notNull(), // specific grade within level
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
@@ -144,6 +152,11 @@ export const insertAdminSchema = insertUserSchema.extend({
 
 export const insertTeacherUserSchema = insertUserSchema.extend({
   teacherKey: z.string().min(1, "مفتاح المعلم مطلوب"),
+});
+
+export const insertStudentSchema = insertUserSchema.extend({
+  educationLevel: z.string().min(1, "المستوى التعليمي مطلوب"),
+  grade: z.string().min(1, "السنة الدراسية مطلوبة"),
 });
 
 export const loginSchema = z.object({
@@ -229,6 +242,12 @@ export const insertChildSchema = createInsertSchema(children).pick({
   grade: true,
 });
 
+export const insertStudentDataSchema = createInsertSchema(students).pick({
+  userId: true,
+  educationLevel: true,
+  grade: true,
+});
+
 export const insertNotificationSchema = createInsertSchema(notifications).pick({
   userId: true,
   type: true,
@@ -260,5 +279,7 @@ export type FormationRegistration = typeof formationRegistrations.$inferSelect;
 export type InsertFormationRegistration = z.infer<typeof insertFormationRegistrationSchema>;
 export type Child = typeof children.$inferSelect;
 export type InsertChild = z.infer<typeof insertChildSchema>;
+export type Student = typeof students.$inferSelect;
+export type InsertStudent = z.infer<typeof insertStudentDataSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;

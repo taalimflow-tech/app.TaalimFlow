@@ -1,4 +1,4 @@
-import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, notifications, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Notification, type InsertNotification } from "@shared/schema";
+import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 
@@ -55,6 +55,10 @@ export interface IStorage {
   createChild(child: InsertChild): Promise<Child>;
   getChildrenByParentId(parentId: number): Promise<Child[]>;
   deleteChild(childId: number): Promise<void>;
+  
+  // Student methods
+  createStudent(student: InsertStudent): Promise<Student>;
+  getStudentByUserId(userId: number): Promise<Student | undefined>;
   
   // Notification methods
   getNotifications(userId: number): Promise<Notification[]>;
@@ -130,6 +134,16 @@ export class DatabaseStorage implements IStorage {
 
   async deleteChild(childId: number): Promise<void> {
     await db.delete(children).where(eq(children.id, childId));
+  }
+
+  async createStudent(insertStudent: InsertStudent): Promise<Student> {
+    const [student] = await db.insert(students).values(insertStudent).returning();
+    return student;
+  }
+
+  async getStudentByUserId(userId: number): Promise<Student | undefined> {
+    const [student] = await db.select().from(students).where(eq(students.userId, userId));
+    return student || undefined;
   }
 
   async getAnnouncements(): Promise<Announcement[]> {
