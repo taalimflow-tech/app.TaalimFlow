@@ -234,14 +234,7 @@ export default function AdminVerification() {
                     <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{child.name}</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">{child.educationLevel}</Badge>
-                          <Badge variant="outline">{child.grade}</Badge>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(child.createdAt).toLocaleDateString('ar-SA')}
-                          </div>
-                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{child.educationLevel} - {child.grade}</p>
                       </div>
                       <Button 
                         onClick={() => {
@@ -250,8 +243,7 @@ export default function AdminVerification() {
                         }}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        تحقق الآن
+                        تحقق
                       </Button>
                     </div>
                   ))}
@@ -284,14 +276,7 @@ export default function AdminVerification() {
                     <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">{student.educationLevel}</Badge>
-                          <Badge variant="outline">{student.grade}</Badge>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(student.createdAt).toLocaleDateString('ar-SA')}
-                          </div>
-                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{student.educationLevel} - {student.grade}</p>
                       </div>
                       <Button 
                         onClick={() => {
@@ -300,8 +285,7 @@ export default function AdminVerification() {
                         }}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        تحقق الآن
+                        تحقق
                       </Button>
                     </div>
                   ))}
@@ -334,31 +318,17 @@ export default function AdminVerification() {
                     <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{child.name}</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">{child.educationLevel}</Badge>
-                          <Badge variant="outline">{child.grade}</Badge>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            تم التحقق في: {new Date(child.verifiedAt).toLocaleDateString('ar-SA')}
-                          </div>
-                        </div>
-                        {child.verificationNotes && (
-                          <p className="text-sm text-gray-600 mt-2">
-                            <strong>ملاحظات التحقق:</strong> {child.verificationNotes}
-                          </p>
-                        )}
+                        <p className="text-sm text-gray-600 mt-1">{child.educationLevel} - {child.grade}</p>
                       </div>
                       <Button 
                         variant="outline"
                         onClick={() => {
-                          // Show verification details modal
                           setSelectedItem({type: 'verified-child', id: child.id});
                           setShowModal(true);
                         }}
                         className="bg-blue-50 hover:bg-blue-100 border-blue-200"
                       >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        عرض التفاصيل
+                        المعلومات
                       </Button>
                     </div>
                   ))}
@@ -391,31 +361,17 @@ export default function AdminVerification() {
                     <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">{student.educationLevel}</Badge>
-                          <Badge variant="outline">{student.grade}</Badge>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            تم التحقق في: {new Date(student.verifiedAt).toLocaleDateString('ar-SA')}
-                          </div>
-                        </div>
-                        {student.verificationNotes && (
-                          <p className="text-sm text-gray-600 mt-2">
-                            <strong>ملاحظات التحقق:</strong> {student.verificationNotes}
-                          </p>
-                        )}
+                        <p className="text-sm text-gray-600 mt-1">{student.educationLevel} - {student.grade}</p>
                       </div>
                       <Button 
                         variant="outline"
                         onClick={() => {
-                          // Show verification details modal
                           setSelectedItem({type: 'verified-student', id: student.id});
                           setShowModal(true);
                         }}
                         className="bg-blue-50 hover:bg-blue-100 border-blue-200"
                       >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        عرض التفاصيل
+                        المعلومات
                       </Button>
                     </div>
                   ))}
