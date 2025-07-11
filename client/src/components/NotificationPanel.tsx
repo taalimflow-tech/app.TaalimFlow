@@ -53,6 +53,24 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
+  // Fetch notifications
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ['/api/notifications'],
+    enabled: isOpen && !!user
+  });
+
+  // Mark notification as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId: number) => {
+      const response = await apiRequest('POST', `/api/notifications/${notificationId}/read`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+    }
+  });
+
   const handleNotificationClick = (notification: Notification) => {
     // Mark as read first
     if (!notification.read) {
@@ -88,24 +106,6 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
     // Close the panel
     onClose();
   };
-
-  // Fetch notifications
-  const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ['/api/notifications'],
-    enabled: isOpen && !!user
-  });
-
-  // Mark notification as read mutation
-  const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId: number) => {
-      const response = await apiRequest('POST', `/api/notifications/${notificationId}/read`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
-    }
-  });
 
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({

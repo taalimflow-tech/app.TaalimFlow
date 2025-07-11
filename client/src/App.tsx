@@ -71,20 +71,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/admin-login" component={AdminLogin} />
-      <Route path="/admin" component={() => (
-        <AuthWrapper>
-          <Layout>
-            <AdminUsers />
-          </Layout>
-        </AuthWrapper>
-      )} />
-      <Route path="/admin/content" component={() => (
-        <AuthWrapper>
-          <Layout>
-            <AdminContent />
-          </Layout>
-        </AuthWrapper>
-      )} />
       <Route component={AuthenticatedRoutes} />
     </Switch>
   );
