@@ -147,6 +147,25 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const teachingModules = pgTable("teaching_modules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  nameAr: text("name_ar").notNull(), // Arabic name
+  educationLevel: text("education_level").notNull(), // الابتدائي، المتوسط، الثانوي
+  grade: text("grade"), // Optional - specific grade within level
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const teacherSpecializations = pgTable("teacher_specializations", {
+  id: serial("id").primaryKey(),
+  teacherId: integer("teacher_id").references(() => users.id), // Reference to teacher user
+  moduleId: integer("module_id").references(() => teachingModules.id),
+  experienceYears: integer("experience_years"),
+  qualifications: text("qualifications"), // JSON string of qualifications
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -269,6 +288,21 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
   relatedId: true,
 });
 
+export const insertTeachingModuleSchema = createInsertSchema(teachingModules).pick({
+  name: true,
+  nameAr: true,
+  educationLevel: true,
+  grade: true,
+  description: true,
+});
+
+export const insertTeacherSpecializationSchema = createInsertSchema(teacherSpecializations).pick({
+  teacherId: true,
+  moduleId: true,
+  experienceYears: true,
+  qualifications: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -296,3 +330,7 @@ export type Student = typeof students.$inferSelect;
 export type InsertStudent = z.infer<typeof insertStudentDataSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type TeachingModule = typeof teachingModules.$inferSelect;
+export type InsertTeachingModule = z.infer<typeof insertTeachingModuleSchema>;
+export type TeacherSpecialization = typeof teacherSpecializations.$inferSelect;
+export type InsertTeacherSpecialization = z.infer<typeof insertTeacherSpecializationSchema>;

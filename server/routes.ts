@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -947,6 +947,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "تم إلغاء التحقق من الطالب", student });
     } catch (error) {
       res.status(500).json({ error: "Failed to undo student verification" });
+    }
+  });
+
+  // Teaching module routes
+  app.get("/api/teaching-modules", async (req, res) => {
+    try {
+      const modules = await storage.getTeachingModules();
+      res.json(modules);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch teaching modules" });
+    }
+  });
+
+  app.get("/api/teaching-modules/by-level/:level", async (req, res) => {
+    try {
+      const level = req.params.level;
+      const modules = await storage.getTeachingModulesByLevel(level);
+      res.json(modules);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch teaching modules by level" });
+    }
+  });
+
+  app.post("/api/admin/teaching-modules", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const moduleData = req.body;
+      const module = await storage.createTeachingModule(moduleData);
+      res.json(module);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create teaching module" });
+    }
+  });
+
+  app.delete("/api/admin/teaching-modules/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const moduleId = parseInt(req.params.id);
+      await storage.deleteTeachingModule(moduleId);
+      res.json({ message: "تم حذف المادة التعليمية بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete teaching module" });
+    }
+  });
+
+  // Teacher specialization routes
+  app.get("/api/teacher-specializations/:teacherId", async (req, res) => {
+    try {
+      const teacherId = parseInt(req.params.teacherId);
+      const specializations = await storage.getTeacherSpecializations(teacherId);
+      res.json(specializations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch teacher specializations" });
+    }
+  });
+
+  app.post("/api/teacher-specializations", async (req, res) => {
+    try {
+      if (!currentUser || (currentUser.role !== 'teacher' && currentUser.role !== 'admin')) {
+        return res.status(403).json({ error: "صلاحيات المعلم أو المدير مطلوبة" });
+      }
+      
+      const specializationData = req.body;
+      // Ensure the teacher can only add specializations for themselves unless they are admin
+      if (currentUser.role === 'teacher' && specializationData.teacherId !== currentUser.id) {
+        return res.status(403).json({ error: "لا يمكنك إضافة تخصصات لمعلم آخر" });
+      }
+      
+      const specialization = await storage.createTeacherSpecialization(specializationData);
+      res.json(specialization);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create teacher specialization" });
+    }
+  });
+
+  app.delete("/api/teacher-specializations/:id", async (req, res) => {
+    try {
+      if (!currentUser || (currentUser.role !== 'teacher' && currentUser.role !== 'admin')) {
+        return res.status(403).json({ error: "صلاحيات المعلم أو المدير مطلوبة" });
+      }
+      
+      const specializationId = parseInt(req.params.id);
+      await storage.deleteTeacherSpecialization(specializationId);
+      res.json({ message: "تم حذف التخصص بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete teacher specialization" });
+    }
+  });
+
+  app.get("/api/teachers-by-module/:moduleId", async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.moduleId);
+      const teachers = await storage.getTeachersByModule(moduleId);
+      res.json(teachers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch teachers by module" });
     }
   });
 

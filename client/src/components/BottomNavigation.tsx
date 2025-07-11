@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, Lightbulb, Mail, Shield } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Lightbulb, Mail, Shield, BookOpen } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,10 +24,15 @@ export function BottomNavigation() {
     ? [...baseNavItems, { icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' }]
     : baseNavItems;
 
+  // Add teacher specializations for teachers
+  const teacherNavItems = user?.role === 'teacher'
+    ? [...userNavItems, { icon: BookOpen, label: 'تخصصاتي', path: '/teacher-specializations' }]
+    : userNavItems;
+
   // Add admin panel for admin users
   const navItems = user?.role === 'admin' 
-    ? [...userNavItems, { icon: Shield, label: 'الإدارة', path: '/admin' }]
-    : userNavItems;
+    ? [...teacherNavItems, { icon: Shield, label: 'الإدارة', path: '/admin' }]
+    : teacherNavItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30">

@@ -244,7 +244,10 @@ export default function AdminLogin() {
         throw new Error(error.error || 'خطأ في تسجيل المعلم');
       }
       
-      toast({ title: 'تم تسجيل المعلم بنجاح' });
+      toast({ 
+        title: 'تم تسجيل المعلم بنجاح', 
+        description: 'يمكنك الآن تسجيل الدخول وتحديد المواد التي تدرسها' 
+      });
       clearForm();
       setSelectedAction('login');
       setCurrentStep('userType');
@@ -612,6 +615,11 @@ export default function AdminLogin() {
                           required
                           placeholder="مفتاح المعلم السري"
                         />
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-md">
+                        <p className="text-sm text-blue-700">
+                          <strong>ملاحظة:</strong> بعد إنشاء الحساب، يمكنك تحديد المواد التي تدرسها من صفحة "تخصصاتي"
+                        </p>
                       </div>
                     </div>
                     

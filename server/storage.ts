@@ -1,4 +1,4 @@
-import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification } from "@shared/schema";
+import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 
@@ -78,6 +78,18 @@ export interface IStorage {
   getUnverifiedStudents(): Promise<Student[]>;
   getVerifiedChildren(): Promise<Child[]>;
   getVerifiedStudents(): Promise<Student[]>;
+  
+  // Teaching module methods
+  getTeachingModules(): Promise<TeachingModule[]>;
+  getTeachingModulesByLevel(educationLevel: string): Promise<TeachingModule[]>;
+  createTeachingModule(module: InsertTeachingModule): Promise<TeachingModule>;
+  deleteTeachingModule(id: number): Promise<void>;
+  
+  // Teacher specialization methods
+  getTeacherSpecializations(teacherId: number): Promise<TeacherSpecialization[]>;
+  createTeacherSpecialization(specialization: InsertTeacherSpecialization): Promise<TeacherSpecialization>;
+  deleteTeacherSpecialization(id: number): Promise<void>;
+  getTeachersByModule(moduleId: number): Promise<TeacherSpecialization[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -438,6 +450,60 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  // Teaching module methods
+  async getTeachingModules(): Promise<TeachingModule[]> {
+    return await db.select().from(teachingModules).orderBy(desc(teachingModules.createdAt));
+  }
+
+  async getTeachingModulesByLevel(educationLevel: string): Promise<TeachingModule[]> {
+    return await db
+      .select()
+      .from(teachingModules)
+      .where(eq(teachingModules.educationLevel, educationLevel))
+      .orderBy(desc(teachingModules.createdAt));
+  }
+
+  async createTeachingModule(insertModule: InsertTeachingModule): Promise<TeachingModule> {
+    const [module] = await db
+      .insert(teachingModules)
+      .values(insertModule)
+      .returning();
+    return module;
+  }
+
+  async deleteTeachingModule(id: number): Promise<void> {
+    await db.delete(teachingModules).where(eq(teachingModules.id, id));
+  }
+
+  // Teacher specialization methods
+  async getTeacherSpecializations(teacherId: number): Promise<TeacherSpecialization[]> {
+    return await db
+      .select()
+      .from(teacherSpecializations)
+      .where(eq(teacherSpecializations.teacherId, teacherId))
+      .orderBy(desc(teacherSpecializations.createdAt));
+  }
+
+  async createTeacherSpecialization(insertSpecialization: InsertTeacherSpecialization): Promise<TeacherSpecialization> {
+    const [specialization] = await db
+      .insert(teacherSpecializations)
+      .values(insertSpecialization)
+      .returning();
+    return specialization;
+  }
+
+  async deleteTeacherSpecialization(id: number): Promise<void> {
+    await db.delete(teacherSpecializations).where(eq(teacherSpecializations.id, id));
+  }
+
+  async getTeachersByModule(moduleId: number): Promise<TeacherSpecialization[]> {
+    return await db
+      .select()
+      .from(teacherSpecializations)
+      .where(eq(teacherSpecializations.moduleId, moduleId))
+      .orderBy(desc(teacherSpecializations.createdAt));
   }
 }
 
