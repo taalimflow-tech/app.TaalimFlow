@@ -714,6 +714,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Verification routes (Admin only)
+  app.get("/api/admin/unverified-users", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const unverifiedUsers = await storage.getUnverifiedUsers();
+      res.json(unverifiedUsers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch unverified users" });
+    }
+  });
+
+  app.get("/api/admin/unverified-children", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const unverifiedChildren = await storage.getUnverifiedChildren();
+      res.json(unverifiedChildren);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch unverified children" });
+    }
+  });
+
+  app.get("/api/admin/unverified-students", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const unverifiedStudents = await storage.getUnverifiedStudents();
+      res.json(unverifiedStudents);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch unverified students" });
+    }
+  });
+
+  app.post("/api/admin/verify-user/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const userId = parseInt(req.params.id);
+      const { notes } = req.body;
+      
+      const verifiedUser = await storage.verifyUser(userId, currentUser.id, notes);
+      
+      // Create notification for the verified user
+      await storage.createNotification({
+        userId: verifiedUser.id,
+        type: 'verification',
+        title: '✅ تم التحقق من حسابك',
+        message: 'تم التحقق من حسابك بنجاح من قبل الإدارة',
+        relatedId: verifiedUser.id
+      });
+      
+      res.json({ message: "تم التحقق من المستخدم بنجاح", user: verifiedUser });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to verify user" });
+    }
+  });
+
+  app.post("/api/admin/verify-child/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const childId = parseInt(req.params.id);
+      const { notes } = req.body;
+      
+      const verifiedChild = await storage.verifyChild(childId, currentUser.id, notes);
+      
+      // Create notification for the parent
+      await storage.createNotification({
+        userId: verifiedChild.parentId,
+        type: 'verification',
+        title: '✅ تم التحقق من طفلك',
+        message: `تم التحقق من بيانات ${verifiedChild.name} بنجاح من قبل الإدارة`,
+        relatedId: verifiedChild.id
+      });
+      
+      res.json({ message: "تم التحقق من الطفل بنجاح", child: verifiedChild });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to verify child" });
+    }
+  });
+
+  app.post("/api/admin/verify-student/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const studentId = parseInt(req.params.id);
+      const { notes } = req.body;
+      
+      const verifiedStudent = await storage.verifyStudent(studentId, currentUser.id, notes);
+      
+      // Get user associated with student
+      const user = await storage.getUser(verifiedStudent.userId);
+      if (user) {
+        // Create notification for the student
+        await storage.createNotification({
+          userId: user.id,
+          type: 'verification',
+          title: '✅ تم التحقق من حسابك الطلابي',
+          message: 'تم التحقق من بياناتك التعليمية بنجاح من قبل الإدارة',
+          relatedId: verifiedStudent.id
+        });
+      }
+      
+      res.json({ message: "تم التحقق من الطالب بنجاح", student: verifiedStudent });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to verify student" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

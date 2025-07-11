@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut } from 'lucide-react';
+import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -225,10 +225,28 @@ export default function Profile() {
           <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
             <User className="w-8 h-8 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-800">{user.name}</h3>
             <p className="text-sm text-gray-600">{user.email}</p>
             <p className="text-sm text-gray-500">منذ {new Date(user.createdAt).toLocaleDateString('ar-SA')}</p>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            {user.verified ? (
+              <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">متحقق</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">
+                <XCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">غير متحقق</span>
+              </div>
+            )}
+            {!user.verified && (
+              <p className="text-xs text-gray-500 text-center">
+                يرجى زيارة المدرسة لتأكيد هويتك
+              </p>
+            )}
           </div>
         </div>
       </div>

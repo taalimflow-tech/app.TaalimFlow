@@ -10,6 +10,10 @@ export const users = pgTable("users", {
   phone: text("phone").notNull(),
   role: text("role").notNull().default("user"), // admin, teacher, user, student
   firebaseUid: text("firebase_uid"),
+  verified: boolean("verified").default(false), // Manual verification by admin
+  verificationNotes: text("verification_notes"), // Admin notes about verification
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: integer("verified_by").references(() => users.id), // Admin who verified
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -112,6 +116,10 @@ export const children = pgTable("children", {
   name: text("name").notNull(),
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
+  verified: boolean("verified").default(false), // Manual verification by admin
+  verificationNotes: text("verification_notes"), // Admin notes about verification
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: integer("verified_by").references(() => users.id), // Admin who verified
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -120,6 +128,10 @@ export const students = pgTable("students", {
   userId: integer("user_id").references(() => users.id),
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
+  verified: boolean("verified").default(false), // Manual verification by admin
+  verificationNotes: text("verification_notes"), // Admin notes about verification
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: integer("verified_by").references(() => users.id), // Admin who verified
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

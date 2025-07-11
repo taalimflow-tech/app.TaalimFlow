@@ -67,6 +67,14 @@ export interface IStorage {
   markAllNotificationsAsRead(userId: number): Promise<void>;
   getUnreadNotificationCount(userId: number): Promise<number>;
   createNotificationForUsers(userIds: number[], type: string, title: string, message: string, relatedId?: number): Promise<Notification[]>;
+  
+  // Verification methods
+  verifyUser(userId: number, adminId: number, notes?: string): Promise<User>;
+  verifyChild(childId: number, adminId: number, notes?: string): Promise<Child>;
+  verifyStudent(studentId: number, adminId: number, notes?: string): Promise<Student>;
+  getUnverifiedUsers(): Promise<User[]>;
+  getUnverifiedChildren(): Promise<Child[]>;
+  getUnverifiedStudents(): Promise<Student[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -344,6 +352,61 @@ export class DatabaseStorage implements IStorage {
       })
     );
     return await Promise.all(notificationPromises);
+  }
+
+  // Verification methods
+  async verifyUser(userId: number, adminId: number, notes?: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        verified: true, 
+        verificationNotes: notes || null,
+        verifiedAt: new Date(),
+        verifiedBy: adminId
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async verifyChild(childId: number, adminId: number, notes?: string): Promise<Child> {
+    const [child] = await db
+      .update(children)
+      .set({ 
+        verified: true, 
+        verificationNotes: notes || null,
+        verifiedAt: new Date(),
+        verifiedBy: adminId
+      })
+      .where(eq(children.id, childId))
+      .returning();
+    return child;
+  }
+
+  async verifyStudent(studentId: number, adminId: number, notes?: string): Promise<Student> {
+    const [student] = await db
+      .update(students)
+      .set({ 
+        verified: true, 
+        verificationNotes: notes || null,
+        verifiedAt: new Date(),
+        verifiedBy: adminId
+      })
+      .where(eq(students.id, studentId))
+      .returning();
+    return student;
+  }
+
+  async getUnverifiedUsers(): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.verified, false)).orderBy(desc(users.createdAt));
+  }
+
+  async getUnverifiedChildren(): Promise<Child[]> {
+    return await db.select().from(children).where(eq(children.verified, false)).orderBy(desc(children.createdAt));
+  }
+
+  async getUnverifiedStudents(): Promise<Student[]> {
+    return await db.select().from(students).where(eq(students.verified, false)).orderBy(desc(students.createdAt));
   }
 }
 

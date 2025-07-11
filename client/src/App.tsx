@@ -18,6 +18,7 @@ import AdminUsers from "@/pages/AdminUsers";
 import AdminContent from "@/pages/AdminContent";
 import AdminPanelTest from "@/pages/AdminPanelTest";
 import AdminSuggestions from "@/pages/AdminSuggestions";
+import AdminVerification from "@/pages/AdminVerification";
 import Announcements from "@/pages/Announcements";
 import AdminLogin from "@/pages/AdminLogin";
 import Profile from "@/pages/Profile";
@@ -105,6 +106,7 @@ function AdminRoutes() {
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/content" component={AdminContent} />
           <Route path="/admin/suggestions" component={AdminSuggestions} />
+          <Route path="/admin/verification" component={AdminVerification} />
           <Route path="/profile" component={Profile} />
           <Route component={NotFound} />
         </Switch>

@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Lightbulb, Settings, BarChart3 } from 'lucide-react';
+import { Users, FileText, Lightbulb, Settings, BarChart3, CheckCircle } from 'lucide-react';
 
 export default function AdminPanelTest() {
   const { user } = useAuth();
@@ -29,6 +29,13 @@ export default function AdminPanelTest() {
       icon: <Lightbulb className="w-6 h-6" />,
       path: '/admin/suggestions',
       color: 'bg-yellow-500'
+    },
+    {
+      title: 'التحقق من المستخدمين',
+      description: 'التحقق من هوية المستخدمين والطلاب والأطفال',
+      icon: <CheckCircle className="w-6 h-6" />,
+      path: '/admin/verification',
+      color: 'bg-purple-500'
     }
   ];
 
