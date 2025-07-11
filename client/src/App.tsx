@@ -114,13 +114,27 @@ function AdminRoutes() {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/admin-login" component={AdminLogin} />
-      <Route path="/admin" nest>
-        <AdminRoutes />
-      </Route>
-      <Route component={UserRoutes} />
-    </Switch>
+    <AuthWrapper>
+      <Layout>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/schedule" component={Schedule} />
+          <Route path="/teachers" component={Teachers} />
+          <Route path="/messages" component={Messages} />
+          <Route path="/suggestions" component={Suggestions} />
+          <Route path="/blog" component={Blog} />
+          <Route path="/groups" component={Groups} />
+          <Route path="/formations" component={Formations} />
+          <Route path="/announcements" component={Announcements} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/admin" component={AdminPanelTest} />
+          <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/admin/content" component={AdminContent} />
+          <Route path="/admin/suggestions" component={AdminSuggestions} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
+    </AuthWrapper>
   );
 }
 

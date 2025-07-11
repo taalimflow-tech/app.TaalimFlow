@@ -25,6 +25,7 @@ export default function Login() {
   const [children, setChildren] = useState<Child[]>([{ name: '', educationLevel: '', grade: '' }]);
   const [studentEducationLevel, setStudentEducationLevel] = useState('');
   const [studentGrade, setStudentGrade] = useState('');
+  const [secretKey, setSecretKey] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const { toast } = useToast();
@@ -33,7 +34,7 @@ export default function Login() {
   // New state for step-by-step flow
   const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
   const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
-  const [selectedUserType, setSelectedUserType] = useState<'parent' | 'student' | null>(null);
+  const [selectedUserType, setSelectedUserType] = useState<'admin' | 'teacher' | 'parent' | 'student' | null>(null);
 
   const educationLevels = {
     'الابتدائي': [
@@ -64,31 +65,7 @@ export default function Login() {
     try {
       await login(email, password);
       
-      // Check if user is admin or teacher after login
-      const response = await fetch('/api/auth/me');
-      if (response.ok) {
-        const { user } = await response.json();
-        if (user.role === 'admin' || user.role === 'teacher') {
-          // Clear the session but don't redirect automatically
-          await fetch('/api/auth/logout', { method: 'POST' });
-          
-          toast({ 
-            title: 'خطأ في تسجيل الدخول', 
-            description: 'المديرون والمعلمون يجب أن يستخدموا صفحة تسجيل دخول الإدارة.',
-            variant: 'destructive',
-            action: (
-              <ToastAction 
-                altText="انتقل إلى صفحة الإدارة"
-                onClick={() => window.location.href = '/admin-login'}
-              >
-                انتقل إلى صفحة الإدارة
-              </ToastAction>
-            )
-          });
-          return;
-        }
-      }
-      
+      // Login successful for all users
       toast({ title: 'تم تسجيل الدخول بنجاح' });
     } catch (error) {
       toast({ 
@@ -189,6 +166,94 @@ export default function Login() {
     }
   };
 
+  const handleAdminRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    if (!secretKey.trim()) {
+      toast({ 
+        title: 'خطأ في البيانات', 
+        description: 'يجب إدخال المفتاح السري للإدارة',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/auth/register-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          phone, 
+          password, 
+          adminKey: secretKey 
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'خطأ في تسجيل المدير');
+      }
+      
+      toast({ title: 'تم إنشاء حساب المدير بنجاح' });
+    } catch (error) {
+      toast({ 
+        title: 'خطأ في إنشاء الحساب', 
+        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات والمفتاح السري',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTeacherRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    if (!secretKey.trim()) {
+      toast({ 
+        title: 'خطأ في البيانات', 
+        description: 'يجب إدخال المفتاح السري للمعلمين',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/auth/register-teacher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          phone, 
+          password, 
+          teacherKey: secretKey 
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'خطأ في تسجيل المعلم');
+      }
+      
+      toast({ title: 'تم إنشاء حساب المعلم بنجاح' });
+    } catch (error) {
+      toast({ 
+        title: 'خطأ في إنشاء الحساب', 
+        description: error instanceof Error ? error.message : 'تأكد من صحة البيانات والمفتاح السري',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-bg p-4">
       <Card className="w-full max-w-2xl">
@@ -235,14 +300,7 @@ export default function Login() {
                 </Button>
               </div>
               
-              <div className="mt-8 pt-6 border-t text-center">
-                <a 
-                  href="/admin-login"
-                  className="text-sm text-gray-600 hover:text-primary underline cursor-pointer transition-colors"
-                >
-                  تسجيل دخول المديرين والمعلمين
-                </a>
-              </div>
+
             </div>
           )}
 
@@ -254,7 +312,45 @@ export default function Login() {
                 <p className="text-gray-600">حدد نوع المستخدم المناسب</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Button 
+                  onClick={() => {
+                    setSelectedUserType('admin');
+                    setCurrentStep('form');
+                  }}
+                  className="p-6 h-auto flex flex-col items-center justify-center space-y-3"
+                  variant="outline"
+                >
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium">مدير</div>
+                    <div className="text-sm text-gray-500">إدارة المدرسة</div>
+                  </div>
+                </Button>
+                
+                <Button 
+                  onClick={() => {
+                    setSelectedUserType('teacher');
+                    setCurrentStep('form');
+                  }}
+                  className="p-6 h-auto flex flex-col items-center justify-center space-y-3"
+                  variant="outline"
+                >
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6L23 9l-11-6zM5 13.18l7 3.82 7-3.82V13L12 17l-7-4v.18z"/>
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium">معلم</div>
+                    <div className="text-sm text-gray-500">هيئة التدريس</div>
+                  </div>
+                </Button>
+                
                 <Button 
                   onClick={() => {
                     setSelectedUserType('parent');
@@ -629,6 +725,170 @@ export default function Login() {
                     
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب طالب'}
+                    </Button>
+                  </form>
+                </div>
+              )}
+
+              {/* Admin Registration Form */}
+              {selectedAction === 'register' && selectedUserType === 'admin' && (
+                <div>
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">إنشاء حساب مدير</h2>
+                    <p className="text-gray-600">أدخل بيانات المدير والمفتاح السري</p>
+                  </div>
+                  
+                  <form onSubmit={handleAdminRegister} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="admin-name">اسم المدير</Label>
+                        <Input
+                          id="admin-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="أدخل اسم المدير"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="admin-phone">رقم الهاتف</Label>
+                        <Input
+                          id="admin-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="0555123456 أو +213555123456"
+                          pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="admin-email">البريد الإلكتروني</Label>
+                        <Input
+                          id="admin-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="أدخل البريد الإلكتروني"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="admin-password">كلمة المرور</Label>
+                        <Input
+                          id="admin-password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة المرور"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="admin-secret">المفتاح السري للإدارة</Label>
+                      <Input
+                        id="admin-secret"
+                        type="password"
+                        value={secretKey}
+                        onChange={(e) => setSecretKey(e.target.value)}
+                        placeholder="أدخل المفتاح السري للإدارة"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">يجب الحصول على المفتاح السري من إدارة المدرسة</p>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب مدير'}
+                    </Button>
+                  </form>
+                </div>
+              )}
+
+              {/* Teacher Registration Form */}
+              {selectedAction === 'register' && selectedUserType === 'teacher' && (
+                <div>
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">إنشاء حساب معلم</h2>
+                    <p className="text-gray-600">أدخل بيانات المعلم والمفتاح السري</p>
+                  </div>
+                  
+                  <form onSubmit={handleTeacherRegister} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="teacher-name">اسم المعلم</Label>
+                        <Input
+                          id="teacher-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="أدخل اسم المعلم"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="teacher-phone">رقم الهاتف</Label>
+                        <Input
+                          id="teacher-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="0555123456 أو +213555123456"
+                          pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="teacher-email">البريد الإلكتروني</Label>
+                        <Input
+                          id="teacher-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="أدخل البريد الإلكتروني"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="teacher-password">كلمة المرور</Label>
+                        <Input
+                          id="teacher-password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة المرور"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="teacher-secret">المفتاح السري للمعلمين</Label>
+                      <Input
+                        id="teacher-secret"
+                        type="password"
+                        value={secretKey}
+                        onChange={(e) => setSecretKey(e.target.value)}
+                        placeholder="أدخل المفتاح السري للمعلمين"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">يجب الحصول على المفتاح السري من إدارة المدرسة</p>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب معلم'}
                     </Button>
                   </form>
                 </div>
