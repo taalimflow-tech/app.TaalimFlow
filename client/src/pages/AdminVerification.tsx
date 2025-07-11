@@ -214,55 +214,51 @@ export default function AdminVerification() {
         </p>
       </div>
 
-      <Tabs defaultValue="unverified-children" className="w-full">
+      <Tabs defaultValue="unverified" className="w-full">
         <div className="w-full overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-4 min-w-[600px]">
-            <TabsTrigger value="unverified-children" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
-              <Clock className="w-4 h-4 shrink-0" />
-              <span className="text-xs leading-tight">أطفال غير متحقق</span>
-              <span className="text-xs opacity-70">({unverifiedChildren.length})</span>
+          <TabsList className="grid w-full grid-cols-2 min-w-[400px]">
+            <TabsTrigger value="unverified" className="flex flex-col items-center gap-1 p-3 text-center min-h-[70px]">
+              <Clock className="w-5 h-5 shrink-0" />
+              <span className="text-sm leading-tight">غير متحقق منهم</span>
+              <span className="text-xs opacity-70">({unverifiedChildren.length + unverifiedStudents.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="unverified-students" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
-              <Clock className="w-4 h-4 shrink-0" />
-              <span className="text-xs leading-tight">طلاب غير متحقق</span>
-              <span className="text-xs opacity-70">({unverifiedStudents.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="verified-children" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
-              <CheckCircle className="w-4 h-4 shrink-0" />
-              <span className="text-xs leading-tight">أطفال متحقق</span>
-              <span className="text-xs opacity-70">({verifiedChildren.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="verified-students" className="flex flex-col items-center gap-1 p-2 text-center min-h-[60px]">
-              <CheckCircle className="w-4 h-4 shrink-0" />
-              <span className="text-xs leading-tight">طلاب متحقق</span>
-              <span className="text-xs opacity-70">({verifiedStudents.length})</span>
+            <TabsTrigger value="verified" className="flex flex-col items-center gap-1 p-3 text-center min-h-[70px]">
+              <CheckCircle className="w-5 h-5 shrink-0" />
+              <span className="text-sm leading-tight">متحقق منهم</span>
+              <span className="text-xs opacity-70">({verifiedChildren.length + verifiedStudents.length})</span>
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="unverified-children" className="space-y-4">
+        <TabsContent value="unverified" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                الأطفال غير المتحقق منهم
+                الأطفال والطلاب غير المتحقق منهم
               </CardTitle>
               <CardDescription>
-                قائمة الأطفال الذين يحتاجون للتحقق من وثائقهم
+                قائمة الأطفال والطلاب الذين يحتاجون للتحقق من وثائقهم
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {unverifiedChildren.length === 0 ? (
+              {unverifiedChildren.length === 0 && unverifiedStudents.length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <p className="text-gray-600">لا توجد أطفال بحاجة للتحقق</p>
+                  <p className="text-gray-600">لا توجد أطفال أو طلاب بحاجة للتحقق</p>
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Unverified Children */}
                   {unverifiedChildren.map((child) => (
-                    <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={`child-${child.id}`} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{child.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            طفل
+                          </Badge>
+                          <h3 className="font-semibold text-lg">{child.name}</h3>
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">{child.educationLevel} - {child.grade}</p>
                       </div>
                       <Button 
@@ -276,35 +272,17 @@ export default function AdminVerification() {
                       </Button>
                     </div>
                   ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="unverified-students" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                الطلاب غير المتحقق منهم
-              </CardTitle>
-              <CardDescription>
-                قائمة الطلاب الذين يحتاجون للتحقق من وثائقهم
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {unverifiedStudents.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <p className="text-gray-600">لا توجد طلاب بحاجة للتحقق</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
+                  
+                  {/* Unverified Students */}
                   {unverifiedStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={`student-${student.id}`} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                            طالب
+                          </Badge>
+                          <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">{student.educationLevel} - {student.grade}</p>
                       </div>
                       <Button 
@@ -324,29 +302,35 @@ export default function AdminVerification() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="verified-children" className="space-y-4">
+        <TabsContent value="verified" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                الأطفال المتحقق منهم
+                الأطفال والطلاب المتحقق منهم
               </CardTitle>
               <CardDescription>
-                قائمة الأطفال الذين تم التحقق من وثائقهم بنجاح
+                قائمة الأطفال والطلاب الذين تم التحقق من وثائقهم بنجاح
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {verifiedChildren.length === 0 ? (
+              {verifiedChildren.length === 0 && verifiedStudents.length === 0 ? (
                 <div className="text-center py-8">
                   <XCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">لا توجد أطفال متحقق منهم بعد</p>
+                  <p className="text-gray-600">لا توجد أطفال أو طلاب متحقق منهم بعد</p>
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Verified Children */}
                   {verifiedChildren.map((child) => (
-                    <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
+                    <div key={`verified-child-${child.id}`} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{child.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            طفل
+                          </Badge>
+                          <h3 className="font-semibold text-lg">{child.name}</h3>
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">{child.educationLevel} - {child.grade}</p>
                       </div>
                       <Button 
@@ -361,35 +345,17 @@ export default function AdminVerification() {
                       </Button>
                     </div>
                   ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="verified-students" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                الطلاب المتحقق منهم
-              </CardTitle>
-              <CardDescription>
-                قائمة الطلاب الذين تم التحقق من وثائقهم بنجاح
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {verifiedStudents.length === 0 ? (
-                <div className="text-center py-8">
-                  <XCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">لا توجد طلاب متحقق منهم بعد</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
+                  
+                  {/* Verified Students */}
                   {verifiedStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
+                    <div key={`verified-student-${student.id}`} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                            طالب
+                          </Badge>
+                          <h3 className="font-semibold text-lg">طالب رقم {student.userId}</h3>
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">{student.educationLevel} - {student.grade}</p>
                       </div>
                       <Button 
