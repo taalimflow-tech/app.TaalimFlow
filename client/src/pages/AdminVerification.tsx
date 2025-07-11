@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+// Custom modal component instead of problematic Radix Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
@@ -47,6 +47,7 @@ export default function AdminVerification() {
   const [loading, setLoading] = useState(true);
   const [verificationNotes, setVerificationNotes] = useState('');
   const [selectedItem, setSelectedItem] = useState<{type: string, id: number} | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const fetchUnverifiedData = async () => {
     try {
@@ -102,6 +103,7 @@ export default function AdminVerification() {
         await fetchUnverifiedData();
         setVerificationNotes('');
         setSelectedItem(null);
+        setShowModal(false);
       } else {
         const error = await response.json();
         toast({
@@ -208,54 +210,16 @@ export default function AdminVerification() {
                           </div>
                         </div>
                       </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            onClick={() => setSelectedItem({type: 'user', id: user.id})}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            تحقق
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>التحقق من المستخدم</DialogTitle>
-                            <DialogDescription>
-                              تأكد من صحة بيانات المستخدم قبل التحقق
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
-                              <Textarea
-                                id="notes"
-                                value={verificationNotes}
-                                onChange={(e) => setVerificationNotes(e.target.value)}
-                                placeholder="أضف ملاحظات حول عملية التحقق..."
-                                className="mt-2"
-                              />
-                            </div>
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(null);
-                                  setVerificationNotes('');
-                                }}
-                              >
-                                إلغاء
-                              </Button>
-                              <Button
-                                onClick={() => handleVerify('user', user.id)}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                تأكيد التحقق
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Button 
+                        onClick={() => {
+                          setSelectedItem({type: 'user', id: user.id});
+                          setShowModal(true);
+                        }}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        تحقق
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -294,54 +258,16 @@ export default function AdminVerification() {
                           {new Date(child.createdAt).toLocaleDateString('ar-SA')}
                         </div>
                       </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            onClick={() => setSelectedItem({type: 'child', id: child.id})}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            تحقق
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>التحقق من الطفل</DialogTitle>
-                            <DialogDescription>
-                              تأكد من صحة بيانات الطفل التعليمية قبل التحقق
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
-                              <Textarea
-                                id="notes"
-                                value={verificationNotes}
-                                onChange={(e) => setVerificationNotes(e.target.value)}
-                                placeholder="أضف ملاحظات حول عملية التحقق..."
-                                className="mt-2"
-                              />
-                            </div>
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(null);
-                                  setVerificationNotes('');
-                                }}
-                              >
-                                إلغاء
-                              </Button>
-                              <Button
-                                onClick={() => handleVerify('child', child.id)}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                تأكيد التحقق
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Button 
+                        onClick={() => {
+                          setSelectedItem({type: 'child', id: child.id});
+                          setShowModal(true);
+                        }}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        تحقق
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -380,54 +306,16 @@ export default function AdminVerification() {
                           {new Date(student.createdAt).toLocaleDateString('ar-SA')}
                         </div>
                       </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            onClick={() => setSelectedItem({type: 'student', id: student.id})}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            تحقق
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>التحقق من الطالب</DialogTitle>
-                            <DialogDescription>
-                              تأكد من صحة بيانات الطالب التعليمية قبل التحقق
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
-                              <Textarea
-                                id="notes"
-                                value={verificationNotes}
-                                onChange={(e) => setVerificationNotes(e.target.value)}
-                                placeholder="أضف ملاحظات حول عملية التحقق..."
-                                className="mt-2"
-                              />
-                            </div>
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(null);
-                                  setVerificationNotes('');
-                                }}
-                              >
-                                إلغاء
-                              </Button>
-                              <Button
-                                onClick={() => handleVerify('student', student.id)}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                تأكيد التحقق
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Button 
+                        onClick={() => {
+                          setSelectedItem({type: 'student', id: student.id});
+                          setShowModal(true);
+                        }}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        تحقق
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -436,6 +324,52 @@ export default function AdminVerification() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Custom Modal */}
+      {showModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">
+              التحقق من {selectedItem.type === 'user' ? 'المستخدم' : selectedItem.type === 'child' ? 'الطفل' : 'الطالب'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              تأكد من صحة البيانات قبل التحقق
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
+                <Textarea
+                  id="notes"
+                  value={verificationNotes}
+                  onChange={(e) => setVerificationNotes(e.target.value)}
+                  placeholder="أضف ملاحظات حول عملية التحقق..."
+                  className="mt-2"
+                />
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedItem(null);
+                    setVerificationNotes('');
+                    setShowModal(false);
+                  }}
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  onClick={() => handleVerify(selectedItem.type, selectedItem.id)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  تأكيد التحقق
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
