@@ -240,12 +240,12 @@ export default function AdminVerification() {
 
           <TabsContent value="unverified" className="space-y-4 mt-2">
             <Card className="bg-white border border-gray-200 rounded-lg shadow-sm">
-              <CardHeader className="pb-4 bg-gray-50 border-b border-gray-200">
-                <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
-                  <Clock className="w-5 h-5 text-orange-600" />
+              <CardHeader className="pb-3 bg-gray-50 border-b border-gray-200" dir="rtl">
+                <CardTitle className="flex items-center gap-2 text-sm text-gray-900">
+                  <Clock className="w-4 h-4 text-orange-600" />
                   الأطفال والطلاب غير المتحقق منهم
                 </CardTitle>
-                <CardDescription className="text-gray-600 text-sm">
+                <CardDescription className="text-gray-600 text-xs">
                   قائمة الأطفال والطلاب الذين يحتاجون للتحقق من وثائقهم
                 </CardDescription>
               </CardHeader>
@@ -325,12 +325,12 @@ export default function AdminVerification() {
 
           <TabsContent value="verified" className="space-y-4 mt-2">
             <Card className="bg-white border border-gray-200 rounded-lg shadow-sm">
-              <CardHeader className="pb-4 bg-gray-50 border-b border-gray-200">
-                <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+              <CardHeader className="pb-3 bg-gray-50 border-b border-gray-200" dir="rtl">
+                <CardTitle className="flex items-center gap-2 text-sm text-gray-900">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
                   الأطفال والطلاب المتحقق منهم
                 </CardTitle>
-                <CardDescription className="text-gray-600 text-sm">
+                <CardDescription className="text-gray-600 text-xs">
                   قائمة الأطفال والطلاب الذين تم التحقق من وثائقهم بنجاح
                 </CardDescription>
               </CardHeader>
@@ -419,29 +419,29 @@ export default function AdminVerification() {
                 {selectedItem?.type.startsWith('verified') ? (
                   // Details modal for verified items
                   <div>
-                    <div className="text-center mb-6">
-                      <div className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg">
-                        <CheckCircle className="w-5 h-5" />
-                        <span className="font-semibold">تفاصيل التحقق</span>
+                    <div className="text-center mb-6" dir="rtl">
+                      <div className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-lg">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="font-semibold text-sm">تفاصيل التحقق</span>
                       </div>
-                      <h2 className="text-xl font-bold mt-4 text-gray-900">
+                      <h2 className="text-base font-bold mt-4 text-gray-900">
                         {selectedItem?.type === 'verified-child' ? 'الطفل' : 'الطالب'}
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200" dir="rtl">
                         <div className="flex items-center gap-2 mb-3">
-                          <CheckCircle className="w-6 h-6 text-green-600" />
-                          <span className="font-semibold text-green-800">تم التحقق بنجاح</span>
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="font-semibold text-green-800 text-sm">تم التحقق بنجاح</span>
                         </div>
-                        <p className="text-sm text-gray-700">
+                        <p className="text-xs text-gray-700">
                           تم التحقق من هذا {selectedItem?.type === 'verified-child' ? 'الطفل' : 'الطالب'} وتأكيد صحة البيانات المقدمة.
                         </p>
                       </div>
                       
                       {/* Verification Details */}
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold mb-4 text-gray-900">
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200" dir="rtl">
+                        <h3 className="font-semibold mb-4 text-gray-900 text-sm">
                           تفاصيل التحقق
                         </h3>
                         <div className="space-y-3">
@@ -497,18 +497,18 @@ export default function AdminVerification() {
                 ) : (
                   // Verification modal for unverified items
                   <div>
-                    <div className="text-center mb-6">
-                      <div className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg">
-                        <Clock className="w-5 h-5" />
-                        <span className="font-semibold">عملية التحقق</span>
+                    <div className="text-center mb-6" dir="rtl">
+                      <div className="inline-flex items-center gap-2 bg-orange-600 text-white px-3 py-1 rounded-lg">
+                        <Clock className="w-4 h-4" />
+                        <span className="font-semibold text-sm">عملية التحقق</span>
                       </div>
-                      <h2 className="text-xl font-bold mt-4 text-gray-900">
+                      <h2 className="text-base font-bold mt-4 text-gray-900">
                         تحقق من {selectedItem?.type === 'child' ? 'الطفل' : 'الطالب'}
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <Label htmlFor="notes" className="text-sm font-semibold text-gray-900 block mb-2">
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200" dir="rtl">
+                        <Label htmlFor="notes" className="text-xs font-semibold text-gray-900 block mb-2">
                           ملاحظات التحقق (اختياري)
                         </Label>
                         <Textarea
@@ -516,7 +516,7 @@ export default function AdminVerification() {
                           placeholder="أدخل أي ملاحظات حول عملية التحقق..."
                           value={verificationNotes}
                           onChange={(e) => setVerificationNotes(e.target.value)}
-                          className="mt-2 border-gray-300"
+                          className="mt-2 border-gray-300 text-sm"
                         />
                       </div>
                       <div className="flex gap-3 justify-end pt-4">

@@ -243,3 +243,5 @@ This unified approach provides better data consistency, easier queries, and impr
   - Kept only essential information: type badge, name/ID, and education level
   - Changed button text from "المعلومات" to "تفاصيل" for verified items for consistency
   - Updated badge colors to improve Arabic text visibility: changed from dark backgrounds to light colored backgrounds with darker text (blue-100/blue-800 for children, purple-100/purple-800 for students)
+  - Reduced text sizes throughout AdminVerification UI: card titles from text-lg to text-sm, descriptions from text-sm to text-xs, and other elements for better compactness
+  - Added RTL (Right-to-Left) orientation using dir="rtl" attribute for all Arabic text sections including card headers and modal content
