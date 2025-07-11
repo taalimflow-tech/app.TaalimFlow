@@ -16,9 +16,46 @@ export function ProfilePicture({ currentPicture, userName, onUpdate }: ProfilePi
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
   const { toast } = useToast();
 
-  const handleImageUpload = async (e: React.FormEvent) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const response = await fetch('/api/profile/picture/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        onUpdate(data.fileUrl);
+        setShowUploadForm(false);
+        toast({
+          title: "تم التحديث بنجاح",
+          description: "تم تحديث صورتك الشخصية بنجاح",
+        });
+      } else {
+        throw new Error('Failed to upload profile picture');
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "فشل في رفع الصورة الشخصية",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUrlUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!imageUrl.trim()) return;
 
@@ -102,35 +139,49 @@ export function ProfilePicture({ currentPicture, userName, onUpdate }: ProfilePi
           {/* Upload Form */}
           {showUploadForm && (
             <div className="w-full space-y-4 border-t pt-4">
-              <form onSubmit={handleImageUpload} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="image-url">رابط الصورة</Label>
-                  <Input
-                    id="image-url"
-                    type="url"
-                    placeholder="https://example.com/your-image.jpg"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    disabled={loading}
-                  />
-                  <p className="text-sm text-gray-600">
-                    أدخل رابط الصورة من الإنترنت (يجب أن ينتهي بـ .jpg أو .png)
-                  </p>
-                </div>
+              {/* Upload Method Selection */}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={uploadMethod === 'file' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setUploadMethod('file')}
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  رفع ملف
+                </Button>
+                <Button
+                  type="button"
+                  variant={uploadMethod === 'url' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setUploadMethod('url')}
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  🔗 رابط
+                </Button>
+              </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    type="submit"
-                    disabled={loading || !imageUrl.trim()}
-                    className="flex-1"
-                  >
-                    {loading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Upload className="w-4 h-4 mr-2" />
-                    )}
-                    {loading ? 'جاري التحديث...' : 'تحديث الصورة'}
-                  </Button>
+              {uploadMethod === 'file' ? (
+                /* File Upload */
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="file-upload">اختر صورة من جهازك</Label>
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={loading}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-sm text-gray-600">
+                      اختر ملف صورة (JPG, PNG, GIF, WEBP) - الحد الأقصى 5MB
+                    </p>
+                  </div>
+                  
                   <Button
                     type="button"
                     variant="outline"
@@ -139,11 +190,57 @@ export function ProfilePicture({ currentPicture, userName, onUpdate }: ProfilePi
                       setImageUrl('');
                     }}
                     disabled={loading}
+                    className="w-full"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 mr-2" />
+                    إلغاء
                   </Button>
                 </div>
-              </form>
+              ) : (
+                /* URL Upload */
+                <form onSubmit={handleUrlUpload} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="image-url">رابط الصورة</Label>
+                    <Input
+                      id="image-url"
+                      type="url"
+                      placeholder="https://example.com/your-image.jpg"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      disabled={loading}
+                    />
+                    <p className="text-sm text-gray-600">
+                      أدخل رابط الصورة من الإنترنت (يجب أن ينتهي بـ .jpg أو .png)
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                      disabled={loading || !imageUrl.trim()}
+                      className="flex-1"
+                    >
+                      {loading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 mr-2" />
+                      )}
+                      {loading ? 'جاري التحديث...' : 'تحديث الصورة'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowUploadForm(false);
+                        setImageUrl('');
+                      }}
+                      disabled={loading}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
         </div>

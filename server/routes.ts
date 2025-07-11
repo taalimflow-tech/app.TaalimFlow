@@ -3,6 +3,10 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import express from "express";
 
 // Simple session storage for demo (in production, use Redis or database)
 let currentUser: any = null;
@@ -10,6 +14,37 @@ let currentUser: any = null;
 // Secret keys for admin and teacher registration
 const ADMIN_SECRET_KEY = "ADMIN_2024_SECRET_KEY";
 const TEACHER_SECRET_KEY = "TEACHER_2024_SECRET_KEY";
+
+// Configure multer for file uploads
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage_multer = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `profile-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage_multer,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -210,6 +245,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "تم تسجيل الخروج بنجاح" });
   });
 
+  // Serve static files
+  app.use('/uploads', express.static(uploadDir));
+
   // Profile picture routes
   app.post("/api/profile/picture", async (req, res) => {
     try {
@@ -234,6 +272,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating profile picture:', error);
       res.status(500).json({ error: "فشل في تحديث الصورة الشخصية" });
+    }
+  });
+
+  // File upload endpoint for profile pictures
+  app.post("/api/profile/picture/upload", upload.single('profilePicture'), async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "لم يتم رفع أي ملف" });
+      }
+
+      // Create URL for the uploaded file
+      const fileUrl = `/uploads/${req.file.filename}`;
+      
+      const updatedUser = await storage.updateUserProfilePicture(currentUser.id, fileUrl);
+      
+      // Update current user session
+      currentUser = updatedUser;
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      res.json({ user: userWithoutPassword, fileUrl });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      res.status(500).json({ error: "فشل في رفع الصورة الشخصية" });
     }
   });
 
