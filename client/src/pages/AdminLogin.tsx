@@ -25,6 +25,15 @@ export default function AdminLogin() {
   const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
   const [selectedUserType, setSelectedUserType] = useState<'admin' | 'teacher' | null>(null);
 
+  // Clear form fields when switching steps
+  const clearForm = () => {
+    setEmail('');
+    setPassword('');
+    setName('');
+    setPhone('');
+    setSecretKey('');
+  };
+
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -116,7 +125,9 @@ export default function AdminLogin() {
       }
       
       toast({ title: 'تم تسجيل المدير بنجاح' });
-      navigate('/admin');
+      clearForm();
+      setSelectedAction('login');
+      setCurrentStep('userType');
     } catch (error) {
       toast({ 
         title: 'خطأ في تسجيل المدير', 
@@ -153,7 +164,9 @@ export default function AdminLogin() {
       }
       
       toast({ title: 'تم تسجيل المعلم بنجاح' });
-      navigate('/');
+      clearForm();
+      setSelectedAction('login');
+      setCurrentStep('userType');
     } catch (error) {
       toast({ 
         title: 'خطأ في تسجيل المعلم', 
@@ -188,6 +201,7 @@ export default function AdminLogin() {
               <div className="space-y-4">
                 <Button 
                   onClick={() => {
+                    clearForm();
                     setSelectedAction('login');
                     setCurrentStep('userType');
                   }}
@@ -199,6 +213,7 @@ export default function AdminLogin() {
                 
                 <Button 
                   onClick={() => {
+                    clearForm();
                     setSelectedAction('register');
                     setCurrentStep('userType');
                   }}
@@ -265,7 +280,10 @@ export default function AdminLogin() {
               
               <div className="text-center">
                 <Button 
-                  onClick={() => setCurrentStep('action')}
+                  onClick={() => {
+                    clearForm();
+                    setCurrentStep('action');
+                  }}
                   variant="ghost"
                   className="text-gray-600"
                 >
@@ -527,7 +545,10 @@ export default function AdminLogin() {
               {/* Back Button */}
               <div className="text-center">
                 <Button 
-                  onClick={() => setCurrentStep('userType')}
+                  onClick={() => {
+                    clearForm();
+                    setCurrentStep('userType');
+                  }}
                   variant="ghost"
                   className="text-gray-600"
                 >
