@@ -206,10 +206,10 @@ export default function AdminVerification() {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">لوحة التحقق من الأطفال والطلاب</h1>
-        <p className="text-gray-600">
+    <div className="container mx-auto p-2 max-w-6xl">
+      <div className="mb-3">
+        <h1 className="text-2xl font-bold text-gray-800 mb-1">لوحة التحقق من الأطفال والطلاب</h1>
+        <p className="text-gray-600 text-sm">
           راجع وتحقق من الأطفال والطلاب الذين قدموا وثائقهم في المدرسة
         </p>
       </div>
@@ -217,27 +217,27 @@ export default function AdminVerification() {
       <Tabs defaultValue="unverified" className="w-full">
         <div className="w-full overflow-x-auto">
           <TabsList className="grid w-full grid-cols-2 min-w-[400px]">
-            <TabsTrigger value="unverified" className="flex flex-col items-center gap-1 p-3 text-center min-h-[70px]">
-              <Clock className="w-5 h-5 shrink-0" />
-              <span className="text-sm leading-tight">غير متحقق منهم</span>
+            <TabsTrigger value="unverified" className="flex flex-col items-center gap-1 p-2 text-center min-h-[50px]">
+              <Clock className="w-4 h-4 shrink-0" />
+              <span className="text-xs leading-tight">غير متحقق منهم</span>
               <span className="text-xs opacity-70">({unverifiedChildren.length + unverifiedStudents.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="verified" className="flex flex-col items-center gap-1 p-3 text-center min-h-[70px]">
-              <CheckCircle className="w-5 h-5 shrink-0" />
-              <span className="text-sm leading-tight">متحقق منهم</span>
+            <TabsTrigger value="verified" className="flex flex-col items-center gap-1 p-2 text-center min-h-[50px]">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              <span className="text-xs leading-tight">متحقق منهم</span>
               <span className="text-xs opacity-70">({verifiedChildren.length + verifiedStudents.length})</span>
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="unverified" className="space-y-4">
+        <TabsContent value="unverified" className="space-y-2 mt-2">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Clock className="w-4 h-4" />
                 الأطفال والطلاب غير المتحقق منهم
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 قائمة الأطفال والطلاب الذين يحتاجون للتحقق من وثائقهم
               </CardDescription>
             </CardHeader>
@@ -248,10 +248,10 @@ export default function AdminVerification() {
                   <p className="text-gray-600">لا توجد أطفال أو طلاب بحاجة للتحقق</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {/* Unverified Children */}
                   {unverifiedChildren.map((child) => (
-                    <div key={`child-${child.id}`} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={`child-${child.id}`} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -275,7 +275,7 @@ export default function AdminVerification() {
                   
                   {/* Unverified Students */}
                   {unverifiedStudents.map((student) => (
-                    <div key={`student-${student.id}`} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={`student-${student.id}`} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
@@ -302,14 +302,14 @@ export default function AdminVerification() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="verified" className="space-y-4">
+        <TabsContent value="verified" className="space-y-2 mt-2">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CheckCircle className="w-4 h-4 text-green-600" />
                 الأطفال والطلاب المتحقق منهم
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 قائمة الأطفال والطلاب الذين تم التحقق من وثائقهم بنجاح
               </CardDescription>
             </CardHeader>
@@ -320,10 +320,10 @@ export default function AdminVerification() {
                   <p className="text-gray-600">لا توجد أطفال أو طلاب متحقق منهم بعد</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {/* Verified Children */}
                   {verifiedChildren.map((child) => (
-                    <div key={`verified-child-${child.id}`} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
+                    <div key={`verified-child-${child.id}`} className="flex items-center justify-between p-3 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -348,7 +348,7 @@ export default function AdminVerification() {
                   
                   {/* Verified Students */}
                   {verifiedStudents.map((student) => (
-                    <div key={`verified-student-${student.id}`} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
+                    <div key={`verified-student-${student.id}`} className="flex items-center justify-between p-3 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
