@@ -159,8 +159,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-bg p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="text-center pb-6">
           <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
@@ -173,14 +173,14 @@ export default function Login() {
         
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
               <TabsTrigger value="register">حساب ولي أمر</TabsTrigger>
               <TabsTrigger value="student">حساب طالب</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
+            <TabsContent value="login" className="mt-6">
+              <form onSubmit={handleLogin} className="space-y-6">
                 <div>
                   <Label htmlFor="email">البريد الإلكتروني</Label>
                   <Input
@@ -211,60 +211,64 @@ export default function Login() {
               </form>
             </TabsContent>
             
-            <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">اسم ولي الأمر</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="أدخل اسم ولي الأمر"
-                    required
-                  />
+            <TabsContent value="register" className="mt-6">
+              <form onSubmit={handleRegister} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">اسم ولي الأمر</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="أدخل اسم ولي الأمر"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone">رقم الهاتف</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="0555123456 أو +213555123456"
+                      pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
+                  </div>
                 </div>
                 
-                <div>
-                  <Label htmlFor="phone">رقم الهاتف</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="0555123456 أو +213555123456"
-                    pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="email">البريد الإلكتروني</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="أدخل بريدك الإلكتروني"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="password">كلمة المرور</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="أدخل كلمة المرور"
-                    required
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="أدخل بريدك الإلكتروني"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="password">كلمة المرور</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="أدخل كلمة المرور"
+                      required
+                    />
+                  </div>
                 </div>
                 
                 {/* Children Section */}
-                <div className="space-y-4">
+                <div className="space-y-4 border-t pt-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-base font-medium">بيانات الأطفال</Label>
                     <Button 
@@ -280,76 +284,81 @@ export default function Login() {
                     </Button>
                   </div>
                   
-                  {children.map((child, index) => (
-                    <div key={index} className="p-4 border rounded-lg space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-sm">الطفل {index + 1}</h4>
-                        {children.length > 1 && (
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeChild(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor={`child-name-${index}`}>اسم الطفل</Label>
-                        <Input
-                          id={`child-name-${index}`}
-                          type="text"
-                          value={child.name}
-                          onChange={(e) => updateChild(index, 'name', e.target.value)}
-                          placeholder="أدخل اسم الطفل"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor={`child-level-${index}`}>المرحلة التعليمية</Label>
-                        <Select
-                          value={child.educationLevel}
-                          onValueChange={(value) => updateChild(index, 'educationLevel', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المرحلة التعليمية" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="الابتدائي">الابتدائي</SelectItem>
-                            <SelectItem value="المتوسط">المتوسط</SelectItem>
-                            <SelectItem value="الثانوي">الثانوي</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      {child.educationLevel && (
-                        <div>
-                          <Label htmlFor={`child-grade-${index}`}>السنة الدراسية</Label>
-                          <Select
-                            value={child.grade}
-                            onValueChange={(value) => updateChild(index, 'grade', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="اختر السنة الدراسية" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {educationLevels[child.educationLevel as keyof typeof educationLevels]?.map((grade) => (
-                                <SelectItem key={grade} value={grade}>
-                                  {grade}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                  <div className="max-h-96 overflow-y-auto space-y-4">
+                    {children.map((child, index) => (
+                      <div key={index} className="p-4 border rounded-lg space-y-3 bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-sm text-gray-700">الطفل {index + 1}</h4>
+                          {children.length > 1 && (
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removeChild(index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor={`child-name-${index}`} className="text-sm">اسم الطفل</Label>
+                            <Input
+                              id={`child-name-${index}`}
+                              type="text"
+                              value={child.name}
+                              onChange={(e) => updateChild(index, 'name', e.target.value)}
+                              placeholder="أدخل اسم الطفل"
+                              required
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`child-level-${index}`} className="text-sm">المرحلة التعليمية</Label>
+                            <Select
+                              value={child.educationLevel}
+                              onValueChange={(value) => updateChild(index, 'educationLevel', value)}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="اختر المرحلة" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="الابتدائي">الابتدائي</SelectItem>
+                                <SelectItem value="المتوسط">المتوسط</SelectItem>
+                                <SelectItem value="الثانوي">الثانوي</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          {child.educationLevel && (
+                            <div className="md:col-span-2">
+                              <Label htmlFor={`child-grade-${index}`} className="text-sm">السنة الدراسية</Label>
+                              <Select
+                                value={child.grade}
+                                onValueChange={(value) => updateChild(index, 'grade', value)}
+                              >
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="اختر السنة الدراسية" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {educationLevels[child.educationLevel as keyof typeof educationLevels]?.map((grade) => (
+                                    <SelectItem key={grade} value={grade}>
+                                      {grade}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                   
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 text-center">
                     يمكن تسجيل حتى 5 أطفال في الحساب الواحد
                   </p>
                 </div>
@@ -360,100 +369,110 @@ export default function Login() {
               </form>
             </TabsContent>
             
-            <TabsContent value="student">
-              <form onSubmit={handleStudentRegister} className="space-y-4">
-                <div>
-                  <Label htmlFor="student-name">اسم الطالب</Label>
-                  <Input
-                    id="student-name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="أدخل اسم الطالب"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="student-phone">رقم الهاتف</Label>
-                  <Input
-                    id="student-phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="0555123456 أو +213555123456"
-                    pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="student-email">البريد الإلكتروني</Label>
-                  <Input
-                    id="student-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="أدخل بريدك الإلكتروني"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="student-password">كلمة المرور</Label>
-                  <Input
-                    id="student-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="أدخل كلمة المرور"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="student-education-level">المستوى التعليمي</Label>
-                  <Select
-                    value={studentEducationLevel}
-                    onValueChange={(value) => {
-                      setStudentEducationLevel(value);
-                      setStudentGrade(''); // Reset grade when education level changes
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر المستوى التعليمي" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(educationLevels).map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {studentEducationLevel && (
+            <TabsContent value="student" className="mt-6">
+              <form onSubmit={handleStudentRegister} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="student-grade">السنة الدراسية</Label>
-                    <Select
-                      value={studentGrade}
-                      onValueChange={setStudentGrade}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر السنة الدراسية" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {educationLevels[studentEducationLevel as keyof typeof educationLevels]?.map((grade) => (
-                          <SelectItem key={grade} value={grade}>
-                            {grade}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="student-name">اسم الطالب</Label>
+                    <Input
+                      id="student-name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="أدخل اسم الطالب"
+                      required
+                    />
                   </div>
-                )}
+                  
+                  <div>
+                    <Label htmlFor="student-phone">رقم الهاتف</Label>
+                    <Input
+                      id="student-phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="0555123456 أو +213555123456"
+                      pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="student-email">البريد الإلكتروني</Label>
+                    <Input
+                      id="student-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="أدخل بريدك الإلكتروني"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="student-password">كلمة المرور</Label>
+                    <Input
+                      id="student-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="أدخل كلمة المرور"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-4 border-t pt-4">
+                  <Label className="text-base font-medium">المعلومات الدراسية</Label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="student-education-level">المستوى التعليمي</Label>
+                      <Select
+                        value={studentEducationLevel}
+                        onValueChange={(value) => {
+                          setStudentEducationLevel(value);
+                          setStudentGrade(''); // Reset grade when education level changes
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المستوى التعليمي" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.keys(educationLevels).map((level) => (
+                            <SelectItem key={level} value={level}>
+                              {level}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {studentEducationLevel && (
+                      <div>
+                        <Label htmlFor="student-grade">السنة الدراسية</Label>
+                        <Select
+                          value={studentGrade}
+                          onValueChange={setStudentGrade}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر السنة الدراسية" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {educationLevels[studentEducationLevel as keyof typeof educationLevels]?.map((grade) => (
+                              <SelectItem key={grade} value={grade}>
+                                {grade}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب طالب'}
@@ -462,10 +481,10 @@ export default function Login() {
             </TabsContent>
           </Tabs>
           
-          <div className="mt-6 text-center">
+          <div className="mt-8 pt-6 border-t text-center">
             <a 
               href="/admin-login"
-              className="text-sm text-gray-600 hover:text-primary underline cursor-pointer"
+              className="text-sm text-gray-600 hover:text-primary underline cursor-pointer transition-colors"
             >
               تسجيل دخول المديرين والمعلمين
             </a>
