@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema } from "@shared/schema";
+import { z } from "zod";
 
 // Simple session storage for demo (in production, use Redis or database)
 let currentUser: any = null;
@@ -24,10 +25,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { password: _, ...userWithoutPassword } = user;
         res.json({ user: userWithoutPassword });
       } else {
-        res.status(401).json({ error: "بيانات تسجيل الدخول غير صحيحة" });
+        res.status(401).json({ error: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
       }
     } catch (error) {
-      res.status(400).json({ error: "بيانات غير صحيحة" });
+      console.error('Login error:', error);
+      res.status(400).json({ error: "تأكد من صحة البيانات المدخلة" });
     }
   });
 
@@ -90,7 +92,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ user: userWithoutPassword });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(400).json({ error: "بيانات غير صحيحة" });
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "يرجى التأكد من صحة جميع البيانات المطلوبة" });
+      } else {
+        res.status(400).json({ error: "حدث خطأ في إنشاء الحساب. يرجى المحاولة مرة أخرى" });
+      }
     }
   });
 
@@ -101,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify admin secret key
       if (validatedData.adminKey !== ADMIN_SECRET_KEY) {
-        return res.status(403).json({ error: "مفتاح الإدارة غير صحيح" });
+        return res.status(403).json({ error: "مفتاح الإدارة غير صحيح. تأكد من صحة المفتاح السري" });
       }
       
       // Check if user already exists by email
@@ -125,7 +131,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: __, ...userWithoutPassword } = user;
       res.status(201).json({ user: userWithoutPassword });
     } catch (error) {
-      res.status(400).json({ error: "بيانات غير صحيحة" });
+      console.error('Admin registration error:', error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "يرجى التأكد من صحة جميع البيانات المطلوبة" });
+      } else {
+        res.status(400).json({ error: "حدث خطأ في إنشاء حساب المدير. يرجى المحاولة مرة أخرى" });
+      }
     }
   });
 
@@ -136,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify teacher secret key
       if (validatedData.teacherKey !== TEACHER_SECRET_KEY) {
-        return res.status(403).json({ error: "مفتاح المعلم غير صحيح" });
+        return res.status(403).json({ error: "مفتاح المعلم غير صحيح. تأكد من صحة المفتاح السري" });
       }
       
       // Check if user already exists by email
@@ -170,7 +181,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: __, ...userWithoutPassword } = user;
       res.status(201).json({ user: userWithoutPassword });
     } catch (error) {
-      res.status(400).json({ error: "بيانات غير صحيحة" });
+      console.error('Teacher registration error:', error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "يرجى التأكد من صحة جميع البيانات المطلوبة" });
+      } else {
+        res.status(400).json({ error: "حدث خطأ في إنشاء حساب المعلم. يرجى المحاولة مرة أخرى" });
+      }
     }
   });
 

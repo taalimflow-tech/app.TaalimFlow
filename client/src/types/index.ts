@@ -1,10 +1,9 @@
 export interface User {
-  id: string;
+  id: number;
   email: string;
   name: string;
   phone: string;
-  role: 'admin' | 'teacher' | 'user';
-  firebaseUid: string;
+  role: 'admin' | 'teacher' | 'user' | 'student';
   createdAt: Date;
 }
 
