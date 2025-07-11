@@ -266,7 +266,7 @@ export default function AdminVerification() {
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-blue-600 text-white text-xs">
+                            <Badge className="bg-blue-100 text-blue-800 text-xs border border-blue-300">
                               طفل
                             </Badge>
                             <h3 className="font-medium text-gray-900">{child.name}</h3>
@@ -296,7 +296,7 @@ export default function AdminVerification() {
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-600 text-white text-xs">
+                            <Badge className="bg-purple-100 text-purple-800 text-xs border border-purple-300">
                               طالب
                             </Badge>
                             <h3 className="font-medium text-gray-900">طالب رقم {student.userId}</h3>
@@ -351,7 +351,7 @@ export default function AdminVerification() {
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-blue-600 text-white text-xs">
+                            <Badge className="bg-blue-100 text-blue-800 text-xs border border-blue-300">
                               طفل
                             </Badge>
                             <h3 className="font-medium text-gray-900">{child.name}</h3>
@@ -382,7 +382,7 @@ export default function AdminVerification() {
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-600 text-white text-xs">
+                            <Badge className="bg-purple-100 text-purple-800 text-xs border border-purple-300">
                               طالب
                             </Badge>
                             <h3 className="font-medium text-gray-900">طالب رقم {student.userId}</h3>
