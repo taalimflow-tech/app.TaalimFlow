@@ -225,3 +225,8 @@ This unified approach provides better data consistency, easier queries, and impr
   - Updated date formatting in AdminVerification, Profile, AdminSuggestions, NotificationPanel, AdminContent, and AdminUsers pages
   - All dates now display in standard Gregorian format (MM/DD/YYYY) instead of Islamic calendar format
   - This change provides consistent date display that matches international standards
+- **January 2025**: Removed verification status display for admins and teachers in profiles
+  - Verification status is now only shown for students in their profiles
+  - Admins and teachers no longer see "non-validated account" messages or verification badges
+  - This aligns with the system design where only students and children need document verification
+  - Profile pages now conditionally show verification status based on user role

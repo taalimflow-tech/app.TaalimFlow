@@ -250,24 +250,27 @@ export default function Profile() {
             <p className="text-sm text-gray-600">{user.email}</p>
             <p className="text-sm text-gray-500">منذ {new Date(user.createdAt).toLocaleDateString('en-US')}</p>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            {user.verified ? (
-              <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                <CheckCircle className="w-4 h-4" />
-                <span className="text-sm font-medium">متحقق</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">
-                <XCircle className="w-4 h-4" />
-                <span className="text-sm font-medium">غير متحقق</span>
-              </div>
-            )}
-            {!user.verified && (
-              <p className="text-xs text-gray-500 text-center">
-                يرجى زيارة المدرسة لتأكيد هويتك
-              </p>
-            )}
-          </div>
+          {/* Verification status only for students - admins and teachers don't need verification */}
+          {user.role === 'student' && (
+            <div className="flex flex-col items-center gap-2">
+              {user.verified ? (
+                <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">متحقق</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">
+                  <XCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">غير متحقق</span>
+                </div>
+              )}
+              {!user.verified && (
+                <p className="text-xs text-gray-500 text-center">
+                  يرجى زيارة المدرسة لتأكيد هويتك
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
