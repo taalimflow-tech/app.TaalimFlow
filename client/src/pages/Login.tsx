@@ -29,6 +29,11 @@ export default function Login() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
+  // New state for step-by-step flow
+  const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
+  const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
+  const [selectedUserType, setSelectedUserType] = useState<'parent' | 'student' | null>(null);
+
   const educationLevels = {
     'الابتدائي': [
       '5 سنوات',
@@ -172,323 +177,454 @@ export default function Login() {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
-              <TabsTrigger value="register">حساب ولي أمر</TabsTrigger>
-              <TabsTrigger value="student">حساب طالب</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login" className="mt-6">
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div>
-                  <Label htmlFor="email">البريد الإلكتروني</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="أدخل بريدك الإلكتروني"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="password">كلمة المرور</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="أدخل كلمة المرور"
-                    required
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+          {/* Step 1: Choose Action */}
+          {currentStep === 'action' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">مرحباً بك</h2>
+                <p className="text-gray-600">اختر الإجراء المناسب</p>
+              </div>
+              
+              <div className="space-y-4">
+                <Button 
+                  onClick={() => {
+                    setSelectedAction('login');
+                    setCurrentStep('form');
+                  }}
+                  className="w-full py-6 text-lg"
+                  variant="outline"
+                >
+                  تسجيل الدخول
                 </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="register" className="mt-6">
-              <form onSubmit={handleRegister} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">اسم ولي الأمر</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="أدخل اسم ولي الأمر"
-                      required
-                    />
+                
+                <Button 
+                  onClick={() => {
+                    setSelectedAction('register');
+                    setCurrentStep('userType');
+                  }}
+                  className="w-full py-6 text-lg"
+                >
+                  إنشاء حساب جديد
+                </Button>
+              </div>
+              
+              <div className="mt-8 pt-6 border-t text-center">
+                <a 
+                  href="/admin-login"
+                  className="text-sm text-gray-600 hover:text-primary underline cursor-pointer transition-colors"
+                >
+                  تسجيل دخول المديرين والمعلمين
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Choose User Type (only for registration) */}
+          {currentStep === 'userType' && selectedAction === 'register' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">اختر نوع الحساب</h2>
+                <p className="text-gray-600">حدد نوع المستخدم المناسب</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button 
+                  onClick={() => {
+                    setSelectedUserType('parent');
+                    setCurrentStep('form');
+                  }}
+                  className="p-6 h-auto flex flex-col items-center justify-center space-y-3"
+                  variant="outline"
+                >
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium">ولي أمر</div>
+                    <div className="text-sm text-gray-500">حساب للآباء والأمهات</div>
+                  </div>
+                </Button>
+                
+                <Button 
+                  onClick={() => {
+                    setSelectedUserType('student');
+                    setCurrentStep('form');
+                  }}
+                  className="p-6 h-auto flex flex-col items-center justify-center space-y-3"
+                  variant="outline"
+                >
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6L23 9l-11-6zM5 13.18l7 3.82 7-3.82V13L12 17l-7-4v.18z"/>
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium">طالب</div>
+                    <div className="text-sm text-gray-500">حساب للطلاب</div>
+                  </div>
+                </Button>
+              </div>
+              
+              <div className="text-center">
+                <Button 
+                  onClick={() => setCurrentStep('action')}
+                  variant="ghost"
+                  className="text-gray-600"
+                >
+                  ← رجوع
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Forms */}
+          {currentStep === 'form' && (
+            <div className="space-y-6">
+              {/* Login Form */}
+              {selectedAction === 'login' && (
+                <div>
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">تسجيل الدخول</h2>
+                    <p className="text-gray-600">أدخل بيانات حسابك</p>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="phone">رقم الهاتف</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="0555123456 أو +213555123456"
-                      pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="أدخل بريدك الإلكتروني"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="password">كلمة المرور</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="أدخل كلمة المرور"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                {/* Children Section */}
-                <div className="space-y-4 border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-medium">بيانات الأطفال</Label>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={addChild}
-                      disabled={children.length >= 5}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      إضافة طفل
+                  <form onSubmit={handleLogin} className="space-y-6">
+                    <div>
+                      <Label htmlFor="email">البريد الإلكتروني</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="أدخل بريدك الإلكتروني"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="password">كلمة المرور</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="أدخل كلمة المرور"
+                        required
+                      />
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
                     </Button>
+                  </form>
+                </div>
+              )}
+
+              {/* Parent Registration Form */}
+              {selectedAction === 'register' && selectedUserType === 'parent' && (
+                <div>
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">إنشاء حساب ولي أمر</h2>
+                    <p className="text-gray-600">أدخل بيانات ولي الأمر والأطفال</p>
                   </div>
                   
-                  <div className="max-h-96 overflow-y-auto space-y-4">
-                    {children.map((child, index) => (
-                      <div key={index} className="p-4 border rounded-lg space-y-3 bg-gray-50">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-sm text-gray-700">الطفل {index + 1}</h4>
-                          {children.length > 1 && (
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removeChild(index)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
+                  <form onSubmit={handleRegister} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">اسم ولي الأمر</Label>
+                        <Input
+                          id="name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="أدخل اسم ولي الأمر"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="phone">رقم الهاتف</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="0555123456 أو +213555123456"
+                          pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="email">البريد الإلكتروني</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="أدخل بريدك الإلكتروني"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="password">كلمة المرور</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة المرور"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Children Section */}
+                    <div className="space-y-4 border-t pt-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base font-medium">بيانات الأطفال</Label>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={addChild}
+                          disabled={children.length >= 5}
+                          className="flex items-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          إضافة طفل
+                        </Button>
+                      </div>
+                      
+                      <div className="max-h-96 overflow-y-auto space-y-4">
+                        {children.map((child, index) => (
+                          <div key={index} className="p-4 border rounded-lg space-y-3 bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-sm text-gray-700">الطفل {index + 1}</h4>
+                              {children.length > 1 && (
+                                <Button 
+                                  type="button" 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => removeChild(index)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <Label htmlFor={`child-name-${index}`} className="text-sm">اسم الطفل</Label>
+                                <Input
+                                  id={`child-name-${index}`}
+                                  type="text"
+                                  value={child.name}
+                                  onChange={(e) => updateChild(index, 'name', e.target.value)}
+                                  placeholder="أدخل اسم الطفل"
+                                  required
+                                  className="mt-1"
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor={`child-level-${index}`} className="text-sm">المرحلة التعليمية</Label>
+                                <Select
+                                  value={child.educationLevel}
+                                  onValueChange={(value) => updateChild(index, 'educationLevel', value)}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="اختر المرحلة" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="الابتدائي">الابتدائي</SelectItem>
+                                    <SelectItem value="المتوسط">المتوسط</SelectItem>
+                                    <SelectItem value="الثانوي">الثانوي</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              {child.educationLevel && (
+                                <div className="md:col-span-2">
+                                  <Label htmlFor={`child-grade-${index}`} className="text-sm">السنة الدراسية</Label>
+                                  <Select
+                                    value={child.grade}
+                                    onValueChange={(value) => updateChild(index, 'grade', value)}
+                                  >
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue placeholder="اختر السنة الدراسية" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {educationLevels[child.educationLevel as keyof typeof educationLevels]?.map((grade) => (
+                                        <SelectItem key={grade} value={grade}>
+                                          {grade}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <p className="text-xs text-gray-500 text-center">
+                        يمكن تسجيل حتى 5 أطفال في الحساب الواحد
+                      </p>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب ولي أمر'}
+                    </Button>
+                  </form>
+                </div>
+              )}
+
+              {/* Student Registration Form */}
+              {selectedAction === 'register' && selectedUserType === 'student' && (
+                <div>
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">إنشاء حساب طالب</h2>
+                    <p className="text-gray-600">أدخل بيانات الطالب الشخصية والدراسية</p>
+                  </div>
+                  
+                  <form onSubmit={handleStudentRegister} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="student-name">اسم الطالب</Label>
+                        <Input
+                          id="student-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="أدخل اسم الطالب"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="student-phone">رقم الهاتف</Label>
+                        <Input
+                          id="student-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="0555123456 أو +213555123456"
+                          pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="student-email">البريد الإلكتروني</Label>
+                        <Input
+                          id="student-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="أدخل بريدك الإلكتروني"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="student-password">كلمة المرور</Label>
+                        <Input
+                          id="student-password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة المرور"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 border-t pt-4">
+                      <Label className="text-base font-medium">المعلومات الدراسية</Label>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="student-education-level">المستوى التعليمي</Label>
+                          <Select
+                            value={studentEducationLevel}
+                            onValueChange={(value) => {
+                              setStudentEducationLevel(value);
+                              setStudentGrade(''); // Reset grade when education level changes
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر المستوى التعليمي" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.keys(educationLevels).map((level) => (
+                                <SelectItem key={level} value={level}>
+                                  {level}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {studentEducationLevel && (
                           <div>
-                            <Label htmlFor={`child-name-${index}`} className="text-sm">اسم الطفل</Label>
-                            <Input
-                              id={`child-name-${index}`}
-                              type="text"
-                              value={child.name}
-                              onChange={(e) => updateChild(index, 'name', e.target.value)}
-                              placeholder="أدخل اسم الطفل"
-                              required
-                              className="mt-1"
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor={`child-level-${index}`} className="text-sm">المرحلة التعليمية</Label>
+                            <Label htmlFor="student-grade">السنة الدراسية</Label>
                             <Select
-                              value={child.educationLevel}
-                              onValueChange={(value) => updateChild(index, 'educationLevel', value)}
+                              value={studentGrade}
+                              onValueChange={setStudentGrade}
                             >
-                              <SelectTrigger className="mt-1">
-                                <SelectValue placeholder="اختر المرحلة" />
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر السنة الدراسية" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="الابتدائي">الابتدائي</SelectItem>
-                                <SelectItem value="المتوسط">المتوسط</SelectItem>
-                                <SelectItem value="الثانوي">الثانوي</SelectItem>
+                                {educationLevels[studentEducationLevel as keyof typeof educationLevels]?.map((grade) => (
+                                  <SelectItem key={grade} value={grade}>
+                                    {grade}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
-                          
-                          {child.educationLevel && (
-                            <div className="md:col-span-2">
-                              <Label htmlFor={`child-grade-${index}`} className="text-sm">السنة الدراسية</Label>
-                              <Select
-                                value={child.grade}
-                                onValueChange={(value) => updateChild(index, 'grade', value)}
-                              >
-                                <SelectTrigger className="mt-1">
-                                  <SelectValue placeholder="اختر السنة الدراسية" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {educationLevels[child.educationLevel as keyof typeof educationLevels]?.map((grade) => (
-                                    <SelectItem key={grade} value={grade}>
-                                      {grade}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                  
-                  <p className="text-xs text-gray-500 text-center">
-                    يمكن تسجيل حتى 5 أطفال في الحساب الواحد
-                  </p>
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="student" className="mt-6">
-              <form onSubmit={handleStudentRegister} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="student-name">اسم الطالب</Label>
-                    <Input
-                      id="student-name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="أدخل اسم الطالب"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="student-phone">رقم الهاتف</Label>
-                    <Input
-                      id="student-phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="0555123456 أو +213555123456"
-                      pattern="^(\+213|0)(5|6|7)[0-9]{8}$"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">رقم هاتف جزائري (يبدأ بـ 05، 06، أو 07)</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="student-email">البريد الإلكتروني</Label>
-                    <Input
-                      id="student-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="أدخل بريدك الإلكتروني"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="student-password">كلمة المرور</Label>
-                    <Input
-                      id="student-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="أدخل كلمة المرور"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-4 border-t pt-4">
-                  <Label className="text-base font-medium">المعلومات الدراسية</Label>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="student-education-level">المستوى التعليمي</Label>
-                      <Select
-                        value={studentEducationLevel}
-                        onValueChange={(value) => {
-                          setStudentEducationLevel(value);
-                          setStudentGrade(''); // Reset grade when education level changes
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر المستوى التعليمي" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(educationLevels).map((level) => (
-                            <SelectItem key={level} value={level}>
-                              {level}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </div>
                     
-                    {studentEducationLevel && (
-                      <div>
-                        <Label htmlFor="student-grade">السنة الدراسية</Label>
-                        <Select
-                          value={studentGrade}
-                          onValueChange={setStudentGrade}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر السنة الدراسية" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {educationLevels[studentEducationLevel as keyof typeof educationLevels]?.map((grade) => (
-                              <SelectItem key={grade} value={grade}>
-                                {grade}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب طالب'}
+                    </Button>
+                  </form>
                 </div>
-                
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب طالب'}
+              )}
+
+              {/* Back Button */}
+              <div className="text-center">
+                <Button 
+                  onClick={() => {
+                    if (selectedAction === 'login') {
+                      setCurrentStep('action');
+                    } else if (selectedAction === 'register') {
+                      setCurrentStep('userType');
+                    }
+                  }}
+                  variant="ghost"
+                  className="text-gray-600"
+                >
+                  ← رجوع
                 </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="mt-8 pt-6 border-t text-center">
-            <a 
-              href="/admin-login"
-              className="text-sm text-gray-600 hover:text-primary underline cursor-pointer transition-colors"
-            >
-              تسجيل دخول المديرين والمعلمين
-            </a>
-          </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
