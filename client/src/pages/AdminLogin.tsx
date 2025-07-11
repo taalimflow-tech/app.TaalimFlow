@@ -54,7 +54,7 @@ export default function AdminLogin() {
           return;
         }
         toast({ title: 'تم تسجيل دخول المدير بنجاح' });
-        navigate('/admin');
+        window.location.href = '/admin';
       }
     } catch (error) {
       toast({ 
@@ -87,7 +87,7 @@ export default function AdminLogin() {
           return;
         }
         toast({ title: 'تم تسجيل دخول المعلم بنجاح' });
-        navigate('/');
+        window.location.href = '/';
       }
     } catch (error) {
       toast({ 

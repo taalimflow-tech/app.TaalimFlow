@@ -71,10 +71,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    const currentUserRole = user?.role;
     setUser(null);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Redirect based on user role
+    if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
+      window.location.href = '/admin-login';
+    } else {
+      window.location.href = '/';
+    }
   };
 
   const value = {

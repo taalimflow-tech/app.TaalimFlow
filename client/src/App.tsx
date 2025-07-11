@@ -41,7 +41,39 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function AuthenticatedRoutes() {
+function AdminAuthWrapper({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  // Show admin login page if user is not authenticated
+  if (!user) {
+    return <AdminLogin />;
+  }
+  
+  // Check if user has admin role
+  if (user.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">غير مسموح</h2>
+          <p className="text-gray-600 mb-6">ليس لديك صلاحية للوصول إلى هذه الصفحة</p>
+          <a href="/admin-login" className="text-primary hover:underline">تسجيل دخول الإدارة</a>
+        </div>
+      </div>
+    );
+  }
+  
+  return <>{children}</>;
+}
+
+function UserRoutes() {
   return (
     <AuthWrapper>
       <Layout>
@@ -55,10 +87,6 @@ function AuthenticatedRoutes() {
           <Route path="/groups" component={Groups} />
           <Route path="/formations" component={Formations} />
           <Route path="/announcements" component={Announcements} />
-          <Route path="/admin" component={AdminPanelTest} />
-          <Route path="/admin/users" component={AdminUsers} />
-          <Route path="/admin/content" component={AdminContent} />
-          <Route path="/admin/suggestions" component={AdminSuggestions} />
           <Route path="/profile" component={Profile} />
           <Route component={NotFound} />
         </Switch>
@@ -67,11 +95,31 @@ function AuthenticatedRoutes() {
   );
 }
 
+function AdminRoutes() {
+  return (
+    <AdminAuthWrapper>
+      <Layout>
+        <Switch>
+          <Route path="/admin" component={AdminPanelTest} />
+          <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/admin/content" component={AdminContent} />
+          <Route path="/admin/suggestions" component={AdminSuggestions} />
+          <Route path="/profile" component={Profile} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
+    </AdminAuthWrapper>
+  );
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/admin-login" component={AdminLogin} />
-      <Route component={AuthenticatedRoutes} />
+      <Route path="/admin" nest>
+        <AdminRoutes />
+      </Route>
+      <Route component={UserRoutes} />
     </Switch>
   );
 }
