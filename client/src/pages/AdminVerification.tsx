@@ -186,22 +186,22 @@ export default function AdminVerification() {
       </div>
 
       <Tabs defaultValue="unverified-children" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="unverified-children" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
+          <TabsTrigger value="unverified-children" className="flex flex-col items-center gap-1 p-3 text-center">
             <Clock className="w-4 h-4" />
-            أطفال غير متحقق منهم ({unverifiedChildren.length})
+            <span className="text-xs">أطفال غير متحقق ({unverifiedChildren.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="unverified-students" className="flex items-center gap-2">
+          <TabsTrigger value="unverified-students" className="flex flex-col items-center gap-1 p-3 text-center">
             <Clock className="w-4 h-4" />
-            طلاب غير متحقق منهم ({unverifiedStudents.length})
+            <span className="text-xs">طلاب غير متحقق ({unverifiedStudents.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="verified-children" className="flex items-center gap-2">
+          <TabsTrigger value="verified-children" className="flex flex-col items-center gap-1 p-3 text-center">
             <CheckCircle className="w-4 h-4" />
-            أطفال متحقق منهم ({verifiedChildren.length})
+            <span className="text-xs">أطفال متحقق ({verifiedChildren.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="verified-students" className="flex items-center gap-2">
+          <TabsTrigger value="verified-students" className="flex flex-col items-center gap-1 p-3 text-center">
             <CheckCircle className="w-4 h-4" />
-            طلاب متحقق منهم ({verifiedStudents.length})
+            <span className="text-xs">طلاب متحقق ({verifiedStudents.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -342,10 +342,18 @@ export default function AdminVerification() {
                           </p>
                         )}
                       </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          // Show verification details modal
+                          setSelectedItem({type: 'verified-child', id: child.id});
+                          setShowModal(true);
+                        }}
+                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                      >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        متحقق منه
-                      </Badge>
+                        عرض التفاصيل
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -391,10 +399,18 @@ export default function AdminVerification() {
                           </p>
                         )}
                       </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          // Show verification details modal
+                          setSelectedItem({type: 'verified-student', id: student.id});
+                          setShowModal(true);
+                        }}
+                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                      >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        متحقق منه
-                      </Badge>
+                        عرض التفاصيل
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -409,40 +425,74 @@ export default function AdminVerification() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">
-                تحقق من {selectedItem?.type === 'child' ? 'الطفل' : 'الطالب'}
-              </h2>
-              <div className="space-y-4">
+              {selectedItem?.type.startsWith('verified') ? (
+                // Details modal for verified items
                 <div>
-                  <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="أدخل أي ملاحظات حول عملية التحقق..."
-                    value={verificationNotes}
-                    onChange={(e) => setVerificationNotes(e.target.value)}
-                    className="mt-2"
-                  />
+                  <h2 className="text-xl font-bold mb-4">
+                    تفاصيل التحقق - {selectedItem?.type === 'verified-child' ? 'الطفل' : 'الطالب'}
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span className="font-semibold text-green-800">تم التحقق بنجاح</span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        تم التحقق من هذا {selectedItem?.type === 'verified-child' ? 'الطفل' : 'الطالب'} وتأكيد صحة البيانات المقدمة.
+                      </p>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowModal(false);
+                          setSelectedItem(null);
+                        }}
+                      >
+                        إغلاق
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowModal(false);
-                      setVerificationNotes('');
-                      setSelectedItem(null);
-                    }}
-                  >
-                    إلغاء
-                  </Button>
-                  <Button
-                    onClick={() => selectedItem && handleVerify(selectedItem.type, selectedItem.id)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    تأكيد التحقق
-                  </Button>
+              ) : (
+                // Verification modal for unverified items
+                <div>
+                  <h2 className="text-xl font-bold mb-4">
+                    تحقق من {selectedItem?.type === 'child' ? 'الطفل' : 'الطالب'}
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="notes">ملاحظات التحقق (اختياري)</Label>
+                      <Textarea
+                        id="notes"
+                        placeholder="أدخل أي ملاحظات حول عملية التحقق..."
+                        value={verificationNotes}
+                        onChange={(e) => setVerificationNotes(e.target.value)}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowModal(false);
+                          setVerificationNotes('');
+                          setSelectedItem(null);
+                        }}
+                      >
+                        إلغاء
+                      </Button>
+                      <Button
+                        onClick={() => selectedItem && handleVerify(selectedItem.type, selectedItem.id)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        تأكيد التحقق
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
