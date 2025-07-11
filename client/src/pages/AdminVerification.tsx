@@ -215,8 +215,8 @@ export default function AdminVerification() {
       </div>
 
       <Tabs defaultValue="unverified" className="w-full">
-        <div className="w-full overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-2 min-w-[400px]">
+        <div className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="unverified" className="flex flex-col items-center gap-1 p-2 text-center min-h-[50px]">
               <Clock className="w-4 h-4 shrink-0" />
               <span className="text-xs leading-tight">غير متحقق منهم</span>
