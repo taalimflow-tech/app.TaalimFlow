@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { useLocation, Link } from 'wouter';
 import { Shield, GraduationCap } from 'lucide-react';
 
@@ -46,10 +47,35 @@ export default function AdminLogin() {
       if (response.ok) {
         const { user } = await response.json();
         if (user.role !== 'admin') {
+          // Clear the session and provide guidance based on user role
+          await fetch('/api/auth/logout', { method: 'POST' });
+          
+          let message = 'هذا الحساب ليس حساب مدير';
+          let actionText = 'انتقل إلى صفحة الطلاب';
+          let redirectUrl = '/';
+          
+          if (user.role === 'teacher') {
+            message = 'هذا حساب معلم. يرجى استخدام خيار تسجيل دخول المعلم';
+            actionText = 'تسجيل دخول كمعلم';
+            redirectUrl = '/admin-login';
+          } else if (user.role === 'user' || user.role === 'student') {
+            message = 'هذا حساب طالب. يرجى استخدام صفحة تسجيل دخول الطلاب';
+            actionText = 'انتقل إلى صفحة الطلاب';
+            redirectUrl = '/';
+          }
+          
           toast({ 
             title: 'خطأ في الصلاحيات', 
-            description: 'هذا الحساب ليس حساب مدير',
-            variant: 'destructive'
+            description: message,
+            variant: 'destructive',
+            action: (
+              <ToastAction 
+                altText={actionText}
+                onClick={() => window.location.href = redirectUrl}
+              >
+                {actionText}
+              </ToastAction>
+            )
           });
           return;
         }
@@ -79,10 +105,35 @@ export default function AdminLogin() {
       if (response.ok) {
         const { user } = await response.json();
         if (user.role !== 'teacher') {
+          // Clear the session and provide guidance based on user role
+          await fetch('/api/auth/logout', { method: 'POST' });
+          
+          let message = 'هذا الحساب ليس حساب معلم';
+          let actionText = 'انتقل إلى صفحة الطلاب';
+          let redirectUrl = '/';
+          
+          if (user.role === 'admin') {
+            message = 'هذا حساب مدير. يرجى استخدام خيار تسجيل دخول المدير';
+            actionText = 'تسجيل دخول كمدير';
+            redirectUrl = '/admin-login';
+          } else if (user.role === 'user' || user.role === 'student') {
+            message = 'هذا حساب طالب. يرجى استخدام صفحة تسجيل دخول الطلاب';
+            actionText = 'انتقل إلى صفحة الطلاب';
+            redirectUrl = '/';
+          }
+          
           toast({ 
             title: 'خطأ في الصلاحيات', 
-            description: 'هذا الحساب ليس حساب معلم',
-            variant: 'destructive'
+            description: message,
+            variant: 'destructive',
+            action: (
+              <ToastAction 
+                altText={actionText}
+                onClick={() => window.location.href = redirectUrl}
+              >
+                {actionText}
+              </ToastAction>
+            )
           });
           return;
         }

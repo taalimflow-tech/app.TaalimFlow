@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { useLocation, Link } from 'wouter';
 import { Plus, Trash2 } from 'lucide-react';
 
@@ -68,16 +69,22 @@ export default function Login() {
       if (response.ok) {
         const { user } = await response.json();
         if (user.role === 'admin' || user.role === 'teacher') {
-          toast({ 
-            title: 'استخدم صفحة تسجيل دخول الإدارة', 
-            description: 'يرجى استخدام صفحة تسجيل دخول الإدارة للمديرين والمعلمين',
-            variant: 'destructive'
-          });
-          // Clear the session and redirect to admin login
+          // Clear the session but don't redirect automatically
           await fetch('/api/auth/logout', { method: 'POST' });
-          setTimeout(() => {
-            window.location.href = '/admin-login';
-          }, 2000);
+          
+          toast({ 
+            title: 'خطأ في تسجيل الدخول', 
+            description: 'المديرون والمعلمون يجب أن يستخدموا صفحة تسجيل دخول الإدارة.',
+            variant: 'destructive',
+            action: (
+              <ToastAction 
+                altText="انتقل إلى صفحة الإدارة"
+                onClick={() => window.location.href = '/admin-login'}
+              >
+                انتقل إلى صفحة الإدارة
+              </ToastAction>
+            )
+          });
           return;
         }
       }
