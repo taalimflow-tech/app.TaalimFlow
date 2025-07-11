@@ -17,6 +17,7 @@ export default function AdminLogin() {
   const [phone, setPhone] = useState('');
   const [secretKey, setSecretKey] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const { login } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -38,14 +39,11 @@ export default function AdminLogin() {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(''); // Clear previous error
     
     // Basic validation
     if (!email || !password) {
-      toast({ 
-        title: 'بيانات مطلوبة', 
-        description: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
-        variant: 'destructive'
-      });
+      setErrorMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       setLoading(false);
       return;
     }
@@ -98,13 +96,8 @@ export default function AdminLogin() {
       }
     } catch (error) {
       // Enhanced error handling with specific messages
-      const errorMessage = error instanceof Error ? error.message : 'خطأ غير متوقع';
-      
-      toast({ 
-        title: 'فشل تسجيل الدخول', 
-        description: errorMessage,
-        variant: 'destructive'
-      });
+      const errorMsg = error instanceof Error ? error.message : 'خطأ غير متوقع';
+      setErrorMessage(errorMsg);
       
       // Clear password field on failed login
       setPassword('');
@@ -116,14 +109,11 @@ export default function AdminLogin() {
   const handleTeacherLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(''); // Clear previous error
     
     // Basic validation
     if (!email || !password) {
-      toast({ 
-        title: 'بيانات مطلوبة', 
-        description: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
-        variant: 'destructive'
-      });
+      setErrorMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       setLoading(false);
       return;
     }
@@ -650,6 +640,30 @@ export default function AdminLogin() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Error Message Display */}
+      {errorMessage && (
+        <div className="fixed bottom-4 left-4 right-4 mx-auto max-w-md">
+          <div className="bg-red-500 text-white p-4 rounded-lg shadow-lg border border-red-600">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">{errorMessage}</span>
+              </div>
+              <button 
+                onClick={() => setErrorMessage('')}
+                className="text-white hover:text-gray-200"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
