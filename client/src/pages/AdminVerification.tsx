@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar, Trash2 } from 'lucide-react';
 
 interface UnverifiedChild {
   id: number;
@@ -59,7 +59,7 @@ export default function AdminVerification() {
   const [verifiedStudents, setVerifiedStudents] = useState<VerifiedStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [verificationNotes, setVerificationNotes] = useState('');
-  const [selectedItem, setSelectedItem] = useState<{type: string, id: number} | null>(null);
+  const [selectedItem, setSelectedItem] = useState<{type: string, id: number, data?: any} | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   const fetchData = async () => {
@@ -142,6 +142,35 @@ export default function AdminVerification() {
         title: 'خطأ',
         description: 'فشل في عملية التحقق',
         variant: 'destructive'
+      });
+    }
+  };
+
+  const handleUndoVerification = async (type: string, id: number) => {
+    try {
+      const endpoint = type === 'verified-child' ? 'child' : 'student';
+      const response = await fetch(`/api/admin/undo-verify-${endpoint}/${id}`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        toast({
+          title: "تم بنجاح",
+          description: `تم إلغاء التحقق من ${type === 'verified-child' ? 'الطفل' : 'الطالب'}`,
+        });
+        
+        setShowModal(false);
+        setSelectedItem(null);
+        fetchData();
+      } else {
+        throw new Error('Failed to undo verification');
+      }
+    } catch (error) {
+      console.error('Error undoing verification:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في إلغاء التحقق",
+        variant: "destructive",
       });
     }
   };
@@ -323,7 +352,7 @@ export default function AdminVerification() {
                       <Button 
                         variant="outline"
                         onClick={() => {
-                          setSelectedItem({type: 'verified-child', id: child.id});
+                          setSelectedItem({type: 'verified-child', id: child.id, data: child});
                           setShowModal(true);
                         }}
                         className="bg-blue-50 hover:bg-blue-100 border-blue-200"
@@ -366,7 +395,7 @@ export default function AdminVerification() {
                       <Button 
                         variant="outline"
                         onClick={() => {
-                          setSelectedItem({type: 'verified-student', id: student.id});
+                          setSelectedItem({type: 'verified-student', id: student.id, data: student});
                           setShowModal(true);
                         }}
                         className="bg-blue-50 hover:bg-blue-100 border-blue-200"
@@ -403,7 +432,35 @@ export default function AdminVerification() {
                         تم التحقق من هذا {selectedItem?.type === 'verified-child' ? 'الطفل' : 'الطالب'} وتأكيد صحة البيانات المقدمة.
                       </p>
                     </div>
-                    <div className="flex justify-end">
+                    
+                    {/* Verification Details */}
+                    <div className="bg-gray-50 p-4 rounded-lg border">
+                      <h3 className="font-semibold mb-3">تفاصيل التحقق</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm">
+                            <strong>تاريخ التحقق:</strong> {selectedItem?.data?.verifiedAt && new Date(selectedItem.data.verifiedAt).toLocaleDateString('ar-SA')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm">
+                            <strong>تم التحقق بواسطة:</strong> المدير (ID: {selectedItem?.data?.verifiedBy})
+                          </span>
+                        </div>
+                        {selectedItem?.data?.verificationNotes && (
+                          <div className="mt-3">
+                            <p className="text-sm font-semibold mb-1">ملاحظات التحقق:</p>
+                            <p className="text-sm text-gray-700 bg-white p-2 rounded border">
+                              {selectedItem.data.verificationNotes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 justify-end">
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -412,6 +469,13 @@ export default function AdminVerification() {
                         }}
                       >
                         إغلاق
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => selectedItem && handleUndoVerification(selectedItem.type, selectedItem.id)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        إلغاء التحقق
                       </Button>
                     </div>
                   </div>

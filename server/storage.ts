@@ -71,6 +71,8 @@ export interface IStorage {
   // Verification methods - only for children and students
   verifyChild(childId: number, adminId: number, notes?: string): Promise<Child>;
   verifyStudent(studentId: number, adminId: number, notes?: string): Promise<Student>;
+  undoVerifyChild(childId: number): Promise<Child>;
+  undoVerifyStudent(studentId: number): Promise<Student>;
   getUnverifiedChildren(): Promise<Child[]>;
   getUnverifiedStudents(): Promise<Student[]>;
   getVerifiedChildren(): Promise<Child[]>;
@@ -398,6 +400,34 @@ export class DatabaseStorage implements IStorage {
 
   async getVerifiedStudents(): Promise<Student[]> {
     return await db.select().from(students).where(eq(students.verified, true)).orderBy(desc(students.verifiedAt));
+  }
+
+  async undoVerifyChild(childId: number): Promise<Child> {
+    const [child] = await db
+      .update(children)
+      .set({
+        verified: false,
+        verificationNotes: null,
+        verifiedAt: null,
+        verifiedBy: null
+      })
+      .where(eq(children.id, childId))
+      .returning();
+    return child;
+  }
+
+  async undoVerifyStudent(studentId: number): Promise<Student> {
+    const [student] = await db
+      .update(students)
+      .set({
+        verified: false,
+        verificationNotes: null,
+        verifiedAt: null,
+        verifiedBy: null
+      })
+      .where(eq(students.id, studentId))
+      .returning();
+    return student;
   }
 }
 

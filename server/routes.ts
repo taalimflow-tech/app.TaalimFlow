@@ -826,6 +826,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Undo verification endpoints
+  app.post("/api/admin/undo-verify-child/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const childId = parseInt(req.params.id);
+      const child = await storage.undoVerifyChild(childId);
+      
+      res.json({ message: "تم إلغاء التحقق من الطفل", child });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to undo child verification" });
+    }
+  });
+
+  app.post("/api/admin/undo-verify-student/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const studentId = parseInt(req.params.id);
+      const student = await storage.undoVerifyStudent(studentId);
+      
+      res.json({ message: "تم إلغاء التحقق من الطالب", student });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to undo student verification" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
