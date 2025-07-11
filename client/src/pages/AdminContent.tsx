@@ -565,7 +565,7 @@ export default function AdminContent() {
                         <h4 className="font-medium text-gray-900">{post.title}</h4>
                         <p className="text-sm text-gray-600 mt-1 truncate">{post.content}</p>
                         <p className="text-xs text-gray-400 mt-1">
-                          {new Date(post.createdAt).toLocaleDateString('ar-DZ')}
+                          {new Date(post.createdAt).toLocaleDateString('en-US')}
                         </p>
                       </div>
                       <Button

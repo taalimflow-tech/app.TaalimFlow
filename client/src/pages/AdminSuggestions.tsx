@@ -118,7 +118,7 @@ export default function AdminSuggestions() {
                 
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <span>
-                    تاريخ التقديم: {new Date(suggestion.createdAt).toLocaleDateString('ar-DZ')}
+                    تاريخ التقديم: {new Date(suggestion.createdAt).toLocaleDateString('en-US')}
                   </span>
                   <span>رقم المستخدم: {suggestion.userId}</span>
                 </div>

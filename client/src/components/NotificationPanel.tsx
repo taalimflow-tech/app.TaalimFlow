@@ -204,7 +204,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                         </p>
                         
                         <p className="text-xs text-gray-400">
-                          {new Date(notification.createdAt).toLocaleDateString('ar-DZ', {
+                          {new Date(notification.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',

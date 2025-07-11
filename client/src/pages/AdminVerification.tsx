@@ -482,7 +482,7 @@ export default function AdminVerification() {
                             <span className="text-sm">
                               <strong className="text-gray-800">تاريخ التحقق:</strong> 
                               <span className="text-blue-600 font-medium mr-1">
-                                {selectedItem?.data?.verifiedAt && new Date(selectedItem.data.verifiedAt).toLocaleDateString('ar-SA')}
+                                {selectedItem?.data?.verifiedAt && new Date(selectedItem.data.verifiedAt).toLocaleDateString('en-US')}
                               </span>
                             </span>
                           </div>

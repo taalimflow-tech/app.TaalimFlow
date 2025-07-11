@@ -248,7 +248,7 @@ export default function Profile() {
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-800">{user.name}</h3>
             <p className="text-sm text-gray-600">{user.email}</p>
-            <p className="text-sm text-gray-500">منذ {new Date(user.createdAt).toLocaleDateString('ar-SA')}</p>
+            <p className="text-sm text-gray-500">منذ {new Date(user.createdAt).toLocaleDateString('en-US')}</p>
           </div>
           <div className="flex flex-col items-center gap-2">
             {user.verified ? (
