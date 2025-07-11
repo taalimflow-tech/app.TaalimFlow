@@ -262,14 +262,14 @@ export default function AdminVerification() {
                     {unverifiedChildren.map((child) => (
                       <div 
                         key={`child-${child.id}`} 
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-blue-600 text-white">
+                            <Badge className="bg-blue-600 text-white text-xs">
                               طفل
                             </Badge>
-                            <h3 className="font-semibold text-gray-900">{child.name}</h3>
+                            <h3 className="font-medium text-gray-900">{child.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
                             {child.educationLevel} - {child.grade}
@@ -280,7 +280,8 @@ export default function AdminVerification() {
                             setSelectedItem({type: 'child', id: child.id});
                             setShowModal(true);
                           }}
-                          className="bg-green-600 hover:bg-green-700 text-white"
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs"
                         >
                           تحقق
                         </Button>
@@ -291,14 +292,14 @@ export default function AdminVerification() {
                     {unverifiedStudents.map((student) => (
                       <div 
                         key={`student-${student.id}`} 
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-600 text-white">
+                            <Badge className="bg-purple-600 text-white text-xs">
                               طالب
                             </Badge>
-                            <h3 className="font-semibold text-gray-900">طالب رقم {student.userId}</h3>
+                            <h3 className="font-medium text-gray-900">طالب رقم {student.userId}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
                             {student.educationLevel} - {student.grade}
@@ -309,7 +310,8 @@ export default function AdminVerification() {
                             setSelectedItem({type: 'student', id: student.id});
                             setShowModal(true);
                           }}
-                          className="bg-green-600 hover:bg-green-700 text-white"
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs"
                         >
                           تحقق
                         </Button>
@@ -345,18 +347,14 @@ export default function AdminVerification() {
                     {verifiedChildren.map((child) => (
                       <div 
                         key={`verified-child-${child.id}`} 
-                        className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-blue-600 text-white">
+                            <Badge className="bg-blue-600 text-white text-xs">
                               طفل
                             </Badge>
-                            <h3 className="font-semibold text-gray-900">{child.name}</h3>
-                            <div className="flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
-                              <CheckCircle className="w-3 h-3 text-green-600" />
-                              <span className="text-xs text-green-700 font-medium">متحقق</span>
-                            </div>
+                            <h3 className="font-medium text-gray-900">{child.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
                             {child.educationLevel} - {child.grade}
@@ -364,13 +362,14 @@ export default function AdminVerification() {
                         </div>
                         <Button 
                           variant="outline"
+                          size="sm"
                           onClick={() => {
                             setSelectedItem({type: 'verified-child', id: child.id, data: child});
                             setShowModal(true);
                           }}
-                          className="bg-white hover:bg-gray-50 border-gray-300"
+                          className="text-xs"
                         >
-                          المعلومات
+                          تفاصيل
                         </Button>
                       </div>
                     ))}
@@ -379,18 +378,14 @@ export default function AdminVerification() {
                     {verifiedStudents.map((student) => (
                       <div 
                         key={`verified-student-${student.id}`} 
-                        className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-600 text-white">
+                            <Badge className="bg-purple-600 text-white text-xs">
                               طالب
                             </Badge>
-                            <h3 className="font-semibold text-gray-900">طالب رقم {student.userId}</h3>
-                            <div className="flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
-                              <CheckCircle className="w-3 h-3 text-green-600" />
-                              <span className="text-xs text-green-700 font-medium">متحقق</span>
-                            </div>
+                            <h3 className="font-medium text-gray-900">طالب رقم {student.userId}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
                             {student.educationLevel} - {student.grade}
@@ -398,13 +393,14 @@ export default function AdminVerification() {
                         </div>
                         <Button 
                           variant="outline"
+                          size="sm"
                           onClick={() => {
                             setSelectedItem({type: 'verified-student', id: student.id, data: student});
                             setShowModal(true);
                           }}
-                          className="bg-white hover:bg-gray-50 border-gray-300"
+                          className="text-xs"
                         >
-                          المعلومات
+                          تفاصيل
                         </Button>
                       </div>
                     ))}

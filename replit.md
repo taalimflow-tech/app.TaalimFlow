@@ -238,3 +238,7 @@ This unified approach provides better data consistency, easier queries, and impr
   - Updated modal dialogs to use clean, minimal styling without gradients or shadows
   - Changed to simple gray/white color scheme with subtle green accents for verified items
   - Removed all emoji decorations and visual flourishes for a professional appearance
+  - Made verification cards more static and clean by removing duplicate verification status badges
+  - Reduced card padding and simplified layout with smaller buttons and badges
+  - Kept only essential information: type badge, name/ID, and education level
+  - Changed button text from "المعلومات" to "تفاصيل" for verified items for consistency
