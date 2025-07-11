@@ -20,6 +20,11 @@ export default function AdminLogin() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
+  // Step-by-step flow state
+  const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
+  const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
+  const [selectedUserType, setSelectedUserType] = useState<'admin' | 'teacher' | null>(null);
+
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -172,229 +177,365 @@ export default function AdminLogin() {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="admin-login" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="admin-login" className="flex items-center gap-1 text-xs">
-                <Shield className="w-3 h-3" />
-                دخول مدير
-              </TabsTrigger>
-              <TabsTrigger value="teacher-login" className="flex items-center gap-1 text-xs">
-                <GraduationCap className="w-3 h-3" />
-                دخول معلم
-              </TabsTrigger>
-              <TabsTrigger value="admin-register" className="flex items-center gap-1 text-xs">
-                <Shield className="w-3 h-3" />
-                تسجيل مدير
-              </TabsTrigger>
-              <TabsTrigger value="teacher-register" className="flex items-center gap-1 text-xs">
-                <GraduationCap className="w-3 h-3" />
-                تسجيل معلم
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="admin-login">
-              <form onSubmit={handleAdminLogin} className="space-y-4">
-                <div>
-                  <Label htmlFor="admin-email">البريد الإلكتروني</Label>
-                  <Input
-                    id="admin-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@school.com"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="admin-password">كلمة المرور</Label>
-                  <Input
-                    id="admin-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
-                  <Shield className="w-4 h-4 mr-2" />
-                  {loading ? 'جاري تسجيل الدخول...' : 'دخول كمدير'}
+          {/* Step 1: Choose Action */}
+          {currentStep === 'action' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">إدارة النظام</h2>
+                <p className="text-gray-600">اختر الإجراء المناسب</p>
+              </div>
+              
+              <div className="space-y-4">
+                <Button 
+                  onClick={() => {
+                    setSelectedAction('login');
+                    setCurrentStep('userType');
+                  }}
+                  className="w-full py-6 text-lg"
+                  variant="outline"
+                >
+                  تسجيل الدخول
                 </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="teacher-login">
-              <form onSubmit={handleTeacherLogin} className="space-y-4">
-                <div>
-                  <Label htmlFor="teacher-email">البريد الإلكتروني</Label>
-                  <Input
-                    id="teacher-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="teacher@school.com"
-                    required
-                  />
-                </div>
                 
-                <div>
-                  <Label htmlFor="teacher-password">كلمة المرور</Label>
-                  <Input
-                    id="teacher-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90" disabled={loading}>
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  {loading ? 'جاري تسجيل الدخول...' : 'دخول كمعلم'}
+                <Button 
+                  onClick={() => {
+                    setSelectedAction('register');
+                    setCurrentStep('userType');
+                  }}
+                  className="w-full py-6 text-lg"
+                >
+                  إنشاء حساب جديد
                 </Button>
-              </form>
-            </TabsContent>
+              </div>
+              
+              <div className="mt-8 pt-6 border-t text-center">
+                <a 
+                  href="/"
+                  className="text-sm text-gray-600 hover:text-primary underline cursor-pointer"
+                >
+                  العودة لتسجيل دخول الطلاب
+                </a>
+              </div>
+            </div>
+          )}
 
-            <TabsContent value="admin-register">
-              <form onSubmit={handleAdminRegister} className="space-y-3">
-                <div>
-                  <Label htmlFor="admin-reg-name">الاسم الكامل</Label>
-                  <Input
-                    id="admin-reg-name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    placeholder="الاسم الكامل"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="admin-reg-email">البريد الإلكتروني</Label>
-                  <Input
-                    id="admin-reg-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="admin@example.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="admin-reg-phone">رقم الهاتف</Label>
-                  <Input
-                    id="admin-reg-phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    placeholder="0555123456"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="admin-reg-password">كلمة المرور</Label>
-                  <Input
-                    id="admin-reg-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="كلمة المرور"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="admin-secret-key">مفتاح الإدارة السري</Label>
-                  <Input
-                    id="admin-secret-key"
-                    type="password"
-                    value={secretKey}
-                    onChange={(e) => setSecretKey(e.target.value)}
-                    required
-                    placeholder="مفتاح الإدارة السري"
-                  />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90">
-                  <Shield className="w-4 h-4 mr-2" />
-                  {loading ? 'جاري التسجيل...' : 'تسجيل مدير جديد'}
+          {/* Step 2: Choose User Type */}
+          {currentStep === 'userType' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">اختر نوع الحساب</h2>
+                <p className="text-gray-600">حدد نوع المستخدم المناسب</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button 
+                  onClick={() => {
+                    setSelectedUserType('admin');
+                    setCurrentStep('form');
+                  }}
+                  className="p-6 h-auto flex flex-col items-center justify-center space-y-3"
+                  variant="outline"
+                >
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium">مدير</div>
+                    <div className="text-sm text-gray-500">إدارة النظام والمحتوى</div>
+                  </div>
                 </Button>
-              </form>
-            </TabsContent>
+                
+                <Button 
+                  onClick={() => {
+                    setSelectedUserType('teacher');
+                    setCurrentStep('form');
+                  }}
+                  className="p-6 h-auto flex flex-col items-center justify-center space-y-3"
+                  variant="outline"
+                >
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <GraduationCap className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium">معلم</div>
+                    <div className="text-sm text-gray-500">إدارة الطلاب والمحاضرات</div>
+                  </div>
+                </Button>
+              </div>
+              
+              <div className="text-center">
+                <Button 
+                  onClick={() => setCurrentStep('action')}
+                  variant="ghost"
+                  className="text-gray-600"
+                >
+                  ← رجوع
+                </Button>
+              </div>
+            </div>
+          )}
 
-            <TabsContent value="teacher-register">
-              <form onSubmit={handleTeacherRegister} className="space-y-3">
+          {/* Step 3: Forms */}
+          {currentStep === 'form' && (
+            <div className="space-y-6">
+              {/* Admin Login */}
+              {selectedAction === 'login' && selectedUserType === 'admin' && (
                 <div>
-                  <Label htmlFor="teacher-reg-name">الاسم الكامل</Label>
-                  <Input
-                    id="teacher-reg-name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    placeholder="الاسم الكامل"
-                  />
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">تسجيل دخول المدير</h2>
+                    <p className="text-gray-600">أدخل بيانات حساب المدير</p>
+                  </div>
+                  
+                  <form onSubmit={handleAdminLogin} className="space-y-6">
+                    <div>
+                      <Label htmlFor="admin-email">البريد الإلكتروني</Label>
+                      <Input
+                        id="admin-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="admin@school.com"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="admin-password">كلمة المرور</Label>
+                      <Input
+                        id="admin-password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                      />
+                    </div>
+                    
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
+                      <Shield className="w-4 h-4 mr-2" />
+                      {loading ? 'جاري تسجيل الدخول...' : 'دخول كمدير'}
+                    </Button>
+                  </form>
                 </div>
+              )}
+
+              {/* Teacher Login */}
+              {selectedAction === 'login' && selectedUserType === 'teacher' && (
                 <div>
-                  <Label htmlFor="teacher-reg-email">البريد الإلكتروني</Label>
-                  <Input
-                    id="teacher-reg-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="teacher@example.com"
-                  />
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">تسجيل دخول المعلم</h2>
+                    <p className="text-gray-600">أدخل بيانات حساب المعلم</p>
+                  </div>
+                  
+                  <form onSubmit={handleTeacherLogin} className="space-y-6">
+                    <div>
+                      <Label htmlFor="teacher-email">البريد الإلكتروني</Label>
+                      <Input
+                        id="teacher-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="teacher@school.com"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="teacher-password">كلمة المرور</Label>
+                      <Input
+                        id="teacher-password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                      />
+                    </div>
+                    
+                    <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90" disabled={loading}>
+                      <GraduationCap className="w-4 h-4 mr-2" />
+                      {loading ? 'جاري تسجيل الدخول...' : 'دخول كمعلم'}
+                    </Button>
+                  </form>
                 </div>
+              )}
+
+              {/* Admin Registration */}
+              {selectedAction === 'register' && selectedUserType === 'admin' && (
                 <div>
-                  <Label htmlFor="teacher-reg-phone">رقم الهاتف</Label>
-                  <Input
-                    id="teacher-reg-phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    placeholder="0555123456"
-                  />
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">إنشاء حساب مدير</h2>
+                    <p className="text-gray-600">أدخل بيانات المدير الجديد</p>
+                  </div>
+                  
+                  <form onSubmit={handleAdminRegister} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="admin-reg-name">الاسم الكامل</Label>
+                        <Input
+                          id="admin-reg-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          placeholder="الاسم الكامل"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="admin-reg-phone">رقم الهاتف</Label>
+                        <Input
+                          id="admin-reg-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          required
+                          placeholder="0555123456"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="admin-reg-email">البريد الإلكتروني</Label>
+                        <Input
+                          id="admin-reg-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          placeholder="admin@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="admin-reg-password">كلمة المرور</Label>
+                        <Input
+                          id="admin-reg-password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          placeholder="كلمة المرور"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 border-t pt-4">
+                      <Label className="text-base font-medium">الأمان</Label>
+                      <div>
+                        <Label htmlFor="admin-secret-key">مفتاح الإدارة السري</Label>
+                        <Input
+                          id="admin-secret-key"
+                          type="password"
+                          value={secretKey}
+                          onChange={(e) => setSecretKey(e.target.value)}
+                          required
+                          placeholder="مفتاح الإدارة السري"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90">
+                      <Shield className="w-4 h-4 mr-2" />
+                      {loading ? 'جاري التسجيل...' : 'تسجيل مدير جديد'}
+                    </Button>
+                  </form>
                 </div>
+              )}
+
+              {/* Teacher Registration */}
+              {selectedAction === 'register' && selectedUserType === 'teacher' && (
                 <div>
-                  <Label htmlFor="teacher-reg-password">كلمة المرور</Label>
-                  <Input
-                    id="teacher-reg-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="كلمة المرور"
-                  />
+                  <div className="text-center mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">إنشاء حساب معلم</h2>
+                    <p className="text-gray-600">أدخل بيانات المعلم الجديد</p>
+                  </div>
+                  
+                  <form onSubmit={handleTeacherRegister} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="teacher-reg-name">الاسم الكامل</Label>
+                        <Input
+                          id="teacher-reg-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          placeholder="الاسم الكامل"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="teacher-reg-phone">رقم الهاتف</Label>
+                        <Input
+                          id="teacher-reg-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          required
+                          placeholder="0555123456"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="teacher-reg-email">البريد الإلكتروني</Label>
+                        <Input
+                          id="teacher-reg-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          placeholder="teacher@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="teacher-reg-password">كلمة المرور</Label>
+                        <Input
+                          id="teacher-reg-password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          placeholder="كلمة المرور"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 border-t pt-4">
+                      <Label className="text-base font-medium">الأمان</Label>
+                      <div>
+                        <Label htmlFor="teacher-secret-key">مفتاح المعلم السري</Label>
+                        <Input
+                          id="teacher-secret-key"
+                          type="password"
+                          value={secretKey}
+                          onChange={(e) => setSecretKey(e.target.value)}
+                          required
+                          placeholder="مفتاح المعلم السري"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button type="submit" disabled={loading} className="w-full bg-secondary hover:bg-secondary/90">
+                      <GraduationCap className="w-4 h-4 mr-2" />
+                      {loading ? 'جاري التسجيل...' : 'تسجيل معلم جديد'}
+                    </Button>
+                  </form>
                 </div>
-                <div>
-                  <Label htmlFor="teacher-secret-key">مفتاح المعلم السري</Label>
-                  <Input
-                    id="teacher-secret-key"
-                    type="password"
-                    value={secretKey}
-                    onChange={(e) => setSecretKey(e.target.value)}
-                    required
-                    placeholder="مفتاح المعلم السري"
-                  />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full bg-secondary hover:bg-secondary/90">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  {loading ? 'جاري التسجيل...' : 'تسجيل معلم جديد'}
+              )}
+
+              {/* Back Button */}
+              <div className="text-center">
+                <Button 
+                  onClick={() => setCurrentStep('userType')}
+                  variant="ghost"
+                  className="text-gray-600"
+                >
+                  ← رجوع
                 </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="mt-6 text-center">
-            <a 
-              href="/"
-              className="text-sm text-gray-600 hover:text-primary underline cursor-pointer"
-            >
-              العودة لتسجيل دخول الطلاب
-            </a>
-          </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
