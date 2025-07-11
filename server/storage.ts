@@ -12,6 +12,7 @@ export interface IStorage {
   authenticateUser(email: string, password: string): Promise<User | null>;
   getAllUsers(): Promise<User[]>;
   searchUsers(query: string): Promise<User[]>;
+  updateUserProfilePicture(userId: number, profilePictureUrl: string): Promise<User>;
   
   // Announcement methods
   getAnnouncements(): Promise<Announcement[]>;
@@ -428,6 +429,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(students.id, studentId))
       .returning();
     return student;
+  }
+
+  async updateUserProfilePicture(userId: number, profilePictureUrl: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ profilePicture: profilePictureUrl })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 }
 

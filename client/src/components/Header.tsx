@@ -57,9 +57,21 @@ export function Header() {
             <>
               <button 
                 onClick={() => navigate('/profile')}
-                className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="p-1 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <User className="w-5 h-5 text-gray-600" />
+                {user.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">
+                      {user.name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2)}
+                    </span>
+                  </div>
+                )}
               </button>
               
               <button 

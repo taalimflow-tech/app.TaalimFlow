@@ -210,6 +210,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "تم تسجيل الخروج بنجاح" });
   });
 
+  // Profile picture routes
+  app.post("/api/profile/picture", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { profilePictureUrl } = req.body;
+      
+      if (!profilePictureUrl) {
+        return res.status(400).json({ error: "رابط الصورة مطلوب" });
+      }
+
+      const updatedUser = await storage.updateUserProfilePicture(currentUser.id, profilePictureUrl);
+      
+      // Update current user session
+      currentUser = updatedUser;
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      res.status(500).json({ error: "فشل في تحديث الصورة الشخصية" });
+    }
+  });
+
   // User management routes (Admin only)
   app.get("/api/users", async (req, res) => {
     try {

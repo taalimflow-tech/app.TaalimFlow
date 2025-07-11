@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
+  profilePicture: text("profile_picture"), // URL to profile picture
   role: text("role").notNull().default("user"), // admin, teacher, user, student
   firebaseUid: text("firebase_uid"),
   verified: boolean("verified").default(false), // Manual verification by admin

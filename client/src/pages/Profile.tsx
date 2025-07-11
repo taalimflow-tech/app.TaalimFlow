@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { ProfilePicture } from '@/components/ProfilePicture';
 
 interface Child {
   id: number;
@@ -37,6 +38,15 @@ export default function Profile() {
     email: user?.email || '',
     phone: user?.phone || '',
   });
+
+  const handleProfilePictureUpdate = (pictureUrl: string) => {
+    // Update the user context with the new profile picture
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    toast({
+      title: "تم بنجاح",
+      description: "تم تحديث صورتك الشخصية",
+    });
+  };
 
   const educationLevels = {
     'الابتدائي': [
@@ -222,9 +232,19 @@ export default function Profile() {
         </div>
         
         <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
-            <User className="w-8 h-8 text-white" />
-          </div>
+          {user.profilePicture ? (
+            <img 
+              src={user.profilePicture} 
+              alt={user.name}
+              className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md"
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-md">
+              <span className="text-white text-xl font-bold">
+                {user.name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2)}
+              </span>
+            </div>
+          )}
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-800">{user.name}</h3>
             <p className="text-sm text-gray-600">{user.email}</p>
@@ -266,6 +286,13 @@ export default function Profile() {
         </TabsList>
         
         <TabsContent value="profile" className="space-y-4">
+          {/* Profile Picture Section */}
+          <ProfilePicture 
+            currentPicture={user?.profilePicture}
+            userName={user?.name || ''}
+            onUpdate={handleProfilePictureUpdate}
+          />
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
