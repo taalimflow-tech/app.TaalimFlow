@@ -23,6 +23,10 @@
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
   --ring: hsl(262, 83%, 58%);
   --radius: 0.75rem;
+  /* Toast-specific styling to ensure visibility */
+  --toast-bg: hsl(0, 0%, 100%);
+  --toast-border: hsl(220, 13%, 91%);
+  --toast-foreground: hsl(224, 71.4%, 4.1%);
 }
 
 .dark {

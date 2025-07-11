@@ -64,6 +64,8 @@ export default function Login() {
     
     // Basic validation
     if (!email || !password) {
+      console.log('Empty fields detected'); // Debug log
+      alert('يرجى إدخال البريد الإلكتروني وكلمة المرور'); // Fallback alert
       toast({ 
         title: 'بيانات مطلوبة', 
         description: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
@@ -84,6 +86,9 @@ export default function Login() {
     } catch (error) {
       // Enhanced error handling with specific messages
       const errorMessage = error instanceof Error ? error.message : 'خطأ غير متوقع';
+      
+      console.log('Login error:', errorMessage); // Debug log
+      alert('خطأ في تسجيل الدخول: ' + errorMessage); // Fallback alert
       
       toast({ 
         title: 'فشل تسجيل الدخول', 
