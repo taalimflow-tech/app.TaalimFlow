@@ -167,27 +167,35 @@ export default function Teachers() {
       
       {/* Level Filter Bar */}
       <div className="flex flex-wrap gap-2 mb-6 p-3 bg-gray-50 rounded-lg">
-        {educationLevels.map((level) => (
-          <button
-            key={level.value}
-            onClick={() => setSelectedLevel(level.value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              selectedLevel === level.value
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {level.label}
-          </button>
-        ))}
+        {educationLevels.map((level) => {
+          const levelColors = getLevelColors(level.value);
+          return (
+            <button
+              key={level.value}
+              onClick={() => setSelectedLevel(level.value)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                selectedLevel === level.value
+                  ? `${levelColors.badge} font-bold`
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {level.label}
+            </button>
+          );
+        })}
       </div>
       
       <div className="space-y-4">
         {filteredTeachers.length > 0 ? (
-          filteredTeachers.map((teacher) => (
-            <Card key={teacher.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start space-x-reverse space-x-4 mb-4">
+          filteredTeachers.map((teacher) => {
+            // Get the primary education level for this teacher
+            const primaryLevel = teacher.specializations.length > 0 ? teacher.specializations[0].educationLevel : null;
+            const levelColors = primaryLevel ? getLevelColors(primaryLevel) : getLevelColors('default');
+            
+            return (
+              <Card key={teacher.id} className={`hover:shadow-md transition-shadow ${levelColors.bg} ${levelColors.border} border-2`}>
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-reverse space-x-4 mb-4">
                   <div className="flex-shrink-0">
                     {teacher.profilePicture ? (
                       <img 
@@ -269,7 +277,8 @@ export default function Teachers() {
                 </div>
               </CardContent>
             </Card>
-          ))
+            );
+          })
         ) : (
           <div className="text-center py-12">
             <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
