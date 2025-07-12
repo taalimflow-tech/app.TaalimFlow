@@ -71,7 +71,7 @@ export default function Formations() {
                     <img 
                       src={formation.imageUrl} 
                       alt={formation.title} 
-                      className="w-full h-48 object-cover rounded-lg"
+                      className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg"
                     />
                   </div>
                 )}

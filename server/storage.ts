@@ -14,6 +14,11 @@ export interface IStorage {
   searchUsers(query: string): Promise<User[]>;
   updateUserProfilePicture(userId: number, profilePictureUrl: string): Promise<User>;
   
+  // Phone verification methods
+  savePhoneVerificationCode(userId: number, code: string, expiry: Date): Promise<void>;
+  verifyPhoneCode(userId: number, code: string): Promise<boolean>;
+  markPhoneAsVerified(userId: number): Promise<void>;
+  
   // Announcement methods
   getAnnouncements(): Promise<Announcement[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
@@ -519,6 +524,45 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  // Phone verification methods
+  async savePhoneVerificationCode(userId: number, code: string, expiry: Date): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        phoneVerificationCode: code,
+        phoneVerificationExpiry: expiry
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async verifyPhoneCode(userId: number, code: string): Promise<boolean> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+    
+    if (!user || !user.phoneVerificationCode || !user.phoneVerificationExpiry) {
+      return false;
+    }
+
+    // Check if code matches and is not expired
+    const isCodeValid = user.phoneVerificationCode === code;
+    const isNotExpired = user.phoneVerificationExpiry > new Date();
+    
+    return isCodeValid && isNotExpired;
+  }
+
+  async markPhoneAsVerified(userId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        phoneVerified: true,
+        phoneVerificationCode: null,
+        phoneVerificationExpiry: null
+      })
+      .where(eq(users.id, userId));
   }
 
   // Teaching module methods

@@ -7,6 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import express from "express";
+import { SMSService } from "./sms-service";
 
 // Simple session storage for demo (in production, use Redis or database)
 let currentUser: any = null;
@@ -244,6 +245,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout", async (req, res) => {
     currentUser = null;
     res.json({ message: "تم تسجيل الخروج بنجاح" });
+  });
+
+  // Phone verification routes
+  app.post("/api/auth/send-verification-code", async (req, res) => {
+    try {
+      const { phone } = req.body;
+      
+      if (!phone) {
+        return res.status(400).json({ error: "رقم الهاتف مطلوب" });
+      }
+
+      // Validate phone number format
+      if (!SMSService.isValidPhoneNumber(phone)) {
+        return res.status(400).json({ error: "رقم الهاتف غير صالح. يرجى إدخال رقم جزائري صحيح" });
+      }
+
+      // Check if user exists
+      const user = await storage.getUserByPhone(phone);
+      if (!user) {
+        return res.status(404).json({ error: "المستخدم غير موجود" });
+      }
+
+      // Generate verification code
+      const verificationCode = SMSService.generateVerificationCode();
+      const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+      // Format phone number for SMS
+      const formattedPhone = SMSService.formatPhoneNumber(phone);
+
+      // Send SMS (this will log if Twilio is not configured)
+      const smsSent = await SMSService.sendVerificationCode(formattedPhone, verificationCode);
+
+      // Save verification code to database regardless of SMS success
+      await storage.savePhoneVerificationCode(user.id, verificationCode, expiry);
+
+      if (smsSent) {
+        res.json({ 
+          message: "تم إرسال رمز التحقق إلى هاتفك",
+          phoneNumber: phone.replace(/\d(?=\d{4})/g, '*') // Hide most digits for security
+        });
+      } else {
+        // For development/testing when SMS is not configured
+        res.json({ 
+          message: "رمز التحقق تم إنشاؤه (SMS غير مفعل في البيئة الحالية)",
+          phoneNumber: phone.replace(/\d(?=\d{4})/g, '*'),
+          developmentCode: verificationCode // Only for development
+        });
+      }
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      res.status(500).json({ error: "خطأ في إرسال رمز التحقق" });
+    }
+  });
+
+  app.post("/api/auth/verify-phone", async (req, res) => {
+    try {
+      const { phone, code } = req.body;
+      
+      if (!phone || !code) {
+        return res.status(400).json({ error: "رقم الهاتف ورمز التحقق مطلوبان" });
+      }
+
+      // Get user by phone
+      const user = await storage.getUserByPhone(phone);
+      if (!user) {
+        return res.status(404).json({ error: "المستخدم غير موجود" });
+      }
+
+      // Verify code
+      const isValid = await storage.verifyPhoneCode(user.id, code);
+      if (!isValid) {
+        return res.status(400).json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" });
+      }
+
+      // Mark phone as verified
+      await storage.markPhoneAsVerified(user.id);
+
+      res.json({ 
+        message: "تم التحقق من رقم الهاتف بنجاح",
+        verified: true
+      });
+    } catch (error) {
+      console.error('Error verifying phone:', error);
+      res.status(500).json({ error: "خطأ في التحقق من الهاتف" });
+    }
   });
 
   // Serve static files
