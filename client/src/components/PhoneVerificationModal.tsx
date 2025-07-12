@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { X, Phone, MessageCircle, CheckCircle } from 'lucide-react';
+import { FirebasePhoneVerification } from '@/lib/firebase-phone';
 
 interface PhoneVerificationModalProps {
   isOpen: boolean;
@@ -25,18 +26,44 @@ export function PhoneVerificationModal({
   const [countdown, setCountdown] = useState(0);
   const { toast } = useToast();
 
+  // Initialize Firebase reCAPTCHA when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Add reCAPTCHA container to DOM
+      const container = document.createElement('div');
+      container.id = 'recaptcha-container';
+      container.style.display = 'none';
+      document.body.appendChild(container);
+
+      // Initialize Firebase reCAPTCHA
+      FirebasePhoneVerification.initializeRecaptcha('recaptcha-container');
+
+      return () => {
+        // Cleanup when modal closes
+        const recaptchaContainer = document.getElementById('recaptcha-container');
+        if (recaptchaContainer) {
+          document.body.removeChild(recaptchaContainer);
+        }
+        FirebasePhoneVerification.cleanup();
+      };
+    }
+  }, [isOpen]);
+
   const sendVerificationCode = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/send-verification-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneNumber })
-      });
+      // Format phone number for Firebase
+      const formattedPhone = FirebasePhoneVerification.formatPhoneNumber(phoneNumber);
+      
+      // Validate phone number
+      if (!FirebasePhoneVerification.isValidPhoneNumber(formattedPhone)) {
+        throw new Error('رقم الهاتف غير صالح');
+      }
 
-      const data = await response.json();
+      // Send verification code via Firebase
+      const result = await FirebasePhoneVerification.sendVerificationCode(formattedPhone);
 
-      if (response.ok) {
+      if (result.success) {
         setStep('verify');
         setCountdown(60); // 1 minute countdown
         
@@ -53,19 +80,21 @@ export function PhoneVerificationModal({
 
         toast({
           title: 'تم إرسال رمز التحقق',
-          description: data.message
+          description: 'تم إرسال رمز التحقق إلى هاتفك عبر Firebase'
         });
-
-        // Show development code if available (for testing)
-        if (data.developmentCode) {
-          toast({
-            title: 'رمز التطوير',
-            description: `رمز التحقق: ${data.developmentCode}`,
-            variant: 'default'
-          });
-        }
       } else {
-        throw new Error(data.error || 'حدث خطأ');
+        // Handle Firebase-specific errors
+        let errorMessage = 'حدث خطأ في إرسال الرمز';
+        
+        if (result.error === 'invalid_phone_number') {
+          errorMessage = 'رقم الهاتف غير صالح';
+        } else if (result.error === 'too_many_requests') {
+          errorMessage = 'تم إرسال الكثير من الطلبات. يرجى المحاولة لاحقاً';
+        } else if (result.error === 'captcha_failed') {
+          errorMessage = 'فشل التحقق من الأمان. يرجى المحاولة مرة أخرى';
+        }
+
+        throw new Error(errorMessage);
       }
     } catch (error) {
       toast({
@@ -90,31 +119,48 @@ export function PhoneVerificationModal({
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/verify-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phone: phoneNumber, 
-          code: verificationCode.trim()
-        })
-      });
+      // Verify code via Firebase
+      const result = await FirebasePhoneVerification.verifyCode(verificationCode.trim());
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setStep('success');
-        toast({
-          title: 'تم التحقق بنجاح',
-          description: data.message
+      if (result.success) {
+        // Update phone verification status in our database
+        const response = await fetch('/api/auth/update-phone-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            phone: phoneNumber,
+            verified: true
+          })
         });
-        
-        // Call success callback after a brief delay
-        setTimeout(() => {
-          onVerificationSuccess();
-          onClose();
-        }, 2000);
+
+        if (response.ok) {
+          setStep('success');
+          toast({
+            title: 'تم التحقق بنجاح',
+            description: 'تم التحقق من رقم هاتفك بنجاح'
+          });
+          
+          // Call success callback after a brief delay
+          setTimeout(() => {
+            onVerificationSuccess();
+            onClose();
+          }, 2000);
+        } else {
+          throw new Error('فشل في تحديث حالة التحقق');
+        }
       } else {
-        throw new Error(data.error || 'حدث خطأ');
+        // Handle Firebase-specific errors
+        let errorMessage = 'رمز التحقق غير صحيح';
+        
+        if (result.error === 'invalid_code') {
+          errorMessage = 'رمز التحقق غير صحيح';
+        } else if (result.error === 'code_expired') {
+          errorMessage = 'رمز التحقق منتهي الصلاحية';
+        } else if (result.error === 'verification_failed') {
+          errorMessage = 'فشل في التحقق. يرجى المحاولة مرة أخرى';
+        }
+
+        throw new Error(errorMessage);
       }
     } catch (error) {
       toast({

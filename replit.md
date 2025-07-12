@@ -125,16 +125,23 @@ The application now uses a unified PostgreSQL database approach:
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
 ## Recent Changes
-- **January 2025**: Implemented comprehensive SMS phone verification system with Twilio integration
-  - Added phone verification fields to database schema (phoneVerified, phoneVerificationCode, phoneVerificationExpiry)
-  - Created SMSService class with Algerian phone number validation and formatting
-  - Added API endpoints for sending verification codes and verifying phone numbers
-  - Built PhoneVerificationModal component with step-by-step verification flow
-  - Integrated phone verification into Profile page with status display
-  - Added proper error handling for Twilio trial account restrictions
-  - SMS verification codes expire after 10 minutes for security
-  - System works with both trial and paid Twilio accounts
-  - Users can verify their phone numbers to enhance account security
+- **January 2025**: Implemented Firebase SMS phone verification system (replaced Twilio)
+  - **Firebase Integration**: Migrated from Twilio to Firebase Authentication for SMS verification
+  - **No Trial Restrictions**: Firebase SMS works immediately without trial account limitations
+  - **Enhanced Security**: Firebase handles reCAPTCHA verification and spam protection automatically
+  - **Better User Experience**: Seamless integration with existing Firebase Authentication
+  - **Multi-provider Support**: Added support for multiple SMS providers (Twilio, TextLocal, Nexmo, Clickatell, BulkSMS)
+  - **FirebasePhoneVerification Service**: Created comprehensive phone verification service with:
+    - Automatic reCAPTCHA initialization and cleanup
+    - Phone number validation and formatting for Algerian numbers
+    - SMS code sending and verification
+    - Error handling for Firebase-specific issues
+    - Phone number linking to existing user accounts
+  - **Updated PhoneVerificationModal**: Redesigned to use Firebase instead of custom SMS service
+  - **Database Integration**: Added API endpoint to update phone verification status
+  - **Improved Error Handling**: Better error messages for various Firebase verification scenarios
+  - **Cost-Effective**: Firebase Authentication SMS is free for most use cases
+  - **Global Coverage**: Reliable SMS delivery worldwide including Algeria
 - **January 2025**: Updated teaching module system to reflect accurate Algerian education structure
   - **Primary Education (الابتدائي)**: 3 subjects - Arabic+Math combined, French, English
   - **Middle School (المتوسط)**: 7 subjects for all 4 grades - Arabic, Math, Physics, Natural Sciences, French, English, History+Geography

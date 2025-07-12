@@ -310,12 +310,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/verify-phone", async (req, res) => {
+  // Update phone verification status (for Firebase verification)
+  app.post("/api/auth/update-phone-verification", async (req, res) => {
     try {
-      const { phone, code } = req.body;
+      const { phone, verified } = req.body;
       
-      if (!phone || !code) {
-        return res.status(400).json({ error: "رقم الهاتف ورمز التحقق مطلوبان" });
+      if (!phone || typeof verified !== 'boolean') {
+        return res.status(400).json({ error: "رقم الهاتف وحالة التحقق مطلوبان" });
       }
 
       // Get user by phone
@@ -324,22 +325,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "المستخدم غير موجود" });
       }
 
-      // Verify code
-      const isValid = await storage.verifyPhoneCode(user.id, code);
-      if (!isValid) {
-        return res.status(400).json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" });
+      // Update phone verification status
+      if (verified) {
+        await storage.markPhoneAsVerified(user.id);
       }
 
-      // Mark phone as verified
-      await storage.markPhoneAsVerified(user.id);
-
       res.json({ 
-        message: "تم التحقق من رقم الهاتف بنجاح",
-        verified: true
+        message: "تم تحديث حالة التحقق بنجاح",
+        verified: verified
       });
     } catch (error) {
-      console.error('Error verifying phone:', error);
-      res.status(500).json({ error: "خطأ في التحقق من الهاتف" });
+      console.error('Error updating phone verification:', error);
+      res.status(500).json({ error: "خطأ في تحديث حالة التحقق" });
     }
   });
 
