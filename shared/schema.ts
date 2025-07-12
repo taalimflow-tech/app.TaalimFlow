@@ -182,6 +182,8 @@ export const scheduleCells = pgTable("schedule_cells", {
   dayOfWeek: integer("day_of_week").notNull(), // 0=Sunday, 1=Monday, etc.
   period: integer("period").notNull(), // 1, 2, 3, etc.
   duration: integer("duration").notNull().default(1), // 1=1.5h, 2=3h, 3=4.5h
+  startTime: text("start_time"), // HH:MM format (e.g., "08:30")
+  endTime: text("end_time"), // HH:MM format (e.g., "10:00")
   educationLevel: text("education_level").notNull(), // 'الابتدائي', 'المتوسط', 'الثانوي'
   subjectId: integer("subject_id").references(() => teachingModules.id),
   teacherId: integer("teacher_id").references(() => users.id),
@@ -336,6 +338,8 @@ export const insertScheduleCellSchema = createInsertSchema(scheduleCells).pick({
   dayOfWeek: true,
   period: true,
   duration: true,
+  startTime: true,
+  endTime: true,
   educationLevel: true,
   subjectId: true,
   teacherId: true,

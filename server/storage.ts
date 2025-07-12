@@ -648,6 +648,8 @@ export class DatabaseStorage implements IStorage {
         dayOfWeek: scheduleCells.dayOfWeek,
         period: scheduleCells.period,
         duration: scheduleCells.duration,
+        startTime: scheduleCells.startTime,
+        endTime: scheduleCells.endTime,
         educationLevel: scheduleCells.educationLevel,
         subject: {
           id: teachingModules.id,

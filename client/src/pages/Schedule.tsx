@@ -23,6 +23,8 @@ interface ScheduleCell {
   dayOfWeek: number;
   period: number;
   duration: number;
+  startTime?: string;
+  endTime?: string;
   educationLevel: string;
   subject: {
     id: number;
@@ -108,7 +110,9 @@ export default function Schedule() {
     teacherId: '',
     duration: 1,
     day: '',
-    period: ''
+    period: '',
+    startTime: '',
+    endTime: ''
   });
 
   const durationOptions = [
@@ -239,7 +243,7 @@ export default function Schedule() {
       queryClient.refetchQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setShowCellForm(false);
       setSelectedCell(null);
-      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '' });
+      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
       console.log('Cell modal closed and form reset');
     },
     onError: (error: any) => {
@@ -256,7 +260,7 @@ export default function Schedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setEditingCell(null);
-      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '' });
+      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
     }
   });
 
@@ -296,6 +300,8 @@ export default function Schedule() {
       dayOfWeek: parseInt(cellForm.day),
       period: parseInt(cellForm.period),
       duration: parseInt(cellForm.duration.toString()),
+      startTime: cellForm.startTime || null,
+      endTime: cellForm.endTime || null,
       educationLevel: cellForm.educationLevel,
       subjectId: parseInt(cellForm.subjectId),
       teacherId: parseInt(cellForm.teacherId),
@@ -470,6 +476,16 @@ export default function Schedule() {
                                     {cell.teacher.name}
                                   </div>
                                 )}
+                                
+                                {(cell.startTime || cell.endTime) && (
+                                  <div className="text-xs text-blue-600 font-medium">
+                                    {cell.startTime && cell.endTime ? 
+                                      `${cell.startTime} - ${cell.endTime}` : 
+                                      cell.startTime ? `من ${cell.startTime}` : 
+                                      cell.endTime ? `إلى ${cell.endTime}` : ''
+                                    }
+                                  </div>
+                                )}
                               </div>
                               
                               <div className="absolute top-1 left-1 flex gap-1">
@@ -486,7 +502,9 @@ export default function Schedule() {
                                       teacherId: cell.teacher?.id?.toString() || '',
                                       duration: cell.duration,
                                       day: dayIndex.toString(),
-                                      period: slot.period.toString()
+                                      period: slot.period.toString(),
+                                      startTime: cell.startTime || '',
+                                      endTime: cell.endTime || ''
                                     });
                                     setShowCellForm(true);
                                   }}
@@ -603,7 +621,7 @@ export default function Schedule() {
                   setShowCellForm(false);
                   setEditingCell(null);
                   setSelectedCell(null);
-                  setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '' });
+                  setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
                 }}
               >
                 <X className="w-4 h-4" />
@@ -649,6 +667,30 @@ export default function Schedule() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Custom Time Inputs */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startTime">وقت البداية</Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={cellForm.startTime}
+                    onChange={(e) => setCellForm({ ...cellForm, startTime: e.target.value })}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endTime">وقت النهاية</Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={cellForm.endTime}
+                    onChange={(e) => setCellForm({ ...cellForm, endTime: e.target.value })}
+                    className="w-full"
+                  />
+                </div>
               </div>
               
               <div>
