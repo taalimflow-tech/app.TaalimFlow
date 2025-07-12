@@ -24,6 +24,7 @@ interface CreateFormData {
   bio: string;
   email: string;
   phone: string;
+  imageUrl: string;
 }
 
 export default function AdminContent() {
@@ -46,8 +47,13 @@ export default function AdminContent() {
     name: '',
     bio: '',
     email: '',
-    phone: ''
+    phone: '',
+    imageUrl: ''
   });
+  
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Blog creation mutation
   const createBlogMutation = useMutation({
@@ -204,27 +210,85 @@ export default function AdminContent() {
       name: '',
       bio: '',
       email: '',
-      phone: ''
+      phone: '',
+      imageUrl: ''
     });
+    setImageFile(null);
+    setImagePreview(null);
     setShowForm(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Image upload handler
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Upload image to server
+  const uploadImage = async (): Promise<string> => {
+    if (!imageFile) return '';
+    
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('contentImage', imageFile);
+      formData.append('type', activeTab); // blog, group, formation
+      
+      const response = await fetch('/api/upload-content', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      const result = await response.json();
+      return result.imageUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({ title: 'خطأ في رفع الصورة', variant: 'destructive' });
+      return '';
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Upload image first if provided
+    let imageUrl = '';
+    if (imageFile) {
+      imageUrl = await uploadImage();
+      if (!imageUrl && imageFile) {
+        // Upload failed, don't proceed
+        return;
+      }
+    }
     
     if (activeTab === 'blog') {
       createBlogMutation.mutate({
         title: formData.title,
         content: formData.content,
         authorId: user?.id,
-        published: true
+        published: true,
+        imageUrl: imageUrl || null
       });
     } else if (activeTab === 'group') {
       createGroupMutation.mutate({
         name: formData.name,
         description: formData.description,
         category: formData.category,
-        maxMembers: formData.maxMembers ? parseInt(formData.maxMembers) : null
+        maxMembers: formData.maxMembers ? parseInt(formData.maxMembers) : null,
+        imageUrl: imageUrl || null
       });
     } else if (activeTab === 'formation') {
       createFormationMutation.mutate({
@@ -232,7 +296,8 @@ export default function AdminContent() {
         description: formData.description,
         duration: formData.duration,
         price: formData.price,
-        category: formData.category
+        category: formData.category,
+        imageUrl: imageUrl || null
       });
     } else if (activeTab === 'teacher') {
       createTeacherMutation.mutate({
@@ -241,7 +306,8 @@ export default function AdminContent() {
         bio: formData.bio,
         email: formData.email,
         phone: formData.phone,
-        available: true
+        available: true,
+        imageUrl: imageUrl || null
       });
     }
   };
@@ -347,6 +413,23 @@ export default function AdminContent() {
                       required
                     />
                   </div>
+                  
+                  {/* Image Upload */}
+                  <div>
+                    <Label htmlFor="image">صورة المقال (اختياري)</Label>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="mt-1"
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
 
@@ -393,6 +476,23 @@ export default function AdminContent() {
                       onChange={(e) => setFormData({ ...formData, maxMembers: e.target.value })}
                       placeholder="أقصى عدد أعضاء (اختياري)"
                     />
+                  </div>
+                  
+                  {/* Image Upload */}
+                  <div>
+                    <Label htmlFor="image">صورة المجموعة (اختياري)</Label>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="mt-1"
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -451,6 +551,23 @@ export default function AdminContent() {
                       required
                     />
                   </div>
+                  
+                  {/* Image Upload */}
+                  <div>
+                    <Label htmlFor="image">صورة التكوين (اختياري)</Label>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="mt-1"
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
 
@@ -507,6 +624,23 @@ export default function AdminContent() {
                       rows={3}
                     />
                   </div>
+                  
+                  {/* Image Upload */}
+                  <div>
+                    <Label htmlFor="image">صورة المعلم (اختياري)</Label>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="mt-1"
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
 
@@ -517,14 +651,17 @@ export default function AdminContent() {
                     createBlogMutation.isPending ||
                     createGroupMutation.isPending ||
                     createFormationMutation.isPending ||
-                    createTeacherMutation.isPending
+                    createTeacherMutation.isPending ||
+                    isUploading
                   }
                   className="bg-purple-600 hover:bg-purple-700 text-white"
                 >
-                  {(createBlogMutation.isPending || createGroupMutation.isPending || 
-                    createFormationMutation.isPending || createTeacherMutation.isPending)
-                    ? 'جاري الإنشاء...'
-                    : 'إنشاء'
+                  {isUploading
+                    ? 'جاري رفع الصورة...'
+                    : (createBlogMutation.isPending || createGroupMutation.isPending || 
+                       createFormationMutation.isPending || createTeacherMutation.isPending)
+                      ? 'جاري الإنشاء...'
+                      : 'إنشاء'
                   }
                 </Button>
                 <Button
@@ -561,12 +698,21 @@ export default function AdminContent() {
                 ) : (
                   blogPosts.map((post: any) => (
                     <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{post.title}</h4>
-                        <p className="text-sm text-gray-600 mt-1 truncate">{post.content}</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {new Date(post.createdAt).toLocaleDateString('en-US')}
-                        </p>
+                      <div className="flex-1 flex items-center gap-3">
+                        {post.imageUrl && (
+                          <img 
+                            src={post.imageUrl} 
+                            alt={post.title} 
+                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{post.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1 truncate">{post.content}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(post.createdAt).toLocaleDateString('en-US')}
+                          </p>
+                        </div>
                       </div>
                       <Button
                         onClick={() => deleteBlogMutation.mutate(post.id)}
@@ -591,14 +737,23 @@ export default function AdminContent() {
                 ) : (
                   groups.map((group: any) => (
                     <div key={group.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{group.name}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{group.description}</p>
-                        <div className="flex gap-4 mt-1">
-                          <span className="text-xs text-gray-500">الفئة: {group.category}</span>
-                          {group.maxMembers && (
-                            <span className="text-xs text-gray-500">أقصى عدد: {group.maxMembers}</span>
-                          )}
+                      <div className="flex-1 flex items-center gap-3">
+                        {group.imageUrl && (
+                          <img 
+                            src={group.imageUrl} 
+                            alt={group.name} 
+                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{group.name}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{group.description}</p>
+                          <div className="flex gap-4 mt-1">
+                            <span className="text-xs text-gray-500">الفئة: {group.category}</span>
+                            {group.maxMembers && (
+                              <span className="text-xs text-gray-500">أقصى عدد: {group.maxMembers}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <Button
@@ -624,13 +779,22 @@ export default function AdminContent() {
                 ) : (
                   formations.map((formation: any) => (
                     <div key={formation.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{formation.title}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{formation.description}</p>
-                        <div className="flex gap-4 mt-1">
-                          <span className="text-xs text-gray-500">المدة: {formation.duration}</span>
-                          <span className="text-xs text-gray-500">السعر: {formation.price}</span>
-                          <span className="text-xs text-gray-500">الفئة: {formation.category}</span>
+                      <div className="flex-1 flex items-center gap-3">
+                        {formation.imageUrl && (
+                          <img 
+                            src={formation.imageUrl} 
+                            alt={formation.title} 
+                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{formation.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{formation.description}</p>
+                          <div className="flex gap-4 mt-1">
+                            <span className="text-xs text-gray-500">المدة: {formation.duration}</span>
+                            <span className="text-xs text-gray-500">السعر: {formation.price}</span>
+                            <span className="text-xs text-gray-500">الفئة: {formation.category}</span>
+                          </div>
                         </div>
                       </div>
                       <Button
@@ -656,20 +820,29 @@ export default function AdminContent() {
                 ) : (
                   teachers.map((teacher: any) => (
                     <div key={teacher.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{teacher.name}</h4>
-                        <p className="text-sm text-gray-600 mt-1">المادة: {teacher.subject}</p>
-                        <div className="flex gap-4 mt-1">
-                          {teacher.email && (
-                            <span className="text-xs text-gray-500">البريد: {teacher.email}</span>
-                          )}
-                          {teacher.phone && (
-                            <span className="text-xs text-gray-500">الهاتف: {teacher.phone}</span>
+                      <div className="flex-1 flex items-center gap-3">
+                        {teacher.imageUrl && (
+                          <img 
+                            src={teacher.imageUrl} 
+                            alt={teacher.name} 
+                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{teacher.name}</h4>
+                          <p className="text-sm text-gray-600 mt-1">المادة: {teacher.subject}</p>
+                          <div className="flex gap-4 mt-1">
+                            {teacher.email && (
+                              <span className="text-xs text-gray-500">البريد: {teacher.email}</span>
+                            )}
+                            {teacher.phone && (
+                              <span className="text-xs text-gray-500">الهاتف: {teacher.phone}</span>
+                            )}
+                          </div>
+                          {teacher.bio && (
+                            <p className="text-xs text-gray-500 mt-1 truncate">{teacher.bio}</p>
                           )}
                         </div>
-                        {teacher.bio && (
-                          <p className="text-xs text-gray-500 mt-1 truncate">{teacher.bio}</p>
-                        )}
                       </div>
                       <Button
                         onClick={() => deleteTeacherMutation.mutate(teacher.id)}
@@ -694,13 +867,12 @@ export default function AdminContent() {
         <CardContent className="p-4">
           <h3 className="font-semibold text-purple-800 mb-2">تعليمات:</h3>
           <ul className="text-sm text-purple-700 space-y-1">
-            <li>• يمكنك إنشاء مقالات جديدة في المدونة</li>
-            <li>• إضافة مجموعات تعليمية للطلاب</li>
-            <li>• إنشاء تكوينات مهنية</li>
-            <li>• إضافة معلمين جدد</li>
+            <li>• يمكنك إنشاء مقالات جديدة في المدونة مع إمكانية إضافة الصور</li>
+            <li>• إضافة مجموعات تعليمية للطلاب مع الصور التوضيحية</li>
+            <li>• إنشاء تكوينات مهنية مع الصور الوصفية</li>
+            <li>• إضافة معلمين جدد مع صورهم الشخصية</li>
             <li>• حذف أي محتوى غير مرغوب فيه باستخدام زر الحذف</li>
-            <li>• إنشاء تكوينات ودورات تدريبية</li>
-            <li>• إضافة معلمين جدد للمنصة</li>
+            <li>• رفع الصور اختياري - يمكن إنشاء المحتوى بدون صور</li>
             <li>• جميع المحتوى سيظهر للمستخدمين فور إنشائه</li>
           </ul>
         </CardContent>

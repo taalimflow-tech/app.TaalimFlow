@@ -35,6 +35,15 @@ export default function Blog() {
                 </p>
               </CardHeader>
               <CardContent>
+                {post.imageUrl && (
+                  <div className="mb-4">
+                    <img 
+                      src={post.imageUrl} 
+                      alt={post.title} 
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
                 <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{post.content}</p>
               </CardContent>
             </Card>

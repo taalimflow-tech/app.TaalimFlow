@@ -66,6 +66,15 @@ export default function Formations() {
                 <p className="text-sm text-gray-600">{formation.category}</p>
               </CardHeader>
               <CardContent>
+                {formation.imageUrl && (
+                  <div className="mb-4">
+                    <img 
+                      src={formation.imageUrl} 
+                      alt={formation.title} 
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
                 <p className="text-gray-700 mb-4">{formation.description}</p>
                 
                 <div className="flex justify-between items-center mb-4">

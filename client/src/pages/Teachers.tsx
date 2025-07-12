@@ -197,9 +197,9 @@ export default function Teachers() {
                 <CardContent className="p-4">
                   <div className="flex items-start space-x-reverse space-x-4 mb-4">
                   <div className="flex-shrink-0">
-                    {teacher.profilePicture ? (
+                    {teacher.imageUrl ? (
                       <img 
-                        src={`/uploads/${teacher.profilePicture}`}
+                        src={teacher.imageUrl}
                         alt={teacher.name} 
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                       />

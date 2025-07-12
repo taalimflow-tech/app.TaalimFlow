@@ -27,7 +27,8 @@ const storage_multer = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `profile-${uniqueSuffix}${path.extname(file.originalname)}`);
+    const prefix = req.body.type || 'content';
+    cb(null, `${prefix}-${uniqueSuffix}${path.extname(file.originalname)}`);
   }
 });
 
@@ -300,6 +301,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       res.status(500).json({ error: "فشل في رفع الصورة الشخصية" });
+    }
+  });
+
+  // Content upload endpoint for blogs, groups, formations
+  app.post("/api/upload-content", upload.single('contentImage'), async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "لم يتم رفع أي ملف" });
+      }
+
+      // Create URL for the uploaded file
+      const fileUrl = `/uploads/${req.file.filename}`;
+      
+      res.json({ 
+        message: "تم رفع الصورة بنجاح", 
+        imageUrl: fileUrl 
+      });
+    } catch (error) {
+      console.error('Error uploading content image:', error);
+      res.status(500).json({ error: "فشل في رفع الصورة" });
     }
   });
 

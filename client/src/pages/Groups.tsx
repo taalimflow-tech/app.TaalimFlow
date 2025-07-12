@@ -66,6 +66,15 @@ export default function Groups() {
                 <p className="text-sm text-gray-600">{group.category}</p>
               </CardHeader>
               <CardContent>
+                {group.imageUrl && (
+                  <div className="mb-4">
+                    <img 
+                      src={group.imageUrl} 
+                      alt={group.name} 
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
                 <p className="text-gray-700 mb-4">{group.description}</p>
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-sm text-gray-600">
