@@ -488,7 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Teacher routes
   app.get("/api/teachers", async (req, res) => {
     try {
-      const teachers = await storage.getTeachers();
+      const teachers = await storage.getTeachersWithSpecializations();
       res.json(teachers);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teachers" });

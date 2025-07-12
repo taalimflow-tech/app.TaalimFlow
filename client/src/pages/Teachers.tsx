@@ -1,25 +1,54 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Teacher } from '@/types';
 import { apiRequest } from '@/lib/queryClient';
-import { X } from 'lucide-react';
+import { X, User, BookOpen, GraduationCap, Phone, Mail } from 'lucide-react';
+
+interface TeacherWithSpecializations {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  profilePicture?: string;
+  role: string;
+  specializations: {
+    id: number;
+    name: string;
+    nameAr: string;
+    educationLevel: string;
+    grade: string;
+  }[];
+}
 
 export default function Teachers() {
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherWithSpecializations | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const { data: teachers = [], isLoading: loading } = useQuery<Teacher[]>({
+  const { data: teachers = [], isLoading: loading } = useQuery<TeacherWithSpecializations[]>({
     queryKey: ['/api/teachers'],
   });
+
+  const educationLevels = [
+    { value: 'all', label: 'جميع المستويات' },
+    { value: 'الابتدائي', label: 'الابتدائي' },
+    { value: 'المتوسط', label: 'المتوسط' },
+    { value: 'الثانوي', label: 'الثانوي' }
+  ];
+
+  const filteredTeachers = selectedLevel === 'all' 
+    ? teachers 
+    : teachers.filter(teacher => 
+        teacher.specializations.some(spec => spec.educationLevel === selectedLevel)
+      );
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { teacherId: number; subject: string; content: string }) => {
@@ -30,8 +59,6 @@ export default function Teachers() {
         subject: data.subject,
         content: data.content
       };
-      
-      console.log('Sending message payload:', payload);
       
       const response = await fetch('/api/messages', {
         method: 'POST',
@@ -48,7 +75,6 @@ export default function Teachers() {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log('Message sent successfully:', data);
       toast({
         title: "تم إرسال الرسالة بنجاح",
         description: "سيتم الرد عليك في أقرب وقت ممكن",
@@ -57,7 +83,6 @@ export default function Teachers() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
     },
     onError: (error: any) => {
-      console.error('Error sending message:', error);
       toast({
         title: "خطأ في إرسال الرسالة",
         description: error.message || "حدث خطأ أثناء إرسال الرسالة",
@@ -68,20 +93,14 @@ export default function Teachers() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted!');
-    console.log('Selected teacher:', selectedTeacher);
-    console.log('User:', user);
     
     if (!selectedTeacher || !user) {
-      console.log('Missing selectedTeacher or user');
       return;
     }
     
     const formData = new FormData(e.target as HTMLFormElement);
     const subject = formData.get('subject') as string;
     const content = formData.get('message') as string;
-    
-    console.log('Form data:', { subject, content });
     
     if (!subject.trim() || !content.trim()) {
       toast({
@@ -91,12 +110,6 @@ export default function Teachers() {
       });
       return;
     }
-    
-    console.log('Sending message mutation with:', {
-      teacherId: selectedTeacher.id,
-      subject: subject.trim(),
-      content: content.trim(),
-    });
     
     sendMessageMutation.mutate({
       teacherId: selectedTeacher.id,
@@ -115,34 +128,93 @@ export default function Teachers() {
 
   return (
     <div className="px-4 py-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">التواصل مع المعلمين</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">المعلمون</h2>
+      
+      {/* Level Filter Bar */}
+      <div className="flex flex-wrap gap-2 mb-6 p-3 bg-gray-50 rounded-lg">
+        {educationLevels.map((level) => (
+          <button
+            key={level.value}
+            onClick={() => setSelectedLevel(level.value)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              selectedLevel === level.value
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            {level.label}
+          </button>
+        ))}
+      </div>
       
       <div className="space-y-4">
-        {teachers.length > 0 ? (
-          teachers.map((teacher) => (
-            <Card key={teacher.id}>
+        {filteredTeachers.length > 0 ? (
+          filteredTeachers.map((teacher) => (
+            <Card key={teacher.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
-                <div className="flex items-center space-x-reverse space-x-3 mb-3">
-                  <img 
-                    src={teacher.imageUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100"} 
-                    alt={teacher.name} 
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-800">{teacher.name}</h3>
-                    <p className="text-sm text-gray-600">{teacher.subject}</p>
+                <div className="flex items-start space-x-reverse space-x-4 mb-4">
+                  <div className="flex-shrink-0">
+                    {teacher.profilePicture ? (
+                      <img 
+                        src={`/uploads/${teacher.profilePicture}`}
+                        alt={teacher.name} 
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                        <User className="w-8 h-8 text-blue-600" />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-reverse space-x-1">
-                    <div className={`w-2 h-2 rounded-full ${teacher.available ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                    <span className="text-xs text-gray-500">{teacher.available ? 'متاح' : 'غير متاح'}</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-800 text-lg mb-1">{teacher.name}</h3>
+                    
+                    {/* Contact Information */}
+                    <div className="flex items-center space-x-reverse space-x-2 mb-2">
+                      <Mail className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">{teacher.email}</span>
+                    </div>
+                    
+                    {teacher.phone && (
+                      <div className="flex items-center space-x-reverse space-x-2 mb-3">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">{teacher.phone}</span>
+                      </div>
+                    )}
+                    
+                    {/* Specializations */}
+                    {teacher.specializations.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center space-x-reverse space-x-2 mb-2">
+                          <BookOpen className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-700">التخصصات:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {teacher.specializations.map((spec, index) => (
+                            <span 
+                              key={index}
+                              className="inline-flex items-center px-2 py-1 text-xs bg-blue-50 text-blue-800 rounded-full"
+                            >
+                              {spec.nameAr}
+                              <span className="mr-1 text-blue-600">({spec.educationLevel})</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {teacher.specializations.length === 0 && (
+                      <div className="mb-3">
+                        <span className="text-sm text-gray-500 italic">لم يتم تحديد التخصصات بعد</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
                 <div>
                   <Button 
-                    className="w-full bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={() => {
-                      console.log('Button clicked, setting teacher:', teacher);
                       setSelectedTeacher(teacher);
                     }}
                   >
@@ -154,7 +226,13 @@ export default function Teachers() {
           ))
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-sm">لا يوجد معلمين متاحين حالياً</p>
+            <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 text-sm">
+              {selectedLevel === 'all' 
+                ? 'لا يوجد معلمين متاحين حالياً' 
+                : `لا يوجد معلمين لمستوى ${educationLevels.find(l => l.value === selectedLevel)?.label}`
+              }
+            </p>
           </div>
         )}
       </div>
@@ -171,6 +249,27 @@ export default function Teachers() {
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+            
+            {/* Teacher Info in Modal */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-reverse space-x-3">
+                {selectedTeacher.profilePicture ? (
+                  <img 
+                    src={`/uploads/${selectedTeacher.profilePicture}`}
+                    alt={selectedTeacher.name} 
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-800">{selectedTeacher.name}</h3>
+                  <p className="text-sm text-gray-600">{selectedTeacher.email}</p>
+                </div>
+              </div>
             </div>
             
             <form onSubmit={handleSendMessage} className="space-y-4">

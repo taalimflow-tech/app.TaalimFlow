@@ -27,6 +27,7 @@ export interface IStorage {
   getTeachers(): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
+  getTeachersWithSpecializations(): Promise<any[]>;
   
   // Message methods
   getMessages(): Promise<Message[]>;
@@ -211,6 +212,57 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeacher(id: number): Promise<void> {
     await db.delete(teachers).where(eq(teachers.id, id));
+  }
+
+  async getTeachersWithSpecializations(): Promise<any[]> {
+    const result = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        profilePicture: users.profilePicture,
+        role: users.role,
+        subjectId: teachingModules.id,
+        subjectName: teachingModules.name,
+        subjectNameAr: teachingModules.nameAr,
+        educationLevel: teachingModules.educationLevel,
+        grade: teachingModules.grade
+      })
+      .from(users)
+      .leftJoin(teacherSpecializations, eq(users.id, teacherSpecializations.teacherId))
+      .leftJoin(teachingModules, eq(teacherSpecializations.moduleId, teachingModules.id))
+      .where(eq(users.role, 'teacher'))
+      .orderBy(users.name);
+
+    // Group by teacher to consolidate specializations
+    const teachersMap = new Map();
+    
+    result.forEach(row => {
+      if (!teachersMap.has(row.id)) {
+        teachersMap.set(row.id, {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          phone: row.phone,
+          profilePicture: row.profilePicture,
+          role: row.role,
+          specializations: []
+        });
+      }
+      
+      if (row.subjectId) {
+        teachersMap.get(row.id).specializations.push({
+          id: row.subjectId,
+          name: row.subjectName,
+          nameAr: row.subjectNameAr,
+          educationLevel: row.educationLevel,
+          grade: row.grade
+        });
+      }
+    });
+    
+    return Array.from(teachersMap.values());
   }
 
   async getMessages(): Promise<Message[]> {
