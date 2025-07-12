@@ -152,7 +152,7 @@ export default function Schedule() {
   const createTableMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('Creating table with data:', data);
-      const result = await apiRequest('/api/schedule-tables', 'POST', data);
+      const result = await apiRequest('POST', '/api/schedule-tables', data);
       console.log('Table created successfully:', result);
       return result;
     },
@@ -189,7 +189,7 @@ export default function Schedule() {
   // Delete schedule table
   const deleteTableMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/schedule-tables/${id}`, 'DELETE');
+      return await apiRequest('DELETE', `/api/schedule-tables/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-tables'] });
@@ -201,7 +201,7 @@ export default function Schedule() {
   const createCellMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('Creating cell with data:', data);
-      const result = await apiRequest('/api/schedule-cells', 'POST', data);
+      const result = await apiRequest('POST', '/api/schedule-cells', data);
       console.log('Cell created successfully:', result);
       return result;
     },
@@ -223,7 +223,7 @@ export default function Schedule() {
   // Update schedule cell
   const updateCellMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return await apiRequest(`/api/schedule-cells/${id}`, 'PUT', data);
+      return await apiRequest('PUT', `/api/schedule-cells/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
@@ -235,7 +235,7 @@ export default function Schedule() {
   // Delete schedule cell
   const deleteCellMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/schedule-cells/${id}`, 'DELETE');
+      return await apiRequest('DELETE', `/api/schedule-cells/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
