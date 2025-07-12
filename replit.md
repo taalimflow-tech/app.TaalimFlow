@@ -128,18 +128,17 @@ This unified approach provides better data consistency, easier queries, and impr
 - **January 2025**: Updated teaching module system to reflect accurate Algerian education structure
   - **Primary Education (الابتدائي)**: 3 subjects - Arabic+Math combined, French, English
   - **Middle School (المتوسط)**: 7 subjects for all 4 grades - Arabic, Math, Physics, Natural Sciences, French, English, History+Geography
-  - **Secondary Education (الثانوي)**: Complete track system with 86 total modules:
-    - الجذع المشترك العلمي (Common Scientific Track) - 12 subjects
-    - الجذع المشترك آداب (Common Literary Track) - 10 subjects  
-    - شعبة العلوم التجريبية (Experimental Sciences) - 10 subjects
-    - شعبة الرياضيات (Mathematics) - 9 subjects
-    - شعبة تقني رياضي (Technical Mathematics) - 10 subjects with Mechanics & Electrical Engineering
-    - شعبة آداب وفلسفة (Literature and Philosophy) - 7 subjects
-    - شعبة لغات أجنبية (Foreign Languages) - 8 subjects including German & Spanish
-    - شعبة تسيير واقتصاد (Management and Economics) - 10 subjects with Economics, Law, Accounting
+  - **Secondary Education (الثانوي)**: 21 consolidated subjects - teachers can teach across all secondary levels/branches:
+    - Core subjects for all tracks: Arabic, French, English, Math, Philosophy, History+Geography, Islamic Studies, Physical Education, Artistic Education, Computer Science
+    - Scientific track subjects: Physics, Natural Sciences, Technology
+    - Technical track subjects: Mechanics, Electrical Engineering  
+    - Languages track subjects: German, Spanish
+    - Economics track subjects: Economics, Law, Accounting
+    - Literary track subjects: Civic Education
+  - **Total: 31 modules** (3 primary + 7 middle + 21 secondary)
+  - Eliminated duplicate subjects - teachers now select one subject they can teach across all applicable secondary levels
   - Corrected subject combinations: History+Geography as one subject, no separate chemistry (part of Natural Sciences)
   - Teachers can specialize in subjects across entire education levels matching real Algerian system
-  - Added all missing subjects: Technology, Physical Education, Civic Education, Mechanics, Electrical Engineering, German, Spanish, Economics, Law, Accounting
 - **January 2025**: Successfully implemented comprehensive children registration and management system
 - **January 2025**: Refined verification system to focus only on children and students
   - **IMPORTANT**: Verification system now applies only to children and students, not teachers, admins, or regular users
