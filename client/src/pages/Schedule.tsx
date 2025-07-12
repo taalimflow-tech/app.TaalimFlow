@@ -84,6 +84,15 @@ export default function Schedule() {
     { period: 4, time: '11' },
     { period: 5, time: '12' },
     { period: 6, time: '13' },
+    { period: 7, time: '14' },
+    { period: 8, time: '15' },
+    { period: 9, time: '16' },
+    { period: 10, time: '17' },
+    { period: 11, time: '18' },
+    { period: 12, time: '19' },
+    { period: 13, time: '20' },
+    { period: 14, time: '21' },
+    { period: 15, time: '22' },
   ];
   
   // Education levels with detailed grades
@@ -307,6 +316,13 @@ export default function Schedule() {
       else if (hour >= 13 && hour < 14) period = 6;
       else if (hour >= 14 && hour < 15) period = 7;
       else if (hour >= 15 && hour < 16) period = 8;
+      else if (hour >= 16 && hour < 17) period = 9;
+      else if (hour >= 17 && hour < 18) period = 10;
+      else if (hour >= 18 && hour < 19) period = 11;
+      else if (hour >= 19 && hour < 20) period = 12;
+      else if (hour >= 20 && hour < 21) period = 13;
+      else if (hour >= 21 && hour < 22) period = 14;
+      else if (hour >= 22 && hour < 23) period = 15;
     }
 
     const cellData = {
@@ -709,6 +725,13 @@ export default function Schedule() {
                       else if (hour >= 13 && hour < 14) period = 6;
                       else if (hour >= 14 && hour < 15) period = 7;
                       else if (hour >= 15 && hour < 16) period = 8;
+                      else if (hour >= 16 && hour < 17) period = 9;
+                      else if (hour >= 17 && hour < 18) period = 10;
+                      else if (hour >= 18 && hour < 19) period = 11;
+                      else if (hour >= 19 && hour < 20) period = 12;
+                      else if (hour >= 20 && hour < 21) period = 13;
+                      else if (hour >= 21 && hour < 22) period = 14;
+                      else if (hour >= 22 && hour < 23) period = 15;
                       
                       setCellForm({ ...cellForm, startTime, period: period.toString() });
                     }}

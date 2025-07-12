@@ -285,3 +285,10 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Grade Selection Integration**: Maintained detailed grade selection (Primary 1-5, Middle 1-4, Secondary 1-3)
   - **Teacher Filtering**: Teachers filtered by education level specializations in form
   - **Streamlined Workflow**: Simplified from complex cell interactions to straightforward form submission
+- **January 2025**: Enhanced schedule system with precise time control and extended hours
+  - **Custom Time Inputs**: Replaced period selection with start/end time input fields for precise lesson timing
+  - **Automatic Period Calculation**: System automatically determines table placement based on start time
+  - **Extended Time Range**: Schedule now spans from 8 AM to 10 PM (22:00) with 15 time periods
+  - **Visual Time Representation**: Lessons display exact custom times and span correct number of columns
+  - **Duration Auto-Calculation**: Lesson duration calculated automatically from start and end times
+  - **Database Integration**: Added startTime and endTime fields to schedule cells table
