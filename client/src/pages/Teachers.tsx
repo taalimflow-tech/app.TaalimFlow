@@ -203,12 +203,9 @@ export default function Teachers() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-reverse space-x-2 mb-2">
-                      <h3 className="font-bold text-gray-800 text-lg">{teacher.name}</h3>
-                      {teacher.gender && (
-                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                          {teacher.gender === 'male' ? 'ذكر' : 'أنثى'}
-                        </span>
-                      )}
+                      <h3 className="font-bold text-gray-800 text-lg">
+                        {teacher.gender === 'male' ? 'Mr. ' : teacher.gender === 'female' ? 'Ms. ' : ''}{teacher.name}
+                      </h3>
                     </div>
                     
                     {/* Contact Information - Only visible to admins */}
@@ -316,12 +313,9 @@ export default function Teachers() {
                 )}
                 <div className="flex-1">
                   <div className="flex items-center space-x-reverse space-x-2 mb-1">
-                    <h3 className="font-medium text-gray-800">{selectedTeacher.name}</h3>
-                    {selectedTeacher.gender && (
-                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                        {selectedTeacher.gender === 'male' ? 'ذكر' : 'أنثى'}
-                      </span>
-                    )}
+                    <h3 className="font-medium text-gray-800">
+                      {selectedTeacher.gender === 'male' ? 'Mr. ' : selectedTeacher.gender === 'female' ? 'Ms. ' : ''}{selectedTeacher.name}
+                    </h3>
                   </div>
                   {user?.role === 'admin' && (
                     <p className="text-sm text-gray-600">{selectedTeacher.email}</p>
