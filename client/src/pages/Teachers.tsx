@@ -17,6 +17,7 @@ interface TeacherWithSpecializations {
   phone: string;
   profilePicture?: string;
   role: string;
+  gender?: string;
   specializations: {
     id: number;
     name: string;
@@ -49,6 +50,40 @@ export default function Teachers() {
     : teachers.filter(teacher => 
         teacher.specializations.some(spec => spec.educationLevel === selectedLevel)
       );
+
+  // Color schemes for different education levels
+  const getLevelColors = (educationLevel: string) => {
+    switch (educationLevel) {
+      case 'الابتدائي':
+        return {
+          bg: 'bg-green-50',
+          text: 'text-green-800',
+          border: 'border-green-200',
+          badge: 'bg-green-100 text-green-800'
+        };
+      case 'المتوسط':
+        return {
+          bg: 'bg-blue-50',
+          text: 'text-blue-800',
+          border: 'border-blue-200',
+          badge: 'bg-blue-100 text-blue-800'
+        };
+      case 'الثانوي':
+        return {
+          bg: 'bg-purple-50',
+          text: 'text-purple-800',
+          border: 'border-purple-200',
+          badge: 'bg-purple-100 text-purple-800'
+        };
+      default:
+        return {
+          bg: 'bg-gray-50',
+          text: 'text-gray-800',
+          border: 'border-gray-200',
+          badge: 'bg-gray-100 text-gray-800'
+        };
+    }
+  };
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { teacherId: number; subject: string; content: string }) => {
@@ -167,19 +202,30 @@ export default function Teachers() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-800 text-lg mb-1">{teacher.name}</h3>
-                    
-                    {/* Contact Information */}
                     <div className="flex items-center space-x-reverse space-x-2 mb-2">
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">{teacher.email}</span>
+                      <h3 className="font-bold text-gray-800 text-lg">{teacher.name}</h3>
+                      {teacher.gender && (
+                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                          {teacher.gender === 'male' ? 'ذكر' : 'أنثى'}
+                        </span>
+                      )}
                     </div>
                     
-                    {teacher.phone && (
-                      <div className="flex items-center space-x-reverse space-x-2 mb-3">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">{teacher.phone}</span>
-                      </div>
+                    {/* Contact Information - Only visible to admins */}
+                    {user?.role === 'admin' && (
+                      <>
+                        <div className="flex items-center space-x-reverse space-x-2 mb-2">
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm text-gray-600">{teacher.email}</span>
+                        </div>
+                        
+                        {teacher.phone && (
+                          <div className="flex items-center space-x-reverse space-x-2 mb-3">
+                            <Phone className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">{teacher.phone}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                     
                     {/* Specializations */}
@@ -190,15 +236,18 @@ export default function Teachers() {
                           <span className="text-sm font-medium text-gray-700">التخصصات:</span>
                         </div>
                         <div className="flex flex-wrap gap-1">
-                          {teacher.specializations.map((spec, index) => (
-                            <span 
-                              key={index}
-                              className="inline-flex items-center px-2 py-1 text-xs bg-blue-50 text-blue-800 rounded-full"
-                            >
-                              {spec.nameAr}
-                              <span className="mr-1 text-blue-600">({spec.educationLevel})</span>
-                            </span>
-                          ))}
+                          {teacher.specializations.map((spec, index) => {
+                            const colors = getLevelColors(spec.educationLevel);
+                            return (
+                              <span 
+                                key={index}
+                                className={`inline-flex items-center px-2 py-1 text-xs ${colors.badge} rounded-full`}
+                              >
+                                {spec.nameAr}
+                                <span className="mr-1 opacity-75">({spec.educationLevel})</span>
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -266,8 +315,17 @@ export default function Teachers() {
                   </div>
                 )}
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-800">{selectedTeacher.name}</h3>
-                  <p className="text-sm text-gray-600">{selectedTeacher.email}</p>
+                  <div className="flex items-center space-x-reverse space-x-2 mb-1">
+                    <h3 className="font-medium text-gray-800">{selectedTeacher.name}</h3>
+                    {selectedTeacher.gender && (
+                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                        {selectedTeacher.gender === 'male' ? 'ذكر' : 'أنثى'}
+                      </span>
+                    )}
+                  </div>
+                  {user?.role === 'admin' && (
+                    <p className="text-sm text-gray-600">{selectedTeacher.email}</p>
+                  )}
                 </div>
               </div>
             </div>

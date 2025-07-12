@@ -16,6 +16,7 @@ export default function AdminLogin() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [secretKey, setSecretKey] = useState('');
+  const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { login } = useAuth();
@@ -34,6 +35,7 @@ export default function AdminLogin() {
     setName('');
     setPhone('');
     setSecretKey('');
+    setGender('');
   };
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -235,6 +237,7 @@ export default function AdminLogin() {
           email, 
           phone, 
           password, 
+          gender,
           teacherKey: secretKey 
         }),
       });
@@ -601,6 +604,24 @@ export default function AdminLogin() {
                           placeholder="كلمة المرور"
                         />
                       </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="teacher-reg-gender">الجنس</Label>
+                        <select
+                          id="teacher-reg-gender"
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value)}
+                          required
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">اختر الجنس</option>
+                          <option value="male">ذكر</option>
+                          <option value="female">أنثى</option>
+                        </select>
+                      </div>
+                      <div></div>
                     </div>
                     
                     <div className="space-y-4 border-t pt-4">

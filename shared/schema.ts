@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   phone: text("phone").notNull(),
   profilePicture: text("profile_picture"), // URL to profile picture
   role: text("role").notNull().default("user"), // admin, teacher, user, student
+  gender: text("gender", { enum: ["male", "female"] }), // Gender field for teachers
   firebaseUid: text("firebase_uid"),
   verified: boolean("verified").default(false), // Manual verification by admin
   verificationNotes: text("verification_notes"), // Admin notes about verification
@@ -182,6 +183,7 @@ export const insertAdminSchema = insertUserSchema.extend({
 
 export const insertTeacherUserSchema = insertUserSchema.extend({
   teacherKey: z.string().min(1, "مفتاح المعلم مطلوب"),
+  gender: z.enum(["male", "female"], { required_error: "الجنس مطلوب" }),
 });
 
 export const insertStudentSchema = insertUserSchema.extend({

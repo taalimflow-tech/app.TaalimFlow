@@ -223,6 +223,7 @@ export class DatabaseStorage implements IStorage {
         phone: users.phone,
         profilePicture: users.profilePicture,
         role: users.role,
+        gender: users.gender,
         subjectId: teachingModules.id,
         subjectName: teachingModules.name,
         subjectNameAr: teachingModules.nameAr,
@@ -247,6 +248,7 @@ export class DatabaseStorage implements IStorage {
           phone: row.phone,
           profilePicture: row.profilePicture,
           role: row.role,
+          gender: row.gender,
           specializations: []
         });
       }
