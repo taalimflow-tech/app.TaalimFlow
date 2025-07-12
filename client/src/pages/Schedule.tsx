@@ -290,15 +290,29 @@ export default function Schedule() {
     e.preventDefault();
     
     // Validation
-    if (!selectedTable || !cellForm.educationLevel || !cellForm.subjectId || !cellForm.teacherId || !cellForm.day || !cellForm.period) {
+    if (!selectedTable || !cellForm.educationLevel || !cellForm.subjectId || !cellForm.teacherId || !cellForm.day || !cellForm.startTime || !cellForm.endTime) {
       alert('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     
+    // Auto-calculate period based on start time if not already set
+    let period = parseInt(cellForm.period) || 1;
+    if (cellForm.startTime) {
+      const hour = parseInt(cellForm.startTime.split(':')[0]);
+      if (hour >= 8 && hour < 9) period = 1;
+      else if (hour >= 9 && hour < 10) period = 2;
+      else if (hour >= 10 && hour < 11) period = 3;
+      else if (hour >= 11 && hour < 12) period = 4;
+      else if (hour >= 12 && hour < 13) period = 5;
+      else if (hour >= 13 && hour < 14) period = 6;
+      else if (hour >= 14 && hour < 15) period = 7;
+      else if (hour >= 15 && hour < 16) period = 8;
+    }
+
     const cellData = {
       scheduleTableId: selectedTable,
       dayOfWeek: parseInt(cellForm.day),
-      period: parseInt(cellForm.period),
+      period: period,
       duration: parseInt(cellForm.duration.toString()),
       startTime: cellForm.startTime || null,
       endTime: cellForm.endTime || null,
@@ -502,7 +516,7 @@ export default function Schedule() {
                                       teacherId: cell.teacher?.id?.toString() || '',
                                       duration: cell.duration,
                                       day: dayIndex.toString(),
-                                      period: slot.period.toString(),
+                                      period: cell.period.toString(),
                                       startTime: cell.startTime || '',
                                       endTime: cell.endTime || ''
                                     });
@@ -649,26 +663,6 @@ export default function Schedule() {
                 </Select>
               </div>
               
-              {/* Period Selection */}
-              <div>
-                <Label htmlFor="period">الحصة</Label>
-                <Select
-                  value={cellForm.period}
-                  onValueChange={(value) => setCellForm({ ...cellForm, period: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر الحصة" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots.map((slot) => (
-                      <SelectItem key={slot.period} value={slot.period.toString()}>
-                        الحصة {slot.period} - {slot.time}:00
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* Custom Time Inputs */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -677,7 +671,22 @@ export default function Schedule() {
                     id="startTime"
                     type="time"
                     value={cellForm.startTime}
-                    onChange={(e) => setCellForm({ ...cellForm, startTime: e.target.value })}
+                    onChange={(e) => {
+                      const startTime = e.target.value;
+                      // Automatically determine period based on start time
+                      const hour = parseInt(startTime.split(':')[0]);
+                      let period = 1;
+                      if (hour >= 8 && hour < 9) period = 1;
+                      else if (hour >= 9 && hour < 10) period = 2;
+                      else if (hour >= 10 && hour < 11) period = 3;
+                      else if (hour >= 11 && hour < 12) period = 4;
+                      else if (hour >= 12 && hour < 13) period = 5;
+                      else if (hour >= 13 && hour < 14) period = 6;
+                      else if (hour >= 14 && hour < 15) period = 7;
+                      else if (hour >= 15 && hour < 16) period = 8;
+                      
+                      setCellForm({ ...cellForm, startTime, period: period.toString() });
+                    }}
                     className="w-full"
                   />
                 </div>
@@ -687,7 +696,25 @@ export default function Schedule() {
                     id="endTime"
                     type="time"
                     value={cellForm.endTime}
-                    onChange={(e) => setCellForm({ ...cellForm, endTime: e.target.value })}
+                    onChange={(e) => {
+                      const endTime = e.target.value;
+                      // Auto-calculate duration based on start and end times
+                      let duration = 1;
+                      if (cellForm.startTime && endTime) {
+                        const [startHour, startMin] = cellForm.startTime.split(':').map(Number);
+                        const [endHour, endMin] = endTime.split(':').map(Number);
+                        const startTotalMin = startHour * 60 + startMin;
+                        const endTotalMin = endHour * 60 + endMin;
+                        const diffMin = endTotalMin - startTotalMin;
+                        
+                        // Convert to duration options (1=1.5h, 2=2h, 3=3h, 4=4.5h)
+                        if (diffMin <= 90) duration = 1;        // 1.5h
+                        else if (diffMin <= 120) duration = 2;  // 2h
+                        else if (diffMin <= 180) duration = 3;  // 3h
+                        else duration = 4;                      // 4.5h
+                      }
+                      setCellForm({ ...cellForm, endTime, duration });
+                    }}
                     className="w-full"
                   />
                 </div>
@@ -783,24 +810,23 @@ export default function Schedule() {
                 </Select>
               </div>
               
-              <div>
-                <Label htmlFor="duration">مدة الحصة</Label>
-                <Select
-                  value={cellForm.duration.toString()}
-                  onValueChange={(value) => setCellForm({ ...cellForm, duration: parseInt(value) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {durationOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value.toString()}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Duration is automatically calculated based on start and end times */}
+              {cellForm.startTime && cellForm.endTime && (
+                <div className="text-sm text-gray-600 text-center p-2 bg-gray-50 rounded">
+                  مدة الحصة: {
+                    (() => {
+                      const [startHour, startMin] = cellForm.startTime.split(':').map(Number);
+                      const [endHour, endMin] = cellForm.endTime.split(':').map(Number);
+                      const startTotalMin = startHour * 60 + startMin;
+                      const endTotalMin = endHour * 60 + endMin;
+                      const diffMin = endTotalMin - startTotalMin;
+                      const hours = Math.floor(diffMin / 60);
+                      const minutes = diffMin % 60;
+                      return `${hours > 0 ? hours + ' ساعة' : ''}${minutes > 0 ? (hours > 0 ? ' و ' : '') + minutes + ' دقيقة' : ''}`;
+                    })()
+                  }
+                </div>
+              )}
               
               <div className="flex justify-end space-x-reverse space-x-2">
                 <Button 
