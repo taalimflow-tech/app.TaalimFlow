@@ -130,7 +130,7 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Middle School (المتوسط)**: 7 subjects for all 4 grades - Arabic, Math, Physics, Natural Sciences, French, English, History+Geography
   - **Secondary Education (الثانوي)**: 21 consolidated subjects - teachers can teach across all secondary levels/branches:
     - Core subjects for all tracks: Arabic, French, English, Math, Philosophy, History+Geography, Islamic Studies, Physical Education, Artistic Education, Computer Science
-    - Scientific track subjects: Physics, Natural Sciences, Technology
+    - Scientific track subjects: Physics, Natural Sciences, Civil Engineering
     - Technical track subjects: Mechanics, Electrical Engineering  
     - Languages track subjects: German, Spanish
     - Economics track subjects: Economics, Law, Accounting
