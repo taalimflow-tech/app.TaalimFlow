@@ -200,13 +200,23 @@ export default function Schedule() {
   // Create schedule cell
   const createCellMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/schedule-cells', 'POST', data);
+      console.log('Creating cell with data:', data);
+      const result = await apiRequest('/api/schedule-cells', 'POST', data);
+      console.log('Cell created successfully:', result);
+      return result;
     },
     onSuccess: () => {
+      console.log('Cell creation successful, refreshing queries...');
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
+      queryClient.refetchQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setShowCellForm(false);
       setSelectedCell(null);
       setCellForm({ educationLevel: '', subjectId: '', teacherId: '', duration: 1 });
+      console.log('Cell modal closed and form reset');
+    },
+    onError: (error: any) => {
+      console.error('Error creating schedule cell:', error);
+      alert('حدث خطأ في إنشاء الحصة: ' + (error.message || 'خطأ غير معروف'));
     }
   });
 
@@ -246,6 +256,16 @@ export default function Schedule() {
   // Handle cell form submit
   const handleCellSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form data before processing:', cellForm);
+    console.log('Selected cell:', selectedCell);
+    console.log('Selected table:', selectedTable);
+    
+    // Validation
+    if (!cellForm.educationLevel) {
+      alert('يرجى اختيار المستوى التعليمي');
+      return;
+    }
+    
     const cellData = {
       scheduleTableId: selectedTable,
       dayOfWeek: selectedCell?.day || editingCell?.dayOfWeek || 0,
@@ -255,6 +275,8 @@ export default function Schedule() {
       subjectId: cellForm.subjectId ? parseInt(cellForm.subjectId) : null,
       teacherId: cellForm.teacherId ? parseInt(cellForm.teacherId) : null,
     };
+
+    console.log('Submitting cell data:', cellData);
 
     if (editingCell) {
       updateCellMutation.mutate({ id: editingCell.id, data: cellData });
@@ -650,8 +672,15 @@ export default function Schedule() {
               </div>
               
               <div className="flex justify-end space-x-reverse space-x-2">
-                <Button type="submit" disabled={createCellMutation.isPending || updateCellMutation.isPending}>
-                  {editingCell ? 'حفظ التغييرات' : 'إضافة الحصة'}
+                <Button 
+                  type="submit" 
+                  disabled={createCellMutation.isPending || updateCellMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {createCellMutation.isPending || updateCellMutation.isPending 
+                    ? 'جاري الحفظ...' 
+                    : (editingCell ? 'حفظ التغييرات' : 'إضافة الحصة')
+                  }
                 </Button>
               </div>
             </form>
