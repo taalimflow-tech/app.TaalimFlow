@@ -68,6 +68,11 @@ export class FirebasePhoneVerification {
         return {success: false, error: 'captcha_failed'};
       }
 
+      // Handle billing not enabled error
+      if (error.code === 'auth/billing-not-enabled') {
+        return {success: false, error: 'billing_not_enabled'};
+      }
+
       return {success: false, error: 'sms_failed'};
     }
   }

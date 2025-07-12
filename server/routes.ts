@@ -340,6 +340,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fallback SMS verification route (for when Firebase is not available)
+  app.post("/api/auth/verify-phone", async (req, res) => {
+    try {
+      const { phone, code } = req.body;
+      
+      if (!phone || !code) {
+        return res.status(400).json({ error: "رقم الهاتف ورمز التحقق مطلوبان" });
+      }
+
+      // Get user by phone
+      const user = await storage.getUserByPhone(phone);
+      if (!user) {
+        return res.status(404).json({ error: "المستخدم غير موجود" });
+      }
+
+      // Verify code
+      const isValid = await storage.verifyPhoneCode(user.id, code);
+      if (!isValid) {
+        return res.status(400).json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" });
+      }
+
+      // Mark phone as verified
+      await storage.markPhoneAsVerified(user.id);
+
+      res.json({ 
+        message: "تم التحقق من رقم الهاتف بنجاح",
+        verified: true
+      });
+    } catch (error) {
+      console.error('Error verifying phone:', error);
+      res.status(500).json({ error: "خطأ في التحقق من الهاتف" });
+    }
+  });
+
   // Serve static files
   app.use('/uploads', express.static(uploadDir));
 

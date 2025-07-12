@@ -49,6 +49,51 @@ export function PhoneVerificationModal({
     }
   }, [isOpen]);
 
+  // Fallback SMS service for development when Firebase billing is not enabled
+  const sendViaSMSService = async () => {
+    try {
+      const response = await fetch('/api/auth/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStep('verify');
+        setCountdown(60);
+        
+        const timer = setInterval(() => {
+          setCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        toast({
+          title: 'تم إرسال رمز التحقق',
+          description: data.message || 'تم إرسال رمز التحقق عبر الخدمة البديلة'
+        });
+
+        if (data.developmentCode) {
+          toast({
+            title: 'رمز التطوير',
+            description: `رمز التحقق: ${data.developmentCode}`,
+            variant: 'default'
+          });
+        }
+      } else {
+        throw new Error(data.error || 'حدث خطأ في الخدمة البديلة');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const sendVerificationCode = async () => {
     setIsLoading(true);
     try {
@@ -92,6 +137,12 @@ export function PhoneVerificationModal({
           errorMessage = 'تم إرسال الكثير من الطلبات. يرجى المحاولة لاحقاً';
         } else if (result.error === 'captcha_failed') {
           errorMessage = 'فشل التحقق من الأمان. يرجى المحاولة مرة أخرى';
+        } else if (result.error === 'billing_not_enabled') {
+          errorMessage = 'خدمة الرسائل النصية غير مفعلة. سيتم استخدام الطريقة البديلة.';
+          // Fallback to SMS service for development
+          console.log('Firebase billing not enabled, falling back to SMS service');
+          await sendViaSMSService();
+          return;
         }
 
         throw new Error(errorMessage);
@@ -107,6 +158,39 @@ export function PhoneVerificationModal({
     }
   };
 
+  // Fallback verification for SMS service
+  const verifyViaSMSService = async () => {
+    try {
+      const response = await fetch('/api/auth/verify-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phone: phoneNumber, 
+          code: verificationCode.trim()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStep('success');
+        toast({
+          title: 'تم التحقق بنجاح',
+          description: data.message || 'تم التحقق من رقم هاتفك بنجاح'
+        });
+        
+        setTimeout(() => {
+          onVerificationSuccess();
+          onClose();
+        }, 2000);
+      } else {
+        throw new Error(data.error || 'حدث خطأ في التحقق');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const verifyCode = async () => {
     if (!verificationCode.trim()) {
       toast({
@@ -119,7 +203,7 @@ export function PhoneVerificationModal({
 
     setIsLoading(true);
     try {
-      // Verify code via Firebase
+      // Try Firebase verification first
       const result = await FirebasePhoneVerification.verifyCode(verificationCode.trim());
 
       if (result.success) {
@@ -149,25 +233,22 @@ export function PhoneVerificationModal({
           throw new Error('فشل في تحديث حالة التحقق');
         }
       } else {
-        // Handle Firebase-specific errors
-        let errorMessage = 'رمز التحقق غير صحيح';
-        
-        if (result.error === 'invalid_code') {
-          errorMessage = 'رمز التحقق غير صحيح';
-        } else if (result.error === 'code_expired') {
-          errorMessage = 'رمز التحقق منتهي الصلاحية';
-        } else if (result.error === 'verification_failed') {
-          errorMessage = 'فشل في التحقق. يرجى المحاولة مرة أخرى';
-        }
-
-        throw new Error(errorMessage);
+        // If Firebase fails, try SMS service as fallback
+        console.log('Firebase verification failed, trying SMS service fallback');
+        await verifyViaSMSService();
       }
     } catch (error) {
-      toast({
-        title: 'خطأ في التحقق',
-        description: error instanceof Error ? error.message : 'حدث خطأ غير متوقع',
-        variant: 'destructive'
-      });
+      // If Firebase throws error, try SMS service fallback
+      try {
+        console.log('Firebase verification error, trying SMS service fallback');
+        await verifyViaSMSService();
+      } catch (fallbackError) {
+        toast({
+          title: 'خطأ في التحقق',
+          description: fallbackError instanceof Error ? fallbackError.message : 'حدث خطأ غير متوقع',
+          variant: 'destructive'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
