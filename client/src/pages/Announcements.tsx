@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AnnouncementCard } from '@/components/AnnouncementCard';
 import { Card, CardContent } from '@/components/ui/card';
-import { Announcement } from '@/types';
+import { Announcement } from '@shared/schema';
 import { Megaphone } from 'lucide-react';
 
 export default function Announcements() {
