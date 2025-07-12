@@ -1,18 +1,18 @@
 // Corrected seed teaching modules for the Algerian education system
 const modules = [
   // الابتدائي (Primary) - Only 3 subjects: Arabic+Math combined, French, English
-  { name: "Arabic Language + Mathematics", nameAr: "اللغة العربية + الرياضيات", educationLevel: "الابتدائي", grade: "مشترك", description: "تعلم القراءة والكتابة والحساب للمرحلة الابتدائية" },
-  { name: "French Language", nameAr: "اللغة الفرنسية", educationLevel: "الابتدائي", grade: "مشترك", description: "أساسيات اللغة الفرنسية" },
-  { name: "English Language", nameAr: "اللغة الإنجليزية", educationLevel: "الابتدائي", grade: "مشترك", description: "أساسيات اللغة الإنجليزية" },
+  { name: "Arabic Language + Mathematics", name_ar: "اللغة العربية + الرياضيات", education_level: "الابتدائي", grade: "مشترك", description: "تعلم القراءة والكتابة والحساب للمرحلة الابتدائية" },
+  { name: "French Language", name_ar: "اللغة الفرنسية", education_level: "الابتدائي", grade: "مشترك", description: "أساسيات اللغة الفرنسية" },
+  { name: "English Language", name_ar: "اللغة الإنجليزية", education_level: "الابتدائي", grade: "مشترك", description: "أساسيات اللغة الإنجليزية" },
   
   // المتوسط (Middle School) - 7 subjects for all 4 grades
-  { name: "Arabic Language", nameAr: "اللغة العربية", educationLevel: "المتوسط", grade: "مشترك", description: "الأدب والنحو والصرف للمرحلة المتوسطة" },
-  { name: "Mathematics", nameAr: "الرياضيات", educationLevel: "المتوسط", grade: "مشترك", description: "الجبر والهندسة للمرحلة المتوسطة" },
-  { name: "Physics", nameAr: "الفيزياء", educationLevel: "المتوسط", grade: "مشترك", description: "الفيزياء العامة والتطبيقية" },
-  { name: "Natural Sciences", nameAr: "العلوم الطبيعية", educationLevel: "المتوسط", grade: "مشترك", description: "علوم الطبيعة والحياة" },
-  { name: "French Language", nameAr: "اللغة الفرنسية", educationLevel: "المتوسط", grade: "مشترك", description: "قواعد اللغة الفرنسية والتعبير" },
-  { name: "English Language", nameAr: "اللغة الإنجليزية", educationLevel: "المتوسط", grade: "مشترك", description: "اللغة الإنجليزية للمرحلة المتوسطة" },
-  { name: "History & Geography", nameAr: "التاريخ والجغرافيا", educationLevel: "المتوسط", grade: "مشترك", description: "التاريخ الإسلامي والحديث والجغرافيا" },
+  { name: "Arabic Language", name_ar: "اللغة العربية", education_level: "المتوسط", grade: "مشترك", description: "الأدب والنحو والصرف للمرحلة المتوسطة" },
+  { name: "Mathematics", name_ar: "الرياضيات", education_level: "المتوسط", grade: "مشترك", description: "الجبر والهندسة للمرحلة المتوسطة" },
+  { name: "Physics", name_ar: "الفيزياء", education_level: "المتوسط", grade: "مشترك", description: "الفيزياء العامة والتطبيقية" },
+  { name: "Natural Sciences", name_ar: "العلوم الطبيعية", education_level: "المتوسط", grade: "مشترك", description: "علوم الطبيعة والحياة" },
+  { name: "French Language", name_ar: "اللغة الفرنسية", education_level: "المتوسط", grade: "مشترك", description: "قواعد اللغة الفرنسية والتعبير" },
+  { name: "English Language", name_ar: "اللغة الإنجليزية", education_level: "المتوسط", grade: "مشترك", description: "اللغة الإنجليزية للمرحلة المتوسطة" },
+  { name: "History & Geography", name_ar: "التاريخ والجغرافيا", education_level: "المتوسط", grade: "مشترك", description: "التاريخ الإسلامي والحديث والجغرافيا" },
   
   // الثانوي - السنة الأولى - الجذع المشترك العلمي
   { name: "Arabic Language", nameAr: "اللغة العربية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "الأدب العربي والنحو والصرف" },
