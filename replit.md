@@ -125,20 +125,21 @@ The application now uses a unified PostgreSQL database approach:
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
 ## Recent Changes
-- **January 2025**: Updated teaching module system to reflect complete Algerian education structure
-  - Created comprehensive subject system for all education levels: الابتدائي, المتوسط, الثانوي
-  - Added proper specialization tracks for secondary education:
-    - الجذع المشترك العلمي (Common Scientific Track)
-    - الجذع المشترك آداب (Common Literary Track)
-    - شعبة العلوم التجريبية (Experimental Sciences)
-    - شعبة الرياضيات (Mathematics)
-    - شعبة تقني رياضي (Technical Mathematics)
-    - شعبة آداب وفلسفة (Literature and Philosophy)
-    - شعبة لغات أجنبية (Foreign Languages)
-    - شعبة تسيير واقتصاد (Management and Economics)
-  - Teachers can now specialize in subjects across all grades within their education level
-  - Added specialized subjects like Mechanics, Electrical Engineering, German, Spanish, Economics, Law, Accounting
-  - Updated seed-modules.js with complete 70+ subject modules covering all education tracks
+- **January 2025**: Updated teaching module system to reflect accurate Algerian education structure
+  - **Primary Education (الابتدائي)**: 3 subjects - Arabic+Math combined, French, English
+  - **Middle School (المتوسط)**: 7 subjects for all 4 grades - Arabic, Math, Physics, Natural Sciences, French, English, History+Geography
+  - **Secondary Education (الثانوي)**: Complete track system with 86 total modules:
+    - الجذع المشترك العلمي (Common Scientific Track) - 12 subjects
+    - الجذع المشترك آداب (Common Literary Track) - 10 subjects  
+    - شعبة العلوم التجريبية (Experimental Sciences) - 10 subjects
+    - شعبة الرياضيات (Mathematics) - 9 subjects
+    - شعبة تقني رياضي (Technical Mathematics) - 10 subjects with Mechanics & Electrical Engineering
+    - شعبة آداب وفلسفة (Literature and Philosophy) - 7 subjects
+    - شعبة لغات أجنبية (Foreign Languages) - 8 subjects including German & Spanish
+    - شعبة تسيير واقتصاد (Management and Economics) - 10 subjects with Economics, Law, Accounting
+  - Corrected subject combinations: History+Geography as one subject, no separate chemistry (part of Natural Sciences)
+  - Teachers can specialize in subjects across entire education levels matching real Algerian system
+  - Added all missing subjects: Technology, Physical Education, Civic Education, Mechanics, Electrical Engineering, German, Spanish, Economics, Law, Accounting
 - **January 2025**: Successfully implemented comprehensive children registration and management system
 - **January 2025**: Refined verification system to focus only on children and students
   - **IMPORTANT**: Verification system now applies only to children and students, not teachers, admins, or regular users

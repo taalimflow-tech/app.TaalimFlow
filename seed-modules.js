@@ -1,12 +1,11 @@
-// Seed teaching modules for the Algerian education system
+// Corrected seed teaching modules for the Algerian education system
 const modules = [
-  // الابتدائي (Primary) - Common subjects for all grades
-  { name: "Arabic Language", nameAr: "اللغة العربية", educationLevel: "الابتدائي", grade: "مشترك", description: "تعلم القراءة والكتابة باللغة العربية" },
-  { name: "Mathematics", nameAr: "الرياضيات", educationLevel: "الابتدائي", grade: "مشترك", description: "أساسيات الرياضيات للمرحلة الابتدائية" },
+  // الابتدائي (Primary) - Only 3 subjects: Arabic+Math combined, French, English
+  { name: "Arabic Language + Mathematics", nameAr: "اللغة العربية + الرياضيات", educationLevel: "الابتدائي", grade: "مشترك", description: "تعلم القراءة والكتابة والحساب للمرحلة الابتدائية" },
   { name: "French Language", nameAr: "اللغة الفرنسية", educationLevel: "الابتدائي", grade: "مشترك", description: "أساسيات اللغة الفرنسية" },
   { name: "English Language", nameAr: "اللغة الإنجليزية", educationLevel: "الابتدائي", grade: "مشترك", description: "أساسيات اللغة الإنجليزية" },
   
-  // المتوسط (Middle School) - Common subjects for all 4 grades
+  // المتوسط (Middle School) - 7 subjects for all 4 grades
   { name: "Arabic Language", nameAr: "اللغة العربية", educationLevel: "المتوسط", grade: "مشترك", description: "الأدب والنحو والصرف للمرحلة المتوسطة" },
   { name: "Mathematics", nameAr: "الرياضيات", educationLevel: "المتوسط", grade: "مشترك", description: "الجبر والهندسة للمرحلة المتوسطة" },
   { name: "Physics", nameAr: "الفيزياء", educationLevel: "المتوسط", grade: "مشترك", description: "الفيزياء العامة والتطبيقية" },
@@ -22,10 +21,12 @@ const modules = [
   { name: "Mathematics", nameAr: "الرياضيات", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "الرياضيات المتقدمة والتحليل" },
   { name: "Natural Sciences", nameAr: "العلوم الطبيعية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "علوم الطبيعة والحياة المتقدمة" },
   { name: "Physics", nameAr: "الفيزياء", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "الفيزياء العامة والميكانيكا" },
+  { name: "Technology", nameAr: "التكنولوجيا", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "التكنولوجيا والتطبيقات العملية" },
   { name: "Computer Science", nameAr: "الإعلام الآلي", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "البرمجة وعلوم الحاسوب" },
   { name: "Islamic Studies", nameAr: "التربية الإسلامية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "الفقه والسيرة والأخلاق" },
   { name: "Philosophy", nameAr: "الفلسفة", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "مبادئ الفلسفة والمنطق" },
   { name: "History & Geography", nameAr: "التاريخ والجغرافيا", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "التاريخ المعاصر والجغرافيا" },
+  { name: "Physical & Artistic Education", nameAr: "التربية البدنية والفنية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك علمي", description: "التربية البدنية والفنية" },
   
   // الثانوي - السنة الأولى - الجذع المشترك آداب
   { name: "Arabic Language", nameAr: "اللغة العربية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك آداب", description: "الأدب العربي والنحو والصرف" },
@@ -37,6 +38,7 @@ const modules = [
   { name: "Islamic Studies", nameAr: "التربية الإسلامية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك آداب", description: "الفقه والسيرة والأخلاق" },
   { name: "Civic Education", nameAr: "التربية المدنية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك آداب", description: "التربية المدنية والحقوق" },
   { name: "Computer Science", nameAr: "الإعلام الآلي", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك آداب", description: "أساسيات الحاسوب والإنترنت" },
+  { name: "Physical & Artistic Education", nameAr: "التربية البدنية والفنية", educationLevel: "الثانوي", grade: "الأولى - جذع مشترك آداب", description: "التربية البدنية والفنية" },
   
   // الثانوي - السنة الثانية والثالثة - شعبة العلوم التجريبية
   { name: "Arabic Language", nameAr: "اللغة العربية", educationLevel: "الثانوي", grade: "الثانية والثالثة - العلوم التجريبية", description: "الأدب العربي المتقدم" },
@@ -48,6 +50,7 @@ const modules = [
   { name: "Philosophy", nameAr: "الفلسفة", educationLevel: "الثانوي", grade: "الثانية والثالثة - العلوم التجريبية", description: "الفلسفة والمنطق العلمي" },
   { name: "History & Geography", nameAr: "التاريخ والجغرافيا", educationLevel: "الثانوي", grade: "الثانية والثالثة - العلوم التجريبية", description: "التاريخ المعاصر والجغرافيا الاقتصادية" },
   { name: "Islamic Studies", nameAr: "التربية الإسلامية", educationLevel: "الثانوي", grade: "الثانية والثالثة - العلوم التجريبية", description: "الفقه والسيرة والأخلاق الإسلامية" },
+  { name: "Physical Education", nameAr: "التربية البدنية", educationLevel: "الثانوي", grade: "الثانية والثالثة - العلوم التجريبية", description: "التربية البدنية والرياضة" },
   
   // الثانوي - السنة الثانية والثالثة - شعبة الرياضيات
   { name: "Arabic Language", nameAr: "اللغة العربية", educationLevel: "الثانوي", grade: "الثانية والثالثة - الرياضيات", description: "الأدب العربي المتقدم" },
@@ -105,32 +108,17 @@ const modules = [
 ];
 
 async function seedModules() {
-  try {
-    const response = await fetch('http://localhost:5000/api/admin/teaching-modules', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(modules[0])
-    });
-    
-    console.log('Sample module creation response:', await response.json());
-    
-    console.log('Modules to be created:');
-    modules.forEach((module, index) => {
-      console.log(`${index + 1}. ${module.nameAr} (${module.educationLevel} - ${module.grade})`);
-    });
-    
-    console.log('\nTo create all modules, run each POST request to /api/admin/teaching-modules with admin authentication');
-    
-  } catch (error) {
-    console.error('Error:', error);
-  }
+  console.log('🎓 Seeding corrected Algerian education system modules...');
+  console.log(`📚 Total modules: ${modules.length}`);
+  
+  modules.forEach((module, index) => {
+    console.log(`${index + 1}. ${module.nameAr} (${module.educationLevel} - ${module.grade})`);
+  });
 }
 
 // Export modules for use in other files
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { modules };
 } else {
-  console.log('Modules ready for seeding:', modules.length);
+  seedModules();
 }
