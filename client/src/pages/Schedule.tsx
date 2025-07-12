@@ -73,8 +73,8 @@ export default function Schedule() {
   const [editingCell, setEditingCell] = useState<ScheduleCell | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ day: number; period: number } | null>(null);
   
-  // Days of the week and time slots
-  const daysOfWeek = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'السبت'];
+  // Days of the week (starting with Friday) and time slots
+  const daysOfWeek = ['الجمعة', 'السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const timeSlots = [
     { period: 1, time: '8:00 - 9:30', label: 'الحصة الأولى' },
     { period: 2, time: '9:45 - 11:15', label: 'الحصة الثانية' },
@@ -317,8 +317,8 @@ export default function Schedule() {
 
   // Check if cell is occupied by a longer duration cell (horizontally)
   const isCellOccupiedHorizontally = (day: number, period: number) => {
-    for (let i = 1; i <= day; i++) {
-      const previousCell = getCellAtPosition(day - i, period);
+    for (let i = 1; i < period; i++) {
+      const previousCell = getCellAtPosition(day, period - i);
       if (previousCell && previousCell.duration > i) {
         return true;
       }
@@ -413,22 +413,22 @@ export default function Schedule() {
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 p-3 bg-gray-50 text-center font-medium">الوقت</th>
-                    {daysOfWeek.map((day, index) => (
-                      <th key={index} className="border border-gray-300 p-3 bg-gray-50 min-w-[180px] text-center font-medium">
-                        {day}
+                    <th className="border border-gray-300 p-3 bg-gray-50 text-center font-medium min-w-[120px]">اليوم</th>
+                    {timeSlots.map((slot) => (
+                      <th key={slot.period} className="border border-gray-300 p-3 bg-gray-50 min-w-[150px] text-center font-medium">
+                        <div className="text-sm font-bold">{slot.time}</div>
+                        <div className="text-xs text-gray-600">{slot.label}</div>
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {timeSlots.map((slot) => (
-                    <tr key={slot.period}>
-                      <td className="border border-gray-300 p-3 bg-gray-50 text-center font-medium min-w-[120px]">
-                        <div className="text-sm font-bold">{slot.time}</div>
-                        <div className="text-xs text-gray-600">{slot.label}</div>
+                  {daysOfWeek.map((day, dayIndex) => (
+                    <tr key={dayIndex}>
+                      <td className="border border-gray-300 p-3 bg-gray-50 text-center font-medium">
+                        <div className="text-sm font-bold">{day}</div>
                       </td>
-                      {daysOfWeek.map((day, dayIndex) => {
+                      {timeSlots.map((slot) => {
                         const cell = getCellAtPosition(dayIndex, slot.period);
                         const isOccupied = isCellOccupiedHorizontally(dayIndex, slot.period);
                         
@@ -440,9 +440,9 @@ export default function Schedule() {
                           const levelColors = getLevelColors(cell.educationLevel);
                           return (
                             <td
-                              key={dayIndex}
+                              key={slot.period}
                               className={`border border-gray-300 p-2 ${levelColors.bg} ${levelColors.border} relative`}
-                              rowSpan={cell.duration}
+                              colSpan={cell.duration}
                             >
                               <div className="space-y-1">
                                 <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${levelColors.badge}`}>
@@ -509,7 +509,7 @@ export default function Schedule() {
                         
                         return (
                           <td
-                            key={dayIndex}
+                            key={slot.period}
                             className="border border-gray-300 p-2 text-center cursor-pointer hover:bg-gray-50"
                             onClick={() => {
                               setSelectedCell({ day: dayIndex, period: slot.period });
