@@ -339,8 +339,21 @@ export default function Schedule() {
   const isCellOccupiedHorizontally = (day: number, period: number) => {
     for (let i = 1; i < period; i++) {
       const previousCell = getCellAtPosition(day, period - i);
-      if (previousCell && previousCell.duration > i) {
-        return true;
+      if (previousCell) {
+        let actualSpan = 1;
+        if (previousCell.startTime && previousCell.endTime) {
+          const [startHour] = previousCell.startTime.split(':').map(Number);
+          const [endHour] = previousCell.endTime.split(':').map(Number);
+          const startPeriod = Math.max(1, startHour - 7);
+          const endPeriod = Math.max(1, endHour - 7);
+          actualSpan = Math.max(1, endPeriod - startPeriod);
+        } else {
+          actualSpan = previousCell.duration;
+        }
+        
+        if (actualSpan > i) {
+          return true;
+        }
       }
     }
     return false;
@@ -467,11 +480,23 @@ export default function Schedule() {
                         
                         if (cell) {
                           const levelColors = getLevelColors(cell.educationLevel);
+                          // Calculate actual column span based on start and end times
+                          let actualColSpan = 1;
+                          if (cell.startTime && cell.endTime) {
+                            const [startHour] = cell.startTime.split(':').map(Number);
+                            const [endHour] = cell.endTime.split(':').map(Number);
+                            const startPeriod = Math.max(1, startHour - 7); // 8:00 = period 1
+                            const endPeriod = Math.max(1, endHour - 7);
+                            actualColSpan = Math.max(1, endPeriod - startPeriod);
+                          } else {
+                            actualColSpan = cell.duration;
+                          }
+                          
                           return (
                             <td
                               key={slot.period}
                               className={`border border-gray-300 p-2 ${levelColors.bg} relative`}
-                              colSpan={cell.duration}
+                              colSpan={actualColSpan}
                             >
                               <div className="text-xs space-y-1">
                                 <div className={`inline-block px-2 py-1 rounded text-xs ${levelColors.badge}`}>
