@@ -16,10 +16,10 @@ export class SMSService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  static async sendVerificationCode(phoneNumber: string, code: string): Promise<boolean> {
+  static async sendVerificationCode(phoneNumber: string, code: string): Promise<{success: boolean, error?: string}> {
     if (!client || !twilioPhoneNumber) {
       console.error('Twilio not configured - SMS verification disabled');
-      return false;
+      return {success: false, error: 'SMS service not configured'};
     }
 
     try {
@@ -30,10 +30,18 @@ export class SMSService {
       });
 
       console.log(`SMS sent to ${phoneNumber}: ${message.sid}`);
-      return true;
-    } catch (error) {
+      return {success: true};
+    } catch (error: any) {
       console.error('Error sending SMS:', error);
-      return false;
+      
+      // Check for specific Twilio error codes
+      if (error.code === 21608) {
+        return {success: false, error: 'trial_account_restriction'};
+      } else if (error.code === 21212) {
+        return {success: false, error: 'invalid_phone_number'};
+      }
+      
+      return {success: false, error: 'sms_failed'};
     }
   }
 

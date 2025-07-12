@@ -275,22 +275,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formattedPhone = SMSService.formatPhoneNumber(phone);
 
       // Send SMS (this will log if Twilio is not configured)
-      const smsSent = await SMSService.sendVerificationCode(formattedPhone, verificationCode);
+      const smsResult = await SMSService.sendVerificationCode(formattedPhone, verificationCode);
 
       // Save verification code to database regardless of SMS success
       await storage.savePhoneVerificationCode(user.id, verificationCode, expiry);
 
-      if (smsSent) {
+      if (smsResult.success) {
         res.json({ 
           message: "تم إرسال رمز التحقق إلى هاتفك",
           phoneNumber: phone.replace(/\d(?=\d{4})/g, '*') // Hide most digits for security
         });
       } else {
-        // For development/testing when SMS is not configured
+        // Handle different error types
+        let errorMessage = "رمز التحقق تم إنشاؤه لكن فشل في إرسال الرسالة";
+        
+        if (smsResult.error === 'trial_account_restriction') {
+          errorMessage = "حساب Twilio تجريبي - يرجى التحقق من رقم الهاتف في لوحة Twilio أولاً";
+        } else if (smsResult.error === 'invalid_phone_number') {
+          errorMessage = "رقم الهاتف غير صالح أو غير مدعوم";
+        } else if (smsResult.error === 'SMS service not configured') {
+          errorMessage = "خدمة الرسائل القصيرة غير مفعلة حالياً";
+        }
+
         res.json({ 
-          message: "رمز التحقق تم إنشاؤه (SMS غير مفعل في البيئة الحالية)",
+          message: errorMessage,
           phoneNumber: phone.replace(/\d(?=\d{4})/g, '*'),
-          developmentCode: verificationCode // Only for development
+          developmentCode: verificationCode, // Only for development/testing
+          smsError: smsResult.error
         });
       }
     } catch (error) {
