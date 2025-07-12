@@ -204,7 +204,7 @@ export default function Teachers() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-reverse space-x-2 mb-2">
                       <h3 className="font-bold text-gray-800 text-lg">
-                        {teacher.gender === 'male' ? 'Mr. ' : teacher.gender === 'female' ? 'Ms. ' : ''}{teacher.name}
+                        {teacher.gender === 'male' ? 'الأستاذ ' : teacher.gender === 'female' ? 'الأستاذة ' : ''}{teacher.name}
                       </h3>
                     </div>
                     
@@ -288,7 +288,7 @@ export default function Teachers() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">إرسال رسالة إلى {selectedTeacher.name}</h2>
+              <h2 className="text-lg font-semibold">إرسال رسالة إلى {selectedTeacher.gender === 'male' ? 'الأستاذ ' : selectedTeacher.gender === 'female' ? 'الأستاذة ' : ''}{selectedTeacher.name}</h2>
               <button
                 onClick={() => setSelectedTeacher(null)}
                 className="p-1 hover:bg-gray-100 rounded"
@@ -314,7 +314,7 @@ export default function Teachers() {
                 <div className="flex-1">
                   <div className="flex items-center space-x-reverse space-x-2 mb-1">
                     <h3 className="font-medium text-gray-800">
-                      {selectedTeacher.gender === 'male' ? 'Mr. ' : selectedTeacher.gender === 'female' ? 'Ms. ' : ''}{selectedTeacher.name}
+                      {selectedTeacher.gender === 'male' ? 'الأستاذ ' : selectedTeacher.gender === 'female' ? 'الأستاذة ' : ''}{selectedTeacher.name}
                     </h3>
                   </div>
                   {user?.role === 'admin' && (
