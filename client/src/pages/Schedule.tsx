@@ -113,8 +113,9 @@ export default function Schedule() {
 
   const durationOptions = [
     { value: 1, label: '1.5 ساعة' },
-    { value: 2, label: '3 ساعات' },
-    { value: 3, label: '4.5 ساعات' }
+    { value: 2, label: '2 ساعات' },
+    { value: 3, label: '3 ساعات' },
+    { value: 4, label: '4.5 ساعات' }
   ];
 
   // Get level colors function
