@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { Plus, FileText, Users, BookOpen, X, ArrowLeft, Trash2 } from 'lucide-react';
+import { Plus, FileText, Users, BookOpen, X, ArrowLeft, Trash2, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,7 +33,7 @@ export default function AdminContent() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   
-  const [activeTab, setActiveTab] = useState<'blog' | 'group' | 'formation' | 'teacher'>('blog');
+  const [activeTab, setActiveTab] = useState<'announcement' | 'blog' | 'group' | 'formation' | 'teacher'>('announcement');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<CreateFormData>({
     title: '',
@@ -54,6 +54,22 @@ export default function AdminContent() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Announcement creation mutation
+  const createAnnouncementMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/announcements', data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم إنشاء الإعلان بنجاح' });
+      resetForm();
+      queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في إنشاء الإعلان', variant: 'destructive' });
+    }
+  });
 
   // Blog creation mutation
   const createBlogMutation = useMutation({
@@ -120,6 +136,20 @@ export default function AdminContent() {
   });
 
   // Delete mutations
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/announcements/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم حذف الإعلان بنجاح' });
+      queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في حذف الإعلان', variant: 'destructive' });
+    }
+  });
+
   const deleteBlogMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('DELETE', `/api/blog-posts/${id}`);
@@ -177,6 +207,11 @@ export default function AdminContent() {
   });
 
   // Fetch existing content
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['/api/announcements'],
+    enabled: activeTab === 'announcement'
+  });
+
   const { data: blogPosts = [] } = useQuery({
     queryKey: ['/api/blog-posts'],
     enabled: activeTab === 'blog'
@@ -274,7 +309,14 @@ export default function AdminContent() {
       }
     }
     
-    if (activeTab === 'blog') {
+    if (activeTab === 'announcement') {
+      createAnnouncementMutation.mutate({
+        title: formData.title,
+        content: formData.content,
+        authorId: user?.id,
+        imageUrl: imageUrl || null
+      });
+    } else if (activeTab === 'blog') {
       createBlogMutation.mutate({
         title: formData.title,
         content: formData.content,
@@ -313,6 +355,7 @@ export default function AdminContent() {
   };
 
   const tabs = [
+    { id: 'announcement', label: 'الإعلانات', icon: Megaphone },
     { id: 'blog', label: 'المقالات', icon: FileText },
     { id: 'group', label: 'المجموعات', icon: Users },
     { id: 'formation', label: 'التكوينات', icon: BookOpen },
@@ -373,6 +416,7 @@ export default function AdminContent() {
         <Card className="border-purple-200">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>
+              {activeTab === 'announcement' && 'إنشاء إعلان جديد'}
               {activeTab === 'blog' && 'إنشاء مقال جديد'}
               {activeTab === 'group' && 'إنشاء مجموعة جديدة'}
               {activeTab === 'formation' && 'إنشاء تكوين جديد'}
@@ -389,6 +433,50 @@ export default function AdminContent() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Announcement Fields */}
+              {activeTab === 'announcement' && (
+                <>
+                  <div>
+                    <Label htmlFor="title">عنوان الإعلان</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="اكتب عنوان الإعلان"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="content">محتوى الإعلان</Label>
+                    <Textarea
+                      id="content"
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      placeholder="اكتب محتوى الإعلان"
+                      rows={8}
+                      required
+                    />
+                  </div>
+                  
+                  {/* Image Upload */}
+                  <div>
+                    <Label htmlFor="image">صورة الإعلان (اختياري)</Label>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="mt-1"
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
               {/* Blog Fields */}
               {activeTab === 'blog' && (
                 <>
@@ -648,6 +736,7 @@ export default function AdminContent() {
                 <Button
                   type="submit"
                   disabled={
+                    createAnnouncementMutation.isPending ||
                     createBlogMutation.isPending ||
                     createGroupMutation.isPending ||
                     createFormationMutation.isPending ||
@@ -658,7 +747,7 @@ export default function AdminContent() {
                 >
                   {isUploading
                     ? 'جاري رفع الصورة...'
-                    : (createBlogMutation.isPending || createGroupMutation.isPending || 
+                    : (createAnnouncementMutation.isPending || createBlogMutation.isPending || createGroupMutation.isPending || 
                        createFormationMutation.isPending || createTeacherMutation.isPending)
                       ? 'جاري الإنشاء...'
                       : 'إنشاء'
@@ -682,6 +771,7 @@ export default function AdminContent() {
       <Card>
         <CardHeader>
           <CardTitle>
+            {activeTab === 'announcement' && `الإعلانات الموجودة (${announcements.length})`}
             {activeTab === 'blog' && `المقالات الموجودة (${blogPosts.length})`}
             {activeTab === 'group' && `المجموعات الموجودة (${groups.length})`}
             {activeTab === 'formation' && `التكوينات الموجودة (${formations.length})`}
@@ -690,6 +780,45 @@ export default function AdminContent() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
+            {/* Announcements List */}
+            {activeTab === 'announcement' && (
+              <>
+                {announcements.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">لا توجد إعلانات</p>
+                ) : (
+                  announcements.map((announcement: any) => (
+                    <div key={announcement.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1 flex items-center gap-3">
+                        {announcement.imageUrl && (
+                          <img 
+                            src={announcement.imageUrl} 
+                            alt={announcement.title} 
+                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{announcement.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1 truncate">{announcement.content}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(announcement.createdAt).toLocaleDateString('en-US')}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
+                        disabled={deleteAnnouncementMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
             {/* Blog Posts List */}
             {activeTab === 'blog' && (
               <>
@@ -867,6 +996,7 @@ export default function AdminContent() {
         <CardContent className="p-4">
           <h3 className="font-semibold text-purple-800 mb-2">تعليمات:</h3>
           <ul className="text-sm text-purple-700 space-y-1">
+            <li>• إنشاء إعلانات جديدة مع إمكانية إضافة الصور</li>
             <li>• يمكنك إنشاء مقالات جديدة في المدونة مع إمكانية إضافة الصور</li>
             <li>• إضافة مجموعات تعليمية للطلاب مع الصور التوضيحية</li>
             <li>• إنشاء تكوينات مهنية مع الصور الوصفية</li>
