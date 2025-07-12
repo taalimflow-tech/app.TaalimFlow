@@ -73,17 +73,42 @@ export default function Schedule() {
   const [editingCell, setEditingCell] = useState<ScheduleCell | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ day: number; period: number } | null>(null);
   
+  // Days of the week and time slots
+  const daysOfWeek = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'السبت'];
+  const timeSlots = [
+    { period: 1, time: '8:00 - 9:30', label: 'الحصة الأولى' },
+    { period: 2, time: '9:45 - 11:15', label: 'الحصة الثانية' },
+    { period: 3, time: '11:30 - 13:00', label: 'الحصة الثالثة' },
+    { period: 4, time: '14:00 - 15:30', label: 'الحصة الرابعة' },
+    { period: 5, time: '15:45 - 17:15', label: 'الحصة الخامسة' },
+    { period: 6, time: '17:30 - 19:00', label: 'الحصة السادسة' },
+  ];
+  
+  // Education levels with detailed grades
+  const educationLevels = [
+    { 
+      level: 'الابتدائي', 
+      grades: ['الأولى ابتدائي', 'الثانية ابتدائي', 'الثالثة ابتدائي', 'الرابعة ابتدائي', 'الخامسة ابتدائي']
+    },
+    { 
+      level: 'المتوسط', 
+      grades: ['الأولى متوسط', 'الثانية متوسط', 'الثالثة متوسط', 'الرابعة متوسط']
+    },
+    { 
+      level: 'الثانوي', 
+      grades: ['الأولى ثانوي', 'الثانية ثانوي', 'الثالثة ثانوي']
+    }
+  ];
+  
   const [tableForm, setTableForm] = useState({ name: '', description: '' });
   const [cellForm, setCellForm] = useState({
     educationLevel: '',
+    grade: '',
     subjectId: '',
     teacherId: '',
     duration: 1
   });
 
-  const daysOfWeek = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'السبت'];
-  const periods = [1, 2, 3, 4, 5, 6, 7, 8];
-  const educationLevels = ['الابتدائي', 'المتوسط', 'الثانوي'];
   const durationOptions = [
     { value: 1, label: '1.5 ساعة' },
     { value: 2, label: '3 ساعات' },
@@ -211,7 +236,7 @@ export default function Schedule() {
       queryClient.refetchQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setShowCellForm(false);
       setSelectedCell(null);
-      setCellForm({ educationLevel: '', subjectId: '', teacherId: '', duration: 1 });
+      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1 });
       console.log('Cell modal closed and form reset');
     },
     onError: (error: any) => {
@@ -228,7 +253,7 @@ export default function Schedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setEditingCell(null);
-      setCellForm({ educationLevel: '', subjectId: '', teacherId: '', duration: 1 });
+      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1 });
     }
   });
 
@@ -290,10 +315,10 @@ export default function Schedule() {
     return cells.find(cell => cell.dayOfWeek === day && cell.period === period);
   };
 
-  // Check if cell is occupied by a longer duration cell
-  const isCellOccupied = (day: number, period: number) => {
-    for (let i = 1; i < period; i++) {
-      const previousCell = getCellAtPosition(day, period - i);
+  // Check if cell is occupied by a longer duration cell (horizontally)
+  const isCellOccupiedHorizontally = (day: number, period: number) => {
+    for (let i = 1; i <= day; i++) {
+      const previousCell = getCellAtPosition(day - i, period);
       if (previousCell && previousCell.duration > i) {
         return true;
       }
@@ -388,23 +413,24 @@ export default function Schedule() {
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 p-2 bg-gray-50">الحصة</th>
+                    <th className="border border-gray-300 p-3 bg-gray-50 text-center font-medium">الوقت</th>
                     {daysOfWeek.map((day, index) => (
-                      <th key={index} className="border border-gray-300 p-2 bg-gray-50 min-w-[150px]">
+                      <th key={index} className="border border-gray-300 p-3 bg-gray-50 min-w-[180px] text-center font-medium">
                         {day}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {periods.map((period) => (
-                    <tr key={period}>
-                      <td className="border border-gray-300 p-2 bg-gray-50 text-center font-medium">
-                        {period}
+                  {timeSlots.map((slot) => (
+                    <tr key={slot.period}>
+                      <td className="border border-gray-300 p-3 bg-gray-50 text-center font-medium min-w-[120px]">
+                        <div className="text-sm font-bold">{slot.time}</div>
+                        <div className="text-xs text-gray-600">{slot.label}</div>
                       </td>
                       {daysOfWeek.map((day, dayIndex) => {
-                        const cell = getCellAtPosition(dayIndex, period);
-                        const isOccupied = isCellOccupied(dayIndex, period);
+                        const cell = getCellAtPosition(dayIndex, slot.period);
+                        const isOccupied = isCellOccupiedHorizontally(dayIndex, slot.period);
                         
                         if (isOccupied) {
                           return null; // This cell is occupied by a longer duration cell
@@ -454,10 +480,12 @@ export default function Schedule() {
                                     setEditingCell(cell);
                                     setCellForm({
                                       educationLevel: cell.educationLevel,
+                                      grade: '',
                                       subjectId: cell.subject?.id?.toString() || '',
                                       teacherId: cell.teacher?.id?.toString() || '',
                                       duration: cell.duration
                                     });
+                                    setShowCellForm(true);
                                   }}
                                 >
                                   <Edit2 className="w-3 h-3" />
@@ -484,7 +512,7 @@ export default function Schedule() {
                             key={dayIndex}
                             className="border border-gray-300 p-2 text-center cursor-pointer hover:bg-gray-50"
                             onClick={() => {
-                              setSelectedCell({ day: dayIndex, period });
+                              setSelectedCell({ day: dayIndex, period: slot.period });
                               setShowCellForm(true);
                             }}
                           >
@@ -578,7 +606,7 @@ export default function Schedule() {
                   setShowCellForm(false);
                   setEditingCell(null);
                   setSelectedCell(null);
-                  setCellForm({ educationLevel: '', subjectId: '', teacherId: '', duration: 1 });
+                  setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1 });
                 }}
               >
                 <X className="w-4 h-4" />
@@ -597,13 +625,37 @@ export default function Schedule() {
                   </SelectTrigger>
                   <SelectContent>
                     {educationLevels.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level}
+                      <SelectItem key={level.level} value={level.level}>
+                        {level.level}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+              
+              {/* Grade Selection */}
+              {cellForm.educationLevel && (
+                <div>
+                  <Label htmlFor="grade">الصف</Label>
+                  <Select
+                    value={cellForm.grade}
+                    onValueChange={(value) => setCellForm({ ...cellForm, grade: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الصف" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {educationLevels
+                        .find(level => level.level === cellForm.educationLevel)
+                        ?.grades.map((grade) => (
+                          <SelectItem key={grade} value={grade}>
+                            {grade}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               
               <div>
                 <Label htmlFor="subject">المادة</Label>
