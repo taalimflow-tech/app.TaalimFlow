@@ -151,12 +151,22 @@ export default function Schedule() {
   // Create schedule table
   const createTableMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/schedule-tables', 'POST', data);
+      console.log('Creating table with data:', data);
+      const result = await apiRequest('/api/schedule-tables', 'POST', data);
+      console.log('Table created successfully:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Table creation successful, refreshing queries...');
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-tables'] });
+      queryClient.refetchQueries({ queryKey: ['/api/schedule-tables'] });
       setShowTableForm(false);
       setTableForm({ name: '', description: '' });
+      console.log('Modal closed and form reset');
+    },
+    onError: (error) => {
+      console.error('Error creating schedule table:', error);
+      alert('حدث خطأ في إنشاء الجدول. تأكد من تسجيل الدخول كمدير.');
     }
   });
 
@@ -169,6 +179,10 @@ export default function Schedule() {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-tables'] });
       setEditingTable(null);
       setTableForm({ name: '', description: '' });
+    },
+    onError: (error) => {
+      console.error('Error updating schedule table:', error);
+      alert('حدث خطأ في تحديث الجدول. تأكد من تسجيل الدخول كمدير.');
     }
   });
 
@@ -221,6 +235,7 @@ export default function Schedule() {
   // Handle table form submit
   const handleTableSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting table form:', tableForm);
     if (editingTable) {
       updateTableMutation.mutate({ id: editingTable.id, data: tableForm });
     } else {
@@ -510,8 +525,15 @@ export default function Schedule() {
               </div>
               
               <div className="flex justify-end space-x-reverse space-x-2">
-                <Button type="submit" disabled={createTableMutation.isPending || updateTableMutation.isPending}>
-                  {editingTable ? 'حفظ التغييرات' : 'إنشاء الجدول'}
+                <Button 
+                  type="submit" 
+                  disabled={createTableMutation.isPending || updateTableMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {createTableMutation.isPending || updateTableMutation.isPending 
+                    ? 'جاري الحفظ...' 
+                    : (editingTable ? 'حفظ التغييرات' : 'إنشاء الجدول')
+                  }
                 </Button>
               </div>
             </form>
