@@ -469,13 +469,26 @@ export default function Schedule() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
+              <table className="w-full border-collapse border border-gray-300 shadow-lg rounded-lg overflow-hidden">
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 p-3 bg-gray-100 text-center font-medium w-24">اليوم</th>
+                    <th className="border border-gray-300 p-3 bg-gradient-to-b from-gray-50 to-gray-100 text-center font-bold text-gray-700 w-24">
+                      <div className="flex items-center justify-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        اليوم
+                      </div>
+                    </th>
                     {timeSlots.map((slot) => (
-                      <th key={slot.period} className="border border-gray-300 p-3 bg-gray-100 text-center font-medium w-16">
-                        {slot.time}
+                      <th key={slot.period} className="border border-gray-300 p-2 bg-gradient-to-b from-blue-50 to-blue-100 text-center font-semibold w-20 min-w-20">
+                        <div className="flex flex-col items-center space-y-1">
+                          <Clock className="w-3 h-3 text-blue-600" />
+                          <div className="text-blue-800 text-sm font-bold">
+                            {slot.time}:00
+                          </div>
+                          <div className="text-blue-600 text-xs font-medium">
+                            {parseInt(slot.time) < 12 ? 'ص' : 'م'}
+                          </div>
+                        </div>
                       </th>
                     ))}
                   </tr>
@@ -483,8 +496,10 @@ export default function Schedule() {
                 <tbody>
                   {daysOfWeek.map((day, dayIndex) => (
                     <tr key={dayIndex}>
-                      <td className="border border-gray-300 p-3 bg-gray-50 text-center font-medium">
-                        {day}
+                      <td className="border border-gray-300 p-3 bg-gradient-to-l from-gray-50 to-gray-100 text-center font-bold text-gray-700">
+                        <div className="flex items-center justify-center">
+                          {day}
+                        </div>
                       </td>
                       {timeSlots.map((slot) => {
                         const cell = getCellAtPosition(dayIndex, slot.period);
