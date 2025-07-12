@@ -125,6 +125,20 @@ The application now uses a unified PostgreSQL database approach:
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
 ## Recent Changes
+- **January 2025**: Updated teaching module system to reflect complete Algerian education structure
+  - Created comprehensive subject system for all education levels: الابتدائي, المتوسط, الثانوي
+  - Added proper specialization tracks for secondary education:
+    - الجذع المشترك العلمي (Common Scientific Track)
+    - الجذع المشترك آداب (Common Literary Track)
+    - شعبة العلوم التجريبية (Experimental Sciences)
+    - شعبة الرياضيات (Mathematics)
+    - شعبة تقني رياضي (Technical Mathematics)
+    - شعبة آداب وفلسفة (Literature and Philosophy)
+    - شعبة لغات أجنبية (Foreign Languages)
+    - شعبة تسيير واقتصاد (Management and Economics)
+  - Teachers can now specialize in subjects across all grades within their education level
+  - Added specialized subjects like Mechanics, Electrical Engineering, German, Spanish, Economics, Law, Accounting
+  - Updated seed-modules.js with complete 70+ subject modules covering all education tracks
 - **January 2025**: Successfully implemented comprehensive children registration and management system
 - **January 2025**: Refined verification system to focus only on children and students
   - **IMPORTANT**: Verification system now applies only to children and students, not teachers, admins, or regular users
