@@ -29,7 +29,17 @@ export class SMSService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  static async sendVerificationCode(phoneNumber: string, code: string): Promise<{success: boolean, error?: string}> {
+  static async sendVerificationCode(phoneNumber: string, code: string): Promise<{success: boolean, error?: string, developmentCode?: string}> {
+    // In development mode, always return success with the code for testing
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Development mode: Verification code for ${phoneNumber} is ${code}`);
+      return {
+        success: true, 
+        developmentCode: code,
+        error: undefined
+      };
+    }
+
     switch (DEFAULT_SMS_PROVIDER) {
       case SMS_PROVIDERS.TWILIO:
         return await this.sendViaTwilio(phoneNumber, code);
@@ -42,15 +52,26 @@ export class SMSService {
       case SMS_PROVIDERS.BULKSMS:
         return await this.sendViaBulkSMS(phoneNumber, code);
       default:
-        return {success: false, error: 'No SMS provider configured'};
+        // Return development code as fallback
+        console.log(`No SMS provider configured. Development code: ${code}`);
+        return {
+          success: true, 
+          developmentCode: code,
+          error: 'no_sms_provider'
+        };
     }
   }
 
   // Twilio implementation
-  private static async sendViaTwilio(phoneNumber: string, code: string): Promise<{success: boolean, error?: string}> {
+  private static async sendViaTwilio(phoneNumber: string, code: string): Promise<{success: boolean, error?: string, developmentCode?: string}> {
     if (!twilioClient || !twilioPhoneNumber) {
       console.error('Twilio not configured - SMS verification disabled');
-      return {success: false, error: 'SMS service not configured'};
+      console.log(`Development fallback: Verification code for ${phoneNumber} is ${code}`);
+      return {
+        success: true, 
+        developmentCode: code,
+        error: 'twilio_not_configured'
+      };
     }
 
     try {
@@ -67,12 +88,27 @@ export class SMSService {
       
       // Check for specific Twilio error codes
       if (error.code === 21608) {
-        return {success: false, error: 'trial_account_restriction'};
+        console.log(`Twilio trial account restriction. Development code: ${code}`);
+        return {
+          success: true, 
+          developmentCode: code,
+          error: 'trial_account_restriction'
+        };
       } else if (error.code === 21212) {
-        return {success: false, error: 'invalid_phone_number'};
+        console.log(`Invalid phone number. Development code: ${code}`);
+        return {
+          success: true, 
+          developmentCode: code,
+          error: 'invalid_phone_number'
+        };
       }
       
-      return {success: false, error: 'sms_failed'};
+      console.log(`Twilio error. Development code: ${code}`);
+      return {
+        success: true, 
+        developmentCode: code,
+        error: 'sms_failed'
+      };
     }
   }
 

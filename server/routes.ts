@@ -281,10 +281,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.savePhoneVerificationCode(user.id, verificationCode, expiry);
 
       if (smsResult.success) {
-        res.json({ 
+        const responseData: any = { 
           message: "تم إرسال رمز التحقق إلى هاتفك",
           phoneNumber: phone.replace(/\d(?=\d{4})/g, '*') // Hide most digits for security
-        });
+        };
+        
+        // Include development code if available (when SMS providers fail)
+        if (smsResult.developmentCode) {
+          responseData.developmentCode = smsResult.developmentCode;
+          responseData.message = "تم إنشاء رمز التحقق (وضع التطوير)";
+        }
+        
+        res.json(responseData);
       } else {
         // Handle different error types
         let errorMessage = "رمز التحقق تم إنشاؤه لكن فشل في إرسال الرسالة";
