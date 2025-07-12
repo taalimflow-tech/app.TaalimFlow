@@ -204,8 +204,18 @@ export default function Teachers() {
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-                        <User className="w-8 h-8 text-blue-600" />
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                        primaryLevel === 'الابتدائي' ? 'bg-green-100' :
+                        primaryLevel === 'المتوسط' ? 'bg-blue-100' :
+                        primaryLevel === 'الثانوي' ? 'bg-purple-100' :
+                        'bg-gray-100'
+                      }`}>
+                        <User className={`w-8 h-8 ${
+                          primaryLevel === 'الابتدائي' ? 'text-green-600' :
+                          primaryLevel === 'المتوسط' ? 'text-blue-600' :
+                          primaryLevel === 'الثانوي' ? 'text-purple-600' :
+                          'text-gray-600'
+                        }`} />
                       </div>
                     )}
                   </div>
@@ -220,13 +230,23 @@ export default function Teachers() {
                     {user?.role === 'admin' && (
                       <>
                         <div className="flex items-center space-x-reverse space-x-2 mb-2">
-                          <Mail className="w-4 h-4 text-gray-500" />
+                          <Mail className={`w-4 h-4 ${
+                            primaryLevel === 'الابتدائي' ? 'text-green-500' :
+                            primaryLevel === 'المتوسط' ? 'text-blue-500' :
+                            primaryLevel === 'الثانوي' ? 'text-purple-500' :
+                            'text-gray-500'
+                          }`} />
                           <span className="text-sm text-gray-600">{teacher.email}</span>
                         </div>
                         
                         {teacher.phone && (
                           <div className="flex items-center space-x-reverse space-x-2 mb-3">
-                            <Phone className="w-4 h-4 text-gray-500" />
+                            <Phone className={`w-4 h-4 ${
+                              primaryLevel === 'الابتدائي' ? 'text-green-500' :
+                              primaryLevel === 'المتوسط' ? 'text-blue-500' :
+                              primaryLevel === 'الثانوي' ? 'text-purple-500' :
+                              'text-gray-500'
+                            }`} />
                             <span className="text-sm text-gray-600">{teacher.phone}</span>
                           </div>
                         )}
@@ -237,7 +257,12 @@ export default function Teachers() {
                     {teacher.specializations.length > 0 && (
                       <div className="mb-3">
                         <div className="flex items-center space-x-reverse space-x-2 mb-2">
-                          <BookOpen className="w-4 h-4 text-blue-600" />
+                          <BookOpen className={`w-4 h-4 ${
+                            primaryLevel === 'الابتدائي' ? 'text-green-600' :
+                            primaryLevel === 'المتوسط' ? 'text-blue-600' :
+                            primaryLevel === 'الثانوي' ? 'text-purple-600' :
+                            'text-gray-600'
+                          }`} />
                           <span className="text-sm font-medium text-gray-700">التخصصات:</span>
                         </div>
                         <div className="flex flex-wrap gap-1">
@@ -267,7 +292,12 @@ export default function Teachers() {
                 
                 <div>
                   <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className={`w-full text-white ${
+                      primaryLevel === 'الابتدائي' ? 'bg-green-600 hover:bg-green-700' :
+                      primaryLevel === 'المتوسط' ? 'bg-blue-600 hover:bg-blue-700' :
+                      primaryLevel === 'الثانوي' ? 'bg-purple-600 hover:bg-purple-700' :
+                      'bg-gray-600 hover:bg-gray-700'
+                    }`}
                     onClick={() => {
                       setSelectedTeacher(teacher);
                     }}
@@ -316,8 +346,22 @@ export default function Teachers() {
                     className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <User className="w-6 h-6 text-blue-600" />
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    selectedTeacher.specializations.length > 0 ? 
+                      (selectedTeacher.specializations[0].educationLevel === 'الابتدائي' ? 'bg-green-100' :
+                       selectedTeacher.specializations[0].educationLevel === 'المتوسط' ? 'bg-blue-100' :
+                       selectedTeacher.specializations[0].educationLevel === 'الثانوي' ? 'bg-purple-100' :
+                       'bg-gray-100') :
+                      'bg-gray-100'
+                  }`}>
+                    <User className={`w-6 h-6 ${
+                      selectedTeacher.specializations.length > 0 ? 
+                        (selectedTeacher.specializations[0].educationLevel === 'الابتدائي' ? 'text-green-600' :
+                         selectedTeacher.specializations[0].educationLevel === 'المتوسط' ? 'text-blue-600' :
+                         selectedTeacher.specializations[0].educationLevel === 'الثانوي' ? 'text-purple-600' :
+                         'text-gray-600') :
+                        'text-gray-600'
+                    }`} />
                   </div>
                 )}
                 <div className="flex-1">
