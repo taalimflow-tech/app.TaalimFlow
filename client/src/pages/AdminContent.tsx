@@ -796,9 +796,9 @@ export default function AdminContent() {
                             className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                           />
                         )}
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{announcement.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1 truncate">{announcement.content}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">{announcement.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{announcement.content}</p>
                           <p className="text-xs text-gray-400 mt-1">
                             {new Date(announcement.createdAt).toLocaleDateString('en-US')}
                           </p>
@@ -835,9 +835,9 @@ export default function AdminContent() {
                             className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                           />
                         )}
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{post.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1 truncate">{post.content}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">{post.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{post.content}</p>
                           <p className="text-xs text-gray-400 mt-1">
                             {new Date(post.createdAt).toLocaleDateString('en-US')}
                           </p>
@@ -874,13 +874,13 @@ export default function AdminContent() {
                             className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                           />
                         )}
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{group.name}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{group.description}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">{group.name}</h4>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{group.description}</p>
                           <div className="flex gap-4 mt-1">
-                            <span className="text-xs text-gray-500">الفئة: {group.category}</span>
+                            <span className="text-xs text-gray-500 truncate">الفئة: {group.category}</span>
                             {group.maxMembers && (
-                              <span className="text-xs text-gray-500">أقصى عدد: {group.maxMembers}</span>
+                              <span className="text-xs text-gray-500 truncate">أقصى عدد: {group.maxMembers}</span>
                             )}
                           </div>
                         </div>
@@ -916,13 +916,13 @@ export default function AdminContent() {
                             className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                           />
                         )}
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{formation.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{formation.description}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">{formation.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{formation.description}</p>
                           <div className="flex gap-4 mt-1">
-                            <span className="text-xs text-gray-500">المدة: {formation.duration}</span>
-                            <span className="text-xs text-gray-500">السعر: {formation.price}</span>
-                            <span className="text-xs text-gray-500">الفئة: {formation.category}</span>
+                            <span className="text-xs text-gray-500 truncate">المدة: {formation.duration}</span>
+                            <span className="text-xs text-gray-500 truncate">السعر: {formation.price}</span>
+                            <span className="text-xs text-gray-500 truncate">الفئة: {formation.category}</span>
                           </div>
                         </div>
                       </div>
@@ -957,19 +957,19 @@ export default function AdminContent() {
                             className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                           />
                         )}
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{teacher.name}</h4>
-                          <p className="text-sm text-gray-600 mt-1">المادة: {teacher.subject}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">{teacher.name}</h4>
+                          <p className="text-sm text-gray-600 mt-1 truncate">المادة: {teacher.subject}</p>
                           <div className="flex gap-4 mt-1">
                             {teacher.email && (
-                              <span className="text-xs text-gray-500">البريد: {teacher.email}</span>
+                              <span className="text-xs text-gray-500 truncate">البريد: {teacher.email}</span>
                             )}
                             {teacher.phone && (
-                              <span className="text-xs text-gray-500">الهاتف: {teacher.phone}</span>
+                              <span className="text-xs text-gray-500 truncate">الهاتف: {teacher.phone}</span>
                             )}
                           </div>
                           {teacher.bio && (
-                            <p className="text-xs text-gray-500 mt-1 truncate">{teacher.bio}</p>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{teacher.bio}</p>
                           )}
                         </div>
                       </div>
