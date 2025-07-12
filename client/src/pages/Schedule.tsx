@@ -76,12 +76,12 @@ export default function Schedule() {
   // Days of the week (starting with Friday) and time slots
   const daysOfWeek = ['الجمعة', 'السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const timeSlots = [
-    { period: 1, time: '8:00 - 9:30', label: 'الحصة الأولى' },
-    { period: 2, time: '9:45 - 11:15', label: 'الحصة الثانية' },
-    { period: 3, time: '11:30 - 13:00', label: 'الحصة الثالثة' },
-    { period: 4, time: '14:00 - 15:30', label: 'الحصة الرابعة' },
-    { period: 5, time: '15:45 - 17:15', label: 'الحصة الخامسة' },
-    { period: 6, time: '17:30 - 19:00', label: 'الحصة السادسة' },
+    { period: 1, time: '8' },
+    { period: 2, time: '9' },
+    { period: 3, time: '10' },
+    { period: 4, time: '11' },
+    { period: 5, time: '12' },
+    { period: 6, time: '13' },
   ];
   
   // Education levels with detailed grades
@@ -106,7 +106,9 @@ export default function Schedule() {
     grade: '',
     subjectId: '',
     teacherId: '',
-    duration: 1
+    duration: 1,
+    day: '',
+    period: ''
   });
 
   const durationOptions = [
@@ -236,7 +238,7 @@ export default function Schedule() {
       queryClient.refetchQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setShowCellForm(false);
       setSelectedCell(null);
-      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1 });
+      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '' });
       console.log('Cell modal closed and form reset');
     },
     onError: (error: any) => {
@@ -253,7 +255,7 @@ export default function Schedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setEditingCell(null);
-      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1 });
+      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '' });
     }
   });
 
@@ -281,24 +283,21 @@ export default function Schedule() {
   // Handle cell form submit
   const handleCellSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form data before processing:', cellForm);
-    console.log('Selected cell:', selectedCell);
-    console.log('Selected table:', selectedTable);
     
     // Validation
-    if (!cellForm.educationLevel) {
-      alert('يرجى اختيار المستوى التعليمي');
+    if (!selectedTable || !cellForm.educationLevel || !cellForm.subjectId || !cellForm.teacherId || !cellForm.day || !cellForm.period) {
+      alert('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     
     const cellData = {
       scheduleTableId: selectedTable,
-      dayOfWeek: selectedCell?.day || editingCell?.dayOfWeek || 0,
-      period: selectedCell?.period || editingCell?.period || 1,
+      dayOfWeek: parseInt(cellForm.day),
+      period: parseInt(cellForm.period),
       duration: parseInt(cellForm.duration.toString()),
       educationLevel: cellForm.educationLevel,
-      subjectId: cellForm.subjectId ? parseInt(cellForm.subjectId) : null,
-      teacherId: cellForm.teacherId ? parseInt(cellForm.teacherId) : null,
+      subjectId: parseInt(cellForm.subjectId),
+      teacherId: parseInt(cellForm.teacherId),
     };
 
     console.log('Submitting cell data:', cellData);
@@ -409,15 +408,24 @@ export default function Schedule() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="mb-4">
+              <Button
+                onClick={() => setShowCellForm(true)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                إضافة حصة جديدة
+              </Button>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 p-3 bg-gray-50 text-center font-medium min-w-[120px]">اليوم</th>
+                    <th className="border border-gray-300 p-3 bg-gray-100 text-center font-medium w-24">اليوم</th>
                     {timeSlots.map((slot) => (
-                      <th key={slot.period} className="border border-gray-300 p-3 bg-gray-50 min-w-[150px] text-center font-medium">
-                        <div className="text-sm font-bold">{slot.time}</div>
-                        <div className="text-xs text-gray-600">{slot.label}</div>
+                      <th key={slot.period} className="border border-gray-300 p-3 bg-gray-100 text-center font-medium w-16">
+                        {slot.time}
                       </th>
                     ))}
                   </tr>
@@ -426,14 +434,14 @@ export default function Schedule() {
                   {daysOfWeek.map((day, dayIndex) => (
                     <tr key={dayIndex}>
                       <td className="border border-gray-300 p-3 bg-gray-50 text-center font-medium">
-                        <div className="text-sm font-bold">{day}</div>
+                        {day}
                       </td>
                       {timeSlots.map((slot) => {
                         const cell = getCellAtPosition(dayIndex, slot.period);
                         const isOccupied = isCellOccupiedHorizontally(dayIndex, slot.period);
                         
                         if (isOccupied) {
-                          return null; // This cell is occupied by a longer duration cell
+                          return null;
                         }
                         
                         if (cell) {
@@ -441,41 +449,33 @@ export default function Schedule() {
                           return (
                             <td
                               key={slot.period}
-                              className={`border border-gray-300 p-2 ${levelColors.bg} ${levelColors.border} relative`}
+                              className={`border border-gray-300 p-2 ${levelColors.bg} relative`}
                               colSpan={cell.duration}
                             >
-                              <div className="space-y-1">
-                                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${levelColors.badge}`}>
+                              <div className="text-xs space-y-1">
+                                <div className={`inline-block px-2 py-1 rounded text-xs ${levelColors.badge}`}>
                                   {cell.educationLevel}
                                 </div>
                                 
                                 {cell.subject && (
-                                  <div className="font-medium text-sm">
+                                  <div className="font-medium">
                                     {cell.subject.nameAr}
                                   </div>
                                 )}
                                 
                                 {cell.teacher && (
-                                  <div className="text-xs text-gray-600 flex items-center">
-                                    <User className="w-3 h-3 mr-1" />
+                                  <div className="text-gray-600">
                                     {cell.teacher.gender === 'male' ? 'الأستاذ ' : 'الأستاذة '}
                                     {cell.teacher.name}
                                   </div>
                                 )}
-                                
-                                {cell.duration > 1 && (
-                                  <div className="text-xs text-gray-500 flex items-center">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    {cell.duration === 2 ? '3 ساعات' : '4.5 ساعات'}
-                                  </div>
-                                )}
                               </div>
                               
-                              <div className="absolute top-1 left-1 flex space-x-reverse space-x-1">
+                              <div className="absolute top-1 left-1 flex gap-1">
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-6 w-6 p-0"
+                                  className="h-5 w-5 p-0"
                                   onClick={() => {
                                     setEditingCell(cell);
                                     setCellForm({
@@ -483,7 +483,9 @@ export default function Schedule() {
                                       grade: '',
                                       subjectId: cell.subject?.id?.toString() || '',
                                       teacherId: cell.teacher?.id?.toString() || '',
-                                      duration: cell.duration
+                                      duration: cell.duration,
+                                      day: dayIndex.toString(),
+                                      period: slot.period.toString()
                                     });
                                     setShowCellForm(true);
                                   }}
@@ -493,7 +495,7 @@ export default function Schedule() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-6 w-6 p-0"
+                                  className="h-5 w-5 p-0"
                                   onClick={() => {
                                     if (confirm('هل أنت متأكد من حذف هذه الحصة؟')) {
                                       deleteCellMutation.mutate(cell.id);
@@ -510,15 +512,9 @@ export default function Schedule() {
                         return (
                           <td
                             key={slot.period}
-                            className="border border-gray-300 p-2 text-center cursor-pointer hover:bg-gray-50"
-                            onClick={() => {
-                              setSelectedCell({ day: dayIndex, period: slot.period });
-                              setShowCellForm(true);
-                            }}
+                            className="border border-gray-300 p-2 text-center h-16"
                           >
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Plus className="w-4 h-4" />
-                            </Button>
+                            <div className="text-gray-300">-</div>
                           </td>
                         );
                       })}
@@ -606,7 +602,7 @@ export default function Schedule() {
                   setShowCellForm(false);
                   setEditingCell(null);
                   setSelectedCell(null);
-                  setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1 });
+                  setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '' });
                 }}
               >
                 <X className="w-4 h-4" />
@@ -614,6 +610,46 @@ export default function Schedule() {
             </div>
             
             <form onSubmit={handleCellSubmit} className="space-y-4">
+              {/* Day Selection */}
+              <div>
+                <Label htmlFor="day">اليوم</Label>
+                <Select
+                  value={cellForm.day}
+                  onValueChange={(value) => setCellForm({ ...cellForm, day: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر اليوم" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {daysOfWeek.map((day, index) => (
+                      <SelectItem key={index} value={index.toString()}>
+                        {day}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Period Selection */}
+              <div>
+                <Label htmlFor="period">الحصة</Label>
+                <Select
+                  value={cellForm.period}
+                  onValueChange={(value) => setCellForm({ ...cellForm, period: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الحصة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map((slot) => (
+                      <SelectItem key={slot.period} value={slot.period.toString()}>
+                        الحصة {slot.period} - {slot.time}:00
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
               <div>
                 <Label htmlFor="educationLevel">المستوى التعليمي</Label>
                 <Select
