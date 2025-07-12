@@ -165,6 +165,30 @@ export const teacherSpecializations = pgTable("teacher_specializations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Schedule Tables - Multiple independent schedule tables for different classrooms
+export const scheduleTables = pgTable("schedule_tables", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Salle 1", "Salle 2"
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule Cells - Individual cells within schedule tables
+export const scheduleCells = pgTable("schedule_cells", {
+  id: serial("id").primaryKey(),
+  scheduleTableId: integer("schedule_table_id").references(() => scheduleTables.id, { onDelete: "cascade" }),
+  dayOfWeek: integer("day_of_week").notNull(), // 0=Sunday, 1=Monday, etc.
+  period: integer("period").notNull(), // 1, 2, 3, etc.
+  duration: integer("duration").notNull().default(1), // 1=1.5h, 2=3h, 3=4.5h
+  educationLevel: text("education_level").notNull(), // 'الابتدائي', 'المتوسط', 'الثانوي'
+  subjectId: integer("subject_id").references(() => teachingModules.id),
+  teacherId: integer("teacher_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -301,6 +325,22 @@ export const insertTeacherSpecializationSchema = createInsertSchema(teacherSpeci
   moduleId: true,
 });
 
+export const insertScheduleTableSchema = createInsertSchema(scheduleTables).pick({
+  name: true,
+  description: true,
+  isActive: true,
+});
+
+export const insertScheduleCellSchema = createInsertSchema(scheduleCells).pick({
+  scheduleTableId: true,
+  dayOfWeek: true,
+  period: true,
+  duration: true,
+  educationLevel: true,
+  subjectId: true,
+  teacherId: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -332,3 +372,7 @@ export type TeachingModule = typeof teachingModules.$inferSelect;
 export type InsertTeachingModule = z.infer<typeof insertTeachingModuleSchema>;
 export type TeacherSpecialization = typeof teacherSpecializations.$inferSelect;
 export type InsertTeacherSpecialization = z.infer<typeof insertTeacherSpecializationSchema>;
+export type ScheduleTable = typeof scheduleTables.$inferSelect;
+export type InsertScheduleTable = z.infer<typeof insertScheduleTableSchema>;
+export type ScheduleCell = typeof scheduleCells.$inferSelect;
+export type InsertScheduleCell = z.infer<typeof insertScheduleCellSchema>;

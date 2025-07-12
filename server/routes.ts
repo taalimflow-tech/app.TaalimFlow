@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -1049,6 +1049,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(teachers);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teachers by module" });
+    }
+  });
+
+  // Schedule table routes
+  app.get("/api/schedule-tables", async (req, res) => {
+    try {
+      const tables = await storage.getScheduleTables();
+      res.json(tables);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch schedule tables" });
+    }
+  });
+
+  app.post("/api/schedule-tables", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const tableData = insertScheduleTableSchema.parse(req.body);
+      const table = await storage.createScheduleTable(tableData);
+      res.json(table);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create schedule table" });
+    }
+  });
+
+  app.put("/api/schedule-tables/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const tableId = parseInt(req.params.id);
+      const updates = req.body;
+      const table = await storage.updateScheduleTable(tableId, updates);
+      res.json(table);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update schedule table" });
+    }
+  });
+
+  app.delete("/api/schedule-tables/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const tableId = parseInt(req.params.id);
+      await storage.deleteScheduleTable(tableId);
+      res.json({ message: "تم حذف الجدول بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete schedule table" });
+    }
+  });
+
+  // Schedule cell routes
+  app.get("/api/schedule-cells/:tableId", async (req, res) => {
+    try {
+      const tableId = parseInt(req.params.tableId);
+      const cells = await storage.getScheduleCellsWithDetails(tableId);
+      res.json(cells);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch schedule cells" });
+    }
+  });
+
+  app.post("/api/schedule-cells", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const cellData = insertScheduleCellSchema.parse(req.body);
+      const cell = await storage.createScheduleCell(cellData);
+      res.json(cell);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create schedule cell" });
+    }
+  });
+
+  app.put("/api/schedule-cells/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const cellId = parseInt(req.params.id);
+      const updates = req.body;
+      const cell = await storage.updateScheduleCell(cellId, updates);
+      res.json(cell);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update schedule cell" });
+    }
+  });
+
+  app.delete("/api/schedule-cells/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const cellId = parseInt(req.params.id);
+      await storage.deleteScheduleCell(cellId);
+      res.json({ message: "تم حذف الخلية بنجاح" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete schedule cell" });
     }
   });
 

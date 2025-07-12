@@ -1,4 +1,4 @@
-import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization } from "@shared/schema";
+import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 
@@ -91,6 +91,21 @@ export interface IStorage {
   createTeacherSpecialization(specialization: InsertTeacherSpecialization): Promise<TeacherSpecialization>;
   deleteTeacherSpecialization(id: number): Promise<void>;
   getTeachersByModule(moduleId: number): Promise<TeacherSpecialization[]>;
+  
+  // Schedule table methods
+  getScheduleTables(): Promise<ScheduleTable[]>;
+  getScheduleTable(id: number): Promise<ScheduleTable | undefined>;
+  createScheduleTable(table: InsertScheduleTable): Promise<ScheduleTable>;
+  updateScheduleTable(id: number, updates: Partial<InsertScheduleTable>): Promise<ScheduleTable>;
+  deleteScheduleTable(id: number): Promise<void>;
+  
+  // Schedule cell methods
+  getScheduleCells(scheduleTableId: number): Promise<ScheduleCell[]>;
+  getScheduleCell(id: number): Promise<ScheduleCell | undefined>;
+  createScheduleCell(cell: InsertScheduleCell): Promise<ScheduleCell>;
+  updateScheduleCell(id: number, updates: Partial<InsertScheduleCell>): Promise<ScheduleCell>;
+  deleteScheduleCell(id: number): Promise<void>;
+  getScheduleCellsWithDetails(scheduleTableId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -558,6 +573,101 @@ export class DatabaseStorage implements IStorage {
       .from(teacherSpecializations)
       .where(eq(teacherSpecializations.moduleId, moduleId))
       .orderBy(desc(teacherSpecializations.createdAt));
+  }
+
+  // Schedule table methods
+  async getScheduleTables(): Promise<ScheduleTable[]> {
+    return await db.select().from(scheduleTables).orderBy(desc(scheduleTables.createdAt));
+  }
+
+  async getScheduleTable(id: number): Promise<ScheduleTable | undefined> {
+    const [table] = await db.select().from(scheduleTables).where(eq(scheduleTables.id, id));
+    return table;
+  }
+
+  async createScheduleTable(insertTable: InsertScheduleTable): Promise<ScheduleTable> {
+    const [table] = await db
+      .insert(scheduleTables)
+      .values(insertTable)
+      .returning();
+    return table;
+  }
+
+  async updateScheduleTable(id: number, updates: Partial<InsertScheduleTable>): Promise<ScheduleTable> {
+    const [table] = await db
+      .update(scheduleTables)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(scheduleTables.id, id))
+      .returning();
+    return table;
+  }
+
+  async deleteScheduleTable(id: number): Promise<void> {
+    await db.delete(scheduleTables).where(eq(scheduleTables.id, id));
+  }
+
+  // Schedule cell methods
+  async getScheduleCells(scheduleTableId: number): Promise<ScheduleCell[]> {
+    return await db
+      .select()
+      .from(scheduleCells)
+      .where(eq(scheduleCells.scheduleTableId, scheduleTableId))
+      .orderBy(scheduleCells.dayOfWeek, scheduleCells.period);
+  }
+
+  async getScheduleCell(id: number): Promise<ScheduleCell | undefined> {
+    const [cell] = await db.select().from(scheduleCells).where(eq(scheduleCells.id, id));
+    return cell;
+  }
+
+  async createScheduleCell(insertCell: InsertScheduleCell): Promise<ScheduleCell> {
+    const [cell] = await db
+      .insert(scheduleCells)
+      .values(insertCell)
+      .returning();
+    return cell;
+  }
+
+  async updateScheduleCell(id: number, updates: Partial<InsertScheduleCell>): Promise<ScheduleCell> {
+    const [cell] = await db
+      .update(scheduleCells)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(scheduleCells.id, id))
+      .returning();
+    return cell;
+  }
+
+  async deleteScheduleCell(id: number): Promise<void> {
+    await db.delete(scheduleCells).where(eq(scheduleCells.id, id));
+  }
+
+  async getScheduleCellsWithDetails(scheduleTableId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: scheduleCells.id,
+        dayOfWeek: scheduleCells.dayOfWeek,
+        period: scheduleCells.period,
+        duration: scheduleCells.duration,
+        educationLevel: scheduleCells.educationLevel,
+        subject: {
+          id: teachingModules.id,
+          name: teachingModules.name,
+          nameAr: teachingModules.nameAr,
+          educationLevel: teachingModules.educationLevel,
+        },
+        teacher: {
+          id: users.id,
+          name: users.name,
+          gender: users.gender,
+        },
+        createdAt: scheduleCells.createdAt,
+        updatedAt: scheduleCells.updatedAt,
+      })
+      .from(scheduleCells)
+      .leftJoin(teachingModules, eq(scheduleCells.subjectId, teachingModules.id))
+      .leftJoin(users, eq(scheduleCells.teacherId, users.id))
+      .where(eq(scheduleCells.scheduleTableId, scheduleTableId))
+      .orderBy(scheduleCells.dayOfWeek, scheduleCells.period);
   }
 }
 
