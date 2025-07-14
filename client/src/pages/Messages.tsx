@@ -304,10 +304,7 @@ export default function Messages() {
   const blockUserMutation = useMutation({
     mutationFn: async ({ userId, reason }: { userId: number; reason?: string }) => {
       console.log('Blocking user:', { userId, reason });
-      return await apiRequest('/api/block-user', {
-        method: 'POST',
-        body: { blockedId: userId, reason }
-      });
+      return await apiRequest('/api/block-user', 'POST', { blockedId: userId, reason });
     },
     onSuccess: () => {
       toast({
@@ -328,10 +325,7 @@ export default function Messages() {
 
   const unblockUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return await apiRequest('/api/unblock-user', {
-        method: 'POST',
-        body: { blockedId: userId }
-      });
+      return await apiRequest('/api/unblock-user', 'POST', { blockedId: userId });
     },
     onSuccess: () => {
       toast({
@@ -344,10 +338,7 @@ export default function Messages() {
 
   const reportUserMutation = useMutation({
     mutationFn: async ({ userId, reason, description }: { userId: number; reason: string; description: string }) => {
-      return await apiRequest('/api/report-user', {
-        method: 'POST',
-        body: { reportedUserId: userId, reason, description }
-      });
+      return await apiRequest('/api/report-user', 'POST', { reportedUserId: userId, reason, description });
     },
     onSuccess: () => {
       toast({
@@ -359,9 +350,7 @@ export default function Messages() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (messageId: number) => {
-      return await apiRequest(`/api/messages/${messageId}/mark-read`, {
-        method: 'POST',
-      });
+      return await apiRequest(`/api/messages/${messageId}/mark-read`, 'POST');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages/with-user-info'] });
