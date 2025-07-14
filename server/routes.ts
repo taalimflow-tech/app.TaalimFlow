@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import express from "express";
 import { SMSService } from "./sms-service";
+import { EmailService } from "./email-service";
 
 // Simple session storage for demo (in production, use Redis or database)
 let currentUser: any = null;
@@ -379,6 +380,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error verifying phone:', error);
       res.status(500).json({ error: "خطأ في التحقق من الهاتف" });
+    }
+  });
+
+  // Email verification routes
+  app.post("/api/auth/send-email-verification", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "البريد الإلكتروني مطلوب" });
+      }
+
+      // Validate email format
+      if (!EmailService.isValidEmail(email)) {
+        return res.status(400).json({ error: "البريد الإلكتروني غير صالح" });
+      }
+
+      // Generate verification code
+      const verificationCode = EmailService.generateVerificationCode();
+      const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+
+      // Send email verification code
+      const emailResult = await EmailService.sendVerificationCode(email, verificationCode);
+
+      // Save verification code to database regardless of email success
+      await storage.saveEmailVerificationCode(currentUser.id, verificationCode, expiry);
+
+      if (emailResult.success) {
+        const responseData: any = { 
+          message: "تم إرسال رمز التحقق إلى بريدك الإلكتروني",
+          email: email.replace(/(.{2})(.*)(@.*)/, '$1***$3') // Hide middle part for security
+        };
+        
+        // Include development code if available
+        if (emailResult.developmentCode) {
+          responseData.developmentCode = emailResult.developmentCode;
+          responseData.message = "تم إنشاء رمز التحقق (وضع التطوير)";
+        }
+        
+        res.json(responseData);
+      } else {
+        res.status(500).json({ error: emailResult.error || "حدث خطأ في إرسال الرمز" });
+      }
+    } catch (error) {
+      console.error('Email verification error:', error);
+      res.status(500).json({ error: "حدث خطأ في الخادم" });
+    }
+  });
+
+  app.post("/api/auth/verify-email", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { code } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ error: "رمز التحقق مطلوب" });
+      }
+
+      // Verify the code
+      const isValid = await storage.verifyEmailCode(currentUser.id, code);
+
+      if (isValid) {
+        // Mark email as verified
+        await storage.markEmailAsVerified(currentUser.id);
+        
+        // Update current user session
+        currentUser.emailVerified = true;
+        
+        res.json({ 
+          message: "تم التحقق من البريد الإلكتروني بنجاح",
+          verified: true
+        });
+      } else {
+        res.status(400).json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" });
+      }
+    } catch (error) {
+      console.error('Email verification error:', error);
+      res.status(500).json({ error: "حدث خطأ في الخادم" });
     }
   });
 

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ProfilePicture } from '@/components/ProfilePicture';
 import { PhoneVerificationModal } from '@/components/PhoneVerificationModal';
+import { EmailVerificationModal } from '@/components/EmailVerificationModal';
 
 interface Child {
   id: number;
@@ -29,6 +30,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [showAddChild, setShowAddChild] = useState(false);
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [newChild, setNewChild] = useState({
     name: '',
     educationLevel: '',
@@ -408,6 +410,52 @@ export default function Profile() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Email Verification Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                تحقق من البريد الإلكتروني
+              </CardTitle>
+              <CardDescription>
+                تحقق من بريدك الإلكتروني لمزيد من الأمان
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    user.emailVerified ? 'bg-green-100' : 'bg-gray-200'
+                  }`}>
+                    {user.emailVerified ? (
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <Mail className="w-5 h-5 text-gray-500" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{user.email}</p>
+                    <p className={`text-sm ${
+                      user.emailVerified ? 'text-green-600' : 'text-gray-500'
+                    }`}>
+                      {user.emailVerified ? 'تم التحقق من البريد الإلكتروني' : 'لم يتم التحقق من البريد الإلكتروني'}
+                    </p>
+                  </div>
+                </div>
+                {!user.emailVerified && (
+                  <Button 
+                    onClick={() => setShowEmailVerification(true)}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    تحقق الآن
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         {user.role !== 'student' && (
@@ -594,6 +642,18 @@ export default function Profile() {
           // Refresh user data to update phone verification status
           queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
           setShowPhoneVerification(false);
+        }}
+      />
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={showEmailVerification}
+        onClose={() => setShowEmailVerification(false)}
+        email={user.email}
+        onVerificationSuccess={() => {
+          // Refresh user data to update email verification status
+          queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+          setShowEmailVerification(false);
         }}
       />
     </div>

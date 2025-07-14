@@ -19,6 +19,11 @@ export interface IStorage {
   verifyPhoneCode(userId: number, code: string): Promise<boolean>;
   markPhoneAsVerified(userId: number): Promise<void>;
   
+  // Email verification methods
+  saveEmailVerificationCode(userId: number, code: string, expiry: Date): Promise<void>;
+  verifyEmailCode(userId: number, code: string): Promise<boolean>;
+  markEmailAsVerified(userId: number): Promise<void>;
+  
   // Announcement methods
   getAnnouncements(): Promise<Announcement[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
@@ -566,6 +571,39 @@ export class DatabaseStorage implements IStorage {
         phoneVerificationCode: null,
         phoneVerificationExpiry: null
       })
+      .where(eq(users.id, userId));
+  }
+
+  async saveEmailVerificationCode(userId: number, code: string, expiry: Date): Promise<void> {
+    await db
+      .update(users)
+      .set({ emailVerificationCode: code, emailVerificationExpiry: expiry })
+      .where(eq(users.id, userId));
+  }
+
+  async verifyEmailCode(userId: number, code: string): Promise<boolean> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user || !user.emailVerificationCode || !user.emailVerificationExpiry) {
+      return false;
+    }
+
+    const now = new Date();
+    if (now > user.emailVerificationExpiry) {
+      return false; // Code expired
+    }
+
+    return user.emailVerificationCode === code.trim();
+  }
+
+  async markEmailAsVerified(userId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ emailVerified: true, emailVerificationCode: null, emailVerificationExpiry: null })
       .where(eq(users.id, userId));
   }
 

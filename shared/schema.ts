@@ -11,6 +11,9 @@ export const users = pgTable("users", {
   phoneVerified: boolean("phone_verified").default(false), // Phone verification status
   phoneVerificationCode: text("phone_verification_code"), // SMS verification code
   phoneVerificationExpiry: timestamp("phone_verification_expiry"), // Code expiry time
+  emailVerified: boolean("email_verified").default(false), // Email verification status
+  emailVerificationCode: text("email_verification_code"), // Email verification code
+  emailVerificationExpiry: timestamp("email_verification_expiry"), // Code expiry time
   profilePicture: text("profile_picture"), // URL to profile picture
   role: text("role").notNull().default("user"), // admin, teacher, user, student
   gender: text("gender", { enum: ["male", "female"] }), // Gender field for teachers
