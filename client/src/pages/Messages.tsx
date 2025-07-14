@@ -84,7 +84,7 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [newMessage, setNewMessage] = useState({ subject: '', content: '' });
+  const [newMessage, setNewMessage] = useState('');
   
   const { data: chatHistory, isLoading } = useQuery({
     queryKey: ['/api/messages/conversation', userId],
@@ -100,7 +100,7 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
         title: "تم إرسال الرسالة",
         description: "تم إرسال الرسالة بنجاح",
       });
-      setNewMessage({ subject: '', content: '' });
+      setNewMessage('');
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversation', userId] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/with-user-info'] });
     },
@@ -114,10 +114,10 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
   });
 
   const handleSendMessage = () => {
-    if (!newMessage.subject.trim() || !newMessage.content.trim()) {
+    if (!newMessage.trim()) {
       toast({
         title: "خطأ",
-        description: "الرجاء إدخال العنوان والمحتوى",
+        description: "الرجاء إدخال رسالة",
         variant: "destructive",
       });
       return;
@@ -126,8 +126,8 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
     sendMessageMutation.mutate({
       senderId: user?.id,
       receiverId: userId,
-      subject: newMessage.subject,
-      content: newMessage.content,
+      subject: "رسالة",
+      content: newMessage,
     });
   };
   
@@ -170,14 +170,13 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
                 const isMyMessage = message.senderId === user?.id;
                 return (
                   <div key={message.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] rounded-lg p-3 ${
+                    <div className={`max-w-[70%] rounded-2xl p-3 ${
                       isMyMessage 
                         ? 'bg-blue-500 text-white' 
                         : 'bg-gray-200 text-gray-800'
                     }`}>
-                      <p className="font-medium text-sm mb-1">{message.subject}</p>
                       <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-2 ${isMyMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+                      <p className={`text-xs mt-1 ${isMyMessage ? 'text-blue-100' : 'text-gray-500'}`}>
                         {formatDistanceToNow(new Date(message.createdAt), { 
                           addSuffix: true, 
                           locale: ar 
@@ -195,38 +194,33 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
           )}
         </div>
 
-        {/* Message Input Section */}
-        <div className="p-4 border-t bg-gray-50">
-          <div className="space-y-3">
-            <div>
-              <input
-                type="text"
-                placeholder="عنوان الرسالة..."
-                value={newMessage.subject}
-                onChange={(e) => setNewMessage({ ...newMessage, subject: e.target.value })}
-                className="w-full p-2 border rounded-md text-sm"
-              />
-            </div>
-            <div className="flex gap-2">
-              <textarea
-                placeholder="اكتب رسالتك هنا..."
-                value={newMessage.content}
-                onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })}
-                className="flex-1 p-2 border rounded-md text-sm resize-none"
-                rows={2}
-              />
-              <Button 
-                onClick={handleSendMessage}
-                disabled={sendMessageMutation.isPending || !newMessage.subject.trim() || !newMessage.content.trim()}
-                className="self-end"
-              >
-                {sendMessageMutation.isPending ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  "إرسال"
-                )}
-              </Button>
-            </div>
+        {/* Message Input Section - Messenger Style */}
+        <div className="p-4 border-t bg-white">
+          <div className="flex gap-2 items-end">
+            <input
+              type="text"
+              placeholder="اكتب رسالة..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              className="flex-1 p-3 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={sendMessageMutation.isPending || !newMessage.trim()}
+              className="rounded-full h-10 w-10 p-0"
+            >
+              {sendMessageMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                "➤"
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -413,7 +407,6 @@ export default function Messages() {
                       </div>
                       
                       <div className="mb-2">
-                        <p className="font-medium text-sm mb-1">{message.subject}</p>
                         <p className="text-sm text-gray-600 line-clamp-2">{message.content}</p>
                       </div>
                       
