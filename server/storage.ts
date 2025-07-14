@@ -1,6 +1,6 @@
-import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell } from "@shared/schema";
+import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, or, ilike } from "drizzle-orm";
+import { eq, desc, or, ilike, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -116,6 +116,20 @@ export interface IStorage {
   updateScheduleCell(id: number, updates: Partial<InsertScheduleCell>): Promise<ScheduleCell>;
   deleteScheduleCell(id: number): Promise<void>;
   getScheduleCellsWithDetails(scheduleTableId: number): Promise<any[]>;
+  
+  // User blocking methods
+  blockUser(blockerId: number, blockedId: number, reason?: string): Promise<BlockedUser>;
+  unblockUser(blockerId: number, blockedId: number): Promise<void>;
+  isUserBlocked(blockerId: number, blockedId: number): Promise<boolean>;
+  getBlockedUsers(userId: number): Promise<BlockedUser[]>;
+  
+  // User reporting methods
+  reportUser(report: InsertUserReport): Promise<UserReport>;
+  getUserReports(userId: number): Promise<UserReport[]>;
+  
+  // Enhanced message methods
+  getMessagesWithUserInfo(userId: number): Promise<any[]>;
+  markMessageAsRead(messageId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -756,6 +770,106 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(scheduleCells.teacherId, users.id))
       .where(eq(scheduleCells.scheduleTableId, scheduleTableId))
       .orderBy(scheduleCells.dayOfWeek, scheduleCells.period);
+  }
+
+  // User blocking methods
+  async blockUser(blockerId: number, blockedId: number, reason?: string): Promise<BlockedUser> {
+    const [blockedUser] = await db
+      .insert(blockedUsers)
+      .values({ blockerId, blockedId, reason })
+      .returning();
+    return blockedUser;
+  }
+
+  async unblockUser(blockerId: number, blockedId: number): Promise<void> {
+    await db
+      .delete(blockedUsers)
+      .where(
+        and(eq(blockedUsers.blockerId, blockerId), eq(blockedUsers.blockedId, blockedId))
+      );
+  }
+
+  async isUserBlocked(blockerId: number, blockedId: number): Promise<boolean> {
+    const [blocked] = await db
+      .select()
+      .from(blockedUsers)
+      .where(
+        and(eq(blockedUsers.blockerId, blockerId), eq(blockedUsers.blockedId, blockedId))
+      );
+    return !!blocked;
+  }
+
+  async getBlockedUsers(userId: number): Promise<BlockedUser[]> {
+    return await db
+      .select()
+      .from(blockedUsers)
+      .where(eq(blockedUsers.blockerId, userId))
+      .orderBy(desc(blockedUsers.createdAt));
+  }
+
+  // User reporting methods
+  async reportUser(insertReport: InsertUserReport): Promise<UserReport> {
+    const [report] = await db
+      .insert(userReports)
+      .values(insertReport)
+      .returning();
+    return report;
+  }
+
+  async getUserReports(userId: number): Promise<UserReport[]> {
+    return await db
+      .select()
+      .from(userReports)
+      .where(eq(userReports.reporterId, userId))
+      .orderBy(desc(userReports.createdAt));
+  }
+
+  // Enhanced message methods
+  async getMessagesWithUserInfo(userId: number): Promise<any[]> {
+    const result = await db
+      .select({
+        id: messages.id,
+        senderId: messages.senderId,
+        receiverId: messages.receiverId,
+        teacherId: messages.teacherId,
+        subject: messages.subject,
+        content: messages.content,
+        read: messages.read,
+        createdAt: messages.createdAt,
+        senderName: users.name,
+        senderProfilePicture: users.profilePicture,
+        senderEmail: users.email,
+      })
+      .from(messages)
+      .leftJoin(users, eq(messages.senderId, users.id))
+      .where(
+        or(
+          eq(messages.senderId, userId),
+          eq(messages.receiverId, userId)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+
+    // Get additional user info for receivers
+    const messagesWithCompleteInfo = await Promise.all(
+      result.map(async (message) => {
+        const receiver = await this.getUser(message.receiverId);
+        return {
+          ...message,
+          receiverName: receiver?.name,
+          receiverProfilePicture: receiver?.profilePicture,
+        };
+      })
+    );
+
+    return messagesWithCompleteInfo;
+  }
+
+  async markMessageAsRead(messageId: number): Promise<void> {
+    await db
+      .update(messages)
+      .set({ read: true })
+      .where(eq(messages.id, messageId));
   }
 }
 

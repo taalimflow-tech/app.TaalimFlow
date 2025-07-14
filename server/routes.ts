@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -773,6 +773,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  // Enhanced messages with user info
+  app.get("/api/messages/with-user-info", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const messages = await storage.getMessagesWithUserInfo(currentUser.id);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching messages with user info:', error);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  // Mark message as read
+  app.post("/api/messages/:id/mark-read", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const messageId = parseInt(req.params.id);
+      await storage.markMessageAsRead(messageId);
+      res.json({ message: "تم تحديد الرسالة كمقروءة" });
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+      res.status(500).json({ error: "Failed to mark message as read" });
+    }
+  });
+
+  // Block user
+  app.post("/api/block-user", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const { blockedId, reason } = req.body;
+      
+      if (!blockedId) {
+        return res.status(400).json({ error: "معرف المستخدم المراد حظره مطلوب" });
+      }
+      
+      if (blockedId === currentUser.id) {
+        return res.status(400).json({ error: "لا يمكنك حظر نفسك" });
+      }
+      
+      const blockedUser = await storage.blockUser(currentUser.id, blockedId, reason);
+      res.json({ message: "تم حظر المستخدم بنجاح", blockedUser });
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      res.status(500).json({ error: "Failed to block user" });
+    }
+  });
+
+  // Unblock user
+  app.post("/api/unblock-user", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const { blockedId } = req.body;
+      
+      if (!blockedId) {
+        return res.status(400).json({ error: "معرف المستخدم المراد إلغاء حظره مطلوب" });
+      }
+      
+      await storage.unblockUser(currentUser.id, blockedId);
+      res.json({ message: "تم إلغاء حظر المستخدم بنجاح" });
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+      res.status(500).json({ error: "Failed to unblock user" });
+    }
+  });
+
+  // Get blocked users
+  app.get("/api/blocked-users", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const blockedUsers = await storage.getBlockedUsers(currentUser.id);
+      res.json(blockedUsers);
+    } catch (error) {
+      console.error('Error fetching blocked users:', error);
+      res.status(500).json({ error: "Failed to fetch blocked users" });
+    }
+  });
+
+  // Report user
+  app.post("/api/report-user", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const { reportedUserId, messageId, reason, description } = req.body;
+      
+      if (!reportedUserId || !reason) {
+        return res.status(400).json({ error: "معرف المستخدم المراد الإبلاغ عنه والسبب مطلوبان" });
+      }
+      
+      if (reportedUserId === currentUser.id) {
+        return res.status(400).json({ error: "لا يمكنك الإبلاغ عن نفسك" });
+      }
+      
+      const reportData = {
+        reporterId: currentUser.id,
+        reportedUserId,
+        messageId,
+        reason,
+        description
+      };
+      
+      const report = await storage.reportUser(reportData);
+      res.json({ message: "تم الإبلاغ بنجاح", report });
+    } catch (error) {
+      console.error('Error reporting user:', error);
+      res.status(500).json({ error: "Failed to report user" });
     }
   });
 

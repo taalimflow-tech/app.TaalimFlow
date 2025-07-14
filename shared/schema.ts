@@ -69,6 +69,25 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const blockedUsers = pgTable("blocked_users", {
+  id: serial("id").primaryKey(),
+  blockerId: integer("blocker_id").references(() => users.id).notNull(),
+  blockedId: integer("blocked_id").references(() => users.id).notNull(),
+  reason: text("reason"), // Optional reason for blocking
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userReports = pgTable("user_reports", {
+  id: serial("id").primaryKey(),
+  reporterId: integer("reporter_id").references(() => users.id).notNull(),
+  reportedUserId: integer("reported_user_id").references(() => users.id).notNull(),
+  messageId: integer("message_id").references(() => messages.id), // Optional - if reporting specific message
+  reason: text("reason").notNull(),
+  description: text("description"),
+  status: text("status").default("pending"), // pending, reviewed, resolved
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const suggestions = pgTable("suggestions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
@@ -320,6 +339,20 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
   relatedId: true,
 });
 
+export const insertBlockedUserSchema = createInsertSchema(blockedUsers).pick({
+  blockerId: true,
+  blockedId: true,
+  reason: true,
+});
+
+export const insertUserReportSchema = createInsertSchema(userReports).pick({
+  reporterId: true,
+  reportedUserId: true,
+  messageId: true,
+  reason: true,
+  description: true,
+});
+
 export const insertTeachingModuleSchema = createInsertSchema(teachingModules).pick({
   name: true,
   nameAr: true,
@@ -386,3 +419,7 @@ export type ScheduleTable = typeof scheduleTables.$inferSelect;
 export type InsertScheduleTable = z.infer<typeof insertScheduleTableSchema>;
 export type ScheduleCell = typeof scheduleCells.$inferSelect;
 export type InsertScheduleCell = z.infer<typeof insertScheduleCellSchema>;
+export type BlockedUser = typeof blockedUsers.$inferSelect;
+export type InsertBlockedUser = z.infer<typeof insertBlockedUserSchema>;
+export type UserReport = typeof userReports.$inferSelect;
+export type InsertUserReport = z.infer<typeof insertUserReportSchema>;
