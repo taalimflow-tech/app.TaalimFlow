@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { FirebaseEmailVerification } from '@/lib/firebase-email';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ export default function Profile() {
   const [showAddChild, setShowAddChild] = useState(false);
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [newChild, setNewChild] = useState({
     name: '',
     educationLevel: '',
@@ -42,6 +44,20 @@ export default function Profile() {
     email: user?.email || '',
     phone: user?.phone || '',
   });
+
+  // Check Firebase email verification status
+  useEffect(() => {
+    const checkEmailVerification = () => {
+      setIsEmailVerified(FirebaseEmailVerification.isEmailVerified());
+    };
+    
+    checkEmailVerification();
+    
+    // Check every 5 seconds when the component is mounted
+    const interval = setInterval(checkEmailVerification, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleProfilePictureUpdate = (pictureUrl: string) => {
     // Update the user context with the new profile picture
@@ -426,9 +442,9 @@ export default function Profile() {
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    user.emailVerified ? 'bg-green-100' : 'bg-gray-200'
+                    isEmailVerified ? 'bg-green-100' : 'bg-gray-200'
                   }`}>
-                    {user.emailVerified ? (
+                    {isEmailVerified ? (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     ) : (
                       <Mail className="w-5 h-5 text-gray-500" />
@@ -437,13 +453,13 @@ export default function Profile() {
                   <div>
                     <p className="font-medium text-gray-900">{user.email}</p>
                     <p className={`text-sm ${
-                      user.emailVerified ? 'text-green-600' : 'text-gray-500'
+                      isEmailVerified ? 'text-green-600' : 'text-gray-500'
                     }`}>
-                      {user.emailVerified ? 'تم التحقق من البريد الإلكتروني' : 'لم يتم التحقق من البريد الإلكتروني'}
+                      {isEmailVerified ? 'تم التحقق من البريد الإلكتروني عبر Firebase' : 'لم يتم التحقق من البريد الإلكتروني'}
                     </p>
                   </div>
                 </div>
-                {!user.emailVerified && (
+                {!isEmailVerified && (
                   <Button 
                     onClick={() => setShowEmailVerification(true)}
                     size="sm"
@@ -651,8 +667,8 @@ export default function Profile() {
         onClose={() => setShowEmailVerification(false)}
         email={user.email}
         onVerificationSuccess={() => {
-          // Refresh user data to update email verification status
-          queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+          // Update Firebase email verification status
+          setIsEmailVerified(true);
           setShowEmailVerification(false);
         }}
       />

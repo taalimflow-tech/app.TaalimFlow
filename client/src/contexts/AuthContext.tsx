@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@shared/schema';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -38,6 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    // First login with Firebase
+    await signInWithEmailAndPassword(auth, email, password);
+    
+    // Then login with our backend
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
@@ -57,6 +63,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (email: string, password: string, name: string, phone: string, children: any[] = [], role: string = 'user', studentData?: { educationLevel: string, grade: string }) => {
+    // First create Firebase user
+    const firebaseUser = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Then create user in our database
     const requestBody: any = { email, password, name, phone, role };
     
     if (role === 'student' && studentData) {
@@ -88,6 +98,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const currentUserRole = user?.role;
     
     try {
+      // Logout from Firebase
+      await signOut(auth);
+      
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
