@@ -18,39 +18,25 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
   onReport: (reason: string, description: string) => void;
   userName: string;
 }) => {
-  const [step, setStep] = useState(1);
   const [description, setDescription] = useState('');
   const [firstConfirmation, setFirstConfirmation] = useState(false);
   const [secondConfirmation, setSecondConfirmation] = useState(false);
   
-  const handleFirstStep = () => {
-    if (firstConfirmation) {
-      setStep(2);
-    }
-  };
-  
-  const handleFinalConfirmation = () => {
-    if (secondConfirmation) {
+  const handleSubmitReport = () => {
+    if (firstConfirmation && secondConfirmation) {
       onReport('inappropriate', description);
       setDescription('');
       setFirstConfirmation(false);
       setSecondConfirmation(false);
-      setStep(1);
       onClose();
     }
   };
   
   const handleClose = () => {
-    setStep(1);
     setDescription('');
     setFirstConfirmation(false);
     setSecondConfirmation(false);
     onClose();
-  };
-  
-  const handleBackToFirst = () => {
-    setSecondConfirmation(false);
-    setStep(1);
   };
   
   if (!isOpen) return null;
@@ -58,69 +44,38 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4" dir="rtl">
-        {step === 1 && (
-          <>
-            <h2 className="text-lg font-bold mb-4">الإبلاغ عن {userName}</h2>
-            
-            <div className="space-y-4">
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                <p className="text-sm text-yellow-800">
-                  هل تريد الإبلاغ عن هذا المستخدم بسبب محتوى غير لائق أو مزعج؟
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
-                <input
-                  type="checkbox"
-                  id="confirm-inappropriate"
-                  checked={firstConfirmation}
-                  onChange={(e) => setFirstConfirmation(e.target.checked)}
-                  className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
-                />
-                <label 
-                  htmlFor="confirm-inappropriate" 
-                  className="text-sm font-medium cursor-pointer"
-                >
-                  نعم، أؤكد أن هذا المستخدم يرسل محتوى غير لائق أو مزعج
-                </label>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">تفاصيل إضافية (اختياري)</label>
-                <textarea 
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-2 border rounded-md h-20"
-                  placeholder="اكتب تفاصيل إضافية..."
-                />
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={handleClose}>إلغاء</Button>
-              <Button 
-                onClick={handleFirstStep} 
-                disabled={!firstConfirmation}
-                className="bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50"
-              >
-                التالي
-              </Button>
-            </div>
-          </>
-        )}
+        <h2 className="text-lg font-bold mb-4">الإبلاغ عن {userName}</h2>
         
-        {step === 2 && (
-          <>
-            <h2 className="text-lg font-bold mb-4 text-red-600">تأكيد الإبلاغ</h2>
-            
-            <div className="space-y-4">
-              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                <p className="text-sm text-red-800">
-                  هل تريد من المدراء حظر هذا المستخدم نهائياً من التطبيق؟
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
+        <div className="space-y-4">
+          {/* First Confirmation */}
+          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <p className="text-sm text-yellow-800 mb-3">
+              هل تريد الإبلاغ عن هذا المستخدم بسبب محتوى غير لائق أو مزعج؟
+            </p>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="confirm-inappropriate"
+                checked={firstConfirmation}
+                onChange={(e) => setFirstConfirmation(e.target.checked)}
+                className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
+              />
+              <label 
+                htmlFor="confirm-inappropriate" 
+                className="text-sm font-medium cursor-pointer"
+              >
+                نعم، أؤكد أن هذا المستخدم يرسل محتوى غير لائق أو مزعج
+              </label>
+            </div>
+          </div>
+          
+          {/* Second Confirmation - Only shows if first is checked */}
+          {firstConfirmation && (
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <p className="text-sm text-red-800 mb-3">
+                هل تريد من المدراء حظر هذا المستخدم نهائياً من التطبيق؟
+              </p>
+              <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   id="confirm-ban"
@@ -135,26 +90,35 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
                   نعم، أريد من المدراء حظر هذا المستخدم نهائياً من التطبيق
                 </label>
               </div>
-              
-              <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="bg-gray-100 p-2 rounded-lg mt-2">
                 <p className="text-xs text-gray-600">
                   تحذير: سيتم إرسال الإبلاغ للمراجعة وقد يؤدي إلى حظر المستخدم من الوصول للتطبيق بالكامل
                 </p>
               </div>
             </div>
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={handleBackToFirst}>رجوع</Button>
-              <Button 
-                onClick={handleFinalConfirmation} 
-                disabled={!secondConfirmation}
-                className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
-              >
-                إرسال الإبلاغ
-              </Button>
-            </div>
-          </>
-        )}
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">تفاصيل إضافية (اختياري)</label>
+            <textarea 
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-2 border rounded-md h-20"
+              placeholder="اكتب تفاصيل إضافية..."
+            />
+          </div>
+        </div>
+        
+        <div className="flex justify-end gap-2 mt-6">
+          <Button variant="outline" onClick={handleClose}>إلغاء</Button>
+          <Button 
+            onClick={handleSubmitReport} 
+            disabled={!firstConfirmation || !secondConfirmation}
+            className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
+          >
+            إرسال الإبلاغ
+          </Button>
+        </div>
       </div>
     </div>
   );
