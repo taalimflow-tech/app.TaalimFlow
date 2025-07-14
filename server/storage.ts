@@ -1,6 +1,6 @@
 import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, or, ilike, and } from "drizzle-orm";
+import { eq, desc, or, ilike, and, aliasedTable } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -126,6 +126,15 @@ export interface IStorage {
   // User reporting methods
   reportUser(report: InsertUserReport): Promise<UserReport>;
   getUserReports(userId: number): Promise<UserReport[]>;
+  
+  // Admin reporting methods
+  getAllReports(): Promise<any[]>;
+  updateReportStatus(reportId: number, status: string): Promise<UserReport>;
+  
+  // User banning methods
+  banUser(userId: number, reason: string, bannedBy: number): Promise<User>;
+  unbanUser(userId: number): Promise<User>;
+  getBannedUsers(): Promise<User[]>;
   
   // Enhanced message methods
   getMessagesWithUserInfo(userId: number): Promise<any[]>;
@@ -823,6 +832,76 @@ export class DatabaseStorage implements IStorage {
       .from(userReports)
       .where(eq(userReports.reporterId, userId))
       .orderBy(desc(userReports.createdAt));
+  }
+
+  // Admin reporting methods
+  async getAllReports(): Promise<any[]> {
+    const reporterAlias = aliasedTable(users, 'reporter');
+    const reportedAlias = aliasedTable(users, 'reported');
+    
+    return await db
+      .select({
+        id: userReports.id,
+        reporterId: userReports.reporterId,
+        reportedUserId: userReports.reportedUserId,
+        messageId: userReports.messageId,
+        reason: userReports.reason,
+        description: userReports.description,
+        status: userReports.status,
+        createdAt: userReports.createdAt,
+        reporterName: reporterAlias.name,
+        reportedUserName: reportedAlias.name,
+      })
+      .from(userReports)
+      .leftJoin(reporterAlias, eq(userReports.reporterId, reporterAlias.id))
+      .leftJoin(reportedAlias, eq(userReports.reportedUserId, reportedAlias.id))
+      .orderBy(desc(userReports.createdAt));
+  }
+
+  async updateReportStatus(reportId: number, status: string): Promise<UserReport> {
+    const [report] = await db
+      .update(userReports)
+      .set({ status })
+      .where(eq(userReports.id, reportId))
+      .returning();
+    return report;
+  }
+
+  // User banning methods
+  async banUser(userId: number, reason: string, bannedBy: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        banned: true, 
+        banReason: reason, 
+        bannedAt: new Date(),
+        bannedBy 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async unbanUser(userId: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        banned: false, 
+        banReason: null, 
+        bannedAt: null,
+        bannedBy: null 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getBannedUsers(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.banned, true))
+      .orderBy(desc(users.bannedAt));
   }
 
   // Enhanced message methods - Get last message from each conversation

@@ -917,6 +917,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes for reports and user management
+  app.get("/api/admin/reports", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const reports = await storage.getAllReports();
+      res.json(reports);
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      res.status(500).json({ error: "Failed to fetch reports" });
+    }
+  });
+
+  app.patch("/api/admin/reports/:id/status", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const reportId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ error: "حالة الإبلاغ مطلوبة" });
+      }
+      
+      const report = await storage.updateReportStatus(reportId, status);
+      res.json({ message: "تم تحديث حالة الإبلاغ", report });
+    } catch (error) {
+      console.error('Error updating report status:', error);
+      res.status(500).json({ error: "Failed to update report status" });
+    }
+  });
+
+  app.post("/api/admin/ban-user", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const { userId, reason } = req.body;
+      
+      if (!userId || !reason) {
+        return res.status(400).json({ error: "معرف المستخدم وسبب الحظر مطلوبان" });
+      }
+      
+      if (userId === currentUser.id) {
+        return res.status(400).json({ error: "لا يمكنك حظر نفسك" });
+      }
+      
+      const bannedUser = await storage.banUser(userId, reason, currentUser.id);
+      res.json({ message: "تم حظر المستخدم بنجاح", user: bannedUser });
+    } catch (error) {
+      console.error('Error banning user:', error);
+      res.status(500).json({ error: "Failed to ban user" });
+    }
+  });
+
+  app.post("/api/admin/unban-user", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: "معرف المستخدم مطلوب" });
+      }
+      
+      const unbannedUser = await storage.unbanUser(userId);
+      res.json({ message: "تم إلغاء حظر المستخدم بنجاح", user: unbannedUser });
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      res.status(500).json({ error: "Failed to unban user" });
+    }
+  });
+
+  app.get("/api/admin/banned-users", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const bannedUsers = await storage.getBannedUsers();
+      res.json(bannedUsers);
+    } catch (error) {
+      console.error('Error fetching banned users:', error);
+      res.status(500).json({ error: "Failed to fetch banned users" });
+    }
+  });
+
   app.post("/api/messages", async (req, res) => {
     try {
       console.log('Received message request:', req.body);

@@ -20,6 +20,7 @@ import AdminContent from "@/pages/AdminContent";
 import AdminPanelTest from "@/pages/AdminPanelTest";
 import AdminSuggestions from "@/pages/AdminSuggestions";
 import AdminVerification from "@/pages/AdminVerification";
+import AdminReports from "@/pages/AdminReports";
 import Announcements from "@/pages/Announcements";
 
 import Profile from "@/pages/Profile";
@@ -68,6 +69,7 @@ function AppRoutes() {
           <Route path="/admin/content" component={AdminContent} />
           <Route path="/admin/suggestions" component={AdminSuggestions} />
           <Route path="/admin/verification" component={AdminVerification} />
+          <Route path="/admin/reports" component={AdminReports} />
           <Route component={NotFound} />
         </Switch>
       </Layout>

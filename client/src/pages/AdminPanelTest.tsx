@@ -36,6 +36,13 @@ export default function AdminPanelTest() {
       icon: <CheckCircle className="w-6 h-6" />,
       path: '/admin/verification',
       color: 'bg-purple-500'
+    },
+    {
+      title: 'إدارة الإبلاغات',
+      description: 'مراجعة الإبلاغات وإدارة المستخدمين المحظورين',
+      icon: <BarChart3 className="w-6 h-6" />,
+      path: '/admin/reports',
+      color: 'bg-red-500'
     }
   ];
 
