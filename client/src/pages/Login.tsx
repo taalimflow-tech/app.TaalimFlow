@@ -77,8 +77,24 @@ export default function Login() {
       await login(email, password);
       setErrorMessage(''); // Clear error on success
     } catch (error) {
-      // Enhanced error handling with specific messages
-      const errorMsg = error instanceof Error ? error.message : 'خطأ غير متوقع';
+      // Enhanced error handling with specific Arabic messages
+      let errorMsg = 'خطأ غير متوقع';
+      
+      if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+        if (message.includes('password') || message.includes('كلمة المرور') || message.includes('auth/wrong-password') || message.includes('auth/invalid-credential')) {
+          errorMsg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+        } else if (message.includes('email') || message.includes('البريد الإلكتروني') || message.includes('auth/user-not-found')) {
+          errorMsg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+        } else if (message.includes('network') || message.includes('الشبكة')) {
+          errorMsg = 'خطأ في الاتصال بالشبكة';
+        } else if (message.includes('too-many-requests')) {
+          errorMsg = 'الكثير من المحاولات. يرجى المحاولة لاحقاً';
+        } else {
+          errorMsg = error.message;
+        }
+      }
+      
       setErrorMessage(errorMsg);
       
       // Clear password field on failed login

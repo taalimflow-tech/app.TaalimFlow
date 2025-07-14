@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'خطأ في تسجيل الدخول');
+      throw new Error(error.error || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
     }
     
     const { user } = await response.json();
@@ -105,30 +105,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         credentials: 'include',
       });
+      
+      setUser(null);
+      
+      // Redirect based on user role
+      if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
+        window.location.href = '/admin-login';
+      } else {
+        window.location.href = '/';
+      }
     } catch (error) {
-      console.error('Logout failed:', error);
-    }
-    
-    setUser(null);
-    
-    // Redirect based on user role
-    if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
-      window.location.href = '/admin-login';
-    } else {
+      console.error('Logout error:', error);
+      // Always clear user state even if logout fails
+      setUser(null);
       window.location.href = '/';
     }
   };
 
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      login,
+      register,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );
