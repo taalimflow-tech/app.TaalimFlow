@@ -11,7 +11,7 @@ Firebase SMS shows `auth/billing-not-enabled` error despite adding billing infor
 
 ## Required Steps to Fix Firebase SMS
 
-### 1. Enable Phone Authentication
+### 1. Enable Phone Authentication ✅ COMPLETED
 1. Go to [Firebase Console](https://console.firebase.google.com)
 2. Select your project: `schoolmanagementpwa-63bc8`
 3. Navigate to **Authentication** > **Sign-in method**
@@ -19,26 +19,31 @@ Firebase SMS shows `auth/billing-not-enabled` error despite adding billing infor
 5. Click **Enable** toggle
 6. Click **Save**
 
-### 2. Configure Billing Correctly
+### 2. Upgrade to Blaze Plan (CRITICAL STEP)
+**Phone Authentication requires Blaze Plan (pay-as-you-go):**
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select your project: `schoolmanagementpwa-63bc8`
+3. Click **Upgrade** button (top right)
+4. Select **Blaze Plan** (pay-as-you-go)
+5. Add billing account or create new one
+6. Complete upgrade process
+
+**Note**: The free Spark plan does not support Phone Authentication SMS. You must upgrade to Blaze plan.
+
+### 3. Enable Required APIs ✅ COMPLETED
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Navigate to **APIs & Services** > **Library**
+3. Search and enable these APIs:
+   - **Identity Toolkit API** (for Firebase Auth) ✅
+   - **Cloud Identity and Access Management API**
+   - **Firebase Authentication API**
+
+### 4. Verify Billing Configuration
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Select your project: `schoolmanagementpwa-63bc8`
 3. Navigate to **Billing** > **Account Management**
 4. Ensure billing account is linked to your project
-5. Check that **Cloud Identity and Access Management API** is enabled
-
-### 3. Enable Required APIs
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Navigate to **APIs & Services** > **Library**
-3. Search and enable these APIs:
-   - **Identity Toolkit API** (for Firebase Auth)
-   - **Cloud Identity and Access Management API**
-   - **Firebase Authentication API**
-
-### 4. Verify Phone Authentication Quota
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Navigate to **APIs & Services** > **Quotas**
-3. Search for "Identity Toolkit"
-4. Ensure SMS quotas are sufficient
+5. Check that billing is active and valid payment method is attached
 
 ## Testing Steps
 1. After enabling Phone Authentication, try the verification again
