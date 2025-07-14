@@ -20,22 +20,37 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
 }) => {
   const [step, setStep] = useState(1);
   const [description, setDescription] = useState('');
+  const [firstConfirmation, setFirstConfirmation] = useState(false);
+  const [secondConfirmation, setSecondConfirmation] = useState(false);
   
-  const handleFirstConfirmation = () => {
-    setStep(2);
+  const handleFirstStep = () => {
+    if (firstConfirmation) {
+      setStep(2);
+    }
   };
   
   const handleFinalConfirmation = () => {
-    onReport('inappropriate', description);
-    setDescription('');
-    setStep(1);
-    onClose();
+    if (secondConfirmation) {
+      onReport('inappropriate', description);
+      setDescription('');
+      setFirstConfirmation(false);
+      setSecondConfirmation(false);
+      setStep(1);
+      onClose();
+    }
   };
   
   const handleClose = () => {
     setStep(1);
     setDescription('');
+    setFirstConfirmation(false);
+    setSecondConfirmation(false);
     onClose();
+  };
+  
+  const handleBackToFirst = () => {
+    setSecondConfirmation(false);
+    setStep(1);
   };
   
   if (!isOpen) return null;
@@ -54,6 +69,22 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
                 </p>
               </div>
               
+              <div className="flex items-center gap-3 p-3 border rounded-lg">
+                <input
+                  type="checkbox"
+                  id="confirm-inappropriate"
+                  checked={firstConfirmation}
+                  onChange={(e) => setFirstConfirmation(e.target.checked)}
+                  className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
+                />
+                <label 
+                  htmlFor="confirm-inappropriate" 
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  نعم، أؤكد أن هذا المستخدم يرسل محتوى غير لائق أو مزعج
+                </label>
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium mb-2">تفاصيل إضافية (اختياري)</label>
                 <textarea 
@@ -67,8 +98,12 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
             
             <div className="flex justify-end gap-2 mt-6">
               <Button variant="outline" onClick={handleClose}>إلغاء</Button>
-              <Button onClick={handleFirstConfirmation} className="bg-yellow-600 hover:bg-yellow-700">
-                نعم، أريد الإبلاغ
+              <Button 
+                onClick={handleFirstStep} 
+                disabled={!firstConfirmation}
+                className="bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50"
+              >
+                التالي
               </Button>
             </div>
           </>
@@ -85,17 +120,37 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
                 </p>
               </div>
               
+              <div className="flex items-center gap-3 p-3 border rounded-lg">
+                <input
+                  type="checkbox"
+                  id="confirm-ban"
+                  checked={secondConfirmation}
+                  onChange={(e) => setSecondConfirmation(e.target.checked)}
+                  className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                />
+                <label 
+                  htmlFor="confirm-ban" 
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  نعم، أريد من المدراء حظر هذا المستخدم نهائياً من التطبيق
+                </label>
+              </div>
+              
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-xs text-gray-600">
-                  سيتم إرسال الإبلاغ للمراجعة وقد يؤدي إلى حظر المستخدم من الوصول للتطبيق بالكامل
+                  تحذير: سيتم إرسال الإبلاغ للمراجعة وقد يؤدي إلى حظر المستخدم من الوصول للتطبيق بالكامل
                 </p>
               </div>
             </div>
             
             <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setStep(1)}>رجوع</Button>
-              <Button onClick={handleFinalConfirmation} className="bg-red-600 hover:bg-red-700">
-                نعم، أريد حظره نهائياً
+              <Button variant="outline" onClick={handleBackToFirst}>رجوع</Button>
+              <Button 
+                onClick={handleFinalConfirmation} 
+                disabled={!secondConfirmation}
+                className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
+              >
+                إرسال الإبلاغ
               </Button>
             </div>
           </>
