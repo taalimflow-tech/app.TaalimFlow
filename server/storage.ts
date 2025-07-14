@@ -130,6 +130,7 @@ export interface IStorage {
   // Enhanced message methods
   getMessagesWithUserInfo(userId: number): Promise<any[]>;
   markMessageAsRead(messageId: number): Promise<void>;
+  getConversationBetweenUsers(userId1: number, userId2: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -870,6 +871,33 @@ export class DatabaseStorage implements IStorage {
       .update(messages)
       .set({ read: true })
       .where(eq(messages.id, messageId));
+  }
+
+  async getConversationBetweenUsers(userId1: number, userId2: number): Promise<any[]> {
+    const result = await db
+      .select({
+        id: messages.id,
+        senderId: messages.senderId,
+        receiverId: messages.receiverId,
+        teacherId: messages.teacherId,
+        subject: messages.subject,
+        content: messages.content,
+        read: messages.read,
+        createdAt: messages.createdAt,
+        senderName: users.name,
+        senderProfilePicture: users.profilePicture,
+      })
+      .from(messages)
+      .leftJoin(users, eq(messages.senderId, users.id))
+      .where(
+        or(
+          and(eq(messages.senderId, userId1), eq(messages.receiverId, userId2)),
+          and(eq(messages.senderId, userId2), eq(messages.receiverId, userId1))
+        )
+      )
+      .orderBy(messages.createdAt); // Chronological order for chat history
+
+    return result;
   }
 }
 

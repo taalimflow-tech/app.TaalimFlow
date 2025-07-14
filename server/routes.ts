@@ -791,6 +791,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get conversation history between current user and another user
+  app.get("/api/messages/conversation/:userId", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const otherUserId = parseInt(req.params.userId);
+      const conversation = await storage.getConversationBetweenUsers(currentUser.id, otherUserId);
+      res.json(conversation);
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      res.status(500).json({ error: "Failed to fetch conversation" });
+    }
+  });
+
   // Mark message as read
   app.post("/api/messages/:id/mark-read", async (req, res) => {
     try {

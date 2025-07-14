@@ -73,6 +73,89 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
   );
 };
 
+// Chat History Modal Component
+const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePicture }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  userId: number;
+  userName: string;
+  userProfilePicture: string | null;
+}) => {
+  const { user } = useAuth();
+  
+  const { data: chatHistory, isLoading } = useQuery({
+    queryKey: ['/api/messages/conversation', userId],
+    enabled: isOpen && !!userId,
+  });
+  
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-full max-w-2xl mx-4 h-[70vh] flex flex-col" dir="rtl">
+        <div className="p-4 border-b flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {userProfilePicture ? (
+              <img 
+                src={userProfilePicture} 
+                alt={userName} 
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
+            )}
+            <div>
+              <h2 className="text-lg font-bold">{userName}</h2>
+              <p className="text-sm text-gray-500">محادثة</p>
+            </div>
+          </div>
+          <Button variant="outline" onClick={onClose} className="text-xs">
+            إغلاق
+          </Button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : chatHistory && chatHistory.length > 0 ? (
+            <div className="space-y-3">
+              {chatHistory.map((message: any) => {
+                const isMyMessage = message.senderId === user?.id;
+                return (
+                  <div key={message.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[70%] rounded-lg p-3 ${
+                      isMyMessage 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-200 text-gray-800'
+                    }`}>
+                      <p className="font-medium text-sm mb-1">{message.subject}</p>
+                      <p className="text-sm">{message.content}</p>
+                      <p className={`text-xs mt-2 ${isMyMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+                        {formatDistanceToNow(new Date(message.createdAt), { 
+                          addSuffix: true, 
+                          locale: ar 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">لا توجد رسائل في هذه المحادثة</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Messages() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -80,6 +163,10 @@ export default function Messages() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedUserName, setSelectedUserName] = useState<string>('');
+  const [showChatHistory, setShowChatHistory] = useState(false);
+  const [chatUserId, setChatUserId] = useState<number | null>(null);
+  const [chatUserName, setChatUserName] = useState<string>('');
+  const [chatUserProfilePicture, setChatUserProfilePicture] = useState<string | null>(null);
   
   const { data: messages, isLoading } = useQuery({
     queryKey: ['/api/messages/with-user-info'],
@@ -169,6 +256,13 @@ export default function Messages() {
     }
   };
 
+  const handleOpenChatHistory = (userId: number, userName: string, userProfilePicture: string | null) => {
+    setChatUserId(userId);
+    setChatUserName(userName);
+    setChatUserProfilePicture(userProfilePicture);
+    setShowChatHistory(true);
+  };
+
   const handleMarkAsRead = (messageId: number) => {
     markAsReadMutation.mutate(messageId);
   };
@@ -195,7 +289,7 @@ export default function Messages() {
             const blocked = isUserBlocked(otherUserId);
             
             return (
-              <Card key={message.id} className={`transition-all duration-200 ${
+              <Card key={message.id} className={`transition-all duration-200 cursor-pointer hover:shadow-md ${
                 !message.read && !isMyMessage ? 'border-r-4 border-r-blue-500 bg-blue-50' : ''
               } ${blocked ? 'opacity-50' : ''}`}>
                 <CardContent className="p-3">
@@ -215,8 +309,11 @@ export default function Messages() {
                       )}
                     </div>
                     
-                    {/* Message Content */}
-                    <div className="flex-1 min-w-0">
+                    {/* Message Content - Clickable */}
+                    <div 
+                      className="flex-1 min-w-0 cursor-pointer"
+                      onClick={() => handleOpenChatHistory(otherUserId, otherUserName, otherUserProfilePicture)}
+                    >
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-sm">{otherUserName}</span>
@@ -242,57 +339,73 @@ export default function Messages() {
                         <p className="text-sm text-gray-600 line-clamp-2">{message.content}</p>
                       </div>
                       
-                      {/* Action buttons */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {!message.read && !isMyMessage && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => handleMarkAsRead(message.id)}
-                              className="text-xs"
-                            >
-                              <MessageCircle className="w-3 h-3 mr-1" />
-                              تم القراءة
-                            </Button>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-1">
-                          {blocked ? (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => handleUnblockUser(otherUserId)}
-                              className="text-xs"
-                            >
-                              <ShieldOff className="w-3 h-3 mr-1" />
-                              إلغاء الحظر
-                            </Button>
-                          ) : (
-                            <>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={() => handleBlockUser(otherUserId)}
-                                className="text-xs"
-                              >
-                                <Shield className="w-3 h-3 mr-1" />
-                                حظر
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={() => handleReportUser(otherUserId, otherUserName)}
-                                className="text-xs"
-                              >
-                                <AlertTriangle className="w-3 h-3 mr-1" />
-                                إبلاغ
-                              </Button>
-                            </>
-                          )}
-                        </div>
+                      <div className="text-xs text-gray-500">
+                        انقر لعرض تاريخ المحادثة
                       </div>
+                    </div>
+                  </div>
+                  
+                  {/* Action buttons - Separate row */}
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                      {!message.read && !isMyMessage && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkAsRead(message.id);
+                          }}
+                          className="text-xs"
+                        >
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          تم القراءة
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      {blocked ? (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUnblockUser(otherUserId);
+                          }}
+                          className="text-xs"
+                        >
+                          <ShieldOff className="w-3 h-3 mr-1" />
+                          إلغاء الحظر
+                        </Button>
+                      ) : (
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBlockUser(otherUserId);
+                            }}
+                            className="text-xs"
+                          >
+                            <Shield className="w-3 h-3 mr-1" />
+                            حظر
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReportUser(otherUserId, otherUserName);
+                            }}
+                            className="text-xs"
+                          >
+                            <AlertTriangle className="w-3 h-3 mr-1" />
+                            إبلاغ
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -311,6 +424,14 @@ export default function Messages() {
         onClose={() => setShowReportModal(false)}
         onReport={handleSubmitReport}
         userName={selectedUserName}
+      />
+      
+      <ChatHistoryModal
+        isOpen={showChatHistory}
+        onClose={() => setShowChatHistory(false)}
+        userId={chatUserId || 0}
+        userName={chatUserName}
+        userProfilePicture={chatUserProfilePicture}
       />
     </div>
   );
