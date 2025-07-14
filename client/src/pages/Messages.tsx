@@ -410,9 +410,7 @@ export default function Messages() {
                         <p className="text-sm text-gray-600 line-clamp-2">{message.content}</p>
                       </div>
                       
-                      <div className="text-xs text-gray-500">
-                        انقر لعرض تاريخ المحادثة
-                      </div>
+
                     </div>
                   </div>
                   
