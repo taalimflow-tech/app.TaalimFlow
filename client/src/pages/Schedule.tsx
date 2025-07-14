@@ -167,8 +167,7 @@ export default function Schedule() {
 
   // Fetch schedule tables
   const { data: tables = [], isLoading: tablesLoading } = useQuery({
-    queryKey: ['/api/schedule-tables'],
-    enabled: user?.role === 'admin'
+    queryKey: ['/api/schedule-tables']
   });
 
   // Fetch schedule cells for selected table
@@ -179,14 +178,12 @@ export default function Schedule() {
 
   // Fetch teaching modules
   const { data: modules = [] } = useQuery({
-    queryKey: ['/api/teaching-modules'],
-    enabled: user?.role === 'admin'
+    queryKey: ['/api/teaching-modules']
   });
 
   // Fetch teachers
   const { data: teachers = [] } = useQuery({
-    queryKey: ['/api/teachers'],
-    enabled: user?.role === 'admin'
+    queryKey: ['/api/teachers']
   });
 
   // Create schedule table
