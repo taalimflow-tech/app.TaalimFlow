@@ -375,29 +375,23 @@ export default function Schedule() {
     return false;
   };
 
-  if (user?.role !== 'admin') {
-    return (
-      <div className="px-4 py-6">
-        <div className="text-center py-12">
-          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">الجداول الدراسية</h3>
-          <p className="text-gray-500">هذه الصفحة متاحة للمديرين فقط</p>
-        </div>
-      </div>
-    );
-  }
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="px-4 py-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">إدارة الجداول الدراسية</h2>
-        <Button 
-          onClick={() => setShowTableForm(true)}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          إنشاء جدول جديد
-        </Button>
+        <h2 className="text-2xl font-bold text-gray-800">
+          {isAdmin ? 'إدارة الجداول الدراسية' : 'الجداول الدراسية'}
+        </h2>
+        {isAdmin && (
+          <Button 
+            onClick={() => setShowTableForm(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            إنشاء جدول جديد
+          </Button>
+        )}
       </div>
 
       {/* Schedule Tables List */}
@@ -418,31 +412,33 @@ export default function Schedule() {
                     <p className="text-sm text-gray-600 mt-1">{table.description}</p>
                   )}
                 </div>
-                <div className="flex space-x-reverse space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingTable(table);
-                      setTableForm({ name: table.name, description: table.description || '' });
-                    }}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm('هل أنت متأكد من حذف هذا الجدول؟')) {
-                        deleteTableMutation.mutate(table.id);
-                      }
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                {isAdmin && (
+                  <div className="flex space-x-reverse space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTable(table);
+                        setTableForm({ name: table.name, description: table.description || '' });
+                      }}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('هل أنت متأكد من حذف هذا الجدول؟')) {
+                          deleteTableMutation.mutate(table.id);
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardHeader>
           </Card>
@@ -458,15 +454,17 @@ export default function Schedule() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <Button
-                onClick={() => setShowCellForm(true)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                إضافة حصة جديدة
-              </Button>
-            </div>
+            {isAdmin && (
+              <div className="mb-4">
+                <Button
+                  onClick={() => setShowCellForm(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  إضافة حصة جديدة
+                </Button>
+              </div>
+            )}
 
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-gray-300 shadow-lg rounded-lg overflow-hidden">
@@ -558,42 +556,44 @@ export default function Schedule() {
                                 )}
                               </div>
                               
-                              <div className="absolute top-1 left-1 flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 w-5 p-0"
-                                  onClick={() => {
-                                    setEditingCell(cell);
-                                    setCellForm({
-                                      educationLevel: cell.educationLevel,
-                                      grade: '',
-                                      subjectId: cell.subject?.id?.toString() || '',
-                                      teacherId: cell.teacher?.id?.toString() || '',
-                                      duration: cell.duration,
-                                      day: dayIndex.toString(),
-                                      period: cell.period.toString(),
-                                      startTime: cell.startTime || '',
-                                      endTime: cell.endTime || ''
-                                    });
-                                    setShowCellForm(true);
-                                  }}
-                                >
-                                  <Edit2 className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 w-5 p-0"
-                                  onClick={() => {
-                                    if (confirm('هل أنت متأكد من حذف هذه الحصة؟')) {
-                                      deleteCellMutation.mutate(cell.id);
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
+                              {isAdmin && (
+                                <div className="absolute top-1 left-1 flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 w-5 p-0"
+                                    onClick={() => {
+                                      setEditingCell(cell);
+                                      setCellForm({
+                                        educationLevel: cell.educationLevel,
+                                        grade: '',
+                                        subjectId: cell.subject?.id?.toString() || '',
+                                        teacherId: cell.teacher?.id?.toString() || '',
+                                        duration: cell.duration,
+                                        day: dayIndex.toString(),
+                                        period: cell.period.toString(),
+                                        startTime: cell.startTime || '',
+                                        endTime: cell.endTime || ''
+                                      });
+                                      setShowCellForm(true);
+                                    }}
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 w-5 p-0"
+                                    onClick={() => {
+                                      if (confirm('هل أنت متأكد من حذف هذه الحصة؟')) {
+                                        deleteCellMutation.mutate(cell.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              )}
                             </td>
                           );
                         }
@@ -616,8 +616,8 @@ export default function Schedule() {
         </Card>
       )}
 
-      {/* Table Form Modal */}
-      {(showTableForm || editingTable) && (
+      {/* Table Form Modal - Admin Only */}
+      {isAdmin && (showTableForm || editingTable) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
@@ -676,8 +676,8 @@ export default function Schedule() {
         </div>
       )}
 
-      {/* Cell Form Modal */}
-      {(showCellForm || editingCell) && (
+      {/* Cell Form Modal - Admin Only */}
+      {isAdmin && (showCellForm || editingCell) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">

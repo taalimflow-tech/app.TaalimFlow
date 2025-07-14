@@ -360,3 +360,9 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Responsive Design**: Added min-w-0 class to prevent flex items from overflowing container
   - **Content Management**: Full CRUD operations for announcements with image support and delete functionality
   - **User Experience**: Set announcements as default tab and enhanced content creation workflow
+- **January 2025**: Implemented role-based access control for schedule management system
+  - **Admin-Only Editing**: Only administrators can create, edit, and delete schedule tables and cells
+  - **View-Only Access**: Regular users, teachers, and students can view all schedule tables but cannot modify them
+  - **Conditional UI**: Edit/delete buttons and forms are only visible to admin users
+  - **Enhanced Security**: Schedule management functions are properly protected with role-based permissions
+  - **User Experience**: Clear distinction between admin management interface and user viewing interface
