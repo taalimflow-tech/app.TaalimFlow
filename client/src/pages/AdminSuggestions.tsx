@@ -120,7 +120,7 @@ export default function AdminSuggestions() {
                   <span>
                     تاريخ التقديم: {new Date(suggestion.createdAt).toLocaleDateString('en-US')}
                   </span>
-                  <span>رقم المستخدم: {suggestion.userId}</span>
+                  <span>المستخدم: {suggestion.userName || 'غير محدد'}</span>
                 </div>
               </CardContent>
             </Card>

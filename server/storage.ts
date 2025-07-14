@@ -46,7 +46,7 @@ export interface IStorage {
   createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]>;
   
   // Suggestion methods
-  getSuggestions(): Promise<Suggestion[]>;
+  getSuggestions(): Promise<any[]>;
   createSuggestion(suggestion: InsertSuggestion): Promise<Suggestion>;
   
   // Group methods
@@ -364,8 +364,21 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(messages).values(messagesToInsert).returning();
   }
 
-  async getSuggestions(): Promise<Suggestion[]> {
-    return await db.select().from(suggestions).orderBy(desc(suggestions.createdAt));
+  async getSuggestions(): Promise<any[]> {
+    return await db
+      .select({
+        id: suggestions.id,
+        userId: suggestions.userId,
+        title: suggestions.title,
+        content: suggestions.content,
+        category: suggestions.category,
+        status: suggestions.status,
+        createdAt: suggestions.createdAt,
+        userName: users.name,
+      })
+      .from(suggestions)
+      .leftJoin(users, eq(suggestions.userId, users.id))
+      .orderBy(desc(suggestions.createdAt));
   }
 
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
