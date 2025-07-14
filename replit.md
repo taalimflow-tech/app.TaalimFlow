@@ -374,3 +374,13 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Conditional UI**: Edit/delete buttons and forms are only visible to admin users
   - **Enhanced Security**: Schedule management functions are properly protected with role-based permissions
   - **User Experience**: Clear distinction between admin management interface and user viewing interface
+- **January 2025**: Implemented comprehensive admin reports management system with user banning functionality
+  - **AdminReports Page**: Created comprehensive admin interface for managing user reports and banned users
+  - **Two-Tab System**: Separate tabs for submitted reports and banned users management
+  - **Report Status Management**: Admins can update report status (pending → reviewed → resolved)
+  - **User Banning System**: Complete ban/unban functionality with custom ban reasons and audit trail
+  - **Database Schema**: Added banned, banReason, bannedAt, and bannedBy fields to users table
+  - **API Endpoints**: Full REST API for admin report management and user banning operations
+  - **Two-Step Report Confirmation**: Replaced dropdown selection with confirmation dialogs asking users to confirm inappropriate content and admin ban request
+  - **Enhanced Security**: All admin report functions properly protected with role-based permissions
+  - **User Experience**: Clear Arabic interface with proper RTL support and intuitive confirmation flow

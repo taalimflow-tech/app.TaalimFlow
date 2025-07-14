@@ -18,16 +18,24 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
   onReport: (reason: string, description: string) => void;
   userName: string;
 }) => {
-  const [reason, setReason] = useState('');
+  const [step, setStep] = useState(1);
   const [description, setDescription] = useState('');
   
-  const handleSubmit = () => {
-    if (reason.trim()) {
-      onReport(reason, description);
-      setReason('');
-      setDescription('');
-      onClose();
-    }
+  const handleFirstConfirmation = () => {
+    setStep(2);
+  };
+  
+  const handleFinalConfirmation = () => {
+    onReport('inappropriate', description);
+    setDescription('');
+    setStep(1);
+    onClose();
+  };
+  
+  const handleClose = () => {
+    setStep(1);
+    setDescription('');
+    onClose();
   };
   
   if (!isOpen) return null;
@@ -35,39 +43,63 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4" dir="rtl">
-        <h2 className="text-lg font-bold mb-4">الإبلاغ عن {userName}</h2>
+        {step === 1 && (
+          <>
+            <h2 className="text-lg font-bold mb-4">الإبلاغ عن {userName}</h2>
+            
+            <div className="space-y-4">
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <p className="text-sm text-yellow-800">
+                  هل تريد الإبلاغ عن هذا المستخدم بسبب محتوى غير لائق أو مزعج؟
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">تفاصيل إضافية (اختياري)</label>
+                <textarea 
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full p-2 border rounded-md h-20"
+                  placeholder="اكتب تفاصيل إضافية..."
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={handleClose}>إلغاء</Button>
+              <Button onClick={handleFirstConfirmation} className="bg-yellow-600 hover:bg-yellow-700">
+                نعم، أريد الإبلاغ
+              </Button>
+            </div>
+          </>
+        )}
         
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">سبب الإبلاغ</label>
-            <select 
-              value={reason} 
-              onChange={(e) => setReason(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="">اختر السبب</option>
-              <option value="spam">رسائل مزعجة</option>
-              <option value="harassment">تحرش</option>
-              <option value="inappropriate">محتوى غير لائق</option>
-              <option value="other">أخرى</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">تفاصيل إضافية (اختياري)</label>
-            <textarea 
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 border rounded-md h-20"
-              placeholder="اكتب تفاصيل إضافية..."
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={onClose}>إلغاء</Button>
-          <Button onClick={handleSubmit} disabled={!reason.trim()}>إبلاغ</Button>
-        </div>
+        {step === 2 && (
+          <>
+            <h2 className="text-lg font-bold mb-4 text-red-600">تأكيد الإبلاغ</h2>
+            
+            <div className="space-y-4">
+              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                <p className="text-sm text-red-800">
+                  هل تريد من المدراء حظر هذا المستخدم نهائياً من التطبيق؟
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-xs text-gray-600">
+                  سيتم إرسال الإبلاغ للمراجعة وقد يؤدي إلى حظر المستخدم من الوصول للتطبيق بالكامل
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setStep(1)}>رجوع</Button>
+              <Button onClick={handleFinalConfirmation} className="bg-red-600 hover:bg-red-700">
+                نعم، أريد حظره نهائياً
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
