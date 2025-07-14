@@ -206,7 +206,7 @@ export default function Teachers() {
                       <img 
                         src={teacher.imageUrl}
                         alt={teacher.name} 
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                        className="w-16 h-16 rounded-full object-contain border-2 border-gray-200"
                       />
                     ) : (
                       <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
@@ -348,7 +348,7 @@ export default function Teachers() {
                   <img 
                     src={`/uploads/${selectedTeacher.profilePicture}`}
                     alt={selectedTeacher.name} 
-                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                    className="w-12 h-12 rounded-full object-contain border-2 border-gray-200"
                   />
                 ) : (
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center ${

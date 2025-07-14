@@ -470,7 +470,7 @@ export default function AdminContent() {
                     />
                     {imagePreview && (
                       <div className="mt-2">
-                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-lg bg-gray-100" />
                       </div>
                     )}
                   </div>
@@ -514,7 +514,7 @@ export default function AdminContent() {
                     />
                     {imagePreview && (
                       <div className="mt-2">
-                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-lg bg-gray-100" />
                       </div>
                     )}
                   </div>
@@ -578,7 +578,7 @@ export default function AdminContent() {
                     />
                     {imagePreview && (
                       <div className="mt-2">
-                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-lg bg-gray-100" />
                       </div>
                     )}
                   </div>
@@ -652,7 +652,7 @@ export default function AdminContent() {
                     />
                     {imagePreview && (
                       <div className="mt-2">
-                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-lg bg-gray-100" />
                       </div>
                     )}
                   </div>
@@ -725,7 +725,7 @@ export default function AdminContent() {
                     />
                     {imagePreview && (
                       <div className="mt-2">
-                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                        <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-lg bg-gray-100" />
                       </div>
                     )}
                   </div>
@@ -793,7 +793,7 @@ export default function AdminContent() {
                           <img 
                             src={announcement.imageUrl} 
                             alt={announcement.title} 
-                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                            className="w-16 h-16 object-contain rounded-lg flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -832,7 +832,7 @@ export default function AdminContent() {
                           <img 
                             src={post.imageUrl} 
                             alt={post.title} 
-                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                            className="w-16 h-16 object-contain rounded-lg flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -871,7 +871,7 @@ export default function AdminContent() {
                           <img 
                             src={group.imageUrl} 
                             alt={group.name} 
-                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                            className="w-16 h-16 object-contain rounded-lg flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -913,7 +913,7 @@ export default function AdminContent() {
                           <img 
                             src={formation.imageUrl} 
                             alt={formation.title} 
-                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                            className="w-16 h-16 object-contain rounded-lg flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -954,7 +954,7 @@ export default function AdminContent() {
                           <img 
                             src={teacher.imageUrl} 
                             alt={teacher.name} 
-                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                            className="w-16 h-16 object-contain rounded-lg flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">

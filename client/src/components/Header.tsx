@@ -63,7 +63,7 @@ export function Header() {
                   <img 
                     src={user.profilePicture} 
                     alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                    className="w-8 h-8 rounded-full object-contain border-2 border-gray-200"
                   />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">

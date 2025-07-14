@@ -19,7 +19,7 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
           <img 
             src={announcement.imageUrl} 
             alt={announcement.title}
-            className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg"
+            className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-lg bg-white/10"
           />
         </div>
       )}

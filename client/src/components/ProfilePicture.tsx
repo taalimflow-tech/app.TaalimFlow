@@ -112,7 +112,7 @@ export function ProfilePicture({ currentPicture, userName, onUpdate }: ProfilePi
               <img
                 src={currentPicture}
                 alt={userName}
-                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                className="w-32 h-32 rounded-full object-contain border-4 border-gray-200"
               />
             ) : (
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-gray-200">

@@ -256,7 +256,7 @@ export default function Profile() {
             <img 
               src={user.profilePicture} 
               alt={user.name}
-              className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md"
+              className="w-16 h-16 rounded-full object-contain border-4 border-white shadow-md"
             />
           ) : (
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-md">

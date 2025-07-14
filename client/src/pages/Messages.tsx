@@ -193,7 +193,7 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
               <img 
                 src={userProfilePicture} 
                 alt={userName} 
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-contain"
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
@@ -422,7 +422,7 @@ export default function Messages() {
                         <img 
                           src={otherUserProfilePicture} 
                           alt={otherUserName} 
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-10 h-10 rounded-full object-contain"
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
