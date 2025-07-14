@@ -40,10 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // First login with Firebase
-    await signInWithEmailAndPassword(auth, email, password);
-    
-    // Then login with our backend
+    // First try to login with our backend
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
@@ -59,6 +56,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     const { user } = await response.json();
+    
+    // If user exists in database but not in Firebase, try Firebase login (optional)
+    if (user.firebase_uid) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (firebaseError) {
+        // If Firebase login fails but database login worked, continue with database user
+        console.log('Firebase login failed, but database login succeeded');
+      }
+    }
+    
     setUser(user);
   };
 
