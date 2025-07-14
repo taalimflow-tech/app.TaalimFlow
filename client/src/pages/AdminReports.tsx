@@ -90,6 +90,10 @@ export default function AdminReports() {
     enabled: !!user,
   });
 
+  // Debug: log the reports data
+  console.log('Reports data:', reports);
+  console.log('Reports loading:', reportsLoading);
+
   const { data: bannedUsers, isLoading: bannedUsersLoading } = useQuery({
     queryKey: ['/api/admin/banned-users'],
     enabled: !!user,
@@ -97,10 +101,7 @@ export default function AdminReports() {
 
   const banUserMutation = useMutation({
     mutationFn: async ({ userId, reason }: { userId: number; reason: string }) => {
-      return await apiRequest('/api/admin/ban-user', {
-        method: 'POST',
-        body: { userId, reason }
-      });
+      return await apiRequest('POST', '/api/admin/ban-user', { userId, reason });
     },
     onSuccess: () => {
       toast({
@@ -121,10 +122,7 @@ export default function AdminReports() {
 
   const unbanUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return await apiRequest('/api/admin/unban-user', {
-        method: 'POST',
-        body: { userId }
-      });
+      return await apiRequest('POST', '/api/admin/unban-user', { userId });
     },
     onSuccess: () => {
       toast({
@@ -144,10 +142,7 @@ export default function AdminReports() {
 
   const updateReportStatusMutation = useMutation({
     mutationFn: async ({ reportId, status }: { reportId: number; status: string }) => {
-      return await apiRequest(`/api/admin/reports/${reportId}/status`, {
-        method: 'PATCH',
-        body: { status }
-      });
+      return await apiRequest('PATCH', `/api/admin/reports/${reportId}/status`, { status });
     },
     onSuccess: () => {
       toast({
