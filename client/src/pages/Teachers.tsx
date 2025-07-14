@@ -87,10 +87,16 @@ export default function Teachers() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { teacherId: number; subject: string; content: string }) => {
+      // Find the teacher and their corresponding user ID
+      const teacher = filteredTeachers.find(t => t.id === data.teacherId);
+      if (!teacher) {
+        throw new Error('Teacher not found');
+      }
+      
       const payload = {
         senderId: user?.id,
-        receiverId: user?.id, // For now, same as sender 
-        teacherId: data.teacherId,
+        receiverId: teacher.id, // Teacher's user ID (same as teacher.id in getTeachersWithSpecializations)
+        teacherId: null, // Set to null since we're using user-to-user messaging
         subject: data.subject,
         content: data.content
       };

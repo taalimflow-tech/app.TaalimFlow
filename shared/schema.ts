@@ -278,6 +278,8 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
   teacherId: true,
   subject: true,
   content: true,
+}).extend({
+  teacherId: z.number().optional().nullable(), // Make teacherId optional and nullable
 });
 
 export const insertSuggestionSchema = createInsertSchema(suggestions).pick({
