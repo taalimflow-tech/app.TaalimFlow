@@ -95,6 +95,9 @@ export function EmailVerificationModal({
           errorMessage = 'البريد الإلكتروني محقق بالفعل';
         } else if (result.error === 'too_many_requests') {
           errorMessage = 'تم إرسال الكثير من الطلبات. يرجى المحاولة لاحقاً';
+        } else if (result.error?.startsWith('too_many_requests_wait_')) {
+          const waitTime = result.error.split('_').pop();
+          errorMessage = `يرجى الانتظار ${waitTime} ثانية قبل إعادة المحاولة`;
         } else if (result.error === 'network_error') {
           errorMessage = 'خطأ في الشبكة. تحقق من اتصالك بالإنترنت';
         }

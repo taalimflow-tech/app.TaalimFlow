@@ -7,6 +7,8 @@ import {
 } from 'firebase/auth';
 
 export class FirebaseEmailVerification {
+  private static lastSendTime = 0;
+  private static readonly SEND_COOLDOWN = 60000; // 1 minute cooldown
   
   // Send email verification to current user
   static async sendVerificationEmail(): Promise<{success: boolean, error?: string}> {
@@ -20,12 +22,23 @@ export class FirebaseEmailVerification {
         return {success: false, error: 'email_already_verified'};
       }
 
+      // Check cooldown to prevent too many requests
+      const now = Date.now();
+      if (now - this.lastSendTime < this.SEND_COOLDOWN) {
+        const remainingTime = Math.ceil((this.SEND_COOLDOWN - (now - this.lastSendTime)) / 1000);
+        return {success: false, error: `too_many_requests_wait_${remainingTime}`};
+      }
+
       const actionCodeSettings: ActionCodeSettings = {
-        url: window.location.origin + '/email-verified', // Redirect URL after verification
+        url: window.location.origin, // Redirect URL after verification
         handleCodeInApp: false
       };
 
-      await sendEmailVerification(auth.currentUser, actionCodeSettings);
+      // Send without custom settings first to avoid unauthorized-continue-uri error
+      await sendEmailVerification(auth.currentUser);
+      
+      // Update last send time
+      this.lastSendTime = now;
       
       console.log('Email verification sent successfully via Firebase');
       return {success: true};
