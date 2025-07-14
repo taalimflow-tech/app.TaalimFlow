@@ -71,7 +71,8 @@ export default function Formations() {
                     <img 
                       src={formation.imageUrl} 
                       alt={formation.title} 
-                      className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-lg bg-gray-100"
+                      className="w-full h-48 object-cover rounded-lg"
+                      style={{ aspectRatio: '16/9' }}
                     />
                   </div>
                 )}
