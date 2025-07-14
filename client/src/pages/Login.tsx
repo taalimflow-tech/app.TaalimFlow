@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useLocation, Link } from 'wouter';
 import { Plus, Trash2 } from 'lucide-react';
+import PasswordResetModal from '@/components/PasswordResetModal';
 
 interface Child {
   name: string;
@@ -36,6 +37,7 @@ export default function Login() {
   const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
   const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
   const [selectedUserType, setSelectedUserType] = useState<'admin' | 'teacher' | 'parent' | 'student' | null>(null);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   const educationLevels = {
     'الابتدائي': [
@@ -444,6 +446,16 @@ export default function Login() {
                         placeholder="أدخل كلمة المرور"
                         required
                       />
+                    </div>
+                    
+                    <div className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswordReset(true)}
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        نسيت كلمة المرور؟
+                      </button>
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={loading}>
@@ -946,6 +958,12 @@ export default function Login() {
           </div>
         </div>
       )}
+      
+      {/* Password Reset Modal */}
+      <PasswordResetModal
+        isOpen={showPasswordReset}
+        onClose={() => setShowPasswordReset(false)}
+      />
     </div>
   );
 }

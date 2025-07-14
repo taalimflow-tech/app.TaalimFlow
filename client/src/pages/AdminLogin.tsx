@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useLocation, Link } from 'wouter';
 import { Shield, GraduationCap } from 'lucide-react';
+import PasswordResetModal from '@/components/PasswordResetModal';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -27,6 +28,7 @@ export default function AdminLogin() {
   const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
   const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
   const [selectedUserType, setSelectedUserType] = useState<'admin' | 'teacher' | null>(null);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   // Clear form fields when switching steps
   const clearForm = () => {
@@ -416,6 +418,16 @@ export default function AdminLogin() {
                       />
                     </div>
                     
+                    <div className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswordReset(true)}
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        نسيت كلمة المرور؟
+                      </button>
+                    </div>
+                    
                     <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
                       <Shield className="w-4 h-4 mr-2" />
                       {loading ? 'جاري تسجيل الدخول...' : 'دخول كمدير'}
@@ -455,6 +467,16 @@ export default function AdminLogin() {
                         placeholder="••••••••"
                         required
                       />
+                    </div>
+                    
+                    <div className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswordReset(true)}
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        نسيت كلمة المرور؟
+                      </button>
                     </div>
                     
                     <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90" disabled={loading}>
@@ -693,6 +715,12 @@ export default function AdminLogin() {
           </div>
         </div>
       )}
+      
+      {/* Password Reset Modal */}
+      <PasswordResetModal
+        isOpen={showPasswordReset}
+        onClose={() => setShowPasswordReset(false)}
+      />
     </div>
   );
 }
