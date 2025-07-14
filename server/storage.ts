@@ -825,7 +825,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(userReports.createdAt));
   }
 
-  // Enhanced message methods
+  // Enhanced message methods - Get last message from each conversation
   async getMessagesWithUserInfo(userId: number): Promise<any[]> {
     const result = await db
       .select({
@@ -863,7 +863,18 @@ export class DatabaseStorage implements IStorage {
       })
     );
 
-    return messagesWithCompleteInfo;
+    // Group messages by conversation partner and get only the latest message from each
+    const conversationMap = new Map<number, any>();
+    
+    messagesWithCompleteInfo.forEach(message => {
+      const otherUserId = message.senderId === userId ? message.receiverId : message.senderId;
+      
+      if (!conversationMap.has(otherUserId)) {
+        conversationMap.set(otherUserId, message);
+      }
+    });
+
+    return Array.from(conversationMap.values());
   }
 
   async markMessageAsRead(messageId: number): Promise<void> {

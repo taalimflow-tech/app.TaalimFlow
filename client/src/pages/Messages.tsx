@@ -82,17 +82,60 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
   userProfilePicture: string | null;
 }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [newMessage, setNewMessage] = useState({ subject: '', content: '' });
   
   const { data: chatHistory, isLoading } = useQuery({
     queryKey: ['/api/messages/conversation', userId],
     enabled: isOpen && !!userId,
   });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: any) => {
+      return await apiRequest('/api/messages', 'POST', messageData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم إرسال الرسالة",
+        description: "تم إرسال الرسالة بنجاح",
+      });
+      setNewMessage({ subject: '', content: '' });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/conversation', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/with-user-info'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إرسال الرسالة",
+        description: error.message || "حدث خطأ أثناء إرسال الرسالة",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendMessage = () => {
+    if (!newMessage.subject.trim() || !newMessage.content.trim()) {
+      toast({
+        title: "خطأ",
+        description: "الرجاء إدخال العنوان والمحتوى",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      senderId: user?.id,
+      receiverId: userId,
+      subject: newMessage.subject,
+      content: newMessage.content,
+    });
+  };
   
   if (!isOpen) return null;
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl mx-4 h-[70vh] flex flex-col" dir="rtl">
+      <div className="bg-white rounded-lg w-full max-w-2xl mx-4 h-[80vh] flex flex-col" dir="rtl">
         <div className="p-4 border-b flex items-center justify-between">
           <div className="flex items-center gap-3">
             {userProfilePicture ? (
@@ -150,6 +193,41 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
               <p className="text-gray-500">لا توجد رسائل في هذه المحادثة</p>
             </div>
           )}
+        </div>
+
+        {/* Message Input Section */}
+        <div className="p-4 border-t bg-gray-50">
+          <div className="space-y-3">
+            <div>
+              <input
+                type="text"
+                placeholder="عنوان الرسالة..."
+                value={newMessage.subject}
+                onChange={(e) => setNewMessage({ ...newMessage, subject: e.target.value })}
+                className="w-full p-2 border rounded-md text-sm"
+              />
+            </div>
+            <div className="flex gap-2">
+              <textarea
+                placeholder="اكتب رسالتك هنا..."
+                value={newMessage.content}
+                onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })}
+                className="flex-1 p-2 border rounded-md text-sm resize-none"
+                rows={2}
+              />
+              <Button 
+                onClick={handleSendMessage}
+                disabled={sendMessageMutation.isPending || !newMessage.subject.trim() || !newMessage.content.trim()}
+                className="self-end"
+              >
+                {sendMessageMutation.isPending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  "إرسال"
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
