@@ -144,7 +144,7 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      return await apiRequest('/api/messages', 'POST', messageData);
+      return await apiRequest('POST', '/api/messages', messageData);
     },
     onSuccess: () => {
       toast({

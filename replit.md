@@ -125,6 +125,15 @@ The application now uses a unified PostgreSQL database approach:
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
 ## Recent Changes
+- **January 2025**: Implemented comprehensive message blocking system preventing banned users from contacting teachers
+  - **Server-side Enforcement**: Added blocking validation in `/api/messages` POST endpoint
+  - **Database Integration**: Uses existing `isUserBlocked` storage method to check blocking status
+  - **Error Handling**: Returns 403 error with Arabic message when blocked user tries to send message
+  - **User Experience**: Clear error notifications displayed to blocked users attempting to send messages
+  - **Bidirectional Blocking**: Works in both directions - teachers can block students/parents and vice versa
+  - **Unblock Functionality**: Teachers can unblock users to restore communication if needed
+  - **Fixed API Calls**: Corrected all `apiRequest` calls to use proper parameter order (method, url, data)
+  - **Real-time Enforcement**: Blocking is immediate and prevents message sending until unblocked
 - **January 2025**: Successfully implemented Firebase SMS phone verification system with intelligent fallback
   - **Firebase Integration**: Migrated from Twilio to Firebase Authentication for SMS verification
   - **No Trial Restrictions**: Firebase SMS works immediately without trial account limitations

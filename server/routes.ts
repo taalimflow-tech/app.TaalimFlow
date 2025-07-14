@@ -1016,6 +1016,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Received message request:', req.body);
       const validatedData = insertMessageSchema.parse(req.body);
       console.log('Validated data:', validatedData);
+      
+      // Check if the sender is blocked by the receiver
+      const isBlocked = await storage.isUserBlocked(validatedData.receiverId, validatedData.senderId);
+      if (isBlocked) {
+        return res.status(403).json({ error: "لا يمكنك إرسال رسائل لهذا المستخدم. تم حظرك من قبل المستخدم" });
+      }
+      
       const message = await storage.createMessage(validatedData);
       console.log('Created message:', message);
       
