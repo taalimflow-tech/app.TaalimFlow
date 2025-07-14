@@ -134,13 +134,12 @@ export default function Teachers() {
     }
     
     const formData = new FormData(e.target as HTMLFormElement);
-    const subject = formData.get('subject') as string;
     const content = formData.get('message') as string;
     
-    if (!subject.trim() || !content.trim()) {
+    if (!content.trim()) {
       toast({
         title: "خطأ في البيانات",
-        description: "يرجى ملء جميع الحقول المطلوبة",
+        description: "يرجى كتابة رسالة",
         variant: "destructive",
       });
       return;
@@ -148,7 +147,7 @@ export default function Teachers() {
     
     sendMessageMutation.mutate({
       teacherId: selectedTeacher.id,
-      subject: subject.trim(),
+      subject: "رسالة",
       content: content.trim(),
     });
   };
@@ -378,15 +377,6 @@ export default function Teachers() {
             </div>
             
             <form onSubmit={handleSendMessage} className="space-y-4">
-              <div>
-                <Label htmlFor="subject">الموضوع</Label>
-                <Input
-                  id="subject"
-                  name="subject"
-                  placeholder="اكتب موضوع الرسالة"
-                  required
-                />
-              </div>
               <div>
                 <Label htmlFor="message">الرسالة</Label>
                 <Textarea
