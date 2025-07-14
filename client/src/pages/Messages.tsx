@@ -252,6 +252,7 @@ export default function Messages() {
 
   const blockUserMutation = useMutation({
     mutationFn: async ({ userId, reason }: { userId: number; reason?: string }) => {
+      console.log('Blocking user:', { userId, reason });
       return await apiRequest('/api/block-user', {
         method: 'POST',
         body: { blockedId: userId, reason }
@@ -263,6 +264,14 @@ export default function Messages() {
         description: "لن تتمكن من رؤية رسائل هذا المستخدم",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/blocked-users'] });
+    },
+    onError: (error) => {
+      console.error('Error blocking user:', error);
+      toast({
+        title: "خطأ في حظر المستخدم",
+        description: error.message || "حدث خطأ أثناء حظر المستخدم",
+        variant: "destructive",
+      });
     },
   });
 
@@ -309,6 +318,7 @@ export default function Messages() {
   });
 
   const handleBlockUser = (userId: number) => {
+    console.log('handleBlockUser called with userId:', userId);
     blockUserMutation.mutate({ userId });
   };
 
