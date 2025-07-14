@@ -23,7 +23,7 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
   const [secondConfirmation, setSecondConfirmation] = useState(false);
   
   const handleSubmitReport = () => {
-    if (firstConfirmation && secondConfirmation) {
+    if (firstConfirmation) {
       onReport('inappropriate', description);
       setDescription('');
       setFirstConfirmation(false);
@@ -113,7 +113,7 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
           <Button variant="outline" onClick={handleClose}>إلغاء</Button>
           <Button 
             onClick={handleSubmitReport} 
-            disabled={!firstConfirmation || !secondConfirmation}
+            disabled={!firstConfirmation}
             className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
           >
             إرسال الإبلاغ
