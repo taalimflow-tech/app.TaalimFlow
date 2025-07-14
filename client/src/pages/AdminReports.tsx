@@ -90,10 +90,6 @@ export default function AdminReports() {
     enabled: !!user,
   });
 
-  // Debug: log the reports data
-  console.log('Reports data:', reports);
-  console.log('Reports loading:', reportsLoading);
-
   const { data: bannedUsers, isLoading: bannedUsersLoading } = useQuery({
     queryKey: ['/api/admin/banned-users'],
     enabled: !!user,

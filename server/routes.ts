@@ -57,6 +57,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.authenticateUser(email, password);
       
       if (user) {
+        // Check if user is banned
+        if (user.banned) {
+          return res.status(403).json({ 
+            error: "تم حظر حسابك من التطبيق. السبب: " + (user.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
+        
         // Store user session
         currentUser = user;
         // Remove password from response
@@ -90,12 +97,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
+        if (existingUser.banned) {
+          return res.status(403).json({ 
+            error: "هذا البريد الإلكتروني محظور من التطبيق. السبب: " + (existingUser.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
       }
       
       // Check if phone number already exists
       const existingPhone = await storage.getUserByPhone(validatedData.phone);
       if (existingPhone) {
+        if (existingPhone.banned) {
+          return res.status(403).json({ 
+            error: "هذا الرقم محظور من التطبيق. السبب: " + (existingPhone.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
@@ -151,12 +168,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
+        if (existingUser.banned) {
+          return res.status(403).json({ 
+            error: "هذا البريد الإلكتروني محظور من التطبيق. السبب: " + (existingUser.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
       }
       
       // Check if phone number already exists
       const existingPhone = await storage.getUserByPhone(validatedData.phone);
       if (existingPhone) {
+        if (existingPhone.banned) {
+          return res.status(403).json({ 
+            error: "هذا الرقم محظور من التطبيق. السبب: " + (existingPhone.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
@@ -191,12 +218,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
+        if (existingUser.banned) {
+          return res.status(403).json({ 
+            error: "هذا البريد الإلكتروني محظور من التطبيق. السبب: " + (existingUser.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
       }
       
       // Check if phone number already exists
       const existingPhone = await storage.getUserByPhone(validatedData.phone);
       if (existingPhone) {
+        if (existingPhone.banned) {
+          return res.status(403).json({ 
+            error: "هذا الرقم محظور من التطبيق. السبب: " + (existingPhone.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
@@ -232,6 +269,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/me", async (req, res) => {
     try {
       if (currentUser) {
+        // Check if the current user is banned
+        const latestUserData = await storage.getUser(currentUser.id);
+        if (latestUserData && latestUserData.banned) {
+          currentUser = null; // Clear the session
+          return res.status(403).json({ 
+            error: "تم حظر حسابك من التطبيق. السبب: " + (latestUserData.banReason || "مخالفة شروط الاستخدام")
+          });
+        }
+        
         const { password: _, ...userWithoutPassword } = currentUser;
         res.json({ user: userWithoutPassword });
       } else {
