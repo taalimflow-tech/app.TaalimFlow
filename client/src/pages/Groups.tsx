@@ -34,22 +34,22 @@ export default function Groups() {
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
     queryKey: ['/api/admin/groups'],
-    enabled: user?.role === 'admin',
+    enabled: !!user && user.role === 'admin',
   });
 
   const { data: teachingModules = [] } = useQuery<any[]>({
     queryKey: ['/api/teaching-modules'],
-    enabled: user?.role === 'admin',
+    enabled: !!user && user.role === 'admin',
   });
 
   const { data: teachers = [] } = useQuery<any[]>({
     queryKey: ['/api/teachers-with-specializations'],
-    enabled: user?.role === 'admin',
+    enabled: !!user && user.role === 'admin',
   });
 
   const { data: availableStudents = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/groups/students', selectedAdminGroup?.educationLevel, selectedAdminGroup?.subjectId],
-    enabled: user?.role === 'admin' && selectedAdminGroup?.educationLevel && selectedAdminGroup?.subjectId,
+    enabled: !!user && user.role === 'admin' && !!selectedAdminGroup?.educationLevel && !!selectedAdminGroup?.subjectId,
   });
 
   const joinGroupMutation = useMutation({

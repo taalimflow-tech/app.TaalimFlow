@@ -430,3 +430,11 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Two-Step Report Confirmation**: Replaced dropdown selection with confirmation dialogs asking users to confirm inappropriate content and admin ban request
   - **Enhanced Security**: All admin report functions properly protected with role-based permissions
   - **User Experience**: Clear Arabic interface with proper RTL support and intuitive confirmation flow
+- **January 2025**: Fixed admin groups interface with Arabic subject names and static card design
+  - **Arabic Subject Names**: Updated backend to include nameAr field in admin groups API response
+  - **Static Card Design**: Removed all hover effects, transitions, and animations from group cards
+  - **Professional Appearance**: Clean white background with subtle shadows for static, professional look
+  - **Query Fix**: Resolved React Query boolean enabled property error by ensuring proper boolean evaluation
+  - **Database Integration**: Enhanced groups API to return both English and Arabic subject names
+  - **Modern Hierarchical Interface**: Level → Grade → Subjects selection with proper conditional rendering
+  - **Consistent Display**: Arabic names shown in both grid cards and assignment modal
