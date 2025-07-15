@@ -67,10 +67,11 @@ export default function Groups() {
   });
 
   const updateGroupAssignmentsMutation = useMutation({
-    mutationFn: async ({ groupId, studentIds, teacherId }: { groupId: number, studentIds: number[], teacherId: number }) => {
-      const response = await apiRequest('PUT', `/api/admin/groups/${groupId}/assignments`, {
+    mutationFn: async ({ groupId, studentIds, teacherId, groupData }: { groupId: number | null, studentIds: number[], teacherId: number, groupData?: any }) => {
+      const response = await apiRequest('PUT', `/api/admin/groups/${groupId || 'null'}/assignments`, {
         studentIds,
-        teacherId
+        teacherId,
+        groupData
       });
       return response.json();
     },
@@ -107,7 +108,8 @@ export default function Groups() {
       updateGroupAssignmentsMutation.mutate({
         groupId: selectedAdminGroup.id,
         studentIds: selectedStudents,
-        teacherId: selectedTeacher
+        teacherId: selectedTeacher,
+        groupData: selectedAdminGroup.isPlaceholder ? selectedAdminGroup : undefined
       });
     }
   };

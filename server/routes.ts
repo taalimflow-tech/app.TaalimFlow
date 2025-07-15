@@ -1199,6 +1199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const adminGroups = await storage.getAdminGroups();
       res.json(adminGroups);
     } catch (error) {
+      console.error("Error in /api/admin/groups:", error);
       res.status(500).json({ error: "Failed to fetch admin groups" });
     }
   });
@@ -1225,14 +1226,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
-      const groupId = parseInt(req.params.id);
-      const { studentIds, teacherId } = req.body;
+      const groupId = req.params.id === 'null' ? null : parseInt(req.params.id);
+      const { studentIds, teacherId, groupData } = req.body;
       
       if (!Array.isArray(studentIds) || typeof teacherId !== 'number') {
         return res.status(400).json({ error: "Invalid assignment data" });
       }
       
-      const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId);
+      const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId, groupData);
       res.json(updatedGroup);
     } catch (error) {
       res.status(500).json({ error: "Failed to update group assignments" });

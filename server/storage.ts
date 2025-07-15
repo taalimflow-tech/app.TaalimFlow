@@ -517,64 +517,122 @@ export class DatabaseStorage implements IStorage {
 
   // Admin group management methods
   async getAdminGroups(): Promise<any[]> {
-    const result = await db
-      .select({
-        id: groups.id,
-        name: groups.name,
-        description: groups.description,
-        category: groups.category,
-        educationLevel: groups.educationLevel,
-        subjectId: groups.subjectId,
-        teacherId: groups.teacherId,
-        subjectName: teachingModules.name,
-        teacherName: users.name,
-        createdAt: groups.createdAt
-      })
-      .from(groups)
-      .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
-      .leftJoin(users, eq(groups.teacherId, users.id))
-      .orderBy(desc(groups.createdAt));
-
-    // Add student assignments to each group
-    const groupsWithStudents = await Promise.all(
-      result.map(async (group) => {
-        const studentsAssigned = await db
-          .select({ id: groupRegistrations.userId })
-          .from(groupRegistrations)
-          .where(eq(groupRegistrations.groupId, group.id));
+    try {
+      console.log('Starting getAdminGroups...');
+      
+      // Get all teaching modules organized by education level
+      const allModules = await db.select().from(teachingModules).orderBy(teachingModules.educationLevel, teachingModules.name);
+      console.log('Found modules:', allModules.length);
+      
+      // Generate all possible groups based on education levels and subjects
+      const allPossibleGroups = [];
+      
+      for (const module of allModules) {
+        console.log(`Processing module: ${module.name} (${module.educationLevel})`);
         
-        return {
-          ...group,
-          studentsAssigned: studentsAssigned.map(s => s.id)
-        };
-      })
-    );
+        // Check if there are existing groups for this module
+        const existingGroups = await db
+          .select({
+            id: groups.id,
+            name: groups.name,
+            description: groups.description,
+            category: groups.category,
+            educationLevel: groups.educationLevel,
+            subjectId: groups.subjectId,
+            teacherId: groups.teacherId,
+            subjectName: teachingModules.name,
+            teacherName: users.name,
+            createdAt: groups.createdAt
+          })
+          .from(groups)
+          .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+          .leftJoin(users, eq(groups.teacherId, users.id))
+          .where(and(
+            eq(groups.educationLevel, module.educationLevel),
+            eq(groups.subjectId, module.id)
+          ));
+        
+        if (existingGroups.length === 0) {
+          // Create a placeholder group for this subject
+          allPossibleGroups.push({
+            id: null,
+            name: `مجموعة ${module.name}`,
+            description: `مجموعة تعليمية لمادة ${module.name}`,
+            category: 'دراسية',
+            educationLevel: module.educationLevel,
+            subjectId: module.id,
+            teacherId: null,
+            subjectName: module.name,
+            teacherName: null,
+            createdAt: null,
+            studentsAssigned: [],
+            isPlaceholder: true
+          });
+        } else {
+          // Add existing groups
+          for (const group of existingGroups) {
+            allPossibleGroups.push({
+              ...group,
+              studentsAssigned: [],
+              isPlaceholder: false
+            });
+          }
+        }
+      }
 
-    return groupsWithStudents;
+      console.log('Generated groups:', allPossibleGroups.length);
+      return allPossibleGroups;
+    } catch (error) {
+      console.error('Error in getAdminGroups:', error);
+      throw error;
+    }
   }
 
-  async updateGroupAssignments(groupId: number, studentIds: number[], teacherId: number): Promise<Group> {
-    // Update the group's teacher
-    await db
-      .update(groups)
-      .set({ teacherId })
-      .where(eq(groups.id, groupId));
-
-    // Remove existing student assignments
-    await db.delete(groupRegistrations).where(eq(groupRegistrations.groupId, groupId));
-
-    // Add new student assignments
-    if (studentIds.length > 0) {
-      const registrations = studentIds.map(studentId => ({
-        groupId,
-        userId: studentId
-      }));
-      await db.insert(groupRegistrations).values(registrations);
+  async updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any): Promise<Group> {
+    let actualGroupId = groupId;
+    
+    // If groupId is null, create a new group first
+    if (!groupId && groupData) {
+      const [newGroup] = await db
+        .insert(groups)
+        .values({
+          name: groupData.name,
+          description: groupData.description,
+          category: groupData.category,
+          educationLevel: groupData.educationLevel,
+          subjectId: groupData.subjectId,
+          teacherId: teacherId,
+          isAdminManaged: true
+        })
+        .returning();
+      actualGroupId = newGroup.id;
+    } else if (actualGroupId) {
+      // Update existing group's teacher
+      await db
+        .update(groups)
+        .set({ teacherId })
+        .where(eq(groups.id, actualGroupId));
     }
 
-    // Return the updated group
-    const [updatedGroup] = await db.select().from(groups).where(eq(groups.id, groupId));
-    return updatedGroup;
+    if (actualGroupId) {
+      // Remove existing student assignments
+      await db.delete(groupRegistrations).where(eq(groupRegistrations.groupId, actualGroupId));
+
+      // Add new student assignments
+      if (studentIds.length > 0) {
+        const registrations = studentIds.map(studentId => ({
+          groupId: actualGroupId,
+          userId: studentId
+        }));
+        await db.insert(groupRegistrations).values(registrations);
+      }
+
+      // Return the updated group
+      const [updatedGroup] = await db.select().from(groups).where(eq(groups.id, actualGroupId));
+      return updatedGroup;
+    }
+
+    throw new Error('Failed to create or update group');
   }
 
   async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number): Promise<any[]> {
