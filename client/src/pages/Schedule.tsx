@@ -508,11 +508,23 @@ export default function Schedule() {
                           const levelColors = getLevelColors(cell.educationLevel);
                           // Calculate actual column span based on start and end times
                           let actualColSpan = 1;
+                          let leftOffset = 0;
+                          let width = 100;
+                          
                           if (cell.startTime && cell.endTime) {
-                            const [startHour] = cell.startTime.split(':').map(Number);
-                            const [endHour] = cell.endTime.split(':').map(Number);
+                            const [startHour, startMin] = cell.startTime.split(':').map(Number);
+                            const [endHour, endMin] = cell.endTime.split(':').map(Number);
+                            
                             // Calculate column span based on duration in hours
                             actualColSpan = Math.max(1, endHour - startHour);
+                            
+                            // Calculate left offset as percentage of hour (0-100%)
+                            leftOffset = (startMin / 60) * 100;
+                            
+                            // Calculate width based on total minutes
+                            const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                            const hoursSpanned = actualColSpan;
+                            width = (totalMinutes / (hoursSpanned * 60)) * 100;
                           } else {
                             actualColSpan = cell.duration;
                           }
@@ -520,10 +532,18 @@ export default function Schedule() {
                           return (
                             <td
                               key={slot.period}
-                              className={`border border-gray-300 p-2 ${levelColors.bg} relative`}
+                              className={`border border-gray-300 p-0 relative`}
                               colSpan={actualColSpan}
                             >
-                              <div className="text-xs space-y-1">
+                              <div 
+                                className={`absolute inset-y-0 ${levelColors.bg} border-l-2 border-r-2 border-gray-400`}
+                                style={{ 
+                                  left: `${leftOffset}%`, 
+                                  width: `${width}%`,
+                                  minHeight: '4rem'
+                                }}
+                              >
+                                <div className="text-xs space-y-1 p-2">
                                 <div className={`inline-block px-2 py-1 rounded text-xs ${levelColors.badge}`}>
                                   {cell.educationLevel}
                                 </div>
@@ -550,6 +570,7 @@ export default function Schedule() {
                                     }
                                   </div>
                                 )}
+                                </div>
                               </div>
                               
                               {isAdmin && (

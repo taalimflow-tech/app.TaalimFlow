@@ -138,6 +138,9 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Schedule Display Fix**: Fixed schedule table visual positioning issue where lessons scheduled for specific times (e.g., 9:30) now appear in the correct table columns
   - **Period Calculation**: Updated period calculation logic to properly map lesson start times to table periods (8:xx = period 1, 9:xx = period 2, etc.)
   - **Column Span Logic**: Enhanced column span calculation to accurately represent lesson duration across multiple time periods
+  - **Precise Visual Positioning**: Implemented sophisticated positioning system where lessons start at the exact visual position within cells based on minutes (e.g., 9:30 lessons start at 50% into the 9:00 column)
+  - **Dynamic Width Calculation**: Lesson cells now dynamically adjust their width based on actual duration in minutes, providing accurate visual representation
+  - **Minute-Level Accuracy**: Schedule now supports minute-level precision with lessons visually positioned exactly where they occur within each hour
 - **January 2025**: Implemented comprehensive banned user access prevention system
   - **Login Prevention**: Added banned user check in login endpoint with clear Arabic error messages
   - **Registration Prevention**: Banned users cannot re-register with same email or phone number
