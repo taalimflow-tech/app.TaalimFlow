@@ -103,6 +103,7 @@ export default function AdminUsers() {
   // Ban user state
   const [showBanModal, setShowBanModal] = useState(false);
   const [banUserData, setBanUserData] = useState<{userId: number, userName: string} | null>(null);
+  const [showBulkBanModal, setShowBulkBanModal] = useState(false);
 
   // Fetch users with search and filters
   const { data: users = [], isLoading, refetch } = useQuery<User[]>({
@@ -216,6 +217,34 @@ export default function AdminUsers() {
     },
   });
 
+  // Bulk ban mutation
+  const bulkBanMutation = useMutation({
+    mutationFn: async ({ userIds, reason }: { userIds: number[]; reason: string }) => {
+      const results = await Promise.allSettled(
+        userIds.map(userId => apiRequest('POST', '/api/admin/ban-user', { userId, reason }))
+      );
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+      return { successful, failed, total: userIds.length };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "تم حظر المستخدمين",
+        description: `تم حظر ${data.successful} من أصل ${data.total} مستخدم بنجاح`,
+      });
+      setShowBulkBanModal(false);
+      setSelectedUsers([]);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في حظر المستخدمين",
+        description: error.message || "حدث خطأ أثناء حظر المستخدمين",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -273,6 +302,47 @@ export default function AdminUsers() {
     }
   };
 
+  // Handle bulk ban
+  const handleBulkBan = () => {
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "لا يوجد مستخدمون محددون",
+        description: "يرجى اختيار مستخدمين للحظر",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Filter out admin users from selection
+    const nonAdminUsers = users.filter(user => 
+      selectedUsers.includes(user.id) && user.role !== 'admin'
+    );
+    
+    if (nonAdminUsers.length === 0) {
+      toast({
+        title: "لا يمكن حظر المديرين",
+        description: "تم اختيار مديرين فقط، لا يمكن حظرهم",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setShowBulkBanModal(true);
+  };
+
+  const handleBulkBanConfirm = (reason: string) => {
+    const nonAdminUsers = users.filter(user => 
+      selectedUsers.includes(user.id) && user.role !== 'admin'
+    );
+    
+    if (nonAdminUsers.length > 0) {
+      bulkBanMutation.mutate({ 
+        userIds: nonAdminUsers.map(user => user.id), 
+        reason 
+      });
+    }
+  };
+
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -316,13 +386,22 @@ export default function AdminUsers() {
                 إدارة المحتوى
               </Button>
               {selectedUsers.length > 0 && (
-                <button
-                  onClick={() => setShowBulkMessage(true)}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center gap-2"
-                >
-                  <Send className="w-4 h-4" />
-                  إرسال رسالة جماعية ({selectedUsers.length})
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowBulkMessage(true)}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    إرسال رسالة جماعية ({selectedUsers.length})
+                  </button>
+                  <button
+                    onClick={handleBulkBan}
+                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 flex items-center gap-2"
+                  >
+                    <Ban className="w-4 h-4" />
+                    حظر جماعي ({selectedUsers.filter(id => users.find(u => u.id === id)?.role !== 'admin').length})
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -839,6 +918,76 @@ export default function AdminUsers() {
                   disabled={banUserMutation.isPending}
                 >
                   {banUserMutation.isPending ? 'جاري الحظر...' : 'حظر المستخدم'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Ban Modal */}
+        {showBulkBanModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4" dir="rtl">
+              <h2 className="text-lg font-bold mb-4 text-red-600">
+                حظر جماعي للمستخدمين ({selectedUsers.filter(id => users.find(u => u.id === id)?.role !== 'admin').length})
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="bg-red-50 p-3 rounded-lg">
+                  <p className="text-sm text-red-700">
+                    تحذير: سيتم منع جميع المستخدمين المحددين من الوصول إلى التطبيق بالكامل
+                  </p>
+                </div>
+                
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-700 mb-2">المستخدمون المحددون:</p>
+                  <ul className="text-xs text-gray-600 space-y-1 max-h-32 overflow-y-auto">
+                    {users
+                      .filter(user => selectedUsers.includes(user.id) && user.role !== 'admin')
+                      .map(user => (
+                        <li key={user.id} className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                          {user.name} ({user.email})
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">سبب الحظر الجماعي</label>
+                  <textarea 
+                    id="bulkBanReason"
+                    className="w-full p-2 border rounded-md h-20"
+                    placeholder="اكتب سبب حظر جميع المستخدمين..."
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowBulkBanModal(false)}
+                >
+                  إلغاء
+                </Button>
+                <Button 
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => {
+                    const reasonInput = document.getElementById('bulkBanReason') as HTMLTextAreaElement;
+                    const reason = reasonInput?.value?.trim();
+                    if (reason) {
+                      handleBulkBanConfirm(reason);
+                    } else {
+                      toast({
+                        title: "سبب الحظر مطلوب",
+                        description: "يرجى إدخال سبب الحظر الجماعي",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  disabled={bulkBanMutation.isPending}
+                >
+                  {bulkBanMutation.isPending ? 'جاري الحظر...' : 'حظر جميع المستخدمين'}
                 </Button>
               </div>
             </div>
