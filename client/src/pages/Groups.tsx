@@ -320,11 +320,12 @@ export default function Groups() {
                           {getSubjectGroups().map(group => (
                             <div 
                               key={group.id || group.subjectId} 
-                              className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-gray-50 hover:bg-gray-100"
-                              onClick={() => handleOpenAssignmentModal(group)}
+                              className="border rounded-lg p-4 bg-white shadow-sm"
                             >
                               <div className="flex items-center justify-between mb-3">
-                                <h4 className="font-medium text-gray-900">{group.subjectName}</h4>
+                                <h4 className="font-medium text-gray-900">
+                                  {group.nameAr || group.subjectName}
+                                </h4>
                                 <span className={`text-xs px-2 py-1 rounded ${group.isPlaceholder ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                                   {group.isPlaceholder ? 'فارغة' : 'نشطة'}
                                 </span>
@@ -345,10 +346,7 @@ export default function Groups() {
                                 <Button
                                   size="sm"
                                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenAssignmentModal(group);
-                                  }}
+                                  onClick={() => handleOpenAssignmentModal(group)}
                                 >
                                   إدارة المجموعة
                                 </Button>
@@ -485,7 +483,7 @@ export default function Groups() {
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
                 <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}</p>
-                <p><strong>المادة:</strong> {selectedAdminGroup.subjectName}</p>
+                <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
 

@@ -518,18 +518,13 @@ export class DatabaseStorage implements IStorage {
   // Admin group management methods
   async getAdminGroups(): Promise<any[]> {
     try {
-      console.log('Starting getAdminGroups...');
-      
       // Get all teaching modules organized by education level
       const allModules = await db.select().from(teachingModules).orderBy(teachingModules.educationLevel, teachingModules.name);
-      console.log('Found modules:', allModules.length);
       
       // Generate all possible groups based on education levels and subjects
       const allPossibleGroups = [];
       
       for (const module of allModules) {
-        console.log(`Processing module: ${module.name} (${module.educationLevel})`);
-        
         // Check if there are existing groups for this module
         const existingGroups = await db
           .select({
@@ -541,6 +536,7 @@ export class DatabaseStorage implements IStorage {
             subjectId: groups.subjectId,
             teacherId: groups.teacherId,
             subjectName: teachingModules.name,
+            nameAr: teachingModules.nameAr,
             teacherName: users.name,
             createdAt: groups.createdAt
           })
@@ -556,13 +552,14 @@ export class DatabaseStorage implements IStorage {
           // Create a placeholder group for this subject
           allPossibleGroups.push({
             id: null,
-            name: `مجموعة ${module.name}`,
-            description: `مجموعة تعليمية لمادة ${module.name}`,
+            name: `مجموعة ${module.nameAr || module.name}`,
+            description: `مجموعة تعليمية لمادة ${module.nameAr || module.name}`,
             category: 'دراسية',
             educationLevel: module.educationLevel,
             subjectId: module.id,
             teacherId: null,
             subjectName: module.name,
+            nameAr: module.nameAr,
             teacherName: null,
             createdAt: null,
             studentsAssigned: [],
@@ -580,7 +577,6 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
-      console.log('Generated groups:', allPossibleGroups.length);
       return allPossibleGroups;
     } catch (error) {
       console.error('Error in getAdminGroups:', error);
