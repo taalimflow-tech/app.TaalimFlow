@@ -508,52 +508,65 @@ export default function Schedule() {
                           const levelColors = getLevelColors(cell.educationLevel);
                           // Calculate actual column span based on start and end times
                           let actualColSpan = 1;
-                          let leftOffset = 0;
-                          let width = 100;
-                          
                           if (cell.startTime && cell.endTime) {
-                            const [startHour, startMin] = cell.startTime.split(':').map(Number);
-                            const [endHour, endMin] = cell.endTime.split(':').map(Number);
-                            
-                            // Calculate column span based on duration in hours
+                            const [startHour] = cell.startTime.split(':').map(Number);
+                            const [endHour] = cell.endTime.split(':').map(Number);
                             actualColSpan = Math.max(1, endHour - startHour);
-                            
-                            // Calculate left offset as percentage of hour (0-100%)
-                            leftOffset = (startMin / 60) * 100;
-                            
-                            // Calculate width based on total minutes
-                            const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-                            const hoursSpanned = actualColSpan;
-                            width = (totalMinutes / (hoursSpanned * 60)) * 100;
                           } else {
                             actualColSpan = cell.duration;
                           }
                           
+                          // Create visual timing indicator
+                          const getTimingIndicator = () => {
+                            if (cell.startTime && cell.endTime) {
+                              const [startHour, startMin] = cell.startTime.split(':').map(Number);
+                              const [endHour, endMin] = cell.endTime.split(':').map(Number);
+                              
+                              // Calculate position within the hour
+                              const startPosition = startMin === 0 ? 'بداية الساعة' : 
+                                                  startMin === 15 ? 'ربع الساعة' :
+                                                  startMin === 30 ? 'نصف الساعة' :
+                                                  startMin === 45 ? 'ثلاثة أرباع الساعة' :
+                                                  `${startMin} دقيقة`;
+                              
+                              const endPosition = endMin === 0 ? 'بداية الساعة' : 
+                                                endMin === 15 ? 'ربع الساعة' :
+                                                endMin === 30 ? 'نصف الساعة' :
+                                                endMin === 45 ? 'ثلاثة أرباع الساعة' :
+                                                `${endMin} دقيقة`;
+                              
+                              return {
+                                startPosition,
+                                endPosition,
+                                startTime: cell.startTime,
+                                endTime: cell.endTime
+                              };
+                            }
+                            return null;
+                          };
+                          
+                          const timingInfo = getTimingIndicator();
+                          
                           return (
                             <td
                               key={slot.period}
-                              className={`border border-gray-300 p-0 relative`}
+                              className={`border border-gray-300 p-2 ${levelColors.bg} relative`}
                               colSpan={actualColSpan}
                             >
-                              <div 
-                                className={`absolute inset-y-0 ${levelColors.bg} border-l-2 border-r-2 border-gray-400`}
-                                style={{ 
-                                  left: `${leftOffset}%`, 
-                                  width: `${width}%`,
-                                  minHeight: '4rem'
-                                }}
-                              >
-                                <div className="text-xs space-y-1 p-2">
+                              <div className="text-xs space-y-1">
+                                {/* Education Level Badge */}
                                 <div className={`inline-block px-2 py-1 rounded text-xs ${levelColors.badge}`}>
                                   {cell.educationLevel}
                                 </div>
                                 
+                                {/* Subject */}
                                 {cell.subject && (
                                   <div className="font-medium">
                                     {cell.subject.nameAr}
                                   </div>
                                 )}
                                 
+                                {/* Teacher */}
                                 {cell.teacher && (
                                   <div className="text-gray-600">
                                     {cell.teacher.gender === 'male' ? 'الأستاذ ' : 'الأستاذة '}
@@ -561,7 +574,22 @@ export default function Schedule() {
                                   </div>
                                 )}
                                 
-                                {(cell.startTime || cell.endTime) && (
+                                {/* Enhanced Time Display with Position Indicator */}
+                                {timingInfo && (
+                                  <div className="text-xs text-blue-600 font-medium border-t pt-1">
+                                    <div className="flex flex-col gap-1">
+                                      <div className="text-center bg-blue-50 px-2 py-1 rounded">
+                                        {timingInfo.startTime} - {timingInfo.endTime}
+                                      </div>
+                                      <div className="text-[10px] text-gray-500 text-center">
+                                        من {timingInfo.startPosition} إلى {timingInfo.endPosition}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Fallback time display for cells without specific timing */}
+                                {!timingInfo && (cell.startTime || cell.endTime) && (
                                   <div className="text-xs text-blue-600 font-medium">
                                     {cell.startTime && cell.endTime ? 
                                       `${cell.startTime} - ${cell.endTime}` : 
@@ -570,7 +598,6 @@ export default function Schedule() {
                                     }
                                   </div>
                                 )}
-                                </div>
                               </div>
                               
                               {isAdmin && (
