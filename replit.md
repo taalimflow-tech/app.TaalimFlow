@@ -127,7 +127,7 @@ This unified approach provides better data consistency, easier queries, and impr
 ## Recent Changes
 - **January 2025**: Enhanced verification system with proper student name display and simplified education level formatting
   - **Student Name Display**: Fixed AdminVerification page to show actual student names instead of user IDs
-  - **Education Level Formatting**: Created formatEducationLevel utility function to remove redundant display (shows "1 متوسط" instead of "المتوسط - 1 متوسط")
+  - **Education Level Formatting**: Enhanced formatEducationLevel utility function to extract year numbers from Arabic grade strings and display cleanly (shows "متوسط 1" instead of "المتوسط - السنة الأولى متوسط")
   - **Database Integration**: Updated server-side storage methods to join student data with user names from users table
   - **Role-Based Filtering**: Fixed critical bug where teachers and non-student users appeared in student verification panel
   - **Security Enhancement**: Added proper role validation to ensure only users with role "student" appear in student verification sections

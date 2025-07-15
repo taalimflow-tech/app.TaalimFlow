@@ -66,12 +66,24 @@ interface TeachingModule {
 
 // Helper function to format education level display
 const formatEducationLevel = (educationLevel: string, grade: string) => {
+  // Extract year number from grade string
+  const extractYearNumber = (gradeStr: string) => {
+    if (gradeStr.includes('الأولى')) return '1';
+    if (gradeStr.includes('الثانية')) return '2';
+    if (gradeStr.includes('الثالثة')) return '3';
+    if (gradeStr.includes('الرابعة')) return '4';
+    if (gradeStr.includes('الخامسة')) return '5';
+    return gradeStr; // fallback to original if no match
+  };
+
+  const yearNumber = extractYearNumber(grade);
+  
   if (educationLevel === 'الابتدائي') {
-    return `${grade} ابتدائي`;
+    return `ابتدائي ${yearNumber}`;
   } else if (educationLevel === 'المتوسط') {
-    return `${grade} متوسط`;
+    return `متوسط ${yearNumber}`;
   } else if (educationLevel === 'الثانوي') {
-    return `${grade} ثانوي`;
+    return `ثانوي ${yearNumber}`;
   }
   return `${educationLevel} - ${grade}`;
 };
