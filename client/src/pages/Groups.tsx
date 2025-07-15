@@ -25,6 +25,11 @@ export default function Groups() {
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [selectedTeacher, setSelectedTeacher] = useState<number | null>(null);
+  
+  // New state for hierarchical selection
+  const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('');
+  const [filteredSubjects, setFilteredSubjects] = useState<any[]>([]);
 
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
@@ -139,6 +144,57 @@ export default function Groups() {
     );
   };
 
+  // Helper function to get available grades for each education level
+  const getAvailableGrades = (level: string) => {
+    switch (level) {
+      case 'الابتدائي':
+        return [
+          { value: 'السنة الأولى ابتدائي', label: 'السنة الأولى' },
+          { value: 'السنة الثانية ابتدائي', label: 'السنة الثانية' },
+          { value: 'السنة الثالثة ابتدائي', label: 'السنة الثالثة' },
+          { value: 'السنة الرابعة ابتدائي', label: 'السنة الرابعة' },
+          { value: 'السنة الخامسة ابتدائي', label: 'السنة الخامسة' },
+        ];
+      case 'المتوسط':
+        return [
+          { value: 'السنة الأولى متوسط', label: 'السنة الأولى' },
+          { value: 'السنة الثانية متوسط', label: 'السنة الثانية' },
+          { value: 'السنة الثالثة متوسط', label: 'السنة الثالثة' },
+          { value: 'السنة الرابعة متوسط', label: 'السنة الرابعة' },
+        ];
+      case 'الثانوي':
+        return [
+          { value: 'السنة الأولى ثانوي', label: 'السنة الأولى' },
+          { value: 'السنة الثانية ثانوي', label: 'السنة الثانية' },
+          { value: 'السنة الثالثة ثانوي', label: 'السنة الثالثة' },
+        ];
+      default:
+        return [];
+    }
+  };
+
+  // Handle level selection
+  const handleLevelChange = (level: string) => {
+    setSelectedLevel(level);
+    setSelectedGrade('');
+    setFilteredSubjects([]);
+  };
+
+  // Handle grade selection
+  const handleGradeChange = (grade: string) => {
+    setSelectedGrade(grade);
+    
+    // Filter subjects based on selected level
+    const levelSubjects = adminGroups.filter(group => group.educationLevel === selectedLevel);
+    setFilteredSubjects(levelSubjects);
+  };
+
+  // Get subject groups for selected level and grade
+  const getSubjectGroups = () => {
+    if (!selectedLevel) return [];
+    return adminGroups.filter(group => group.educationLevel === selectedLevel);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -189,57 +245,117 @@ export default function Groups() {
                     <p className="text-sm text-blue-500 mt-1">يمكنك إنشاء مجموعات جديدة من قسم إدارة المحتوى</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {/* Group by Education Level */}
-                    {['الابتدائي', 'المتوسط', 'الثانوي'].map(level => {
-                      const levelGroups = adminGroups.filter(g => g.educationLevel === level);
-                      if (levelGroups.length === 0) return null;
+                  <div className="space-y-6">
+                    {/* Modern Hierarchical Selection */}
+                    <div className="bg-white rounded-lg border p-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">اختر المستوى والسنة</h3>
                       
-                      return (
-                        <div key={level} className="border rounded-lg p-4 bg-white">
-                          <h4 className={`font-semibold mb-3 px-3 py-1 rounded-full inline-block ${getEducationLevelColor(level)}`}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {/* Education Level Selection */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            المستوى التعليمي
+                          </label>
+                          <select
+                            value={selectedLevel}
+                            onChange={(e) => handleLevelChange(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">اختر المستوى...</option>
+                            <option value="الابتدائي">الابتدائي</option>
+                            <option value="المتوسط">المتوسط</option>
+                            <option value="الثانوي">الثانوي</option>
+                          </select>
+                        </div>
+
+                        {/* Grade Selection */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            السنة الدراسية
+                          </label>
+                          <select
+                            value={selectedGrade}
+                            onChange={(e) => handleGradeChange(e.target.value)}
+                            disabled={!selectedLevel}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                          >
+                            <option value="">اختر السنة...</option>
+                            {getAvailableGrades(selectedLevel).map(grade => (
+                              <option key={grade.value} value={grade.value}>
+                                {grade.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Subject Groups Grid */}
+                    {selectedLevel && (
+                      <div className="bg-white rounded-lg border p-6">
+                        <div className="flex items-center mb-4">
+                          <div className={`px-3 py-1 rounded-full text-sm font-medium ${getEducationLevelColor(selectedLevel)}`}>
                             <GraduationCap className="w-4 h-4 inline mr-2" />
-                            {level}
-                          </h4>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {levelGroups.map(group => (
-                              <div key={group.id} className="border rounded-lg p-3 hover:shadow-md transition-shadow">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h5 className="font-medium text-gray-900">{group.name}</h5>
-                                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                    ID: {group.id}
-                                  </span>
+                            {selectedLevel}
+                          </div>
+                          {selectedGrade && (
+                            <div className="ml-3 px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
+                              {selectedGrade}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">المواد المتاحة</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {getSubjectGroups().map(group => (
+                            <div 
+                              key={group.id || group.subjectId} 
+                              className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-gray-50 hover:bg-gray-100"
+                              onClick={() => handleOpenAssignmentModal(group)}
+                            >
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="font-medium text-gray-900">{group.subjectName}</h4>
+                                <span className={`text-xs px-2 py-1 rounded ${group.isPlaceholder ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                                  {group.isPlaceholder ? 'فارغة' : 'نشطة'}
+                                </span>
+                              </div>
+                              
+                              <div className="text-sm text-gray-600 space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <User className="w-4 h-4" />
+                                  <span>{group.teacherName || 'لا يوجد معلم'}</span>
                                 </div>
-                                
-                                <div className="text-sm text-gray-600 mb-3">
-                                  <div className="flex items-center gap-1 mb-1">
-                                    <BookOpen className="w-3 h-3" />
-                                    المادة: {group.subjectName || 'غير محددة'}
-                                  </div>
-                                  <div className="flex items-center gap-1 mb-1">
-                                    <User className="w-3 h-3" />
-                                    المعلم: {group.teacherName || 'غير مسند'}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Users className="w-3 h-3" />
-                                    الطلاب: {group.studentsAssigned?.length || 0}
-                                  </div>
+                                <div className="flex items-center gap-2">
+                                  <Users className="w-4 h-4" />
+                                  <span>{group.studentsAssigned?.length || 0} طالب</span>
                                 </div>
-                                
+                              </div>
+                              
+                              <div className="mt-3 pt-3 border-t">
                                 <Button
                                   size="sm"
-                                  onClick={() => handleOpenAssignmentModal(group)}
                                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenAssignmentModal(group);
+                                  }}
                                 >
-                                  إدارة التعيينات
+                                  إدارة المجموعة
                                 </Button>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
                         </div>
-                      );
-                    })}
+                        
+                        {getSubjectGroups().length === 0 && (
+                          <div className="text-center py-8">
+                            <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                            <p className="text-gray-600">لا توجد مواد متاحة للمستوى المحدد</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
