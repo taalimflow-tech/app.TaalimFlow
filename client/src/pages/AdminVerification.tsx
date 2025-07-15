@@ -28,6 +28,7 @@ interface UnverifiedStudent {
   grade: string;
   createdAt: string;
   verified: boolean;
+  name: string;
 }
 
 interface VerifiedChild {
@@ -51,6 +52,7 @@ interface VerifiedStudent {
   verifiedAt: string;
   verifiedBy: number;
   verificationNotes: string;
+  name: string;
 }
 
 interface TeachingModule {
@@ -61,6 +63,18 @@ interface TeachingModule {
   grade: string | null;
   description: string | null;
 }
+
+// Helper function to format education level display
+const formatEducationLevel = (educationLevel: string, grade: string) => {
+  if (educationLevel === 'الابتدائي') {
+    return `${grade} ابتدائي`;
+  } else if (educationLevel === 'المتوسط') {
+    return `${grade} متوسط`;
+  } else if (educationLevel === 'الثانوي') {
+    return `${grade} ثانوي`;
+  }
+  return `${educationLevel} - ${grade}`;
+};
 
 export default function AdminVerification() {
   const { user } = useAuth();
@@ -360,7 +374,7 @@ export default function AdminVerification() {
                             <h3 className="font-medium text-gray-900">{child.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
-                            {child.educationLevel} - {child.grade}
+                            {formatEducationLevel(child.educationLevel, child.grade)}
                           </p>
                         </div>
                         <Button 
@@ -384,10 +398,10 @@ export default function AdminVerification() {
                             <Badge className="bg-purple-100 text-purple-800 text-xs border border-purple-300">
                               طالب
                             </Badge>
-                            <h3 className="font-medium text-gray-900">طالب رقم {student.userId}</h3>
+                            <h3 className="font-medium text-gray-900">{student.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
-                            {student.educationLevel} - {student.grade}
+                            {formatEducationLevel(student.educationLevel, student.grade)}
                           </p>
                         </div>
                         <Button 
@@ -439,7 +453,7 @@ export default function AdminVerification() {
                             <h3 className="font-medium text-gray-900">{child.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
-                            {child.educationLevel} - {child.grade}
+                            {formatEducationLevel(child.educationLevel, child.grade)}
                           </p>
                         </div>
                         <Button 
@@ -467,10 +481,10 @@ export default function AdminVerification() {
                             <Badge className="bg-purple-100 text-purple-800 text-xs border border-purple-300">
                               طالب
                             </Badge>
-                            <h3 className="font-medium text-gray-900">طالب رقم {student.userId}</h3>
+                            <h3 className="font-medium text-gray-900">{student.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
-                            {student.educationLevel} - {student.grade}
+                            {formatEducationLevel(student.educationLevel, student.grade)}
                           </p>
                         </div>
                         <Button 

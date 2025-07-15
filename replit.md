@@ -125,6 +125,13 @@ The application now uses a unified PostgreSQL database approach:
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
 ## Recent Changes
+- **January 2025**: Enhanced verification system with proper student name display and simplified education level formatting
+  - **Student Name Display**: Fixed AdminVerification page to show actual student names instead of user IDs
+  - **Education Level Formatting**: Created formatEducationLevel utility function to remove redundant display (shows "1 متوسط" instead of "المتوسط - 1 متوسط")
+  - **Database Integration**: Updated server-side storage methods to join student data with user names from users table
+  - **Consistent Display**: Applied formatting across all verification sections (unverified/verified children and students)
+  - **React Hook Fix**: Resolved React hook errors in AuthContext by updating import patterns from React.useState to direct useState imports
+  - **UI Improvements**: Enhanced verification modal with education level dropdown and dynamic subject selection with proper validation
 - **January 2025**: Implemented comprehensive banned user access prevention system
   - **Login Prevention**: Added banned user check in login endpoint with clear Arabic error messages
   - **Registration Prevention**: Banned users cannot re-register with same email or phone number

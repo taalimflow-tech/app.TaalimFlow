@@ -648,16 +648,44 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(children).where(eq(children.verified, false)).orderBy(desc(children.createdAt));
   }
 
-  async getUnverifiedStudents(): Promise<Student[]> {
-    return await db.select().from(students).where(eq(students.verified, false)).orderBy(desc(students.createdAt));
+  async getUnverifiedStudents(): Promise<any[]> {
+    return await db
+      .select({
+        id: students.id,
+        userId: students.userId,
+        educationLevel: students.educationLevel,
+        grade: students.grade,
+        createdAt: students.createdAt,
+        verified: students.verified,
+        name: users.name
+      })
+      .from(students)
+      .leftJoin(users, eq(students.userId, users.id))
+      .where(eq(students.verified, false))
+      .orderBy(desc(students.createdAt));
   }
 
   async getVerifiedChildren(): Promise<Child[]> {
     return await db.select().from(children).where(eq(children.verified, true)).orderBy(desc(children.verifiedAt));
   }
 
-  async getVerifiedStudents(): Promise<Student[]> {
-    return await db.select().from(students).where(eq(students.verified, true)).orderBy(desc(students.verifiedAt));
+  async getVerifiedStudents(): Promise<any[]> {
+    return await db
+      .select({
+        id: students.id,
+        userId: students.userId,
+        educationLevel: students.educationLevel,
+        grade: students.grade,
+        verified: students.verified,
+        verifiedAt: students.verifiedAt,
+        verifiedBy: students.verifiedBy,
+        verificationNotes: students.verificationNotes,
+        name: users.name
+      })
+      .from(students)
+      .leftJoin(users, eq(students.userId, users.id))
+      .where(eq(students.verified, true))
+      .orderBy(desc(students.verifiedAt));
   }
 
   async undoVerifyChild(childId: number): Promise<Child> {
