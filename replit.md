@@ -135,6 +135,14 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Consistent Display**: Applied formatting across all verification sections (unverified/verified children and students)
   - **React Hook Fix**: Resolved React hook errors in AuthContext by updating import patterns from React.useState to direct useState imports
   - **UI Improvements**: Enhanced verification modal with education level dropdown and dynamic subject selection with proper validation
+- **January 2025**: Implemented dynamic lesson duration display system with proper time-based column spanning
+  - **Time-Based Column Spanning**: Created calculateTimeBasedColSpan function to dynamically calculate column spans based on actual start/end times
+  - **Overlap Prevention**: Enhanced isCellOccupiedHorizontally function to prevent lesson overlapping using precise time range calculations
+  - **Duration Support**: System now properly handles lessons with 1h, 1.5h, 2h, and 3h durations spanning multiple columns
+  - **Visual Accuracy**: Lessons now correctly span across the appropriate number of time columns (e.g., 08:00-09:30 spans 2 columns)
+  - **Real-time Calculation**: Column span is calculated dynamically based on start/end times rather than fixed duration values
+  - **Conflict Prevention**: Enhanced scheduling system prevents overlapping lessons in same time ranges
+  - **Professional Display**: Schedule grid now accurately represents actual lesson durations with proper visual spacing
 - **January 2025**: Implemented comprehensive banned user access prevention system
   - **Login Prevention**: Added banned user check in login endpoint with clear Arabic error messages
   - **Registration Prevention**: Banned users cannot re-register with same email or phone number
