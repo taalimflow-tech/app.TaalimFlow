@@ -414,9 +414,10 @@ export default function AdminUsers() {
           )}
         </div>
 
-        {/* Search Bar */}
+        {/* Search and Filter Section */}
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <form onSubmit={handleSearch} className="flex gap-4 mb-4">
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="flex gap-3 mb-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -424,28 +425,28 @@ export default function AdminUsers() {
                 placeholder="البحث بالاسم أو الإيميل أو رقم الهاتف..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <button
               type="submit"
-              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
             >
               بحث
             </button>
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md border ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm ${
                 showFilters || hasActiveFilters 
-                  ? 'bg-blue-50 border-blue-300 text-blue-700' 
-                  : 'bg-gray-50 border-gray-300 text-gray-700'
-              } hover:bg-blue-100`}
+                  ? 'bg-gray-100 border-gray-400 text-gray-700' 
+                  : 'bg-white border-gray-300 text-gray-600'
+              } hover:bg-gray-100`}
             >
               <Filter className="w-4 h-4" />
               فلترة
               {hasActiveFilters && (
-                <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                   {Object.values(filters).filter(v => v !== '').length}
                 </span>
               )}
@@ -455,16 +456,16 @@ export default function AdminUsers() {
           {/* Filter Panel */}
           {showFilters && (
             <div className="border-t pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 {/* Role Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     الدور
                   </label>
                   <select
                     value={filters.role}
                     onChange={(e) => handleFilterChange('role', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">جميع الأدوار</option>
                     <option value="admin">مدير</option>
@@ -476,13 +477,13 @@ export default function AdminUsers() {
 
                 {/* Education Level Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     المستوى التعليمي
                   </label>
                   <select
                     value={filters.educationLevel}
                     onChange={(e) => handleFilterChange('educationLevel', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">جميع المستويات</option>
                     <option value="الابتدائي">الابتدائي</option>
@@ -493,13 +494,13 @@ export default function AdminUsers() {
 
                 {/* Subject Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     المادة
                   </label>
                   <select
                     value={filters.subject}
                     onChange={(e) => handleFilterChange('subject', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">جميع المواد</option>
                     {teachingModules.map((module) => (
@@ -512,13 +513,13 @@ export default function AdminUsers() {
 
                 {/* Assigned Teacher Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     المعلم المسؤول
                   </label>
                   <select
                     value={filters.assignedTeacher}
                     onChange={(e) => handleFilterChange('assignedTeacher', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">جميع المعلمين</option>
                     {teacherUsers.map((teacher) => (
@@ -532,10 +533,10 @@ export default function AdminUsers() {
 
               {/* Clear Filters */}
               {hasActiveFilters && (
-                <div className="flex justify-end mt-4">
+                <div className="flex justify-end mt-3">
                   <button
                     onClick={clearFilters}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     <X className="w-4 h-4" />
                     مسح الفلاتر
@@ -548,9 +549,9 @@ export default function AdminUsers() {
 
         {/* Users Table */}
         <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-4 border-b">
+          <div className="px-4 py-3 border-b bg-gray-50">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">المستخدمون ({users.length})</h3>
+              <h3 className="text-base font-medium text-gray-900">المستخدمون ({users.length})</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleSelectAll}
@@ -617,18 +618,18 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <div className="w-9 h-9 bg-gray-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-medium text-sm">
                               {user.name.charAt(0)}
                             </span>
                           </div>
                           <div className="mr-3">
                             <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500 flex items-center gap-1">
+                            <div className="text-xs text-gray-500 flex items-center gap-1">
                               <Mail className="w-3 h-3" />
                               {user.email}
                             </div>
-                            <div className="text-sm text-gray-500 flex items-center gap-1">
+                            <div className="text-xs text-gray-500 flex items-center gap-1">
                               <Phone className="w-3 h-3" />
                               {user.phone}
                             </div>
@@ -657,17 +658,17 @@ export default function AdminUsers() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => fetchUserDetails(user.id)}
-                            className="text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                            className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-xs"
                           >
-                            <Eye className="w-4 h-4" />
-                            عرض التفاصيل
+                            <Eye className="w-3 h-3" />
+                            عرض
                           </button>
                           {user.role !== 'admin' && (
                             <button
                               onClick={() => handleBanUser(user.id, user.name)}
-                              className="text-red-600 hover:text-red-700 flex items-center gap-1"
+                              className="text-red-600 hover:text-red-700 flex items-center gap-1 text-xs"
                             >
-                              <Ban className="w-4 h-4" />
+                              <Ban className="w-3 h-3" />
                               حظر
                             </button>
                           )}
