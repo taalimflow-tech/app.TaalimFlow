@@ -62,6 +62,38 @@ export default function AdminVerification() {
   const [selectedItem, setSelectedItem] = useState<{type: string, id: number, data?: any} | null>(null);
   const [showModal, setShowModal] = useState(false);
 
+  // Check if user has admin privileges
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <Card className="bg-white shadow-lg">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <XCircle className="w-8 h-8 text-red-600" />
+              </div>
+              <CardTitle className="text-red-700">صلاحيات المدير مطلوبة</CardTitle>
+              <CardDescription className="text-gray-600">
+                يجب أن تكون مديراً للوصول إلى هذه الصفحة
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-sm text-gray-500 mb-4">
+                هذه الصفحة مخصصة للمدراء فقط لإدارة التحقق من الأطفال والطلاب
+              </p>
+              <Button 
+                onClick={() => window.location.href = '/'}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                العودة إلى الصفحة الرئيسية
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   const fetchData = async () => {
     try {
       const [
