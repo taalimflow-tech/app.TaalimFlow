@@ -94,50 +94,6 @@ export default function Schedule() {
     { period: 14, time: '21' },
     { period: 15, time: '22' },
   ];
-
-  // Helper function to calculate column span based on start and end times
-  const calculateTimeBasedColSpan = (startTime: string, endTime: string) => {
-    if (!startTime || !endTime) return 1;
-    
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
-    
-    const startTotalMin = startHour * 60 + startMin;
-    const endTotalMin = endHour * 60 + endMin;
-    const durationMin = endTotalMin - startTotalMin;
-    
-    // Calculate how many hourly columns this lesson should span
-    // Each column represents 1 hour (60 minutes)
-    const colSpan = Math.ceil(durationMin / 60);
-    
-    return Math.max(1, colSpan); // Minimum 1 column
-  };
-
-  // Helper function to check if a time slot should be skipped (already occupied by a spanning cell)
-  const isTimeSlotOccupied = (dayIndex: number, period: number, cells: ScheduleCell[]) => {
-    // Check if any cell that starts before this period spans into this period
-    for (const cell of cells) {
-      if (cell.dayOfWeek === dayIndex && cell.startTime && cell.endTime) {
-        const cellStartHour = parseInt(cell.startTime.split(':')[0]);
-        const cellEndHour = parseInt(cell.endTime.split(':')[0]);
-        const cellEndMin = parseInt(cell.endTime.split(':')[1]);
-        
-        // If the cell starts before this period and ends after this period starts
-        const periodStartHour = period + 7; // periods start at 8 (period 1 = 8AM)
-        
-        if (cellStartHour < periodStartHour) {
-          // Check if this cell extends into the current period
-          const cellEndTime = cellEndHour * 60 + cellEndMin;
-          const periodStartTime = periodStartHour * 60;
-          
-          if (cellEndTime > periodStartTime) {
-            return true; // This slot is occupied by a spanning cell
-          }
-        }
-      }
-    }
-    return false;
-  };
   
   // Education levels with detailed grades
   const educationLevels = [
@@ -394,27 +350,22 @@ export default function Schedule() {
 
   // Check if cell is occupied by a longer duration cell (horizontally)
   const isCellOccupiedHorizontally = (day: number, period: number) => {
-    // Check if any cell from previous periods spans into this period
-    for (const cell of cells) {
-      if (cell.dayOfWeek === day && cell.startTime && cell.endTime) {
-        const [startHour, startMin] = cell.startTime.split(':').map(Number);
-        const [endHour, endMin] = cell.endTime.split(':').map(Number);
+    for (let i = 1; i < period; i++) {
+      const previousCell = getCellAtPosition(day, period - i);
+      if (previousCell) {
+        let actualSpan = 1;
+        if (previousCell.startTime && previousCell.endTime) {
+          const [startHour] = previousCell.startTime.split(':').map(Number);
+          const [endHour] = previousCell.endTime.split(':').map(Number);
+          const startPeriod = Math.max(1, startHour - 7);
+          const endPeriod = Math.max(1, endHour - 7);
+          actualSpan = Math.max(1, endPeriod - startPeriod);
+        } else {
+          actualSpan = previousCell.duration;
+        }
         
-        // Convert to minutes for precise calculation
-        const startTotalMin = startHour * 60 + startMin;
-        const endTotalMin = endHour * 60 + endMin;
-        
-        // Calculate the time range for the current period
-        const currentPeriodStartHour = period + 7; // period 1 = 8AM, period 2 = 9AM, etc.
-        const currentPeriodStartMin = currentPeriodStartHour * 60;
-        const currentPeriodEndMin = (currentPeriodStartHour + 1) * 60;
-        
-        // Check if this cell overlaps with the current period
-        if (startTotalMin < currentPeriodEndMin && endTotalMin > currentPeriodStartMin) {
-          // If the cell starts before this period, then this period is occupied
-          if (startTotalMin < currentPeriodStartMin) {
-            return true;
-          }
+        if (actualSpan > i) {
+          return true;
         }
       }
     }
@@ -558,7 +509,11 @@ export default function Schedule() {
                           // Calculate actual column span based on start and end times
                           let actualColSpan = 1;
                           if (cell.startTime && cell.endTime) {
-                            actualColSpan = calculateTimeBasedColSpan(cell.startTime, cell.endTime);
+                            const [startHour] = cell.startTime.split(':').map(Number);
+                            const [endHour] = cell.endTime.split(':').map(Number);
+                            const startPeriod = Math.max(1, startHour - 7); // 8:00 = period 1
+                            const endPeriod = Math.max(1, endHour - 7);
+                            actualColSpan = Math.max(1, endPeriod - startPeriod);
                           } else {
                             actualColSpan = cell.duration;
                           }
