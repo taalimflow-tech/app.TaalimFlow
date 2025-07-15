@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { User } from '@shared/schema';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
