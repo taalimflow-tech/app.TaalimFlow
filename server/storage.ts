@@ -12,6 +12,13 @@ export interface IStorage {
   authenticateUser(email: string, password: string): Promise<User | null>;
   getAllUsers(): Promise<User[]>;
   searchUsers(query: string): Promise<User[]>;
+  searchUsersWithFilters(filters: {
+    search?: string;
+    educationLevel?: string;
+    subject?: number;
+    assignedTeacher?: number;
+    role?: string;
+  }): Promise<User[]>;
   updateUserProfilePicture(userId: number, profilePictureUrl: string): Promise<User>;
   
   // Phone verification methods
@@ -195,6 +202,104 @@ export class DatabaseStorage implements IStorage {
         ilike(users.phone, `%${query}%`)
       )
     ).orderBy(desc(users.createdAt));
+  }
+
+  async searchUsersWithFilters(filters: {
+    search?: string;
+    educationLevel?: string;
+    subject?: number;
+    assignedTeacher?: number;
+    role?: string;
+  }): Promise<User[]> {
+    let query = db.select({
+      id: users.id,
+      email: users.email,
+      password: users.password,
+      name: users.name,
+      phone: users.phone,
+      phoneVerified: users.phoneVerified,
+      phoneVerificationCode: users.phoneVerificationCode,
+      phoneVerificationExpiry: users.phoneVerificationExpiry,
+      emailVerified: users.emailVerified,
+      emailVerificationCode: users.emailVerificationCode,
+      emailVerificationExpiry: users.emailVerificationExpiry,
+      profilePicture: users.profilePicture,
+      role: users.role,
+      gender: users.gender,
+      firebaseUid: users.firebaseUid,
+      verified: users.verified,
+      verificationNotes: users.verificationNotes,
+      verifiedAt: users.verifiedAt,
+      verifiedBy: users.verifiedBy,
+      banned: users.banned,
+      banReason: users.banReason,
+      bannedAt: users.bannedAt,
+      bannedBy: users.bannedBy,
+      createdAt: users.createdAt,
+      student: students,
+    })
+    .from(users)
+    .leftJoin(students, eq(users.id, students.userId))
+    .leftJoin(children, eq(users.id, children.parentId));
+
+    const conditions = [];
+
+    // Search filter
+    if (filters.search) {
+      conditions.push(
+        or(
+          ilike(users.name, `%${filters.search}%`),
+          ilike(users.email, `%${filters.search}%`),
+          ilike(users.phone, `%${filters.search}%`)
+        )
+      );
+    }
+
+    // Role filter
+    if (filters.role) {
+      conditions.push(eq(users.role, filters.role));
+    }
+
+    // Education level filter (applies to students and children)
+    if (filters.educationLevel) {
+      conditions.push(
+        or(
+          eq(students.educationLevel, filters.educationLevel),
+          eq(children.educationLevel, filters.educationLevel)
+        )
+      );
+    }
+
+    // Subject filter (for teacher assignments)
+    if (filters.subject) {
+      query = query
+        .leftJoin(teacherSpecializations, eq(users.id, teacherSpecializations.teacherId))
+        .leftJoin(teachingModules, eq(teacherSpecializations.moduleId, teachingModules.id));
+      conditions.push(eq(teachingModules.id, filters.subject));
+    }
+
+    // Assigned teacher filter (for schedule assignments)
+    if (filters.assignedTeacher) {
+      query = query
+        .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId));
+      conditions.push(eq(scheduleCells.teacherId, filters.assignedTeacher));
+    }
+
+    // Apply all conditions
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    // Execute query and remove duplicates
+    const results = await query.orderBy(desc(users.createdAt));
+    const uniqueUsers = results.reduce((acc, user) => {
+      if (!acc.find(u => u.id === user.id)) {
+        acc.push(user);
+      }
+      return acc;
+    }, [] as any[]);
+
+    return uniqueUsers;
   }
 
   async createChild(insertChild: InsertChild): Promise<Child> {

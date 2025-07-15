@@ -603,14 +603,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
-      const { search } = req.query;
-      let users;
+      const { search, educationLevel, subject, assignedTeacher, role } = req.query;
       
-      if (search && typeof search === 'string') {
-        users = await storage.searchUsers(search);
-      } else {
-        users = await storage.getAllUsers();
-      }
+      // Build filter object
+      const filters = {
+        search: search && typeof search === 'string' ? search : undefined,
+        educationLevel: educationLevel && typeof educationLevel === 'string' ? educationLevel : undefined,
+        subject: subject && typeof subject === 'string' ? parseInt(subject) : undefined,
+        assignedTeacher: assignedTeacher && typeof assignedTeacher === 'string' ? parseInt(assignedTeacher) : undefined,
+        role: role && typeof role === 'string' ? role : undefined,
+      };
+      
+      // Use new filtered search method
+      const users = await storage.searchUsersWithFilters(filters);
       
       // Remove passwords from response
       const usersWithoutPasswords = users.map(({ password, ...user }) => user);
@@ -785,6 +790,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(teachers);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teachers" });
+    }
+  });
+
+  app.get("/api/teachers-with-specializations", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const teachers = await storage.getTeachersWithSpecializations();
+      res.json(teachers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch teachers with specializations" });
     }
   });
 

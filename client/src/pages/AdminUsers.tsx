@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Users, Mail, Phone, Eye, Send, CheckSquare, Square, Baby, MessageSquare, Calendar, FileText, Plus } from 'lucide-react';
+import { Search, Users, Mail, Phone, Eye, Send, CheckSquare, Square, Baby, MessageSquare, Calendar, FileText, Plus, Filter, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -12,9 +12,10 @@ interface User {
   name: string;
   email: string;
   phone: string;
-  role: 'admin' | 'teacher' | 'user';
+  role: 'admin' | 'teacher' | 'user' | 'student';
   createdAt: string;
   children?: Child[];
+  student?: Student;
 }
 
 interface Child {
@@ -23,6 +24,14 @@ interface Child {
   educationLevel: string;
   grade: string;
   parentId: number;
+  createdAt: string;
+}
+
+interface Student {
+  id: number;
+  userId: number;
+  educationLevel: string;
+  grade: string;
   createdAt: string;
 }
 
@@ -37,6 +46,37 @@ interface Message {
   createdAt: string;
 }
 
+interface TeachingModule {
+  id: number;
+  name: string;
+  nameAr: string;
+  educationLevel: string;
+  grade?: string;
+  description?: string;
+}
+
+interface TeacherUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  specializations?: TeacherSpecialization[];
+}
+
+interface TeacherSpecialization {
+  id: number;
+  teacherId: number;
+  moduleId: number;
+  module: TeachingModule;
+}
+
+interface FilterState {
+  educationLevel: string;
+  subject: string;
+  assignedTeacher: string;
+  role: string;
+}
+
 export default function AdminUsers() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -48,17 +88,51 @@ export default function AdminUsers() {
   const [viewingUser, setViewingUser] = useState<User | null>(null);
   const [viewingUserMessages, setViewingUserMessages] = useState<Message[]>([]);
   const [showBulkMessage, setShowBulkMessage] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    educationLevel: '',
+    subject: '',
+    assignedTeacher: '',
+    role: ''
+  });
   const [bulkMessageData, setBulkMessageData] = useState({
     subject: '',
     content: ''
   });
 
-  // Fetch users with search
+  // Fetch users with search and filters
   const { data: users = [], isLoading, refetch } = useQuery<User[]>({
-    queryKey: ['/api/users', searchQuery],
+    queryKey: ['/api/users', searchQuery, filters],
     queryFn: async () => {
-      const url = searchQuery ? `/api/users?search=${encodeURIComponent(searchQuery)}` : '/api/users';
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (filters.educationLevel) params.append('educationLevel', filters.educationLevel);
+      if (filters.subject) params.append('subject', filters.subject);
+      if (filters.assignedTeacher) params.append('assignedTeacher', filters.assignedTeacher);
+      if (filters.role) params.append('role', filters.role);
+      
+      const url = `/api/users${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await apiRequest('GET', url);
+      return await response.json();
+    },
+    enabled: !!user && user.role === 'admin',
+  });
+
+  // Fetch teaching modules for filter dropdown
+  const { data: teachingModules = [] } = useQuery<TeachingModule[]>({
+    queryKey: ['/api/teaching-modules'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/teaching-modules');
+      return await response.json();
+    },
+    enabled: !!user && user.role === 'admin',
+  });
+
+  // Fetch teachers for filter dropdown
+  const { data: teacherUsers = [] } = useQuery<TeacherUser[]>({
+    queryKey: ['/api/teachers-with-specializations'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/teachers-with-specializations');
       return await response.json();
     },
     enabled: !!user && user.role === 'admin',
@@ -77,6 +151,25 @@ export default function AdminUsers() {
       toast({ title: 'خطأ في جلب تفاصيل المستخدم', variant: 'destructive' });
     }
   };
+
+  // Filter handlers
+  const handleFilterChange = (key: keyof FilterState, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      educationLevel: '',
+      subject: '',
+      assignedTeacher: '',
+      role: ''
+    });
+  };
+
+  const hasActiveFilters = Object.values(filters).some(value => value !== '');
 
   // Bulk message mutation
   const bulkMessageMutation = useMutation({
@@ -198,7 +291,7 @@ export default function AdminUsers() {
 
         {/* Search Bar */}
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
+          <form onSubmit={handleSearch} className="flex gap-4 mb-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -215,7 +308,117 @@ export default function AdminUsers() {
             >
               بحث
             </button>
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md border ${
+                showFilters || hasActiveFilters 
+                  ? 'bg-blue-50 border-blue-300 text-blue-700' 
+                  : 'bg-gray-50 border-gray-300 text-gray-700'
+              } hover:bg-blue-100`}
+            >
+              <Filter className="w-4 h-4" />
+              فلترة
+              {hasActiveFilters && (
+                <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {Object.values(filters).filter(v => v !== '').length}
+                </span>
+              )}
+            </button>
           </form>
+
+          {/* Filter Panel */}
+          {showFilters && (
+            <div className="border-t pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Role Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    الدور
+                  </label>
+                  <select
+                    value={filters.role}
+                    onChange={(e) => handleFilterChange('role', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">جميع الأدوار</option>
+                    <option value="admin">مدير</option>
+                    <option value="teacher">معلم</option>
+                    <option value="student">طالب</option>
+                    <option value="user">ولي أمر</option>
+                  </select>
+                </div>
+
+                {/* Education Level Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    المستوى التعليمي
+                  </label>
+                  <select
+                    value={filters.educationLevel}
+                    onChange={(e) => handleFilterChange('educationLevel', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">جميع المستويات</option>
+                    <option value="الابتدائي">الابتدائي</option>
+                    <option value="المتوسط">المتوسط</option>
+                    <option value="الثانوي">الثانوي</option>
+                  </select>
+                </div>
+
+                {/* Subject Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    المادة
+                  </label>
+                  <select
+                    value={filters.subject}
+                    onChange={(e) => handleFilterChange('subject', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">جميع المواد</option>
+                    {teachingModules.map((module) => (
+                      <option key={module.id} value={module.id.toString()}>
+                        {module.nameAr} ({module.educationLevel})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Assigned Teacher Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    المعلم المسؤول
+                  </label>
+                  <select
+                    value={filters.assignedTeacher}
+                    onChange={(e) => handleFilterChange('assignedTeacher', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">جميع المعلمين</option>
+                    {teacherUsers.map((teacher) => (
+                      <option key={teacher.id} value={teacher.id.toString()}>
+                        {teacher.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    <X className="w-4 h-4" />
+                    مسح الفلاتر
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Users Table */}
