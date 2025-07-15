@@ -417,6 +417,9 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Student Selection**: Multi-select checkbox interface for assigning students to groups
   - **Group Creation**: New groups automatically created when admins assign students/teachers to placeholder groups
   - **Real-time Updates**: All changes reflect immediately with proper cache invalidation
+  - **Modern Hierarchical Interface**: Redesigned with clean step-by-step selection process (level → grade → subjects)
+  - **Conditional Display**: Subject groups only appear after both education level and grade are selected
+  - **User Guidance**: Added instruction messages to guide admins through the selection process
 - **January 2025**: Implemented comprehensive admin reports management system with user banning functionality
   - **AdminReports Page**: Created comprehensive admin interface for managing user reports and banned users
   - **Two-Tab System**: Separate tabs for submitted reports and banned users management

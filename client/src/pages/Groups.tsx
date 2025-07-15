@@ -288,10 +288,19 @@ export default function Groups() {
                           </select>
                         </div>
                       </div>
+                      
+                      {/* Instruction Message */}
+                      {selectedLevel && !selectedGrade && (
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-sm text-yellow-800">
+                            الرجاء اختيار السنة الدراسية لعرض المواد المتاحة
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Subject Groups Grid */}
-                    {selectedLevel && (
+                    {selectedLevel && selectedGrade && (
                       <div className="bg-white rounded-lg border p-6">
                         <div className="flex items-center mb-4">
                           <div className={`px-3 py-1 rounded-full text-sm font-medium ${getEducationLevelColor(selectedLevel)}`}>
