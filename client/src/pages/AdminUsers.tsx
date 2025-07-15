@@ -364,47 +364,54 @@ export default function AdminUsers() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-                <Users className="w-6 h-6" />
+              <h1 className="text-xl font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                <Users className="w-5 h-5" />
                 إدارة المستخدمين
               </h1>
-              <p className="text-gray-600">عرض وإدارة جميع المستخدمين المسجلين</p>
+              <p className="text-sm text-gray-600">عرض وإدارة جميع المستخدمين المسجلين</p>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 onClick={() => navigate('/admin/content')}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm font-medium"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="w-4 h-4 mr-1" />
                 إدارة المحتوى
               </Button>
-              {selectedUsers.length > 0 && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowBulkMessage(true)}
-                    className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    إرسال رسالة جماعية ({selectedUsers.length})
-                  </button>
-                  <button
-                    onClick={handleBulkBan}
-                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 flex items-center gap-2"
-                  >
-                    <Ban className="w-4 h-4" />
-                    حظر جماعي ({selectedUsers.filter(id => users.find(u => u.id === id)?.role !== 'admin').length})
-                  </button>
-                </div>
-              )}
             </div>
           </div>
+          
+          {/* Action Buttons Row */}
+          {selectedUsers.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 mr-2">
+                  تم تحديد {selectedUsers.length} مستخدم:
+                </span>
+                <button
+                  onClick={() => setShowBulkMessage(true)}
+                  className="bg-purple-600 text-white px-3 py-1.5 rounded text-sm hover:bg-purple-700 flex items-center gap-1"
+                >
+                  <Send className="w-4 h-4" />
+                  إرسال رسالة جماعية
+                </button>
+                <button
+                  onClick={handleBulkBan}
+                  className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                >
+                  <Ban className="w-4 h-4" />
+                  حظر جماعي ({selectedUsers.filter(id => users.find(u => u.id === id)?.role !== 'admin').length})
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Search Bar */}
