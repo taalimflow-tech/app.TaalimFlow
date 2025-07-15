@@ -135,6 +135,7 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Consistent Display**: Applied formatting across all verification sections (unverified/verified children and students)
   - **React Hook Fix**: Resolved React hook errors in AuthContext by updating import patterns from React.useState to direct useState imports
   - **UI Improvements**: Enhanced verification modal with education level dropdown and dynamic subject selection with proper validation
+  - **Ban Functionality in AdminUsers**: Added ban user button to actions column in AdminUsers page for quick user banning from user management interface
 - **January 2025**: Implemented comprehensive banned user access prevention system
   - **Login Prevention**: Added banned user check in login endpoint with clear Arabic error messages
   - **Registration Prevention**: Banned users cannot re-register with same email or phone number

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Users, Mail, Phone, Eye, Send, CheckSquare, Square, Baby, MessageSquare, Calendar, FileText, Plus, Filter, X } from 'lucide-react';
+import { Search, Users, Mail, Phone, Eye, Send, CheckSquare, Square, Baby, MessageSquare, Calendar, FileText, Plus, Filter, X, Ban } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -99,6 +99,10 @@ export default function AdminUsers() {
     subject: '',
     content: ''
   });
+  
+  // Ban user state
+  const [showBanModal, setShowBanModal] = useState(false);
+  const [banUserData, setBanUserData] = useState<{userId: number, userName: string} | null>(null);
 
   // Fetch users with search and filters
   const { data: users = [], isLoading, refetch } = useQuery<User[]>({
@@ -189,6 +193,29 @@ export default function AdminUsers() {
     }
   });
 
+  // Ban user mutation
+  const banUserMutation = useMutation({
+    mutationFn: async ({ userId, reason }: { userId: number; reason: string }) => {
+      return await apiRequest('POST', '/api/admin/ban-user', { userId, reason });
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم حظر المستخدم",
+        description: "تم حظر المستخدم من التطبيق بنجاح",
+      });
+      setShowBanModal(false);
+      setBanUserData(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في حظر المستخدم",
+        description: error.message || "حدث خطأ أثناء حظر المستخدم",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,6 +259,18 @@ export default function AdminUsers() {
       subject: bulkMessageData.subject,
       content: bulkMessageData.content
     });
+  };
+
+  // Handle ban user
+  const handleBanUser = (userId: number, userName: string) => {
+    setBanUserData({ userId, userName });
+    setShowBanModal(true);
+  };
+
+  const handleBanConfirm = (reason: string) => {
+    if (banUserData) {
+      banUserMutation.mutate({ userId: banUserData.userId, reason });
+    }
   };
 
   // Format date
@@ -529,13 +568,24 @@ export default function AdminUsers() {
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => fetchUserDetails(user.id)}
-                          className="text-purple-600 hover:text-purple-700 flex items-center gap-1"
-                        >
-                          <Eye className="w-4 h-4" />
-                          عرض التفاصيل
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => fetchUserDetails(user.id)}
+                            className="text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                          >
+                            <Eye className="w-4 h-4" />
+                            عرض التفاصيل
+                          </button>
+                          {user.role !== 'admin' && (
+                            <button
+                              onClick={() => handleBanUser(user.id, user.name)}
+                              className="text-red-600 hover:text-red-700 flex items-center gap-1"
+                            >
+                              <Ban className="w-4 h-4" />
+                              حظر
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -734,6 +784,63 @@ export default function AdminUsers() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Ban User Modal */}
+        {showBanModal && banUserData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4" dir="rtl">
+              <h2 className="text-lg font-bold mb-4 text-red-600">حظر المستخدم {banUserData.userName}</h2>
+              
+              <div className="space-y-4">
+                <div className="bg-red-50 p-3 rounded-lg">
+                  <p className="text-sm text-red-700">
+                    تحذير: سيتم منع هذا المستخدم من الوصول إلى التطبيق بالكامل
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">سبب الحظر</label>
+                  <textarea 
+                    id="banReason"
+                    className="w-full p-2 border rounded-md h-20"
+                    placeholder="اكتب سبب حظر المستخدم..."
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowBanModal(false);
+                    setBanUserData(null);
+                  }}
+                >
+                  إلغاء
+                </Button>
+                <Button 
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => {
+                    const reasonInput = document.getElementById('banReason') as HTMLTextAreaElement;
+                    const reason = reasonInput?.value?.trim();
+                    if (reason) {
+                      handleBanConfirm(reason);
+                    } else {
+                      toast({
+                        title: "سبب الحظر مطلوب",
+                        description: "يرجى إدخال سبب الحظر",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  disabled={banUserMutation.isPending}
+                >
+                  {banUserMutation.isPending ? 'جاري الحظر...' : 'حظر المستخدم'}
+                </Button>
+              </div>
             </div>
           </div>
         )}
