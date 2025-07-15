@@ -61,6 +61,11 @@ export interface IStorage {
   createGroup(group: InsertGroup): Promise<Group>;
   deleteGroup(id: number): Promise<void>;
   
+  // Admin group management methods
+  getAdminGroups(): Promise<any[]>;
+  updateGroupAssignments(groupId: number, studentIds: number[], teacherId: number): Promise<Group>;
+  getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number): Promise<any[]>;
+  
   // Formation methods
   getFormations(): Promise<Formation[]>;
   createFormation(formation: InsertFormation): Promise<Formation>;
@@ -508,6 +513,91 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGroup(id: number): Promise<void> {
     await db.delete(groups).where(eq(groups.id, id));
+  }
+
+  // Admin group management methods
+  async getAdminGroups(): Promise<any[]> {
+    const result = await db
+      .select({
+        id: groups.id,
+        name: groups.name,
+        description: groups.description,
+        category: groups.category,
+        educationLevel: groups.educationLevel,
+        subjectId: groups.subjectId,
+        teacherId: groups.teacherId,
+        subjectName: teachingModules.name,
+        teacherName: users.name,
+        createdAt: groups.createdAt
+      })
+      .from(groups)
+      .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+      .leftJoin(users, eq(groups.teacherId, users.id))
+      .orderBy(desc(groups.createdAt));
+
+    // Add student assignments to each group
+    const groupsWithStudents = await Promise.all(
+      result.map(async (group) => {
+        const studentsAssigned = await db
+          .select({ id: groupRegistrations.userId })
+          .from(groupRegistrations)
+          .where(eq(groupRegistrations.groupId, group.id));
+        
+        return {
+          ...group,
+          studentsAssigned: studentsAssigned.map(s => s.id)
+        };
+      })
+    );
+
+    return groupsWithStudents;
+  }
+
+  async updateGroupAssignments(groupId: number, studentIds: number[], teacherId: number): Promise<Group> {
+    // Update the group's teacher
+    await db
+      .update(groups)
+      .set({ teacherId })
+      .where(eq(groups.id, groupId));
+
+    // Remove existing student assignments
+    await db.delete(groupRegistrations).where(eq(groupRegistrations.groupId, groupId));
+
+    // Add new student assignments
+    if (studentIds.length > 0) {
+      const registrations = studentIds.map(studentId => ({
+        groupId,
+        userId: studentId
+      }));
+      await db.insert(groupRegistrations).values(registrations);
+    }
+
+    // Return the updated group
+    const [updatedGroup] = await db.select().from(groups).where(eq(groups.id, groupId));
+    return updatedGroup;
+  }
+
+  async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number): Promise<any[]> {
+    const result = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        educationLevel: students.educationLevel,
+        grade: students.grade
+      })
+      .from(users)
+      .leftJoin(students, eq(users.id, students.userId))
+      .where(
+        and(
+          eq(users.role, 'student'),
+          eq(students.educationLevel, educationLevel)
+        )
+      )
+      .orderBy(users.name);
+
+    return result;
   }
 
   async getFormations(): Promise<Formation[]> {

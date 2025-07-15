@@ -1189,6 +1189,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin group management routes
+  app.get("/api/admin/groups", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const adminGroups = await storage.getAdminGroups();
+      res.json(adminGroups);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch admin groups" });
+    }
+  });
+
+  app.get("/api/admin/groups/students/:educationLevel/:subjectId", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const educationLevel = req.params.educationLevel;
+      const subjectId = parseInt(req.params.subjectId);
+      
+      const availableStudents = await storage.getAvailableStudentsByLevelAndSubject(educationLevel, subjectId);
+      res.json(availableStudents);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch available students" });
+    }
+  });
+
+  app.put("/api/admin/groups/:id/assignments", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const groupId = parseInt(req.params.id);
+      const { studentIds, teacherId } = req.body;
+      
+      if (!Array.isArray(studentIds) || typeof teacherId !== 'number') {
+        return res.status(400).json({ error: "Invalid assignment data" });
+      }
+      
+      const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId);
+      res.json(updatedGroup);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update group assignments" });
+    }
+  });
+
   // Formation routes
   app.get("/api/formations", async (req, res) => {
     try {
