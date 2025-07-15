@@ -661,7 +661,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(students)
       .leftJoin(users, eq(students.userId, users.id))
-      .where(eq(students.verified, false))
+      .where(and(eq(students.verified, false), eq(users.role, 'student')))
       .orderBy(desc(students.createdAt));
   }
 
@@ -684,7 +684,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(students)
       .leftJoin(users, eq(students.userId, users.id))
-      .where(eq(students.verified, true))
+      .where(and(eq(students.verified, true), eq(users.role, 'student')))
       .orderBy(desc(students.verifiedAt));
   }
 
