@@ -511,9 +511,8 @@ export default function Schedule() {
                           if (cell.startTime && cell.endTime) {
                             const [startHour] = cell.startTime.split(':').map(Number);
                             const [endHour] = cell.endTime.split(':').map(Number);
-                            const startPeriod = Math.max(1, startHour - 7); // 8:00 = period 1
-                            const endPeriod = Math.max(1, endHour - 7);
-                            actualColSpan = Math.max(1, endPeriod - startPeriod);
+                            // Calculate column span based on duration in hours
+                            actualColSpan = Math.max(1, endHour - startHour);
                           } else {
                             actualColSpan = cell.duration;
                           }
@@ -726,24 +725,10 @@ export default function Schedule() {
                     value={cellForm.startTime}
                     onChange={(e) => {
                       const startTime = e.target.value;
-                      // Automatically determine period based on start time
+                      // Automatically determine period based on start time hour
                       const hour = parseInt(startTime.split(':')[0]);
-                      let period = 1;
-                      if (hour >= 8 && hour < 9) period = 1;
-                      else if (hour >= 9 && hour < 10) period = 2;
-                      else if (hour >= 10 && hour < 11) period = 3;
-                      else if (hour >= 11 && hour < 12) period = 4;
-                      else if (hour >= 12 && hour < 13) period = 5;
-                      else if (hour >= 13 && hour < 14) period = 6;
-                      else if (hour >= 14 && hour < 15) period = 7;
-                      else if (hour >= 15 && hour < 16) period = 8;
-                      else if (hour >= 16 && hour < 17) period = 9;
-                      else if (hour >= 17 && hour < 18) period = 10;
-                      else if (hour >= 18 && hour < 19) period = 11;
-                      else if (hour >= 19 && hour < 20) period = 12;
-                      else if (hour >= 20 && hour < 21) period = 13;
-                      else if (hour >= 21 && hour < 22) period = 14;
-                      else if (hour >= 22 && hour < 23) period = 15;
+                      // Period mapping: 8:xx = period 1, 9:xx = period 2, etc.
+                      const period = Math.max(1, Math.min(15, hour - 7));
                       
                       setCellForm({ ...cellForm, startTime, period: period.toString() });
                     }}
