@@ -415,134 +415,139 @@ export default function AdminUsers() {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border mb-6">
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex gap-3 mb-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="البحث بالاسم أو الإيميل أو رقم الهاتف..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-            >
-              بحث
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm ${
-                showFilters || hasActiveFilters 
-                  ? 'bg-gray-100 border-gray-400 text-gray-700' 
-                  : 'bg-white border-gray-300 text-gray-600'
-              } hover:bg-gray-100`}
-            >
-              <Filter className="w-4 h-4" />
-              فلترة
-              {hasActiveFilters && (
-                <span className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {Object.values(filters).filter(v => v !== '').length}
-                </span>
-              )}
-            </button>
-          </form>
+          <div className="p-4 border-b">
+            <form onSubmit={handleSearch} className="flex gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="البحث بالاسم أو الإيميل أو رقم الهاتف..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2.5 rounded-md text-sm hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Search className="w-4 h-4" />
+                بحث
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md border text-sm ${
+                  showFilters || hasActiveFilters 
+                    ? 'bg-gray-100 border-gray-400 text-gray-700' 
+                    : 'bg-white border-gray-300 text-gray-600'
+                } hover:bg-gray-100`}
+              >
+                <Filter className="w-4 h-4" />
+                فلترة
+                {hasActiveFilters && (
+                  <span className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {Object.values(filters).filter(v => v !== '').length}
+                  </span>
+                )}
+              </button>
+            </form>
+          </div>
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="border-t pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                {/* Role Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    الدور
-                  </label>
-                  <select
-                    value={filters.role}
-                    onChange={(e) => handleFilterChange('role', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">جميع الأدوار</option>
-                    <option value="admin">مدير</option>
-                    <option value="teacher">معلم</option>
-                    <option value="student">طالب</option>
-                    <option value="user">ولي أمر</option>
-                  </select>
+            <div className="p-4 bg-gray-50">
+              <div className="space-y-4">
+                {/* First Row: Role and Education Level */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      الدور
+                    </label>
+                    <select
+                      value={filters.role}
+                      onChange={(e) => handleFilterChange('role', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option value="">جميع الأدوار</option>
+                      <option value="admin">مدير</option>
+                      <option value="teacher">معلم</option>
+                      <option value="student">طالب</option>
+                      <option value="user">ولي أمر</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      المستوى التعليمي
+                    </label>
+                    <select
+                      value={filters.educationLevel}
+                      onChange={(e) => handleFilterChange('educationLevel', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option value="">جميع المستويات</option>
+                      <option value="الابتدائي">الابتدائي</option>
+                      <option value="المتوسط">المتوسط</option>
+                      <option value="الثانوي">الثانوي</option>
+                    </select>
+                  </div>
                 </div>
 
-                {/* Education Level Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    المستوى التعليمي
-                  </label>
-                  <select
-                    value={filters.educationLevel}
-                    onChange={(e) => handleFilterChange('educationLevel', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">جميع المستويات</option>
-                    <option value="الابتدائي">الابتدائي</option>
-                    <option value="المتوسط">المتوسط</option>
-                    <option value="الثانوي">الثانوي</option>
-                  </select>
+                {/* Second Row: Subject and Teacher */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      المادة
+                    </label>
+                    <select
+                      value={filters.subject}
+                      onChange={(e) => handleFilterChange('subject', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option value="">جميع المواد</option>
+                      {teachingModules.map((module) => (
+                        <option key={module.id} value={module.id.toString()}>
+                          {module.nameAr} ({module.educationLevel})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      المعلم المسؤول
+                    </label>
+                    <select
+                      value={filters.assignedTeacher}
+                      onChange={(e) => handleFilterChange('assignedTeacher', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option value="">جميع المعلمين</option>
+                      {teacherUsers.map((teacher) => (
+                        <option key={teacher.id} value={teacher.id.toString()}>
+                          {teacher.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                {/* Subject Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    المادة
-                  </label>
-                  <select
-                    value={filters.subject}
-                    onChange={(e) => handleFilterChange('subject', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">جميع المواد</option>
-                    {teachingModules.map((module) => (
-                      <option key={module.id} value={module.id.toString()}>
-                        {module.nameAr} ({module.educationLevel})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Assigned Teacher Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    المعلم المسؤول
-                  </label>
-                  <select
-                    value={filters.assignedTeacher}
-                    onChange={(e) => handleFilterChange('assignedTeacher', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">جميع المعلمين</option>
-                    {teacherUsers.map((teacher) => (
-                      <option key={teacher.id} value={teacher.id.toString()}>
-                        {teacher.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Clear Filters */}
+                {hasActiveFilters && (
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={clearFilters}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 bg-white"
+                    >
+                      <X className="w-4 h-4" />
+                      مسح الفلاتر
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* Clear Filters */}
-              {hasActiveFilters && (
-                <div className="flex justify-end mt-3">
-                  <button
-                    onClick={clearFilters}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    <X className="w-4 h-4" />
-                    مسح الفلاتر
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>

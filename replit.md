@@ -139,6 +139,7 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Bulk Ban Functionality**: Added multiple select banning feature allowing admins to select multiple users and ban them all at once with a single reason
   - **AdminUsers UI Cleanup**: Reorganized header section with clean static design, separated action buttons into dedicated row when users are selected
   - **Search and Filter Section Cleanup**: Simplified styling with consistent spacing, reduced font sizes, improved table header design, and cleaned up user avatar styling
+  - **Filter Layout Improvement**: Redesigned filter panel with better 2-column layout, proper label spacing, consistent select heights, and improved visual hierarchy
 - **January 2025**: Implemented comprehensive banned user access prevention system
   - **Login Prevention**: Added banned user check in login endpoint with clear Arabic error messages
   - **Registration Prevention**: Banned users cannot re-register with same email or phone number
