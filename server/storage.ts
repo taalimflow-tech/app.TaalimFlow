@@ -88,8 +88,8 @@ export interface IStorage {
   createNotificationForUsers(userIds: number[], type: string, title: string, message: string, relatedId?: number): Promise<Notification[]>;
   
   // Verification methods - only for children and students
-  verifyChild(childId: number, adminId: number, notes?: string): Promise<Child>;
-  verifyStudent(studentId: number, adminId: number, notes?: string): Promise<Student>;
+  verifyChild(childId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Child>;
+  verifyStudent(studentId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Student>;
   undoVerifyChild(childId: number): Promise<Child>;
   undoVerifyStudent(studentId: number): Promise<Student>;
   getUnverifiedChildren(): Promise<Child[]>;
@@ -596,29 +596,49 @@ export class DatabaseStorage implements IStorage {
 
   // Verification methods - only for children and students
 
-  async verifyChild(childId: number, adminId: number, notes?: string): Promise<Child> {
+  async verifyChild(childId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Child> {
+    const updateData: any = {
+      verified: true, 
+      verificationNotes: notes || null,
+      verifiedAt: new Date(),
+      verifiedBy: adminId
+    };
+    
+    if (educationLevel) {
+      updateData.educationLevel = educationLevel;
+    }
+    
+    if (selectedSubjects && selectedSubjects.length > 0) {
+      updateData.subjects = selectedSubjects;
+    }
+    
     const [child] = await db
       .update(children)
-      .set({ 
-        verified: true, 
-        verificationNotes: notes || null,
-        verifiedAt: new Date(),
-        verifiedBy: adminId
-      })
+      .set(updateData)
       .where(eq(children.id, childId))
       .returning();
     return child;
   }
 
-  async verifyStudent(studentId: number, adminId: number, notes?: string): Promise<Student> {
+  async verifyStudent(studentId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Student> {
+    const updateData: any = {
+      verified: true, 
+      verificationNotes: notes || null,
+      verifiedAt: new Date(),
+      verifiedBy: adminId
+    };
+    
+    if (educationLevel) {
+      updateData.educationLevel = educationLevel;
+    }
+    
+    if (selectedSubjects && selectedSubjects.length > 0) {
+      updateData.subjects = selectedSubjects;
+    }
+    
     const [student] = await db
       .update(students)
-      .set({ 
-        verified: true, 
-        verificationNotes: notes || null,
-        verifiedAt: new Date(),
-        verifiedBy: adminId
-      })
+      .set(updateData)
       .where(eq(students.id, studentId))
       .returning();
     return student;

@@ -1423,9 +1423,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const childId = parseInt(req.params.id);
-      const { notes } = req.body;
+      const { notes, educationLevel, selectedSubjects } = req.body;
       
-      const verifiedChild = await storage.verifyChild(childId, currentUser.id, notes);
+      const verifiedChild = await storage.verifyChild(childId, currentUser.id, notes, educationLevel, selectedSubjects);
       
       // Create notification for the parent
       await storage.createNotification({
@@ -1449,9 +1449,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const studentId = parseInt(req.params.id);
-      const { notes } = req.body;
+      const { notes, educationLevel, selectedSubjects } = req.body;
       
-      const verifiedStudent = await storage.verifyStudent(studentId, currentUser.id, notes);
+      const verifiedStudent = await storage.verifyStudent(studentId, currentUser.id, notes, educationLevel, selectedSubjects);
       
       // Get user associated with student
       const user = await storage.getUser(verifiedStudent.userId);

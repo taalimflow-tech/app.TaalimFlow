@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar, Trash2, BookOpen } from 'lucide-react';
 
 interface UnverifiedChild {
   id: number;
@@ -51,6 +53,15 @@ interface VerifiedStudent {
   verificationNotes: string;
 }
 
+interface TeachingModule {
+  id: number;
+  name: string;
+  nameAr: string;
+  educationLevel: string;
+  grade: string | null;
+  description: string | null;
+}
+
 export default function AdminVerification() {
   const { user } = useAuth();
   const [unverifiedChildren, setUnverifiedChildren] = useState<UnverifiedChild[]>([]);
@@ -61,6 +72,10 @@ export default function AdminVerification() {
   const [verificationNotes, setVerificationNotes] = useState('');
   const [selectedItem, setSelectedItem] = useState<{type: string, id: number, data?: any} | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [teachingModules, setTeachingModules] = useState<TeachingModule[]>([]);
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState('');
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [availableSubjects, setAvailableSubjects] = useState<TeachingModule[]>([]);
 
   // Check if user has admin privileges
   if (!user || user.role !== 'admin') {
@@ -100,12 +115,14 @@ export default function AdminVerification() {
         unverifiedChildrenResponse,
         unverifiedStudentsResponse,
         verifiedChildrenResponse,
-        verifiedStudentsResponse
+        verifiedStudentsResponse,
+        teachingModulesResponse
       ] = await Promise.all([
         fetch('/api/admin/unverified-children'),
         fetch('/api/admin/unverified-students'),
         fetch('/api/admin/verified-children'),
-        fetch('/api/admin/verified-students')
+        fetch('/api/admin/verified-students'),
+        fetch('/api/teaching-modules')
       ]);
 
       if (unverifiedChildrenResponse.ok) {
@@ -127,6 +144,11 @@ export default function AdminVerification() {
         const students = await verifiedStudentsResponse.json();
         setVerifiedStudents(students);
       }
+
+      if (teachingModulesResponse.ok) {
+        const modules = await teachingModulesResponse.json();
+        setTeachingModules(modules);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -139,6 +161,33 @@ export default function AdminVerification() {
     }
   };
 
+  // Handle education level change and update available subjects
+  const handleEducationLevelChange = (level: string) => {
+    setSelectedEducationLevel(level);
+    const subjects = teachingModules.filter(module => module.educationLevel === level);
+    setAvailableSubjects(subjects);
+    setSelectedSubjects([]); // Reset selected subjects when level changes
+  };
+
+  // Handle subject selection toggle
+  const handleSubjectToggle = (subjectId: string) => {
+    setSelectedSubjects(prev => 
+      prev.includes(subjectId) 
+        ? prev.filter(id => id !== subjectId)
+        : [...prev, subjectId]
+    );
+  };
+
+  // Reset modal state when opening
+  const handleOpenModal = (type: string, id: number, data?: any) => {
+    setSelectedItem({type, id, data});
+    setShowModal(true);
+    setVerificationNotes('');
+    setSelectedEducationLevel('');
+    setSelectedSubjects([]);
+    setAvailableSubjects([]);
+  };
+
   const handleVerify = async (type: string, id: number) => {
     try {
       const response = await fetch(`/api/admin/verify-${type}/${id}`, {
@@ -146,7 +195,11 @@ export default function AdminVerification() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ notes: verificationNotes }),
+        body: JSON.stringify({ 
+          notes: verificationNotes,
+          educationLevel: selectedEducationLevel,
+          selectedSubjects: selectedSubjects 
+        }),
       });
 
       if (response.ok) {
@@ -155,9 +208,12 @@ export default function AdminVerification() {
           description: `تم التحقق من ${type === 'child' ? 'الطفل' : 'الطالب'} بنجاح`,
         });
 
-        // Refresh data
+        // Refresh data and reset form
         await fetchData();
         setVerificationNotes('');
+        setSelectedEducationLevel('');
+        setSelectedSubjects([]);
+        setAvailableSubjects([]);
         setSelectedItem(null);
         setShowModal(false);
       } else {
@@ -308,10 +364,7 @@ export default function AdminVerification() {
                           </p>
                         </div>
                         <Button 
-                          onClick={() => {
-                            setSelectedItem({type: 'child', id: child.id});
-                            setShowModal(true);
-                          }}
+                          onClick={() => handleOpenModal('child', child.id)}
                           size="sm"
                           className="bg-green-600 hover:bg-green-700 text-white text-xs"
                         >
@@ -338,10 +391,7 @@ export default function AdminVerification() {
                           </p>
                         </div>
                         <Button 
-                          onClick={() => {
-                            setSelectedItem({type: 'student', id: student.id});
-                            setShowModal(true);
-                          }}
+                          onClick={() => handleOpenModal('student', student.id)}
                           size="sm"
                           className="bg-green-600 hover:bg-green-700 text-white text-xs"
                         >
@@ -539,6 +589,60 @@ export default function AdminVerification() {
                       </h2>
                     </div>
                     <div className="space-y-4">
+                      {/* Education Level Selection */}
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200" dir="rtl">
+                        <Label className="text-xs font-semibold text-gray-900 block mb-2">
+                          <BookOpen className="w-4 h-4 inline mr-1" />
+                          المستوى التعليمي المطلوب
+                        </Label>
+                        <Select value={selectedEducationLevel} onValueChange={handleEducationLevelChange}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="اختر المستوى التعليمي" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="الابتدائي">الابتدائي</SelectItem>
+                            <SelectItem value="المتوسط">المتوسط</SelectItem>
+                            <SelectItem value="الثانوي">الثانوي</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Subject Selection */}
+                      {selectedEducationLevel && availableSubjects.length > 0 && (
+                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200" dir="rtl">
+                          <Label className="text-xs font-semibold text-gray-900 block mb-3">
+                            <GraduationCap className="w-4 h-4 inline mr-1" />
+                            المواد التي يريد دراستها
+                          </Label>
+                          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                            {availableSubjects.map((subject) => (
+                              <div 
+                                key={subject.id} 
+                                className="flex items-center space-x-2 p-2 bg-white rounded border border-purple-200"
+                              >
+                                <Checkbox
+                                  id={`subject-${subject.id}`}
+                                  checked={selectedSubjects.includes(subject.id.toString())}
+                                  onCheckedChange={() => handleSubjectToggle(subject.id.toString())}
+                                />
+                                <Label 
+                                  htmlFor={`subject-${subject.id}`}
+                                  className="text-sm text-gray-800 cursor-pointer flex-1"
+                                >
+                                  {subject.nameAr}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                          {selectedSubjects.length > 0 && (
+                            <p className="text-xs text-purple-600 mt-2">
+                              تم اختيار {selectedSubjects.length} مادة
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Verification Notes */}
                       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200" dir="rtl">
                         <Label htmlFor="notes" className="text-xs font-semibold text-gray-900 block mb-2">
                           ملاحظات التحقق (اختياري)
@@ -557,6 +661,9 @@ export default function AdminVerification() {
                           onClick={() => {
                             setShowModal(false);
                             setVerificationNotes('');
+                            setSelectedEducationLevel('');
+                            setSelectedSubjects([]);
+                            setAvailableSubjects([]);
                             setSelectedItem(null);
                           }}
                           className="bg-white hover:bg-gray-50 border-gray-300"
@@ -565,7 +672,8 @@ export default function AdminVerification() {
                         </Button>
                         <Button
                           onClick={() => selectedItem && handleVerify(selectedItem.type, selectedItem.id)}
-                          className="bg-green-600 hover:bg-green-700 text-white"
+                          disabled={!selectedEducationLevel || selectedSubjects.length === 0}
+                          className="bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
                           تأكيد التحقق

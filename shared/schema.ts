@@ -147,6 +147,7 @@ export const children = pgTable("children", {
   name: text("name").notNull(),
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
+  selectedSubjects: text("selected_subjects").array(), // Array of subject IDs they want to study
   verified: boolean("verified").default(false), // Manual verification by admin
   verificationNotes: text("verification_notes"), // Admin notes about verification
   verifiedAt: timestamp("verified_at"),
@@ -159,6 +160,7 @@ export const students = pgTable("students", {
   userId: integer("user_id").references(() => users.id),
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
+  selectedSubjects: text("selected_subjects").array(), // Array of subject IDs they want to study
   verified: boolean("verified").default(false), // Manual verification by admin
   verificationNotes: text("verification_notes"), // Admin notes about verification
   verifiedAt: timestamp("verified_at"),
