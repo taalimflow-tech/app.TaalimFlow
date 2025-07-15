@@ -78,21 +78,21 @@ export default function Schedule() {
   // Days of the week (starting with Friday) and time slots
   const daysOfWeek = ['الجمعة', 'السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const timeSlots = [
-    { period: 1, time: '8' },
-    { period: 2, time: '9' },
-    { period: 3, time: '10' },
-    { period: 4, time: '11' },
-    { period: 5, time: '12' },
-    { period: 6, time: '13' },
-    { period: 7, time: '14' },
-    { period: 8, time: '15' },
-    { period: 9, time: '16' },
-    { period: 10, time: '17' },
-    { period: 11, time: '18' },
-    { period: 12, time: '19' },
-    { period: 13, time: '20' },
-    { period: 14, time: '21' },
-    { period: 15, time: '22' },
+    { period: 1, time: '8', detailed: ['8:00', '8:15', '8:30', '8:45'] },
+    { period: 2, time: '9', detailed: ['9:00', '9:15', '9:30', '9:45'] },
+    { period: 3, time: '10', detailed: ['10:00', '10:15', '10:30', '10:45'] },
+    { period: 4, time: '11', detailed: ['11:00', '11:15', '11:30', '11:45'] },
+    { period: 5, time: '12', detailed: ['12:00', '12:15', '12:30', '12:45'] },
+    { period: 6, time: '13', detailed: ['13:00', '13:15', '13:30', '13:45'] },
+    { period: 7, time: '14', detailed: ['14:00', '14:15', '14:30', '14:45'] },
+    { period: 8, time: '15', detailed: ['15:00', '15:15', '15:30', '15:45'] },
+    { period: 9, time: '16', detailed: ['16:00', '16:15', '16:30', '16:45'] },
+    { period: 10, time: '17', detailed: ['17:00', '17:15', '17:30', '17:45'] },
+    { period: 11, time: '18', detailed: ['18:00', '18:15', '18:30', '18:45'] },
+    { period: 12, time: '19', detailed: ['19:00', '19:15', '19:30', '19:45'] },
+    { period: 13, time: '20', detailed: ['20:00', '20:15', '20:30', '20:45'] },
+    { period: 14, time: '21', detailed: ['21:00', '21:15', '21:30', '21:45'] },
+    { period: 15, time: '22', detailed: ['22:00', '22:15', '22:30', '22:45'] },
   ];
   
   // Education levels with detailed grades
@@ -474,7 +474,7 @@ export default function Schedule() {
                       </div>
                     </th>
                     {timeSlots.map((slot) => (
-                      <th key={slot.period} className="border border-gray-300 p-2 bg-gradient-to-b from-blue-50 to-blue-100 text-center font-semibold w-28 min-w-28">
+                      <th key={slot.period} className="border border-gray-300 p-2 bg-gradient-to-b from-blue-50 to-blue-100 text-center font-semibold w-32 min-w-32">
                         <div className="flex flex-col items-center space-y-1">
                           <Clock className="w-3 h-3 text-blue-600" />
                           <div className="text-blue-800 text-sm font-bold">
@@ -482,6 +482,15 @@ export default function Schedule() {
                           </div>
                           <div className="text-blue-600 text-xs font-medium">
                             {parseInt(slot.time) < 12 ? 'ص' : 'م'}
+                          </div>
+                          
+                          {/* Detailed time subdivisions */}
+                          <div className="grid grid-cols-2 gap-1 mt-1 text-[10px] text-blue-500">
+                            {slot.detailed.map((timeDetail, index) => (
+                              <div key={index} className="bg-blue-100 rounded px-1 py-0.5">
+                                {timeDetail.split(':')[1]}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </th>

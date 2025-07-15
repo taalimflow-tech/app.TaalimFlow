@@ -142,6 +142,8 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Position Indicators**: Lessons now display position within hour ("نصف الساعة", "ربع الساعة", "ثلاثة أرباع الساعة") for clear timing understanding
   - **Improved Cell Structure**: Redesigned schedule cells with comprehensive timing information and visual indicators for better clarity
   - **Minute-Level Accuracy**: Schedule displays precise start and end times with descriptive position indicators for intuitive understanding
+  - **Detailed Time Headers**: Enhanced schedule table headers with minute subdivisions (00, 15, 30, 45) for each hour column
+  - **Visual Time Breakdown**: Each hour column now shows detailed time segments helping users understand exact lesson placement within the hour
 - **January 2025**: Implemented comprehensive banned user access prevention system
   - **Login Prevention**: Added banned user check in login endpoint with clear Arabic error messages
   - **Registration Prevention**: Banned users cannot re-register with same email or phone number
