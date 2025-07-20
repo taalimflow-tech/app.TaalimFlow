@@ -92,32 +92,7 @@
     border-radius: 2px;
   }
 
-  /* Fancy animations for AdminVerification */
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-    opacity: 0;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out forwards;
-    transform: translateY(20px);
-    opacity: 0;
-  }
-
-  @keyframes fadeIn {
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideUp {
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  /* Pulse animation for empty state icons */
+  /* Keep only animations that are actually used */
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
@@ -129,16 +104,6 @@
     50% {
       opacity: 0.5;
     }
-  }
-
-  /* Hover scale animation */
-  .hover\:scale-\[1\.02\]:hover {
-    transform: scale(1.02);
-  }
-
-  /* Group hover scale animation */
-  .group:hover .group-hover\:scale-105 {
-    transform: scale(1.05);
   }
 
   /* Line clamp utilities for text truncation */
