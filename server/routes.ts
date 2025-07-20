@@ -1236,6 +1236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId, groupData);
       res.json(updatedGroup);
     } catch (error) {
+      console.error("Error updating group assignments:", error);
       res.status(500).json({ error: "Failed to update group assignments" });
     }
   });

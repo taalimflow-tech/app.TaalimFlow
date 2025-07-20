@@ -137,6 +137,15 @@ export const groupRegistrations = pgTable("group_registrations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// User assignments to groups (for internal students/users)
+export const groupUserAssignments = pgTable("group_user_assignments", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").references(() => groups.id, { onDelete: "cascade" }),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  assignedBy: integer("assigned_by").references(() => users.id), // Admin who made the assignment
+});
+
 export const formationRegistrations = pgTable("formation_registrations", {
   id: serial("id").primaryKey(),
   formationId: integer("formation_id").references(() => formations.id),
@@ -324,6 +333,12 @@ export const insertGroupRegistrationSchema = createInsertSchema(groupRegistratio
   email: true,
 });
 
+export const insertGroupUserAssignmentSchema = createInsertSchema(groupUserAssignments).pick({
+  groupId: true,
+  userId: true,
+  assignedBy: true,
+});
+
 export const insertFormationRegistrationSchema = createInsertSchema(formationRegistrations).pick({
   formationId: true,
   fullName: true,
@@ -416,6 +431,8 @@ export type Formation = typeof formations.$inferSelect;
 export type InsertFormation = z.infer<typeof insertFormationSchema>;
 export type GroupRegistration = typeof groupRegistrations.$inferSelect;
 export type InsertGroupRegistration = z.infer<typeof insertGroupRegistrationSchema>;
+export type GroupUserAssignment = typeof groupUserAssignments.$inferSelect;
+export type InsertGroupUserAssignment = z.infer<typeof insertGroupUserAssignmentSchema>;
 export type FormationRegistration = typeof formationRegistrations.$inferSelect;
 export type InsertFormationRegistration = z.infer<typeof insertFormationRegistrationSchema>;
 export type Child = typeof children.$inferSelect;
