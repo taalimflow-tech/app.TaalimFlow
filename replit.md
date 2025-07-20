@@ -454,3 +454,7 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Smart Validation**: Enhanced duplicate prevention that checks across all levels for universal subjects
   - **Flexible Grade Selection**: Grade selection disabled for universal subjects, allowing truly cross-level subjects
   - **Enhanced Success Messages**: Dynamic success messages indicate whether subject was created for specific level or all levels
+  - **Universal Subject Classification**: Added "جميع المستويات (المواد العامة)" option in education level filter for better organization
+  - **Smart Subject Grouping**: Universal subjects that exist across all three education levels are grouped together for easier management
+  - **Visual Distinction**: Universal subjects display with orange styling to distinguish from level-specific subjects
+  - **Simplified Navigation**: Universal subjects bypass grade selection requirement and show directly when "جميع المستويات" is selected

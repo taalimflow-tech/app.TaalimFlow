@@ -181,6 +181,7 @@ export default function Groups() {
       case 'الابتدائي': return 'text-green-600 bg-green-50';
       case 'المتوسط': return 'text-blue-600 bg-blue-50';
       case 'الثانوي': return 'text-purple-600 bg-purple-50';
+      case 'جميع المستويات': return 'text-orange-600 bg-orange-50 border border-orange-200';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -241,6 +242,42 @@ export default function Groups() {
   // Get subject groups for selected level and grade
   const getSubjectGroups = () => {
     if (!selectedLevel) return [];
+    
+    if (selectedLevel === 'جميع المستويات') {
+      // For universal view, show subjects that exist across all education levels
+      // Group by subject name and show only subjects that appear in all three levels
+      const subjectCounts = {};
+      const universalSubjects = [];
+      
+      // Count how many education levels each subject appears in
+      adminGroups.forEach(group => {
+        const subjectKey = group.nameAr || group.subjectName;
+        if (!subjectCounts[subjectKey]) {
+          subjectCounts[subjectKey] = {
+            count: 0,
+            group: group,
+            levels: []
+          };
+        }
+        subjectCounts[subjectKey].count++;
+        subjectCounts[subjectKey].levels.push(group.educationLevel);
+      });
+      
+      // Include subjects that appear in all 3 levels (primary, middle, secondary)
+      Object.keys(subjectCounts).forEach(subjectKey => {
+        const subjectData = subjectCounts[subjectKey];
+        if (subjectData.count >= 3) {
+          universalSubjects.push({
+            ...subjectData.group,
+            educationLevel: 'جميع المستويات',
+            isUniversal: true
+          });
+        }
+      });
+      
+      return universalSubjects;
+    }
+    
     return adminGroups.filter(group => group.educationLevel === selectedLevel);
   };
 
@@ -330,6 +367,7 @@ export default function Groups() {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
                             <option value="">اختر المستوى...</option>
+                            <option value="جميع المستويات">جميع المستويات (المواد العامة)</option>
                             <option value="الابتدائي">الابتدائي</option>
                             <option value="المتوسط">المتوسط</option>
                             <option value="الثانوي">الثانوي</option>
@@ -358,17 +396,26 @@ export default function Groups() {
                       </div>
                       
                       {/* Instruction Message */}
-                      {selectedLevel && !selectedGrade && (
+                      {selectedLevel && selectedLevel !== 'جميع المستويات' && !selectedGrade && (
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <p className="text-sm text-yellow-800">
                             الرجاء اختيار السنة الدراسية لعرض المواد المتاحة
                           </p>
                         </div>
                       )}
+                      
+                      {/* Universal Level Message */}
+                      {selectedLevel === 'جميع المستويات' && (
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-blue-800">
+                            عرض المواد العامة المتاحة لجميع المستويات التعليمية
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Subject Groups Grid */}
-                    {selectedLevel && selectedGrade && (
+                    {((selectedLevel && selectedGrade) || selectedLevel === 'جميع المستويات') && (
                       <div className="bg-white rounded-lg border p-6">
                         <div className="flex items-center mb-4">
                           <div className={`px-3 py-1 rounded-full text-sm font-medium ${getEducationLevelColor(selectedLevel)}`}>
