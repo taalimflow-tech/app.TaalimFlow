@@ -1254,21 +1254,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "اسم المادة والمستوى التعليمي مطلوبان" });
       }
       
-      // Check if custom subject already exists
-      const existingSubject = await storage.getTeachingModuleByName(nameAr, educationLevel);
-      if (existingSubject) {
-        return res.status(400).json({ error: "المادة موجودة بالفعل لهذا المستوى" });
+      // Check if custom subject already exists for the specific education level
+      if (educationLevel !== 'جميع المستويات') {
+        const existingSubject = await storage.getTeachingModuleByName(nameAr, educationLevel);
+        if (existingSubject) {
+          return res.status(400).json({ error: "المادة موجودة بالفعل لهذا المستوى" });
+        }
+      } else {
+        // For "جميع المستويات", check if it exists across all levels
+        const existingSubject = await storage.getTeachingModuleByNameAllLevels(nameAr);
+        if (existingSubject) {
+          return res.status(400).json({ error: "المادة موجودة بالفعل" });
+        }
       }
       
-      const customSubject = await storage.createCustomSubject({
-        name,
-        nameAr,
-        educationLevel,
-        grade: grade || undefined,
-        description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة`
-      });
+      let createdSubjects = [];
       
-      res.status(201).json(customSubject);
+      if (educationLevel === 'جميع المستويات') {
+        // Create the subject for all education levels
+        const levels = ['الابتدائي', 'المتوسط', 'الثانوي'];
+        for (const level of levels) {
+          const customSubject = await storage.createCustomSubject({
+            name,
+            nameAr,
+            educationLevel: level,
+            grade: grade || undefined,
+            description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة - متاحة لجميع المستويات`
+          });
+          createdSubjects.push(customSubject);
+        }
+      } else {
+        // Create subject for specific education level
+        const customSubject = await storage.createCustomSubject({
+          name,
+          nameAr,
+          educationLevel,
+          grade: grade || undefined,
+          description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة`
+        });
+        createdSubjects.push(customSubject);
+      }
+      
+      res.status(201).json({ 
+        subjects: createdSubjects, 
+        message: educationLevel === 'جميع المستويات' 
+          ? `تم إنشاء المادة "${nameAr}" لجميع المستويات التعليمية`
+          : `تم إنشاء المادة "${nameAr}" للمستوى "${educationLevel}"`
+      });
     } catch (error) {
       console.error("Error creating custom subject:", error);
       res.status(500).json({ error: "Failed to create custom subject" });

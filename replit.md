@@ -449,3 +449,8 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Storage Methods**: Added `getTeachingModuleByName` and `createCustomSubject` methods
   - **UI Integration**: Custom subjects appear immediately in admin groups interface after creation
   - **Cache Invalidation**: Proper React Query cache updates ensure UI reflects new subjects instantly
+  - **Universal Subject Support**: Added "جميع المستويات" (All Levels) option to create subjects for all education levels
+  - **Multi-Level Creation**: Backend automatically creates subject across Primary, Middle, and Secondary levels when "All Levels" is selected
+  - **Smart Validation**: Enhanced duplicate prevention that checks across all levels for universal subjects
+  - **Flexible Grade Selection**: Grade selection disabled for universal subjects, allowing truly cross-level subjects
+  - **Enhanced Success Messages**: Dynamic success messages indicate whether subject was created for specific level or all levels

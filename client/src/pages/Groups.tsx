@@ -105,8 +105,11 @@ export default function Groups() {
       const response = await apiRequest('POST', '/api/admin/custom-subjects', subjectData);
       return response.json();
     },
-    onSuccess: () => {
-      toast({ title: 'تم إنشاء المادة المخصصة بنجاح' });
+    onSuccess: (data) => {
+      toast({ 
+        title: 'تم إنشاء المادة المخصصة بنجاح',
+        description: data.message || 'تم إنشاء المادة بنجاح'
+      });
       setShowCustomSubjectModal(false);
       setCustomSubjectName('');
       setCustomSubjectNameAr('');
@@ -725,6 +728,7 @@ export default function Groups() {
                   required
                 >
                   <option value="">اختر المستوى...</option>
+                  <option value="جميع المستويات">جميع المستويات</option>
                   <option value="الابتدائي">الابتدائي</option>
                   <option value="المتوسط">المتوسط</option>
                   <option value="الثانوي">الثانوي</option>
@@ -742,7 +746,7 @@ export default function Groups() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 >
                   <option value="">جميع السنوات</option>
-                  {getAvailableGrades(customSubjectLevel).map(grade => (
+                  {customSubjectLevel !== 'جميع المستويات' && getAvailableGrades(customSubjectLevel).map(grade => (
                     <option key={grade.value} value={grade.value}>
                       {grade.label}
                     </option>

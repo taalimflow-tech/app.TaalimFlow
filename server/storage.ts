@@ -1323,6 +1323,15 @@ export class DatabaseStorage implements IStorage {
     return module;
   }
 
+  async getTeachingModuleByNameAllLevels(nameAr: string): Promise<any | undefined> {
+    const [module] = await db
+      .select()
+      .from(teachingModules)
+      .where(eq(teachingModules.nameAr, nameAr))
+      .limit(1);
+    return module;
+  }
+
   async createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string }) {
     const [customSubject] = await db
       .insert(teachingModules)
