@@ -100,6 +100,7 @@ export default function AdminVerification() {
   const [showModal, setShowModal] = useState(false);
   const [teachingModules, setTeachingModules] = useState<TeachingModule[]>([]);
   const [selectedEducationLevel, setSelectedEducationLevel] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [availableSubjects, setAvailableSubjects] = useState<TeachingModule[]>([]);
 
@@ -187,12 +188,49 @@ export default function AdminVerification() {
     }
   };
 
-  // Handle education level change and update available subjects
+  // Handle education level change and reset grade/subjects
   const handleEducationLevelChange = (level: string) => {
     setSelectedEducationLevel(level);
-    const subjects = teachingModules.filter(module => module.educationLevel === level);
-    setAvailableSubjects(subjects);
+    setSelectedGrade(''); // Reset grade when level changes
+    setAvailableSubjects([]);
     setSelectedSubjects([]); // Reset selected subjects when level changes
+  };
+
+  // Handle grade change and update available subjects
+  const handleGradeChange = (grade: string) => {
+    setSelectedGrade(grade);
+    const subjects = teachingModules.filter(module => 
+      module.educationLevel === selectedEducationLevel
+    );
+    setAvailableSubjects(subjects);
+    setSelectedSubjects([]); // Reset selected subjects when grade changes
+  };
+
+  // Get available grades based on selected education level
+  const getAvailableGrades = () => {
+    if (selectedEducationLevel === 'الابتدائي') {
+      return [
+        { value: 'الأولى ابتدائي', label: 'السنة الأولى ابتدائي' },
+        { value: 'الثانية ابتدائي', label: 'السنة الثانية ابتدائي' },
+        { value: 'الثالثة ابتدائي', label: 'السنة الثالثة ابتدائي' },
+        { value: 'الرابعة ابتدائي', label: 'السنة الرابعة ابتدائي' },
+        { value: 'الخامسة ابتدائي', label: 'السنة الخامسة ابتدائي' }
+      ];
+    } else if (selectedEducationLevel === 'المتوسط') {
+      return [
+        { value: 'الأولى متوسط', label: 'السنة الأولى متوسط' },
+        { value: 'الثانية متوسط', label: 'السنة الثانية متوسط' },
+        { value: 'الثالثة متوسط', label: 'السنة الثالثة متوسط' },
+        { value: 'الرابعة متوسط', label: 'السنة الرابعة متوسط' }
+      ];
+    } else if (selectedEducationLevel === 'الثانوي') {
+      return [
+        { value: 'الأولى ثانوي', label: 'السنة الأولى ثانوي' },
+        { value: 'الثانية ثانوي', label: 'السنة الثانية ثانوي' },
+        { value: 'الثالثة ثانوي', label: 'السنة الثالثة ثانوي' }
+      ];
+    }
+    return [];
   };
 
   // Handle subject selection toggle
@@ -210,6 +248,7 @@ export default function AdminVerification() {
     setShowModal(true);
     setVerificationNotes('');
     setSelectedEducationLevel('');
+    setSelectedGrade('');
     setSelectedSubjects([]);
     setAvailableSubjects([]);
   };
@@ -224,6 +263,7 @@ export default function AdminVerification() {
         body: JSON.stringify({ 
           notes: verificationNotes,
           educationLevel: selectedEducationLevel,
+          grade: selectedGrade,
           selectedSubjects: selectedSubjects 
         }),
       });
@@ -238,6 +278,7 @@ export default function AdminVerification() {
         await fetchData();
         setVerificationNotes('');
         setSelectedEducationLevel('');
+        setSelectedGrade('');
         setSelectedSubjects([]);
         setAvailableSubjects([]);
         setSelectedItem(null);
@@ -633,8 +674,30 @@ export default function AdminVerification() {
                         </Select>
                       </div>
 
+                      {/* Grade Selection */}
+                      {selectedEducationLevel && (
+                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200" dir="rtl">
+                          <Label className="text-xs font-semibold text-gray-900 block mb-2">
+                            <GraduationCap className="w-4 h-4 inline mr-1" />
+                            السنة الدراسية المطلوبة
+                          </Label>
+                          <Select value={selectedGrade} onValueChange={handleGradeChange}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="اختر السنة الدراسية" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getAvailableGrades().map((grade) => (
+                                <SelectItem key={grade.value} value={grade.value}>
+                                  {grade.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
                       {/* Subject Selection */}
-                      {selectedEducationLevel && availableSubjects.length > 0 && (
+                      {selectedEducationLevel && selectedGrade && availableSubjects.length > 0 && (
                         <div className="bg-purple-50 p-4 rounded-lg border border-purple-200" dir="rtl">
                           <Label className="text-xs font-semibold text-gray-900 block mb-3">
                             <GraduationCap className="w-4 h-4 inline mr-1" />
@@ -688,6 +751,7 @@ export default function AdminVerification() {
                             setShowModal(false);
                             setVerificationNotes('');
                             setSelectedEducationLevel('');
+                            setSelectedGrade('');
                             setSelectedSubjects([]);
                             setAvailableSubjects([]);
                             setSelectedItem(null);
@@ -698,7 +762,7 @@ export default function AdminVerification() {
                         </Button>
                         <Button
                           onClick={() => selectedItem && handleVerify(selectedItem.type, selectedItem.id)}
-                          disabled={!selectedEducationLevel || selectedSubjects.length === 0}
+                          disabled={!selectedEducationLevel || !selectedGrade || selectedSubjects.length === 0}
                           className="bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
