@@ -275,6 +275,25 @@ export default function Groups() {
             
             {showAdminGroups && (
               <CardContent className="pt-0">
+                {/* Custom Subject Creation Button - Always Visible */}
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-green-800 mb-1">إنشاء مادة مخصصة</h4>
+                      <p className="text-sm text-green-600">أنشئ مواد جديدة خارج المنهج الرسمي</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCustomSubjectModal(true)}
+                      className="border-green-300 text-green-600 hover:bg-green-100"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      إنشاء مادة مخصصة
+                    </Button>
+                  </div>
+                </div>
+
                 {loadingAdminGroups ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
