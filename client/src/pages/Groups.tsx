@@ -510,32 +510,72 @@ export default function Groups() {
                 </select>
               </div>
 
-              {/* Student Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  اختيار الطلاب ({selectedStudents.length} محدد)
-                </label>
-                <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-md p-2">
-                  {availableStudents.length === 0 ? (
-                    <p className="text-gray-500 text-center py-4">لا توجد طلاب متاحين لهذا المستوى والمادة</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {availableStudents.map(student => (
-                        <label key={student.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
-                          <input
-                            type="checkbox"
-                            checked={selectedStudents.includes(student.id)}
-                            onChange={() => toggleStudentSelection(student.id)}
-                            className="mr-2"
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-gray-600">المستوى: {student.educationLevel}</p>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  )}
+              {/* Student Assignment Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Currently Assigned Students */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الطلاب المسجلين حالياً ({selectedStudents.length})
+                  </label>
+                  <div className="max-h-60 overflow-y-auto border border-green-300 rounded-md p-2 bg-green-50">
+                    {selectedStudents.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">لا يوجد طلاب مسجلين في هذه المجموعة</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {availableStudents
+                          .filter(student => selectedStudents.includes(student.id))
+                          .map(student => (
+                            <div key={student.id} className="flex items-center space-x-2 p-2 bg-white rounded border border-green-200">
+                              <input
+                                type="checkbox"
+                                checked={true}
+                                onChange={() => toggleStudentSelection(student.id)}
+                                className="mr-2 text-green-600"
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium text-green-800">{student.name}</p>
+                                <p className="text-sm text-green-600">المستوى: {student.educationLevel}</p>
+                              </div>
+                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">مسجل</span>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Available Students */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الطلاب المتاحين ({availableStudents.filter(s => !selectedStudents.includes(s.id)).length})
+                  </label>
+                  <div className="max-h-60 overflow-y-auto border border-blue-300 rounded-md p-2 bg-blue-50">
+                    {availableStudents.filter(s => !selectedStudents.includes(s.id)).length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">جميع الطلاب المتاحين مسجلين بالفعل</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {availableStudents
+                          .filter(student => !selectedStudents.includes(student.id))
+                          .map(student => (
+                            <div key={student.id} className="flex items-center space-x-2 p-2 bg-white rounded border border-blue-200 hover:bg-blue-50">
+                              <input
+                                type="checkbox"
+                                checked={false}
+                                onChange={() => toggleStudentSelection(student.id)}
+                                className="mr-2 text-blue-600"
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium">{student.name}</p>
+                                <p className="text-sm text-gray-600">المستوى: {student.educationLevel}</p>
+                              </div>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">متاح</span>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
