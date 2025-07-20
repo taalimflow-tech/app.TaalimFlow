@@ -102,7 +102,9 @@ export default function Groups() {
 
   const handleOpenAssignmentModal = (group: any) => {
     setSelectedAdminGroup(group);
-    setSelectedStudents(group.studentsAssigned || []);
+    // Extract student IDs from the studentsAssigned array
+    const studentIds = (group.studentsAssigned || []).map((student: any) => student.id);
+    setSelectedStudents(studentIds);
     setSelectedTeacher(group.teacherId || null);
     setShowAssignmentModal(true);
   };

@@ -566,11 +566,24 @@ export class DatabaseStorage implements IStorage {
             isPlaceholder: true
           });
         } else {
-          // Add existing groups
+          // Add existing groups with their assigned students
           for (const group of existingGroups) {
+            // Get assigned students for this group
+            const assignedStudents = await db
+              .select({
+                id: users.id,
+                name: users.name,
+                educationLevel: students.educationLevel,
+                grade: students.grade
+              })
+              .from(groupUserAssignments)
+              .leftJoin(users, eq(groupUserAssignments.userId, users.id))
+              .leftJoin(students, eq(users.id, students.userId))
+              .where(eq(groupUserAssignments.groupId, group.id));
+
             allPossibleGroups.push({
               ...group,
-              studentsAssigned: [],
+              studentsAssigned: assignedStudents,
               isPlaceholder: false
             });
           }
