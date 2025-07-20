@@ -115,8 +115,13 @@ export default function Groups() {
       setCustomSubjectNameAr('');
       setCustomSubjectLevel('');
       setCustomSubjectGrade('');
+      // Force cache invalidation for all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/admin/groups'] });
       queryClient.invalidateQueries({ queryKey: ['/api/teaching-modules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+      // Reset selection to show new subjects
+      setSelectedLevel('');
+      setSelectedGrade('');
     },
     onError: () => {
       toast({ title: 'خطأ في إنشاء المادة المخصصة', variant: 'destructive' });
