@@ -1241,6 +1241,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Custom subjects route
+  app.post("/api/admin/custom-subjects", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const { name, nameAr, educationLevel, grade } = req.body;
+      
+      if (!name || !nameAr || !educationLevel) {
+        return res.status(400).json({ error: "اسم المادة والمستوى التعليمي مطلوبان" });
+      }
+      
+      // Check if custom subject already exists
+      const existingSubject = await storage.getTeachingModuleByName(nameAr, educationLevel);
+      if (existingSubject) {
+        return res.status(400).json({ error: "المادة موجودة بالفعل لهذا المستوى" });
+      }
+      
+      const customSubject = await storage.createCustomSubject({
+        name,
+        nameAr,
+        educationLevel,
+        grade: grade || undefined,
+        description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة`
+      });
+      
+      res.status(201).json(customSubject);
+    } catch (error) {
+      console.error("Error creating custom subject:", error);
+      res.status(500).json({ error: "Failed to create custom subject" });
+    }
+  });
+
   // Formation routes
   app.get("/api/formations", async (req, res) => {
     try {

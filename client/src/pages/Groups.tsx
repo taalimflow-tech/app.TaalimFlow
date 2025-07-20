@@ -6,7 +6,7 @@ import { Group } from '@shared/schema';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, User } from 'lucide-react';
+import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, User, Plus } from 'lucide-react';
 
 export default function Groups() {
   const { user } = useAuth();
@@ -30,6 +30,13 @@ export default function Groups() {
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [selectedGrade, setSelectedGrade] = useState<string>('');
   const [filteredSubjects, setFilteredSubjects] = useState<any[]>([]);
+  
+  // Custom subject creation state
+  const [showCustomSubjectModal, setShowCustomSubjectModal] = useState(false);
+  const [customSubjectName, setCustomSubjectName] = useState('');
+  const [customSubjectNameAr, setCustomSubjectNameAr] = useState('');
+  const [customSubjectLevel, setCustomSubjectLevel] = useState('');
+  const [customSubjectGrade, setCustomSubjectGrade] = useState('');
 
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
@@ -93,6 +100,26 @@ export default function Groups() {
     }
   });
 
+  const createCustomSubjectMutation = useMutation({
+    mutationFn: async (subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string }) => {
+      const response = await apiRequest('POST', '/api/admin/custom-subjects', subjectData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم إنشاء المادة المخصصة بنجاح' });
+      setShowCustomSubjectModal(false);
+      setCustomSubjectName('');
+      setCustomSubjectNameAr('');
+      setCustomSubjectLevel('');
+      setCustomSubjectGrade('');
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/groups'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teaching-modules'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في إنشاء المادة المخصصة', variant: 'destructive' });
+    }
+  });
+
   const handleJoinGroup = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedGroup) {
@@ -117,6 +144,18 @@ export default function Groups() {
         studentIds: selectedStudents,
         teacherId: selectedTeacher,
         groupData: selectedAdminGroup.isPlaceholder ? selectedAdminGroup : undefined
+      });
+    }
+  };
+
+  const handleCreateCustomSubject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (customSubjectName && customSubjectNameAr && customSubjectLevel) {
+      createCustomSubjectMutation.mutate({
+        name: customSubjectName,
+        nameAr: customSubjectNameAr,
+        educationLevel: customSubjectLevel,
+        grade: customSubjectGrade || undefined
       });
     }
   };
@@ -316,7 +355,18 @@ export default function Groups() {
                           )}
                         </div>
                         
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">المواد المتاحة</h3>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-800">المواد المتاحة</h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowCustomSubjectModal(true)}
+                            className="border-green-300 text-green-600 hover:bg-green-50"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            إنشاء مادة مخصصة
+                          </Button>
+                        </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {getSubjectGroups().map(group => (
@@ -594,6 +644,108 @@ export default function Groups() {
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {updateGroupAssignmentsMutation.isPending ? 'جاري التحديث...' : 'حفظ التعيينات'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Subject Creation Modal */}
+      {showCustomSubjectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">إنشاء مادة مخصصة</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCustomSubjectModal(false)}
+              >
+                إغلاق
+              </Button>
+            </div>
+            
+            <form onSubmit={handleCreateCustomSubject} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  اسم المادة (بالإنجليزية) *
+                </label>
+                <input
+                  type="text"
+                  value={customSubjectName}
+                  onChange={(e) => setCustomSubjectName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Subject Name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  اسم المادة (بالعربية) *
+                </label>
+                <input
+                  type="text"
+                  value={customSubjectNameAr}
+                  onChange={(e) => setCustomSubjectNameAr(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="اسم المادة"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  المستوى التعليمي *
+                </label>
+                <select
+                  value={customSubjectLevel}
+                  onChange={(e) => setCustomSubjectLevel(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">اختر المستوى...</option>
+                  <option value="الابتدائي">الابتدائي</option>
+                  <option value="المتوسط">المتوسط</option>
+                  <option value="الثانوي">الثانوي</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  السنة الدراسية (اختياري)
+                </label>
+                <select
+                  value={customSubjectGrade}
+                  onChange={(e) => setCustomSubjectGrade(e.target.value)}
+                  disabled={!customSubjectLevel}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                >
+                  <option value="">جميع السنوات</option>
+                  {getAvailableGrades(customSubjectLevel).map(grade => (
+                    <option key={grade.value} value={grade.value}>
+                      {grade.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCustomSubjectModal(false)}
+                  className="mr-2"
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createCustomSubjectMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {createCustomSubjectMutation.isPending ? 'جاري الإنشاء...' : 'إنشاء المادة'}
                 </Button>
               </div>
             </form>

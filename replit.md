@@ -438,3 +438,14 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Database Integration**: Enhanced groups API to return both English and Arabic subject names
   - **Modern Hierarchical Interface**: Level → Grade → Subjects selection with proper conditional rendering
   - **Consistent Display**: Arabic names shown in both grid cards and assignment modal
+- **January 2025**: Implemented comprehensive custom subject creation system for admin users
+  - **Custom Subject Modal**: Added "إنشاء مادة مخصصة" button with professional modal interface
+  - **Bilingual Subject Names**: Supports both English and Arabic names for custom subjects
+  - **Education Level Integration**: Custom subjects can be assigned to specific education levels (Primary, Middle, Secondary)
+  - **Grade Specification**: Optional grade selection within education levels for targeted subject creation
+  - **Database Integration**: Added custom subjects to teachingModules table with proper validation
+  - **API Endpoint**: Created `/api/admin/custom-subjects` POST endpoint with admin-only access
+  - **Duplicate Prevention**: Backend validation prevents creating duplicate subjects for same education level
+  - **Storage Methods**: Added `getTeachingModuleByName` and `createCustomSubject` methods
+  - **UI Integration**: Custom subjects appear immediately in admin groups interface after creation
+  - **Cache Invalidation**: Proper React Query cache updates ensure UI reflects new subjects instantly

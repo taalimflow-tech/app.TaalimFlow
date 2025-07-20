@@ -1313,6 +1313,29 @@ export class DatabaseStorage implements IStorage {
 
     return result;
   }
+
+  // Teaching modules/custom subjects methods
+  async getTeachingModuleByName(nameAr: string, educationLevel: string): Promise<any | undefined> {
+    const [module] = await db
+      .select()
+      .from(teachingModules)
+      .where(and(eq(teachingModules.nameAr, nameAr), eq(teachingModules.educationLevel, educationLevel)));
+    return module;
+  }
+
+  async createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string }) {
+    const [customSubject] = await db
+      .insert(teachingModules)
+      .values({
+        name: subjectData.name,
+        nameAr: subjectData.nameAr,
+        educationLevel: subjectData.educationLevel,
+        grade: subjectData.grade,
+        description: subjectData.description
+      })
+      .returning();
+    return customSubject;
+  }
 }
 
 export const storage = new DatabaseStorage();
