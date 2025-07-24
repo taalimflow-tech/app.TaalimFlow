@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { School, Globe, Users, BookOpen, Search, ArrowRight } from "lucide-react";
+import { School, Globe, Users, BookOpen, Search, ArrowRight, MapPin } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 
@@ -131,6 +131,13 @@ export default function SchoolDirectory() {
                         <Users className="h-4 w-4" />
                         <span>{school.userCount || 0} مستخدم مسجل</span>
                       </div>
+                      
+                      {school.location && (
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse text-sm text-gray-600">
+                          <MapPin className="h-4 w-4" />
+                          <span>{school.location}</span>
+                        </div>
+                      )}
                       
                       <div className="flex items-center space-x-2 rtl:space-x-reverse text-sm text-gray-600">
                         <BookOpen className="h-4 w-4" />

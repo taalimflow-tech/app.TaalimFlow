@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { School, Globe, Users, BookOpen, Calendar, ArrowRight } from "lucide-react";
+import { School, Globe, Users, BookOpen, Calendar, ArrowRight, MapPin } from "lucide-react";
 import { useLocation } from "wouter";
 
 interface SchoolSelectionProps {
@@ -143,6 +143,16 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
                 <div>
                   <p className="text-sm text-gray-600">النطاق</p>
                   <p className="font-semibold">{school.domain}</p>
+                </div>
+              </div>
+            )}
+
+            {school.location && (
+              <div className="flex items-center space-x-3 rtl:space-x-reverse p-3 bg-gray-50 rounded-lg">
+                <MapPin className="h-5 w-5 text-gray-600" />
+                <div>
+                  <p className="text-sm text-gray-600">الموقع</p>
+                  <p className="font-semibold">{school.location}</p>
                 </div>
               </div>
             )}

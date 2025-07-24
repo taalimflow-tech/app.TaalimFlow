@@ -7,9 +7,26 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar } from "lucide-react";
+import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+
+// Algerian Wilayas (58 provinces)
+const ALGERIAN_WILAYAS = [
+  "01 - أدرار", "02 - الشلف", "03 - الأغواط", "04 - أم البواقي", "05 - باتنة",
+  "06 - بجاية", "07 - بسكرة", "08 - بشار", "09 - البليدة", "10 - البويرة",
+  "11 - تمنراست", "12 - تبسة", "13 - تلمسان", "14 - تيارت", "15 - تيزي وزو",
+  "16 - الجزائر", "17 - الجلفة", "18 - جيجل", "19 - سطيف", "20 - سعيدة",
+  "21 - سكيكدة", "22 - سيدي بلعباس", "23 - عنابة", "24 - قالمة", "25 - قسنطينة",
+  "26 - المدية", "27 - مستغانم", "28 - المسيلة", "29 - معسكر", "30 - ورقلة",
+  "31 - وهران", "32 - البيض", "33 - إليزي", "34 - برج بوعريريج", "35 - بومرداس",
+  "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت", "39 - الوادي", "40 - خنشلة",
+  "41 - سوق أهراس", "42 - تيبازة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
+  "46 - عين تيموشنت", "47 - غرداية", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
+  "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام", "55 - تقرت",
+  "56 - جانت", "57 - المغير", "58 - المنيعة"
+];
 
 export default function SuperAdminSimple() {
   const { user, logout } = useAuth();
@@ -30,11 +47,27 @@ export default function SuperAdminSimple() {
     name: "",
     code: "",
     domain: "",
+    location: "",
+    adminKey: "",
+    teacherKey: "",
     primaryColor: "#3B82F6",
     secondaryColor: "#1E40AF"
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  // Generate random keys for admin and teacher access
+  const generateRandomKey = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+
+  const generateKeys = () => {
+    setSchoolData({
+      ...schoolData,
+      adminKey: generateRandomKey().toUpperCase(),
+      teacherKey: generateRandomKey().toUpperCase()
+    });
+  };
   
   const [resetData, setResetData] = useState({
     email: "",
@@ -61,6 +94,9 @@ export default function SuperAdminSimple() {
         name: "",
         code: "",
         domain: "",
+        location: "",
+        adminKey: "",
+        teacherKey: "",
         primaryColor: "#3B82F6",
         secondaryColor: "#1E40AF"
       });
@@ -636,7 +672,7 @@ export default function SuperAdminSimple() {
                           </Badge>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
                           <div className="flex items-center space-x-2 rtl:space-x-reverse">
                             <School className="h-4 w-4" />
                             <span>الكود: {school.code}</span>
@@ -650,27 +686,44 @@ export default function SuperAdminSimple() {
                           )}
                           
                           <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <MapPin className="h-4 w-4" />
+                            <span>الموقع: {school.location || "غير محدد"}</span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
                             <Calendar className="h-4 w-4" />
                             <span>أنشئت: {new Date(school.createdAt).toLocaleDateString('en-US')}</span>
                           </div>
                         </div>
                         
-                        <div className="flex items-center space-x-4 rtl:space-x-reverse mt-3">
-                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                            <Palette className="h-4 w-4 text-gray-400" />
-                            <div className="flex space-x-1 rtl:space-x-reverse">
-                              <div 
-                                className="w-4 h-4 rounded border"
-                                style={{ backgroundColor: school.primaryColor }}
-                                title="اللون الأساسي"
-                              />
-                              <div 
-                                className="w-4 h-4 rounded border"
-                                style={{ backgroundColor: school.secondaryColor }}
-                                title="اللون الثانوي"
-                              />
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                              <Palette className="h-4 w-4 text-gray-400" />
+                              <div className="flex space-x-1 rtl:space-x-reverse">
+                                <div 
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: school.primaryColor }}
+                                  title="اللون الأساسي"
+                                />
+                                <div 
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: school.secondaryColor }}
+                                  title="اللون الثانوي"
+                                />
+                              </div>
                             </div>
                           </div>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedSchool(school)}
+                            className="text-xs"
+                          >
+                            <Key className="h-3 w-3 ml-1" />
+                            عرض المفاتيح
+                          </Button>
                         </div>
                       </div>
                       
@@ -748,14 +801,35 @@ export default function SuperAdminSimple() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="school-domain">النطاق (اختياري)</Label>
-                  <Input
-                    id="school-domain"
-                    value={schoolData.domain}
-                    onChange={(e) => setSchoolData({...schoolData, domain: e.target.value})}
-                    placeholder="nour-school.com"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="school-domain">النطاق (اختياري)</Label>
+                    <Input
+                      id="school-domain"
+                      value={schoolData.domain}
+                      onChange={(e) => setSchoolData({...schoolData, domain: e.target.value})}
+                      placeholder="nour-school.com"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="school-location">الولاية</Label>
+                    <Select
+                      value={schoolData.location}
+                      onValueChange={(value) => setSchoolData({...schoolData, location: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر الولاية" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {ALGERIAN_WILAYAS.map((wilaya) => (
+                          <SelectItem key={wilaya} value={wilaya}>
+                            {wilaya}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Logo Upload Section */}
@@ -784,6 +858,67 @@ export default function SuperAdminSimple() {
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* Access Keys Section */}
+                <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <Key className="h-5 w-5 text-yellow-600" />
+                      <Label className="text-yellow-800 font-semibold">مفاتيح الوصول</Label>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={generateKeys}
+                      className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                    >
+                      <RefreshCw className="h-4 w-4 ml-2" />
+                      توليد مفاتيح جديدة
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="admin-key" className="text-sm font-medium">مفتاح المدير</Label>
+                      <div className="relative">
+                        <Input
+                          id="admin-key"
+                          value={schoolData.adminKey}
+                          onChange={(e) => setSchoolData({...schoolData, adminKey: e.target.value})}
+                          placeholder="مفتاح خاص بالمديرين"
+                          className="pr-10"
+                          required
+                        />
+                        <Key className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-yellow-700">يستخدمه المديرون للتسجيل في المدرسة</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="teacher-key" className="text-sm font-medium">مفتاح المعلم</Label>
+                      <div className="relative">
+                        <Input
+                          id="teacher-key"
+                          value={schoolData.teacherKey}
+                          onChange={(e) => setSchoolData({...schoolData, teacherKey: e.target.value})}
+                          placeholder="مفتاح خاص بالمعلمين"
+                          className="pr-10"
+                          required
+                        />
+                        <Key className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-yellow-700">يستخدمه المعلمون للتسجيل في المدرسة</p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 bg-yellow-100 rounded-md">
+                    <p className="text-xs text-yellow-800">
+                      <strong>ملاحظة:</strong> احتفظ بهذه المفاتيح آمنة وشاركها فقط مع المديرين والمعلمين المعتمدين.
+                      بينما يمكن للطلاب وأولياء الأمور التسجيل مباشرة باستخدام كود المدرسة.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -819,6 +954,116 @@ export default function SuperAdminSimple() {
               </form>
             </CardContent>
           </Card>
+        )}
+
+        {/* Access Keys Modal */}
+        {selectedSchool && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <Key className="h-5 w-5" />
+                    <span>مفاتيح الوصول - {selectedSchool.name}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedSchool(null)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </Button>
+                </CardTitle>
+                <CardDescription>
+                  مفاتيح الوصول الخاصة بالمديرين والمعلمين لهذه المدرسة
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <Label className="font-semibold text-blue-800">مفتاح المدير</Label>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <code className="text-sm font-mono bg-white px-2 py-1 rounded border">
+                          {selectedSchool.adminKey}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigator.clipboard.writeText(selectedSchool.adminKey)}
+                          className="text-blue-600 border-blue-300"
+                        >
+                          نسخ
+                        </Button>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-2">
+                        يستخدمه المديرون عند إنشاء حساب جديد
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <Users className="h-4 w-4 text-green-600" />
+                      </div>
+                      <Label className="font-semibold text-green-800">مفتاح المعلم</Label>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center justify-between">
+                        <code className="text-sm font-mono bg-white px-2 py-1 rounded border">
+                          {selectedSchool.teacherKey}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigator.clipboard.writeText(selectedSchool.teacherKey)}
+                          className="text-green-600 border-green-300"
+                        >
+                          نسخ
+                        </Button>
+                      </div>
+                      <p className="text-xs text-green-700 mt-2">
+                        يستخدمه المعلمون عند إنشاء حساب جديد
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                    <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-yellow-600 text-sm font-bold">!</span>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-yellow-800">إرشادات الاستخدام:</h4>
+                      <ul className="text-sm text-yellow-700 space-y-1">
+                        <li>• شارك مفتاح المدير مع المديرين المعتمدين فقط</li>
+                        <li>• شارك مفتاح المعلم مع المعلمين المعتمدين فقط</li>
+                        <li>• الطلاب وأولياء الأمور لا يحتاجون لمفاتيح - يسجلون مباشرة</li>
+                        <li>• يمكن إنشاء مفاتيح جديدة في أي وقت من نموذج تعديل المدرسة</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <Button
+                    onClick={() => setSelectedSchool(null)}
+                    className="px-8"
+                  >
+                    إغلاق
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* School Access Instructions */}

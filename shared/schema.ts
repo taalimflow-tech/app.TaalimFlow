@@ -8,6 +8,9 @@ export const schools = pgTable("schools", {
   name: text("name").notNull(),
   code: text("code").notNull().unique(), // URL-friendly school identifier
   domain: text("domain"), // Optional custom domain
+  location: text("location"), // Wilaya location (Algerian province)
+  adminKey: text("admin_key").notNull(), // Secret key for admin registration
+  teacherKey: text("teacher_key").notNull(), // Secret key for teacher registration
   logoUrl: text("logo_url"),
   primaryColor: text("primary_color").default("#3b82f6"), // Hex color for branding
   secondaryColor: text("secondary_color").default("#1e40af"),
