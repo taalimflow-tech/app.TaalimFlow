@@ -189,9 +189,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    const bcrypt = await import('bcrypt');
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    const userWithHashedPassword = { ...insertUser, password: hashedPassword };
+    
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(userWithHashedPassword)
       .returning();
     return user;
   }
