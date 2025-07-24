@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -16,6 +16,7 @@ let currentUser: any = null;
 // Secret keys for admin and teacher registration
 const ADMIN_SECRET_KEY = "ADMIN_2024_SECRET_KEY";
 const TEACHER_SECRET_KEY = "TEACHER_2024_SECRET_KEY";
+const SUPER_ADMIN_SECRET_KEY = "SUPER_ADMIN_2024_MASTER_KEY";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), 'uploads');
@@ -1831,6 +1832,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  // Super Admin Authentication Routes (Hidden Access)
+  app.post("/api/auth/super-admin-login", async (req, res) => {
+    try {
+      const { email, password } = loginSchema.parse(req.body);
+      
+      const user = await storage.authenticateUser(email, password);
+      
+      if (!user || user.role !== "super_admin") {
+        return res.status(401).json({ error: "بيانات اعتماد المسؤول العام غير صحيحة" });
+      }
+
+      // Check if user is banned
+      if (user.banned) {
+        return res.status(403).json({ 
+          error: `تم حظر حسابك من النظام. السبب: ${user.banReason || 'لم يتم تحديد السبب'}` 
+        });
+      }
+
+      currentUser = user;
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error('Super admin login error:', error);
+      res.status(400).json({ error: "بيانات غير صحيحة" });
+    }
+  });
+
+  app.post("/api/auth/super-admin-register", async (req, res) => {
+    try {
+      const data = insertSuperAdminSchema.parse(req.body);
+      
+      // Verify super admin secret key
+      if (data.superAdminKey !== SUPER_ADMIN_SECRET_KEY) {
+        return res.status(400).json({ error: "مفتاح المسؤول العام غير صحيح" });
+      }
+
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(data.email);
+      if (existingUser) {
+        return res.status(400).json({ error: "البريد الإلكتروني مستخدم بالفعل" });
+      }
+
+      // Check if phone already exists
+      const existingPhone = await storage.getUserByPhone(data.phone);
+      if (existingPhone) {
+        return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
+      }
+
+      // Create super admin user (without schoolId)
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      
+      const newUser = await storage.createUser({
+        email: data.email,
+        password: hashedPassword,
+        name: data.name,
+        phone: data.phone,
+        role: "super_admin",
+        schoolId: null, // Super admin doesn't belong to any specific school
+      });
+
+      currentUser = newUser;
+      const { password: _, ...userWithoutPassword } = newUser;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error('Super admin registration error:', error);
+      res.status(400).json({ error: "فشل في إنشاء حساب المسؤول العام" });
+    }
+  });
+
+  // Super Admin School Management Routes
+  app.get("/api/super-admin/schools", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== "super_admin") {
+        return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const schools = await storage.getSchools();
+      res.json(schools);
+    } catch (error) {
+      console.error('Error fetching schools:', error);
+      res.status(500).json({ error: "فشل في جلب المدارس" });
+    }
+  });
+
+  app.post("/api/super-admin/schools", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== "super_admin") {
+        return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const data = insertSchoolSchema.parse(req.body);
+      
+      // Check if school code already exists
+      const existingSchool = await storage.getSchoolByCode(data.code);
+      if (existingSchool) {
+        return res.status(400).json({ error: "كود المدرسة مستخدم بالفعل" });
+      }
+
+      const newSchool = await storage.createSchool(data);
+      res.json(newSchool);
+    } catch (error) {
+      console.error('Error creating school:', error);
+      res.status(400).json({ error: "فشل في إنشاء المدرسة" });
+    }
+  });
+
+  app.delete("/api/super-admin/schools/:id", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== "super_admin") {
+        return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const schoolId = parseInt(req.params.id);
+      await storage.deleteSchool(schoolId);
+      res.json({ message: "تم حذف المدرسة بنجاح" });
+    } catch (error) {
+      console.error('Error deleting school:', error);
+      res.status(500).json({ error: "فشل في حذف المدرسة" });
+    }
+  });
+
+  // School Selection Route (for accessing specific school)
+  app.post("/api/school/select", async (req, res) => {
+    try {
+      const { schoolCode } = schoolSelectionSchema.parse(req.body);
+      
+      const school = await storage.getSchoolByCode(schoolCode);
+      if (!school) {
+        return res.status(404).json({ error: "المدرسة غير موجودة أو غير مفعلة" });
+      }
+
+      res.json({ school });
+    } catch (error) {
+      console.error('Error selecting school:', error);
+      res.status(400).json({ error: "كود المدرسة غير صحيح" });
+    }
+  });
 
   return httpServer;
 }

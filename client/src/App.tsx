@@ -22,7 +22,7 @@ import AdminSuggestions from "@/pages/AdminSuggestions";
 import AdminVerification from "@/pages/AdminVerification";
 import AdminReports from "@/pages/AdminReports";
 import Announcements from "@/pages/Announcements";
-
+import SuperAdminSimple from "@/pages/SuperAdminSimple";
 import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
 import TeacherSpecializations from "@/pages/TeacherSpecializations";
@@ -50,30 +50,38 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <AuthWrapper>
-      <Layout>
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/schedule" component={Schedule} />
-          <Route path="/teachers" component={Teachers} />
-          <Route path="/messages" component={Messages} />
-          <Route path="/suggestions" component={Suggestions} />
-          <Route path="/blog" component={Blog} />
-          <Route path="/groups" component={Groups} />
-          <Route path="/formations" component={Formations} />
-          <Route path="/announcements" component={Announcements} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/teacher-specializations" component={TeacherSpecializations} />
-          <Route path="/admin" component={AdminPanelTest} />
-          <Route path="/admin/users" component={AdminUsers} />
-          <Route path="/admin/content" component={AdminContent} />
-          <Route path="/admin/suggestions" component={AdminSuggestions} />
-          <Route path="/admin/verification" component={AdminVerification} />
-          <Route path="/admin/reports" component={AdminReports} />
-          <Route component={NotFound} />
-        </Switch>
-      </Layout>
-    </AuthWrapper>
+    <Switch>
+      {/* Hidden Super Admin Access Route */}
+      <Route path="/system/super-admin-access" component={SuperAdminSimple} />
+      
+      {/* Regular App Routes */}
+      <Route>
+        <AuthWrapper>
+          <Layout>
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/schedule" component={Schedule} />
+              <Route path="/teachers" component={Teachers} />
+              <Route path="/messages" component={Messages} />
+              <Route path="/suggestions" component={Suggestions} />
+              <Route path="/blog" component={Blog} />
+              <Route path="/groups" component={Groups} />
+              <Route path="/formations" component={Formations} />
+              <Route path="/announcements" component={Announcements} />
+              <Route path="/profile" component={Profile} />
+              <Route path="/teacher-specializations" component={TeacherSpecializations} />
+              <Route path="/admin" component={AdminPanelTest} />
+              <Route path="/admin/users" component={AdminUsers} />
+              <Route path="/admin/content" component={AdminContent} />
+              <Route path="/admin/suggestions" component={AdminSuggestions} />
+              <Route path="/admin/verification" component={AdminVerification} />
+              <Route path="/admin/reports" component={AdminReports} />
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        </AuthWrapper>
+      </Route>
+    </Switch>
   );
 }
 
