@@ -180,8 +180,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async authenticateUser(email: string, password: string): Promise<User | null> {
+    const bcrypt = await import('bcrypt');
     const [user] = await db.select().from(users).where(eq(users.email, email));
-    if (user && user.password === password) {
+    if (user && await bcrypt.compare(password, user.password)) {
       return user;
     }
     return null;
