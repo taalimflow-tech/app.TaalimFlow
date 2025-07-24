@@ -213,12 +213,13 @@ export default function SuperAdminSimple() {
               )}
 
               {/* Login Help */}
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                <h4 className="text-yellow-200 font-semibold mb-2">مساعدة تسجيل الدخول</h4>
-                <div className="text-yellow-100 text-sm space-y-2">
-                  <p>• تأكد من إدخال البريد الإلكتروني وكلمة المرور الصحيحة</p>
-                  <p>• يجب أن يكون الحساب مسجل كمسؤول عام</p>
-                  <p>• إذا نسيت كلمة المرور، قم بإنشاء حساب جديد</p>
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <h4 className="text-blue-200 font-semibold mb-2">معلومات الحساب الموجود</h4>
+                <div className="text-blue-100 text-sm space-y-2">
+                  <p>• البريد الإلكتروني: <code className="bg-blue-900/30 px-1 rounded">mou3atheacc@gmail.com</code></p>
+                  <p>• الحساب موجود ومسجل كمسؤول عام</p>
+                  <p>• استخدم "نسيت كلمة المرور؟" لإعادة تعيين كلمة المرور</p>
+                  <p>• ستحتاج المفتاح السري: <code className="bg-blue-900/30 px-1 rounded">SUPER_ADMIN_2024_MASTER_KEY</code></p>
                 </div>
               </div>
 
