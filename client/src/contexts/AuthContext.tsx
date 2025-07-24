@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User } from '@shared/schema';
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -11,13 +9,17 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<User | null>(null);
-  const [loading, setLoading] = React.useState(true);
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-  React.useEffect(() => {
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
@@ -40,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // First try to login with our backend
+    // Login with our backend only
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
@@ -56,46 +58,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     const { user } = await response.json();
-    
-    // If user exists in database but not in Firebase, try Firebase login (optional)
-    if (user.firebase_uid) {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (firebaseError) {
-        // If Firebase login fails but database login worked, continue with database user
-        console.log('Firebase login failed, but database login succeeded');
-      }
-    }
-    
     setUser(user);
   };
 
   const register = async (email: string, password: string, name: string, phone: string, children: any[] = [], role: string = 'user', studentData?: { educationLevel: string, grade: string }) => {
-    // First create Firebase user
-    const firebaseUser = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Then create user in our database
-    const requestBody: any = { email, password, name, phone, role };
-    
-    if (role === 'student' && studentData) {
-      requestBody.educationLevel = studentData.educationLevel;
-      requestBody.grade = studentData.grade;
-    } else if (role === 'user' && children) {
-      requestBody.children = children;
-    }
-    
+    // Register in our database
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({ 
+        email, 
+        password, 
+        name, 
+        phone, 
+        children, 
+        role,
+        ...studentData
+      }),
     });
     
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'خطأ في إنشاء الحساب');
+      throw new Error(error.error || 'فشل في إنشاء الحساب');
     }
     
     const { user } = await response.json();
@@ -103,48 +90,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    const currentUserRole = user?.role;
-    
     try {
-      // Logout from Firebase
-      await signOut(auth);
-      
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
       
       setUser(null);
-      
-      // Redirect based on user role
-      if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
-        window.location.href = '/admin-login';
-      } else {
-        window.location.href = '/';
-      }
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      // Always clear user state even if logout fails
       setUser(null);
       window.location.href = '/';
     }
   };
 
+  const value: AuthContextType = {
+    user,
+    loading,
+    login,
+    register,
+    logout
+  };
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      loading,
-      login,
-      register,
-      logout
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = React.useContext(AuthContext);
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
