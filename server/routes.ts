@@ -576,29 +576,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Content upload endpoint for blogs, groups, formations
-  app.post("/api/upload-content", upload.single('contentImage'), async (req, res) => {
+  // Content upload endpoint for blogs, groups, formations, and school logos
+  app.post("/api/upload-content", upload.fields([
+    { name: 'contentImage', maxCount: 1 },
+    { name: 'logo', maxCount: 1 }
+  ]), async (req, res) => {
     try {
-      if (!currentUser || currentUser.role !== 'admin') {
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin')) {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
 
-      if (!req.file) {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const file = files?.contentImage?.[0] || files?.logo?.[0];
+
+      if (!file) {
         return res.status(400).json({ error: "لم يتم رفع أي ملف" });
       }
 
       // Create URL for the uploaded file
-      const fileUrl = `/uploads/${req.file.filename}`;
+      const fileUrl = `/uploads/${file.filename}`;
       
       res.json({ 
         message: "تم رفع الصورة بنجاح", 
-        imageUrl: fileUrl 
+        url: fileUrl
       });
     } catch (error) {
       console.error('Error uploading content image:', error);
       res.status(500).json({ error: "فشل في رفع الصورة" });
     }
   });
+
+
 
   // User management routes (Admin only)
   app.get("/api/users", async (req, res) => {

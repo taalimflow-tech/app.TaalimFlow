@@ -33,6 +33,8 @@ export default function SuperAdminSimple() {
     primaryColor: "#3B82F6",
     secondaryColor: "#1E40AF"
   });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   
   const [resetData, setResetData] = useState({
     email: "",
@@ -62,6 +64,8 @@ export default function SuperAdminSimple() {
         primaryColor: "#3B82F6",
         secondaryColor: "#1E40AF"
       });
+      setLogoFile(null);
+      setLogoPreview(null);
       setShowCreateSchool(false);
       setError("");
     },
@@ -133,9 +137,66 @@ export default function SuperAdminSimple() {
     }
   };
 
-  const handleCreateSchool = (e: React.FormEvent) => {
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError("حجم الصورة يجب أن يكون أقل من 2 ميجابايت");
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        setError("يجب اختيار ملف صورة صالح");
+        return;
+      }
+      
+      setLogoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      setError("");
+    }
+  };
+
+  const handleCreateSchool = async (e: React.FormEvent) => {
     e.preventDefault();
-    createSchoolMutation.mutate(schoolData);
+    
+    try {
+      let logoUrl = "";
+      
+      // Upload logo if provided
+      if (logoFile) {
+        const formData = new FormData();
+        formData.append('logo', logoFile);
+        formData.append('type', 'school-logo');
+        
+        const uploadResponse = await fetch('/api/upload-content', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error('فشل في رفع شعار المدرسة');
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        logoUrl = uploadResult.url;
+      }
+      
+      // Create school with logo URL
+      const schoolDataWithLogo = {
+        ...schoolData,
+        logoUrl
+      };
+      
+      createSchoolMutation.mutate(schoolDataWithLogo);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "حدث خطأ في إنشاء المدرسة");
+    }
   };
 
   const handleDeleteSchool = (schoolId: number, schoolName: string) => {
@@ -554,10 +615,21 @@ export default function SuperAdminSimple() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 rtl:space-x-reverse mb-2">
-                          <div 
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: school.primaryColor }}
-                          />
+                          {school.logoUrl ? (
+                            <img 
+                              src={school.logoUrl} 
+                              alt={`شعار ${school.name}`}
+                              className="w-8 h-8 rounded-full object-cover border-2"
+                              style={{ borderColor: school.primaryColor }}
+                            />
+                          ) : (
+                            <div 
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                              style={{ backgroundColor: school.primaryColor }}
+                            >
+                              {school.name.charAt(0)}
+                            </div>
+                          )}
                           <h3 className="text-lg font-semibold">{school.name}</h3>
                           <Badge variant={school.active ? "default" : "secondary"}>
                             {school.active ? "نشط" : "غير نشط"}
@@ -684,6 +756,34 @@ export default function SuperAdminSimple() {
                     onChange={(e) => setSchoolData({...schoolData, domain: e.target.value})}
                     placeholder="nour-school.com"
                   />
+                </div>
+
+                {/* Logo Upload Section */}
+                <div className="space-y-2">
+                  <Label htmlFor="school-logo">شعار المدرسة (اختياري)</Label>
+                  <Input
+                    id="school-logo"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <p className="text-xs text-gray-500">
+                    يقبل ملفات الصور (JPG, PNG, SVG) - الحد الأقصى 2 ميجابايت
+                  </p>
+                  
+                  {logoPreview && (
+                    <div className="mt-3">
+                      <Label className="text-sm text-gray-600 mb-2 block">معاينة الشعار:</Label>
+                      <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <img 
+                          src={logoPreview} 
+                          alt="معاينة شعار المدرسة" 
+                          className="h-20 w-20 object-contain mx-auto rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
