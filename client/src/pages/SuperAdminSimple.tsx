@@ -572,7 +572,7 @@ export default function SuperAdminSimple() {
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <Calendar className="h-8 w-8 text-orange-600" />
                 <div>
-                  <p className="text-2xl font-bold">{new Date().toLocaleDateString('ar-SA')}</p>
+                  <p className="text-2xl font-bold">{new Date().toLocaleDateString('en-US')}</p>
                   <p className="text-sm text-gray-600">تاريخ اليوم</p>
                 </div>
               </div>

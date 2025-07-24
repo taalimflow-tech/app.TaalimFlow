@@ -311,7 +311,7 @@ This unified approach provides better data consistency, easier queries, and impr
     - System enforces strict role-based access with proper session management and user redirection
 - **January 2025**: Replaced all Hijri dating with Gregorian dating across the entire application
   - Changed all `toLocaleDateString('ar-SA')` and `toLocaleDateString('ar-DZ')` instances to `toLocaleDateString('en-US')`
-  - Updated date formatting in AdminVerification, Profile, AdminSuggestions, NotificationPanel, AdminContent, and AdminUsers pages
+  - Updated date formatting in AdminVerification, Profile, AdminSuggestions, NotificationPanel, AdminContent, AdminUsers, and SuperAdminSimple pages
   - All dates now display in standard Gregorian format (MM/DD/YYYY) instead of Islamic calendar format
   - This change provides consistent date display that matches international standards
 - **January 2025**: Removed verification status display for admins and teachers in profiles
