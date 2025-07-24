@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 export default function SuperAdminSimple() {
   const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showCreateSchool, setShowCreateSchool] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState(null);
   const queryClient = useQueryClient();
@@ -32,6 +33,14 @@ export default function SuperAdminSimple() {
     primaryColor: "#3B82F6",
     secondaryColor: "#1E40AF"
   });
+  
+  const [resetData, setResetData] = useState({
+    email: "",
+    newPassword: "",
+    confirmPassword: "",
+    superAdminKey: ""
+  });
+  
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -135,6 +144,50 @@ export default function SuperAdminSimple() {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (resetData.newPassword !== resetData.confirmPassword) {
+      setError("كلمات المرور غير متطابقة");
+      return;
+    }
+    
+    if (resetData.newPassword.length < 6) {
+      setError("كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل");
+      return;
+    }
+    
+    setLoading(true);
+    setError("");
+    
+    try {
+      const response = await fetch("/api/auth/super-admin-reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(resetData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "فشل في تحديث كلمة المرور");
+      }
+
+      alert("تم تحديث كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول");
+      setShowPasswordReset(false);
+      setResetData({
+        email: "",
+        newPassword: "",
+        confirmPassword: "",
+        superAdminKey: ""
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "حدث خطأ غير متوقع");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (user?.role !== "super_admin") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
@@ -159,7 +212,17 @@ export default function SuperAdminSimple() {
                 </Alert>
               )}
 
-              {showLogin ? (
+              {/* Login Help */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                <h4 className="text-yellow-200 font-semibold mb-2">مساعدة تسجيل الدخول</h4>
+                <div className="text-yellow-100 text-sm space-y-2">
+                  <p>• تأكد من إدخال البريد الإلكتروني وكلمة المرور الصحيحة</p>
+                  <p>• يجب أن يكون الحساب مسجل كمسؤول عام</p>
+                  <p>• إذا نسيت كلمة المرور، قم بإنشاء حساب جديد</p>
+                </div>
+              </div>
+
+              {showLogin && !showPasswordReset ? (
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-white">البريد الإلكتروني</Label>
@@ -192,6 +255,87 @@ export default function SuperAdminSimple() {
                   >
                     {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
                   </Button>
+                  
+                  <div className="text-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowPasswordReset(true)}
+                      className="text-purple-300 hover:text-white text-sm"
+                    >
+                      نسيت كلمة المرور؟
+                    </Button>
+                  </div>
+                </form>
+              ) : showPasswordReset ? (
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email" className="text-white">البريد الإلكتروني</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      value={resetData.email}
+                      onChange={(e) => setResetData({...resetData, email: e.target.value})}
+                      className="bg-white/10 border-purple-500/30 text-white"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password" className="text-white">كلمة المرور الجديدة</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={resetData.newPassword}
+                      onChange={(e) => setResetData({...resetData, newPassword: e.target.value})}
+                      className="bg-white/10 border-purple-500/30 text-white"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="text-white">تأكيد كلمة المرور</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      value={resetData.confirmPassword}
+                      onChange={(e) => setResetData({...resetData, confirmPassword: e.target.value})}
+                      className="bg-white/10 border-purple-500/30 text-white"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-key" className="text-white">مفتاح المسؤول العام</Label>
+                    <Input
+                      id="reset-key"
+                      type="password"
+                      value={resetData.superAdminKey}
+                      onChange={(e) => setResetData({...resetData, superAdminKey: e.target.value})}
+                      className="bg-white/10 border-purple-500/30 text-white"
+                      placeholder="SUPER_ADMIN_2024_MASTER_KEY"
+                      required
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    {loading ? "جاري التحديث..." : "تحديث كلمة المرور"}
+                  </Button>
+                  
+                  <div className="text-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowPasswordReset(false)}
+                      className="text-purple-300 hover:text-white text-sm"
+                    >
+                      العودة إلى تسجيل الدخول
+                    </Button>
+                  </div>
                 </form>
               ) : (
                 <form onSubmit={handleRegister} className="space-y-4">
@@ -265,16 +409,18 @@ export default function SuperAdminSimple() {
                 </form>
               )}
 
-              <div className="text-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowLogin(!showLogin)}
-                  className="text-purple-300 hover:text-white"
-                >
-                  {showLogin ? "إنشاء حساب مسؤول عام جديد" : "العودة إلى تسجيل الدخول"}
-                </Button>
-              </div>
+              {!showPasswordReset && (
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowLogin(!showLogin)}
+                    className="text-purple-300 hover:text-white"
+                  >
+                    {showLogin ? "إنشاء حساب مسؤول عام جديد" : "العودة إلى تسجيل الدخول"}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

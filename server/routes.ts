@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema } from "@shared/schema";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -1857,6 +1860,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Super admin login error:', error);
       res.status(400).json({ error: "بيانات غير صحيحة" });
+    }
+  });
+
+  // Super Admin Password Reset Route
+  app.post("/api/auth/super-admin-reset-password", async (req, res) => {
+    try {
+      const { email, newPassword, superAdminKey } = req.body;
+      
+      // Verify super admin secret key
+      if (superAdminKey !== SUPER_ADMIN_SECRET_KEY) {
+        return res.status(400).json({ error: "مفتاح المسؤول العام غير صحيح" });
+      }
+
+      // Find existing super admin
+      const existingUser = await storage.getUserByEmail(email);
+      if (!existingUser || existingUser.role !== "super_admin") {
+        return res.status(400).json({ error: "حساب المسؤول العام غير موجود" });
+      }
+
+      // Hash new password and update
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      await db.update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, existingUser.id));
+
+      res.json({ message: "تم تحديث كلمة المرور بنجاح" });
+    } catch (error) {
+      console.error('Super admin password reset error:', error);
+      res.status(400).json({ error: "فشل في تحديث كلمة المرور" });
     }
   });
 
