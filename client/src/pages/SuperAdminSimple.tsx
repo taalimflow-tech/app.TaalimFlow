@@ -607,6 +607,7 @@ export default function SuperAdminSimple() {
                           size="sm"
                           variant="outline"
                           onClick={() => window.open(`/school/${school.code}`, '_blank')}
+                          title={`عرض مدرسة ${school.name} (الكود: ${school.code})`}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
