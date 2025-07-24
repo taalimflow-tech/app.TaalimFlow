@@ -1,23 +1,32 @@
-import { users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable } from "drizzle-orm";
 
 export interface IStorage {
-  // User methods
+  // School methods (for multi-tenancy)
+  getSchools(): Promise<School[]>;
+  getSchoolByCode(code: string): Promise<School | undefined>;
+  getSchoolById(id: number): Promise<School | undefined>;
+  createSchool(school: InsertSchool): Promise<School>;
+  updateSchool(id: number, updates: Partial<InsertSchool>): Promise<School>;
+  deleteSchool(id: number): Promise<void>;
+
+  // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   authenticateUser(email: string, password: string): Promise<User | null>;
-  getAllUsers(): Promise<User[]>;
-  searchUsers(query: string): Promise<User[]>;
+  getAllUsers(schoolId?: number): Promise<User[]>;
+  searchUsers(query: string, schoolId?: number): Promise<User[]>;
   searchUsersWithFilters(filters: {
     search?: string;
     educationLevel?: string;
     subject?: number;
     assignedTeacher?: number;
     role?: string;
+    schoolId?: number;
   }): Promise<User[]>;
   updateUserProfilePicture(userId: number, profilePictureUrl: string): Promise<User>;
   
@@ -155,6 +164,38 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // School methods implementation
+  async getSchools(): Promise<School[]> {
+    return await db.select().from(schools).where(eq(schools.active, true)).orderBy(desc(schools.createdAt));
+  }
+
+  async getSchoolByCode(code: string): Promise<School | undefined> {
+    const [school] = await db.select().from(schools).where(and(eq(schools.code, code), eq(schools.active, true)));
+    return school || undefined;
+  }
+
+  async getSchoolById(id: number): Promise<School | undefined> {
+    const [school] = await db.select().from(schools).where(eq(schools.id, id));
+    return school || undefined;
+  }
+
+  async createSchool(school: InsertSchool): Promise<School> {
+    const [newSchool] = await db.insert(schools).values(school).returning();
+    return newSchool;
+  }
+
+  async updateSchool(id: number, updates: Partial<InsertSchool>): Promise<School> {
+    const [updatedSchool] = await db
+      .update(schools)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(schools.id, id))
+      .returning();
+    return updatedSchool;
+  }
+
+  async deleteSchool(id: number): Promise<void> {
+    await db.update(schools).set({ active: false }).where(eq(schools.id, id));
+  }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;

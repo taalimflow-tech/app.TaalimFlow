@@ -2,8 +2,24 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
+// Schools table for multi-tenancy
+export const schools = pgTable("schools", {
   id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code").notNull().unique(), // URL-friendly school identifier
+  domain: text("domain"), // Optional custom domain
+  logoUrl: text("logo_url"),
+  primaryColor: text("primary_color").default("#3b82f6"), // Hex color for branding
+  secondaryColor: text("secondary_color").default("#1e40af"),
+  settings: jsonb("settings"), // Additional school-specific settings
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const users: any = pgTable("users", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id), // null for super admin
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
@@ -15,7 +31,7 @@ export const users = pgTable("users", {
   emailVerificationCode: text("email_verification_code"), // Email verification code
   emailVerificationExpiry: timestamp("email_verification_expiry"), // Code expiry time
   profilePicture: text("profile_picture"), // URL to profile picture
-  role: text("role").notNull().default("user"), // admin, teacher, user, student
+  role: text("role").notNull().default("user"), // super_admin, admin, teacher, user, student
   gender: text("gender", { enum: ["male", "female"] }), // Gender field for teachers
   firebaseUid: text("firebase_uid"),
   verified: boolean("verified").default(false), // Manual verification by admin
@@ -31,6 +47,7 @@ export const users = pgTable("users", {
 
 export const announcements = pgTable("announcements", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   title: text("title").notNull(),
   content: text("content").notNull(),
   imageUrl: text("image_url"),
@@ -41,6 +58,7 @@ export const announcements = pgTable("announcements", {
 
 export const blogPosts = pgTable("blog_posts", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   title: text("title").notNull(),
   content: text("content").notNull(),
   imageUrl: text("image_url"),
@@ -52,6 +70,7 @@ export const blogPosts = pgTable("blog_posts", {
 
 export const teachers = pgTable("teachers", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   name: text("name").notNull(),
   subject: text("subject").notNull(),
   bio: text("bio"),
@@ -64,6 +83,7 @@ export const teachers = pgTable("teachers", {
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   senderId: integer("sender_id").references(() => users.id),
   receiverId: integer("receiver_id").references(() => users.id),
   teacherId: integer("teacher_id").references(() => teachers.id),
@@ -75,6 +95,7 @@ export const messages = pgTable("messages", {
 
 export const blockedUsers = pgTable("blocked_users", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   blockerId: integer("blocker_id").references(() => users.id).notNull(),
   blockedId: integer("blocked_id").references(() => users.id).notNull(),
   reason: text("reason"), // Optional reason for blocking
@@ -83,6 +104,7 @@ export const blockedUsers = pgTable("blocked_users", {
 
 export const userReports = pgTable("user_reports", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   reporterId: integer("reporter_id").references(() => users.id).notNull(),
   reportedUserId: integer("reported_user_id").references(() => users.id).notNull(),
   messageId: integer("message_id").references(() => messages.id), // Optional - if reporting specific message
@@ -94,6 +116,7 @@ export const userReports = pgTable("user_reports", {
 
 export const suggestions = pgTable("suggestions", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").references(() => users.id),
   title: text("title").notNull(),
   content: text("content").notNull(),
@@ -104,6 +127,7 @@ export const suggestions = pgTable("suggestions", {
 
 export const groups = pgTable("groups", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
@@ -119,6 +143,7 @@ export const groups = pgTable("groups", {
 
 export const formations = pgTable("formations", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   duration: text("duration").notNull(),
@@ -130,6 +155,7 @@ export const formations = pgTable("formations", {
 
 export const groupRegistrations = pgTable("group_registrations", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id),
   fullName: text("full_name").notNull(),
   phone: text("phone").notNull(),
@@ -140,6 +166,7 @@ export const groupRegistrations = pgTable("group_registrations", {
 // User assignments to groups (for internal students/users)
 export const groupUserAssignments = pgTable("group_user_assignments", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id, { onDelete: "cascade" }),
   userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
   assignedAt: timestamp("assigned_at").defaultNow().notNull(),
@@ -148,6 +175,7 @@ export const groupUserAssignments = pgTable("group_user_assignments", {
 
 export const formationRegistrations = pgTable("formation_registrations", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   formationId: integer("formation_id").references(() => formations.id),
   fullName: text("full_name").notNull(),
   phone: text("phone").notNull(),
@@ -157,6 +185,7 @@ export const formationRegistrations = pgTable("formation_registrations", {
 
 export const children = pgTable("children", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   parentId: integer("parent_id").references(() => users.id),
   name: text("name").notNull(),
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
@@ -171,6 +200,7 @@ export const children = pgTable("children", {
 
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").references(() => users.id),
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
@@ -184,6 +214,7 @@ export const students = pgTable("students", {
 
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   type: text("type").notNull(), // 'suggestion', 'message', 'blog', 'announcement', 'group_update'
   title: text("title").notNull(),
@@ -195,6 +226,7 @@ export const notifications = pgTable("notifications", {
 
 export const teachingModules = pgTable("teaching_modules", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id), // null for global subjects
   name: text("name").notNull(),
   nameAr: text("name_ar").notNull(), // Arabic name
   educationLevel: text("education_level").notNull(), // الابتدائي، المتوسط، الثانوي
@@ -205,6 +237,7 @@ export const teachingModules = pgTable("teaching_modules", {
 
 export const teacherSpecializations = pgTable("teacher_specializations", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   teacherId: integer("teacher_id").references(() => users.id), // Reference to teacher user
   moduleId: integer("module_id").references(() => teachingModules.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -213,6 +246,7 @@ export const teacherSpecializations = pgTable("teacher_specializations", {
 // Schedule Tables - Multiple independent schedule tables for different classrooms
 export const scheduleTables = pgTable("schedule_tables", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   name: text("name").notNull(), // e.g., "Salle 1", "Salle 2"
   description: text("description"),
   isActive: boolean("is_active").default(true),
@@ -223,6 +257,7 @@ export const scheduleTables = pgTable("schedule_tables", {
 // Schedule Cells - Individual cells within schedule tables
 export const scheduleCells = pgTable("schedule_cells", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
   scheduleTableId: integer("schedule_table_id").references(() => scheduleTables.id, { onDelete: "cascade" }),
   dayOfWeek: integer("day_of_week").notNull(), // 0=Sunday, 1=Monday, etc.
   period: integer("period").notNull(), // 1, 2, 3, etc.
@@ -338,6 +373,36 @@ export const insertGroupUserAssignmentSchema = createInsertSchema(groupUserAssig
   userId: true,
   assignedBy: true,
 });
+
+// School-related schemas
+export const insertSchoolSchema = createInsertSchema(schools).pick({
+  name: true,
+  code: true,
+  domain: true,
+  logoUrl: true,
+  primaryColor: true,
+  secondaryColor: true,
+  settings: true,
+});
+
+export const schoolSelectionSchema = z.object({
+  schoolCode: z.string().min(1, "كود المدرسة مطلوب"),
+});
+
+// Super admin schema
+export const insertSuperAdminSchema = z.object({
+  email: z.string().email("بريد إلكتروني غير صحيح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
+  name: z.string().min(1, "الاسم مطلوب"),
+  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+  superAdminKey: z.string().min(1, "مفتاح المسؤول العام مطلوب"),
+});
+
+// Additional multi-tenancy types
+export type School = typeof schools.$inferSelect;
+export type InsertSchool = z.infer<typeof insertSchoolSchema>;
+export type InsertSuperAdmin = z.infer<typeof insertSuperAdminSchema>;
+export type SchoolSelection = z.infer<typeof schoolSelectionSchema>;
 
 export const insertFormationRegistrationSchema = createInsertSchema(formationRegistrations).pick({
   formationId: true,
