@@ -394,7 +394,7 @@ export const insertSuperAdminSchema = z.object({
   email: z.string().email("بريد إلكتروني غير صحيح"),
   password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
   name: z.string().min(1, "الاسم مطلوب"),
-  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+  phone: z.string().min(8, "رقم الهاتف يجب أن يكون على الأقل 8 أرقام").max(20, "رقم الهاتف طويل جداً"), // Flexible phone validation for super admins
   superAdminKey: z.string().min(1, "مفتاح المسؤول العام مطلوب"),
 });
 
