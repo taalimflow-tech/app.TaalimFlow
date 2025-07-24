@@ -24,6 +24,8 @@ import AdminReports from "@/pages/AdminReports";
 import Announcements from "@/pages/Announcements";
 import SuperAdminSimple from "@/pages/SuperAdminSimple";
 import SchoolSelection from "@/pages/SchoolSelection";
+import SchoolDirectory from "@/pages/SchoolDirectory";
+import PublicHome from "@/pages/PublicHome";
 import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
 import TeacherSpecializations from "@/pages/TeacherSpecializations";
@@ -52,6 +54,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Switch>
+      {/* Public Routes */}
+      <Route path="/" exact component={PublicHome} />
+      <Route path="/schools" component={SchoolDirectory} />
+      
       {/* Hidden Super Admin Access Route */}
       <Route path="/system/super-admin-access" component={SuperAdminSimple} />
       

@@ -5,6 +5,7 @@ import { eq, desc, or, ilike, and, aliasedTable } from "drizzle-orm";
 export interface IStorage {
   // School methods (for multi-tenancy)
   getSchools(): Promise<School[]>;
+  getAllActiveSchools(): Promise<School[]>;
   getSchoolByCode(code: string): Promise<School | undefined>;
   getSchoolById(id: number): Promise<School | undefined>;
   createSchool(school: InsertSchool): Promise<School>;
@@ -167,6 +168,24 @@ export class DatabaseStorage implements IStorage {
   // School methods implementation
   async getSchools(): Promise<School[]> {
     return await db.select().from(schools).where(eq(schools.active, true)).orderBy(desc(schools.createdAt));
+  }
+
+  async getAllActiveSchools(): Promise<School[]> {
+    // Get all active schools with user count
+    const schoolsList = await db.select().from(schools).where(eq(schools.active, true)).orderBy(desc(schools.createdAt));
+    
+    // Add user count for each school
+    const schoolsWithUserCount = await Promise.all(
+      schoolsList.map(async (school) => {
+        const userCount = await db.select().from(users).where(eq(users.schoolId, school.id));
+        return {
+          ...school,
+          userCount: userCount.length
+        };
+      })
+    );
+    
+    return schoolsWithUserCount;
   }
 
   async getSchoolByCode(code: string): Promise<School | undefined> {

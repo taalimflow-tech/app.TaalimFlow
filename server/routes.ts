@@ -795,6 +795,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public school directory endpoint
+  app.get("/api/schools/directory", async (req, res) => {
+    try {
+      const schools = await storage.getAllActiveSchools();
+      res.json({ schools });
+    } catch (error) {
+      console.error('Error fetching school directory:', error);
+      res.status(500).json({ error: "فشل في جلب قائمة المدارس" });
+    }
+  });
+
   // Teacher routes
   app.get("/api/teachers", async (req, res) => {
     try {

@@ -125,14 +125,17 @@ The application now uses a unified PostgreSQL database approach:
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
 ## Recent Changes
-- **January 2025**: Implemented comprehensive school logo upload functionality for enhanced branding
+- **January 2025**: Implemented comprehensive school logo upload functionality and multi-school discovery system
   - **Logo Upload System**: Added logo upload capability to school creation form with preview functionality
   - **File Validation**: Added proper file type and size validation (images only, max 2MB)
-  - **Visual Enhancement**: Schools now display logos in the admin dashboard with fallback to colored initials
+  - **Visual Enhancement**: Schools now display logos in admin dashboard and public directory with fallback to colored initials
+  - **School Directory System**: Created public school directory page (`/schools`) for users to discover and access schools
+  - **Multi-School Navigation**: Enhanced navigation flow with public home page, school directory, and school-specific selection
   - **Database Integration**: School logos stored in uploads directory with logoUrl field in database
-  - **Multi-field Upload**: Updated upload endpoint to handle both content images and school logos
-  - **Preview System**: Real-time logo preview during school creation process
-  - **Brand Integration**: School logos display with custom colors and proper styling
+  - **User Count Display**: Schools show registered user count in directory for transparency
+  - **Search Functionality**: Added search capability in school directory by name or code
+  - **Public Home Page**: Created welcoming landing page explaining the system and directing users to school directory
+  - **Enhanced URL Structure**: Clear URL patterns - `/` (home), `/schools` (directory), `/school/[code]` (specific school)
   - **User Guide**: Created comprehensive SCHOOL_USER_GUIDE.md explaining account creation and login process
 - **January 2025**: Successfully implemented comprehensive multi-tenancy system with complete data separation
   - **Hidden Super Admin Access**: Implemented secure super admin access via `/system/super-admin-access` route
