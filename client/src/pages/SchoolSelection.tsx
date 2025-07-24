@@ -41,12 +41,13 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
     setError("");
     
     try {
-      // Set school context in session storage or local storage
+      // Set school context in session storage and local storage
       localStorage.setItem('selectedSchool', JSON.stringify(school));
       sessionStorage.setItem('currentSchoolId', school.id.toString());
+      sessionStorage.setItem('schoolCode', school.code);
       
-      // Navigate to main app with school context
-      setLocation("/");
+      // Navigate to login page with school context
+      setLocation("/login");
     } catch (err) {
       setError("حدث خطأ في الوصول إلى المدرسة");
     } finally {
