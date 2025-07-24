@@ -23,6 +23,7 @@ import AdminVerification from "@/pages/AdminVerification";
 import AdminReports from "@/pages/AdminReports";
 import Announcements from "@/pages/Announcements";
 import SuperAdminSimple from "@/pages/SuperAdminSimple";
+import SchoolSelection from "@/pages/SchoolSelection";
 import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
 import TeacherSpecializations from "@/pages/TeacherSpecializations";
@@ -53,6 +54,11 @@ function AppRoutes() {
     <Switch>
       {/* Hidden Super Admin Access Route */}
       <Route path="/system/super-admin-access" component={SuperAdminSimple} />
+      
+      {/* School Selection Route */}
+      <Route path="/school/:code">
+        {(params) => <SchoolSelection schoolCode={params.code} />}
+      </Route>
       
       {/* Regular App Routes */}
       <Route>

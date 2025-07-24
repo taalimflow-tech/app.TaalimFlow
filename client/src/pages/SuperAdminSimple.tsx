@@ -1,16 +1,22 @@
 import { useState } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Building2, Plus, School } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function SuperAdminSimple() {
   const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
   const [showCreateSchool, setShowCreateSchool] = useState(false);
+  const [selectedSchool, setSelectedSchool] = useState(null);
+  const queryClient = useQueryClient();
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
     email: "",
@@ -28,6 +34,43 @@ export default function SuperAdminSimple() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Fetch schools
+  const { data: schools = [], isLoading: schoolsLoading } = useQuery({
+    queryKey: ["/api/super-admin/schools"],
+    enabled: user?.role === "super_admin"
+  });
+
+  // Create school mutation
+  const createSchoolMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/super-admin/schools", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/super-admin/schools"] });
+      setSchoolData({
+        name: "",
+        code: "",
+        domain: "",
+        primaryColor: "#3B82F6",
+        secondaryColor: "#1E40AF"
+      });
+      setShowCreateSchool(false);
+      setError("");
+    },
+    onError: (error: any) => {
+      setError(error.message || "فشل في إنشاء المدرسة");
+    }
+  });
+
+  // Delete school mutation
+  const deleteSchoolMutation = useMutation({
+    mutationFn: (schoolId: number) => apiRequest("DELETE", `/api/super-admin/schools/${schoolId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/super-admin/schools"] });
+    },
+    onError: (error: any) => {
+      setError(error.message || "فشل في حذف المدرسة");
+    }
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,37 +124,14 @@ export default function SuperAdminSimple() {
     }
   };
 
-  const handleCreateSchool = async (e: React.FormEvent) => {
+  const handleCreateSchool = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    
-    try {
-      const response = await fetch("/api/super-admin/schools", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(schoolData),
-      });
+    createSchoolMutation.mutate(schoolData);
+  };
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "فشل في إنشاء المدرسة");
-      }
-
-      alert("تم إنشاء المدرسة بنجاح!");
-      setSchoolData({
-        name: "",
-        code: "",
-        domain: "",
-        primaryColor: "#3B82F6",
-        secondaryColor: "#1E40AF"
-      });
-      setShowCreateSchool(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "حدث خطأ غير متوقع");
-    } finally {
-      setLoading(false);
+  const handleDeleteSchool = (schoolId: number, schoolName: string) => {
+    if (confirm(`هل أنت متأكد من حذف مدرسة "${schoolName}"؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
+      deleteSchoolMutation.mutate(schoolId);
     }
   };
 
@@ -301,21 +321,176 @@ export default function SuperAdminSimple() {
           </Card>
         </div>
 
-        {/* Create School Section */}
-        {!showCreateSchool ? (
+        {/* Schools Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
-            <CardHeader>
-              <CardTitle>إدارة المدارس</CardTitle>
-              <CardDescription>إنشاء وإدارة المدارس في النظام</CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <School className="h-8 w-8 text-blue-600" />
+                <div>
+                  <p className="text-2xl font-bold">{schools.length}</p>
+                  <p className="text-sm text-gray-600">إجمالي المدارس</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Users className="h-8 w-8 text-green-600" />
+                <div>
+                  <p className="text-2xl font-bold">{schools.filter((s: any) => s.active).length}</p>
+                  <p className="text-sm text-gray-600">المدارس النشطة</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Globe className="h-8 w-8 text-purple-600" />
+                <div>
+                  <p className="text-2xl font-bold">{schools.filter((s: any) => s.domain).length}</p>
+                  <p className="text-sm text-gray-600">نطاقات مخصصة</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Calendar className="h-8 w-8 text-orange-600" />
+                <div>
+                  <p className="text-2xl font-bold">{new Date().toLocaleDateString('ar-SA')}</p>
+                  <p className="text-sm text-gray-600">تاريخ اليوم</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Schools List */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>قائمة المدارس المسجلة</CardTitle>
+                <CardDescription>جميع المدارس والمؤسسات التعليمية في النظام</CardDescription>
+              </div>
               <Button onClick={() => setShowCreateSchool(true)}>
                 <Plus className="h-4 w-4 ml-2" />
                 إضافة مدرسة جديدة
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
+            </div>
+          </CardHeader>
+          <CardContent>
+            {schoolsLoading ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">جاري تحميل المدارس...</p>
+              </div>
+            ) : schools.length === 0 ? (
+              <div className="text-center py-8">
+                <School className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">لا توجد مدارس مسجلة بعد</p>
+                <Button onClick={() => setShowCreateSchool(true)}>
+                  <Plus className="h-4 w-4 ml-2" />
+                  أضف أول مدرسة
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {schools.map((school: any) => (
+                  <div key={school.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse mb-2">
+                          <div 
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: school.primaryColor }}
+                          />
+                          <h3 className="text-lg font-semibold">{school.name}</h3>
+                          <Badge variant={school.active ? "default" : "secondary"}>
+                            {school.active ? "نشط" : "غير نشط"}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <School className="h-4 w-4" />
+                            <span>الكود: {school.code}</span>
+                          </div>
+                          
+                          {school.domain && (
+                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                              <Globe className="h-4 w-4" />
+                              <span>النطاق: {school.domain}</span>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <Calendar className="h-4 w-4" />
+                            <span>أنشئت: {new Date(school.createdAt).toLocaleDateString('en-US')}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4 rtl:space-x-reverse mt-3">
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <Palette className="h-4 w-4 text-gray-400" />
+                            <div className="flex space-x-1 rtl:space-x-reverse">
+                              <div 
+                                className="w-4 h-4 rounded border"
+                                style={{ backgroundColor: school.primaryColor }}
+                                title="اللون الأساسي"
+                              />
+                              <div 
+                                className="w-4 h-4 rounded border"
+                                style={{ backgroundColor: school.secondaryColor }}
+                                title="اللون الثانوي"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`/school/${school.code}`, '_blank')}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedSchool(school)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteSchool(school.id, school.name)}
+                          disabled={deleteSchoolMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Create School Form */}
+        {showCreateSchool && (
           <Card>
             <CardHeader>
               <CardTitle>إضافة مدرسة جديدة</CardTitle>
@@ -389,14 +564,51 @@ export default function SuperAdminSimple() {
                   <Button type="button" variant="outline" onClick={() => setShowCreateSchool(false)}>
                     إلغاء
                   </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? "جاري الإنشاء..." : "إنشاء المدرسة"}
+                  <Button type="submit" disabled={createSchoolMutation.isPending}>
+                    {createSchoolMutation.isPending ? "جاري الإنشاء..." : "إنشاء المدرسة"}
                   </Button>
                 </div>
               </form>
             </CardContent>
           </Card>
         )}
+
+        {/* School Access Instructions */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>كيفية الوصول إلى المدارس</CardTitle>
+            <CardDescription>طرق الوصول إلى كل مدرسة في النظام</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2">الوصول عبر الكود</h4>
+                <p className="text-blue-700 text-sm mb-2">
+                  يمكن للمستخدمين الوصول إلى مدرستهم عبر الرابط التالي:
+                </p>
+                <code className="bg-blue-100 px-2 py-1 rounded text-sm">
+                  /school/[school-code]
+                </code>
+              </div>
+              
+              {schools.filter((s: any) => s.domain).length > 0 && (
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <h4 className="font-semibold text-green-900 mb-2">النطاقات المخصصة</h4>
+                  <p className="text-green-700 text-sm mb-2">
+                    المدارس التي لديها نطاقات مخصصة:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {schools.filter((s: any) => s.domain).map((school: any) => (
+                      <li key={school.id} className="text-green-700">
+                        <strong>{school.name}</strong>: {school.domain}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Features List */}
         <div className="mt-8">
