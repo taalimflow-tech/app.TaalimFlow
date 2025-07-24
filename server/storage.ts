@@ -182,9 +182,37 @@ export class DatabaseStorage implements IStorage {
   async authenticateUser(email: string, password: string): Promise<User | null> {
     const bcrypt = await import('bcrypt');
     const [user] = await db.select().from(users).where(eq(users.email, email));
-    if (user && await bcrypt.compare(password, user.password)) {
-      return user;
+    
+    if (user) {
+      console.log('Found user:', user.email);
+      console.log('Password starts with $2b:', user.password.startsWith('$2b$'));
+      
+      // Check if password is already hashed
+      if (user.password.startsWith('$2b$')) {
+        // Use bcrypt comparison for hashed passwords
+        const isValid = await bcrypt.compare(password, user.password);
+        console.log('Bcrypt comparison result:', isValid);
+        return isValid ? user : null;
+      } else {
+        // Legacy plain text password comparison
+        console.log('Using plain text comparison');
+        const isValid = user.password === password;
+        console.log('Plain text comparison result:', isValid);
+        
+        // If plain text matches, hash and update the password
+        if (isValid) {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          await db.update(users)
+            .set({ password: hashedPassword })
+            .where(eq(users.id, user.id));
+          console.log('Updated password to hashed version');
+        }
+        
+        return isValid ? user : null;
+      }
     }
+    
+    console.log('No user found with email:', email);
     return null;
   }
 
