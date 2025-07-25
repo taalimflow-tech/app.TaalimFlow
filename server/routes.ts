@@ -1797,10 +1797,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
+      console.log('Creating schedule table for user:', currentUser.email, 'role:', currentUser.role);
+      console.log('Request body:', req.body);
+      
       const tableData = insertScheduleTableSchema.parse(req.body);
+      console.log('Validated table data:', tableData);
+      
       const table = await storage.createScheduleTable(tableData);
+      console.log('Schedule table created successfully:', table);
       res.json(table);
     } catch (error) {
+      console.error('Error creating schedule table:', error);
       res.status(500).json({ error: "Failed to create schedule table" });
     }
   });
