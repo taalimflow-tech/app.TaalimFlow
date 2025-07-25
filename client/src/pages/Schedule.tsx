@@ -53,6 +53,19 @@ interface Teacher {
   id: number;
   name: string;
   gender: string;
+  specializations: {
+    id: number;
+    name: string;
+    nameAr: string;
+    educationLevel: string;
+    grade: string;
+  }[];
+}
+
+interface Teacher {
+  id: number;
+  name: string;
+  gender: string;
   email: string;
   phone: string;
   role: string;
@@ -181,9 +194,9 @@ export default function Schedule() {
     queryKey: ['/api/teaching-modules']
   });
 
-  // Fetch teachers
+  // Fetch teachers with specializations
   const { data: teachers = [] } = useQuery({
-    queryKey: ['/api/teachers']
+    queryKey: ['/api/teachers-with-specializations']
   });
 
   // Create schedule table
@@ -835,7 +848,11 @@ export default function Schedule() {
                   <SelectContent>
                     {modules
                       .filter((module: TeachingModule) => 
-                        cellForm.educationLevel === '' || module.educationLevel === cellForm.educationLevel
+                        cellForm.educationLevel === '' || 
+                        module.educationLevel === cellForm.educationLevel ||
+                        (cellForm.educationLevel === 'الابتدائي' && module.educationLevel === 'Primary') ||
+                        (cellForm.educationLevel === 'المتوسط' && module.educationLevel === 'Middle') ||
+                        (cellForm.educationLevel === 'الثانوي' && module.educationLevel === 'Secondary')
                       )
                       .map((module: TeachingModule) => (
                         <SelectItem key={module.id} value={module.id.toString()}>
@@ -859,7 +876,12 @@ export default function Schedule() {
                     {teachers
                       .filter((teacher: Teacher) => 
                         cellForm.educationLevel === '' || 
-                        teacher.specializations.some(spec => spec.educationLevel === cellForm.educationLevel)
+                        teacher.specializations.some(spec => 
+                          spec.educationLevel === cellForm.educationLevel ||
+                          (cellForm.educationLevel === 'الابتدائي' && spec.educationLevel === 'Primary') ||
+                          (cellForm.educationLevel === 'المتوسط' && spec.educationLevel === 'Middle') ||
+                          (cellForm.educationLevel === 'الثانوي' && spec.educationLevel === 'Secondary')
+                        )
                       )
                       .map((teacher: Teacher) => (
                         <SelectItem key={teacher.id} value={teacher.id.toString()}>
