@@ -1900,9 +1900,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "لا يمكنك إضافة تخصصات لمعلم آخر" });
       }
       
-      const specialization = await storage.createTeacherSpecialization(specializationData);
+      // Add schoolId to specialization data
+      const specializationWithSchool = {
+        ...specializationData,
+        schoolId: currentUser.schoolId
+      };
+      
+      const specialization = await storage.createTeacherSpecialization(specializationWithSchool);
       res.json(specialization);
     } catch (error) {
+      console.error('Teacher specialization creation error:', error);
       res.status(500).json({ error: "Failed to create teacher specialization" });
     }
   });
