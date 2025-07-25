@@ -114,10 +114,10 @@ export interface IStorage {
   verifyStudent(studentId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Student>;
   undoVerifyChild(childId: number): Promise<Child>;
   undoVerifyStudent(studentId: number): Promise<Student>;
-  getUnverifiedChildren(): Promise<Child[]>;
-  getUnverifiedStudents(): Promise<Student[]>;
-  getVerifiedChildren(): Promise<Child[]>;
-  getVerifiedStudents(): Promise<Student[]>;
+  getUnverifiedChildren(schoolId: number): Promise<Child[]>;
+  getUnverifiedStudents(schoolId: number): Promise<Student[]>;
+  getVerifiedChildren(schoolId: number): Promise<Child[]>;
+  getVerifiedStudents(schoolId: number): Promise<Student[]>;
   
   // Teaching module methods
   getTeachingModules(): Promise<TeachingModule[]>;
@@ -970,11 +970,11 @@ export class DatabaseStorage implements IStorage {
     return student;
   }
 
-  async getUnverifiedChildren(): Promise<Child[]> {
-    return await db.select().from(children).where(eq(children.verified, false)).orderBy(desc(children.createdAt));
+  async getUnverifiedChildren(schoolId: number): Promise<Child[]> {
+    return await db.select().from(children).where(and(eq(children.verified, false), eq(children.schoolId, schoolId))).orderBy(desc(children.createdAt));
   }
 
-  async getUnverifiedStudents(): Promise<any[]> {
+  async getUnverifiedStudents(schoolId: number): Promise<any[]> {
     return await db
       .select({
         id: students.id,
@@ -987,15 +987,15 @@ export class DatabaseStorage implements IStorage {
       })
       .from(students)
       .leftJoin(users, eq(students.userId, users.id))
-      .where(and(eq(students.verified, false), eq(users.role, 'student')))
+      .where(and(eq(students.verified, false), eq(users.role, 'student'), eq(students.schoolId, schoolId)))
       .orderBy(desc(students.createdAt));
   }
 
-  async getVerifiedChildren(): Promise<Child[]> {
-    return await db.select().from(children).where(eq(children.verified, true)).orderBy(desc(children.verifiedAt));
+  async getVerifiedChildren(schoolId: number): Promise<Child[]> {
+    return await db.select().from(children).where(and(eq(children.verified, true), eq(children.schoolId, schoolId))).orderBy(desc(children.verifiedAt));
   }
 
-  async getVerifiedStudents(): Promise<any[]> {
+  async getVerifiedStudents(schoolId: number): Promise<any[]> {
     return await db
       .select({
         id: students.id,
@@ -1010,7 +1010,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(students)
       .leftJoin(users, eq(students.userId, users.id))
-      .where(and(eq(students.verified, true), eq(users.role, 'student')))
+      .where(and(eq(students.verified, true), eq(users.role, 'student'), eq(students.schoolId, schoolId)))
       .orderBy(desc(students.verifiedAt));
   }
 

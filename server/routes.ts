@@ -119,6 +119,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData = insertUserSchema.parse(userData);
       }
       
+      // Get school from session or request FIRST
+      const schoolId = req.session?.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
+      }
+      
       // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
@@ -139,12 +145,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
-      }
-      
-      // Get school from session or request
-      const schoolId = req.session?.schoolId;
-      if (!schoolId) {
-        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
       }
       
       // Create user first with school context
@@ -1288,17 +1288,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/suggestions", async (req, res) => {
+  app.post("/api/suggestions", requireAuth, async (req, res) => {
     try {
       if (!currentUser) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
+      console.log('Suggestion request body:', req.body);
       const validatedData = insertSuggestionSchema.parse(req.body);
+      console.log('Validated data:', validatedData);
       const suggestionData = {
         ...validatedData,
         schoolId: currentUser.schoolId
       };
+      console.log('Suggestion data with school:', suggestionData);
       const suggestion = await storage.createSuggestion(suggestionData);
       
       // Create notification for admins about new suggestion
@@ -1320,7 +1323,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(suggestion);
     } catch (error) {
-      res.status(400).json({ error: "Invalid suggestion data" });
+      console.error('Suggestion creation error:', error);
+      if (error instanceof z.ZodError) {
+        console.error('Validation errors:', error.errors);
+        res.status(400).json({ error: "بيانات الاقتراح غير صحيحة: " + error.errors.map(e => e.message).join(', ') });
+      } else {
+        res.status(400).json({ error: "فشل في إرسال الاقتراح. يرجى المحاولة مرة أخرى" });
+      }
     }
   });
 
@@ -1695,7 +1704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      const unverifiedChildren = await storage.getUnverifiedChildren();
+      const unverifiedChildren = await storage.getUnverifiedChildren(currentUser.schoolId);
       res.json(unverifiedChildren);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch unverified children" });
@@ -1708,7 +1717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      const unverifiedStudents = await storage.getUnverifiedStudents();
+      const unverifiedStudents = await storage.getUnverifiedStudents(currentUser.schoolId);
       res.json(unverifiedStudents);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch unverified students" });
@@ -1721,7 +1730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      const verifiedChildren = await storage.getVerifiedChildren();
+      const verifiedChildren = await storage.getVerifiedChildren(currentUser.schoolId);
       res.json(verifiedChildren);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch verified children" });
@@ -1734,7 +1743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      const verifiedStudents = await storage.getVerifiedStudents();
+      const verifiedStudents = await storage.getVerifiedStudents(currentUser.schoolId);
       res.json(verifiedStudents);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch verified students" });
