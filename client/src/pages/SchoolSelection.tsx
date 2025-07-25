@@ -15,33 +15,41 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch school by code only once when component mounts
-  const { data: school, isLoading, error: fetchError } = useQuery({
-    queryKey: ["/api/school/select", schoolCode],
-    queryFn: async () => {
-      const response = await fetch("/api/school/select", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schoolCode }),
-      });
+  const [school, setSchool] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<Error | null>(null);
 
-      const result = await response.json();
+  // Fetch school data only once when component mounts
+  useEffect(() => {
+    if (!schoolCode) return;
+    
+    const fetchSchool = async () => {
+      try {
+        setIsLoading(true);
+        setFetchError(null);
+        
+        const response = await fetch("/api/school/select", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schoolCode }),
+        });
 
-      if (!response.ok) {
-        throw new Error(result.error || "فشل في جلب بيانات المدرسة");
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "فشل في جلب بيانات المدرسة");
+        }
+
+        setSchool(result.school);
+      } catch (err) {
+        setFetchError(err as Error);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      return result.school;
-    },
-    retry: 1, // Only retry once on failure
-    staleTime: Infinity, // Data never becomes stale - only fetch once
-    gcTime: Infinity, // Keep in cache forever during session
-    refetchOnWindowFocus: false, // Never refetch on window focus
-    refetchOnMount: false, // Never refetch on component remount
-    refetchInterval: false, // Never refetch automatically
-    refetchOnReconnect: false, // Never refetch on reconnect
-    enabled: !!schoolCode, // Only run query if schoolCode exists
-  });
+    fetchSchool();
+  }, [schoolCode]); // Only run when schoolCode changes
 
   const handleAccessSchool = async () => {
     setLoading(true);

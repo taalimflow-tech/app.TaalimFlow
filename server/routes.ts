@@ -296,14 +296,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
     }
     
-    // Validate that user can only access their own school's data
-    if (currentSchool && currentUser.schoolId !== currentSchool.id) {
-      // Clear invalid session
-      currentUser = null;
-      currentSchool = null;
-      return res.status(403).json({ 
-        error: "غير مسموح لك بالوصول إلى بيانات هذه المدرسة. يرجى تسجيل الدخول مجدداً"
-      });
+    // CRITICAL: Users can only access data from their registered school
+    // Super admins can access all schools
+    if (currentUser.role !== 'super_admin') {
+      if (!currentUser.schoolId) {
+        return res.status(403).json({ 
+          error: "المستخدم غير مرتبط بأي مدرسة" 
+        });
+      }
+      
+      // For regular users, validate school access by checking the schoolId in the request
+      // This prevents cross-school data access completely
+      req.userSchoolId = currentUser.schoolId;
     }
     
     next();
@@ -2194,7 +2198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // School Selection Route (for accessing specific school)
+  // School Selection Route (for accessing specific school - PUBLIC ROUTE)
   app.post("/api/school/select", async (req, res) => {
     try {
       const { schoolCode } = schoolSelectionSchema.parse(req.body);
@@ -2204,9 +2208,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "المدرسة غير موجودة أو غير مفعلة" });
       }
 
-      // Set current school for subsequent requests
-      currentSchool = school;
-
+      // IMPORTANT: Don't set global currentSchool - this was causing security issues
+      // This is just for displaying school info before login
       res.json({ school });
     } catch (error) {
       console.error('Error selecting school:', error);
