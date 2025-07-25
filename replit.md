@@ -125,6 +125,13 @@ The application now uses a unified PostgreSQL database approach:
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
 ## Recent Changes
+- **January 2025**: Fixed critical security vulnerability and performance issues
+  - **Security Fix**: Implemented `requireAuth` middleware on all protected API routes with school association validation
+  - **Multi-Tenancy Enforcement**: Users can only access data from their registered school (schoolId validation)
+  - **Session Management**: Automatic session clearing when school mismatch detected
+  - **Performance Fix**: Resolved infinite loop in SchoolSelection component causing continuous API calls to `/api/school/select`
+  - **React Query Optimization**: Added proper cache configuration (staleTime, gcTime, refetchOnWindowFocus: false)
+  - **API Security**: Applied middleware to routes: /api/users, /api/teachers, /api/suggestions, /api/groups, /api/announcements
 - **January 2025**: Implemented clean customer-facing school selection interface
   - **Simplified School Selection**: Removed technical details (code, domain, colors, creation date) from customer view
   - **Essential Information Only**: Shows only school name, logo, and welcome message
