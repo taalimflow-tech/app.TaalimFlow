@@ -35,14 +35,14 @@ export default function Teachers() {
   const queryClient = useQueryClient();
   
   const { data: teachers = [], isLoading: loading } = useQuery<TeacherWithSpecializations[]>({
-    queryKey: ['/api/teachers'],
+    queryKey: ['/api/teachers-with-specializations'],
   });
 
   const educationLevels = [
     { value: 'all', label: 'جميع المستويات' },
-    { value: 'الابتدائي', label: 'الابتدائي' },
-    { value: 'المتوسط', label: 'المتوسط' },
-    { value: 'الثانوي', label: 'الثانوي' }
+    { value: 'Primary', label: 'الابتدائي' },
+    { value: 'Middle', label: 'المتوسط' },
+    { value: 'Secondary', label: 'الثانوي' }
   ];
 
   const filteredTeachers = selectedLevel === 'all' 
@@ -54,6 +54,7 @@ export default function Teachers() {
   // Color schemes for different education levels
   const getLevelColors = (educationLevel: string) => {
     switch (educationLevel) {
+      case 'Primary':
       case 'الابتدائي':
         return {
           bg: 'bg-green-50',
@@ -61,6 +62,7 @@ export default function Teachers() {
           border: 'border-green-200',
           badge: 'bg-green-100 text-green-800'
         };
+      case 'Middle':
       case 'المتوسط':
         return {
           bg: 'bg-blue-50',
@@ -68,6 +70,7 @@ export default function Teachers() {
           border: 'border-blue-200',
           badge: 'bg-blue-100 text-blue-800'
         };
+      case 'Secondary':
       case 'الثانوي':
         return {
           bg: 'bg-purple-50',
@@ -83,6 +86,16 @@ export default function Teachers() {
           badge: 'bg-gray-100 text-gray-800'
         };
     }
+  };
+
+  // Helper function to get Arabic label for education level
+  const getEducationLevelLabel = (level: string) => {
+    const levelMap: { [key: string]: string } = {
+      'Primary': 'الابتدائي',
+      'Middle': 'المتوسط', 
+      'Secondary': 'الثانوي'
+    };
+    return levelMap[level] || level;
   };
 
   const sendMessageMutation = useMutation({
@@ -210,15 +223,15 @@ export default function Teachers() {
                       />
                     ) : (
                       <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                        primaryLevel === 'الابتدائي' ? 'bg-green-100' :
-                        primaryLevel === 'المتوسط' ? 'bg-blue-100' :
-                        primaryLevel === 'الثانوي' ? 'bg-purple-100' :
+                        primaryLevel === 'Primary' ? 'bg-green-100' :
+                        primaryLevel === 'Middle' ? 'bg-blue-100' :
+                        primaryLevel === 'Secondary' ? 'bg-purple-100' :
                         'bg-gray-100'
                       }`}>
                         <User className={`w-8 h-8 ${
-                          primaryLevel === 'الابتدائي' ? 'text-green-600' :
-                          primaryLevel === 'المتوسط' ? 'text-blue-600' :
-                          primaryLevel === 'الثانوي' ? 'text-purple-600' :
+                          primaryLevel === 'Primary' ? 'text-green-600' :
+                          primaryLevel === 'Middle' ? 'text-blue-600' :
+                          primaryLevel === 'Secondary' ? 'text-purple-600' :
                           'text-gray-600'
                         }`} />
                       </div>
@@ -236,9 +249,9 @@ export default function Teachers() {
                       <>
                         <div className="flex items-center space-x-reverse space-x-2 mb-2">
                           <Mail className={`w-4 h-4 ${
-                            primaryLevel === 'الابتدائي' ? 'text-green-500' :
-                            primaryLevel === 'المتوسط' ? 'text-blue-500' :
-                            primaryLevel === 'الثانوي' ? 'text-purple-500' :
+                            primaryLevel === 'Primary' ? 'text-green-500' :
+                            primaryLevel === 'Middle' ? 'text-blue-500' :
+                            primaryLevel === 'Secondary' ? 'text-purple-500' :
                             'text-gray-500'
                           }`} />
                           <span className="text-sm text-gray-600">{teacher.email}</span>
@@ -247,9 +260,9 @@ export default function Teachers() {
                         {teacher.phone && (
                           <div className="flex items-center space-x-reverse space-x-2 mb-3">
                             <Phone className={`w-4 h-4 ${
-                              primaryLevel === 'الابتدائي' ? 'text-green-500' :
-                              primaryLevel === 'المتوسط' ? 'text-blue-500' :
-                              primaryLevel === 'الثانوي' ? 'text-purple-500' :
+                              primaryLevel === 'Primary' ? 'text-green-500' :
+                              primaryLevel === 'Middle' ? 'text-blue-500' :
+                              primaryLevel === 'Secondary' ? 'text-purple-500' :
                               'text-gray-500'
                             }`} />
                             <span className="text-sm text-gray-600">{teacher.phone}</span>
@@ -263,9 +276,9 @@ export default function Teachers() {
                       <div className="mb-3">
                         <div className="flex items-center space-x-reverse space-x-2 mb-2">
                           <BookOpen className={`w-4 h-4 ${
-                            primaryLevel === 'الابتدائي' ? 'text-green-600' :
-                            primaryLevel === 'المتوسط' ? 'text-blue-600' :
-                            primaryLevel === 'الثانوي' ? 'text-purple-600' :
+                            primaryLevel === 'Primary' ? 'text-green-600' :
+                            primaryLevel === 'Middle' ? 'text-blue-600' :
+                            primaryLevel === 'Secondary' ? 'text-purple-600' :
                             'text-gray-600'
                           }`} />
                           <span className="text-sm font-medium text-gray-700">التخصصات:</span>
@@ -279,7 +292,7 @@ export default function Teachers() {
                                 className={`inline-flex items-center px-2 py-1 text-xs ${colors.badge} rounded-full`}
                               >
                                 {spec.nameAr}
-                                <span className="mr-1 opacity-75">({spec.educationLevel})</span>
+                                <span className="mr-1 opacity-75">({getEducationLevelLabel(spec.educationLevel)})</span>
                               </span>
                             );
                           })}
@@ -298,9 +311,9 @@ export default function Teachers() {
                 <div>
                   <Button 
                     className={`w-full text-white ${
-                      primaryLevel === 'الابتدائي' ? 'bg-green-600 hover:bg-green-700' :
-                      primaryLevel === 'المتوسط' ? 'bg-blue-600 hover:bg-blue-700' :
-                      primaryLevel === 'الثانوي' ? 'bg-purple-600 hover:bg-purple-700' :
+                      primaryLevel === 'Primary' ? 'bg-green-600 hover:bg-green-700' :
+                      primaryLevel === 'Middle' ? 'bg-blue-600 hover:bg-blue-700' :
+                      primaryLevel === 'Secondary' ? 'bg-purple-600 hover:bg-purple-700' :
                       'bg-gray-600 hover:bg-gray-700'
                     }`}
                     onClick={() => {
