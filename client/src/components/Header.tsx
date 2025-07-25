@@ -52,9 +52,7 @@ export function Header() {
             <h1 className="text-lg font-bold text-gray-800">
               {selectedSchool?.name || 'مدرستي'}
             </h1>
-            <p className="text-xs text-gray-500">
-              {selectedSchool?.location ? `${selectedSchool.location} - منصة التعلم الذكية` : 'منصة التعلم الذكية'}
-            </p>
+            <p className="text-xs text-gray-500">منصة التعلم الذكية</p>
           </div>
         </div>
         
