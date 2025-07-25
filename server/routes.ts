@@ -141,11 +141,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
+      // Get school from session or request
+      const schoolId = req.session?.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
+      }
+      
       // Create user first with school context
       const { educationLevel: _, grade: __, ...userDataOnly } = validatedData;
       const userWithSchool = {
         ...userDataOnly,
-        schoolId: currentSchool?.id || null
+        schoolId: schoolId
       };
       const user = await storage.createUser(userWithSchool);
       
@@ -155,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           educationLevel,
           grade,
-          schoolId: currentSchool?.id || null
+          schoolId: schoolId
         });
       }
       
@@ -167,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: child.name,
             educationLevel: child.educationLevel,
             grade: child.grade,
-            schoolId: currentSchool?.id || null
+            schoolId: schoolId
           })
         );
         await Promise.all(childrenPromises);
