@@ -305,7 +305,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         phone: user.phone,
         subject: "مادة عامة", // Default subject, can be updated later
-        available: true
+        available: true,
+        schoolId: currentSchool.id
       };
       await storage.createTeacher(teacherData);
       
