@@ -2158,7 +2158,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(newSchool);
     } catch (error) {
       console.error('Error creating school:', error);
-      res.status(400).json({ error: "فشل في إنشاء المدرسة" });
+      
+      // Handle specific database constraint errors
+      if (error && typeof error === 'object' && 'code' in error) {
+        if (error.code === '23505') {
+          // Unique constraint violation
+          if (error.constraint === 'schools_code_unique') {
+            return res.status(400).json({ error: "كود المدرسة مستخدم بالفعل، يرجى اختيار كود آخر" });
+          }
+          if (error.constraint === 'schools_domain_unique') {
+            return res.status(400).json({ error: "النطاق مستخدم بالفعل، يرجى اختيار نطاق آخر" });
+          }
+        }
+      }
+      
+      res.status(400).json({ error: "فشل في إنشاء المدرسة، يرجى التحقق من البيانات المدخلة" });
     }
   });
 
