@@ -130,13 +130,14 @@ This unified approach provides better data consistency, easier queries, and impr
 
 ### Schools and Their Users:
 1. **test school 1** (code: testschool1)
-   - 3 users: 1 student, 2 teachers
-   - Login as admin for this school to see them
+   - 4 users: 1 admin, 2 teachers, 1 student
+   - Admin login: `admin.testschool1@example.com` / password: `admin123`
+   - This admin can see all 4 users in test school 1
 
 2. **المعهد** (code: Mahad) 
    - 3 users: 1 admin, 2 teachers
-   - Admin login: `mou3athe0517@gmail.com` 
-   - This admin can see all users in المعهد school
+   - Admin login: `mou3athe0517@gmail.com` / password: (existing password)
+   - This admin can see all 3 users in المعهد school
 
 3. **Users without school assignment** (orphaned users)
    - These won't appear in any school's AdminUsers page
