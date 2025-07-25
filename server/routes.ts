@@ -1268,7 +1268,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'message',
         title: '💬 رسالة جديدة',
         message: `رسالة جديدة من ${sender?.name}: "${message.subject}"`,
-        relatedId: message.id
+        relatedId: message.id,
+        schoolId: currentUser.schoolId
       });
       
       res.status(201).json(message);
