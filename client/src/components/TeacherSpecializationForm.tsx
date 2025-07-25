@@ -40,9 +40,9 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const educationLevels = [
-    { value: 'الابتدائي', label: 'الابتدائي' },
-    { value: 'المتوسط', label: 'المتوسط' },
-    { value: 'الثانوي', label: 'الثانوي' }
+    { value: 'Primary', label: 'الابتدائي' },
+    { value: 'Middle', label: 'المتوسط' },
+    { value: 'Secondary', label: 'الثانوي' }
   ];
 
   useEffect(() => {
@@ -184,6 +184,15 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
     return specializations.some(spec => spec.moduleId === moduleId);
   };
 
+  const getEducationLevelLabel = (level: string) => {
+    const levelMap: { [key: string]: string } = {
+      'Primary': 'الابتدائي',
+      'Middle': 'المتوسط', 
+      'Secondary': 'الثانوي'
+    };
+    return levelMap[level] || level;
+  };
+
   if (!user || user.role !== 'teacher') {
     return (
       <Card className="max-w-2xl mx-auto">
@@ -221,7 +230,7 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h3 className="font-semibold text-gray-900">{module?.nameAr}</h3>
-                        <p className="text-sm text-gray-600">{module?.educationLevel}</p>
+                        <p className="text-sm text-gray-600">{getEducationLevelLabel(module?.educationLevel || '')}</p>
                       </div>
                       <Button
                         variant="ghost"
@@ -303,7 +312,7 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
             {selectedLevel && (
               <div className="bg-blue-50 p-3 rounded-md">
                 <p className="text-sm text-blue-700">
-                  <strong>المستوى المحدد:</strong> {selectedLevel}
+                  <strong>المستوى المحدد:</strong> {getEducationLevelLabel(selectedLevel)}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   {filteredModules.length} مادة متاحة في هذا المستوى
