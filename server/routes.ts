@@ -290,24 +290,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Middleware to check authentication and school access
+  const requireAuth = (req: any, res: any, next: any) => {
+    if (!currentUser) {
+      return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+    }
+    
+    // Validate that user can only access their own school's data
+    if (currentSchool && currentUser.schoolId !== currentSchool.id) {
+      // Clear invalid session
+      currentUser = null;
+      currentSchool = null;
+      return res.status(403).json({ 
+        error: "غير مسموح لك بالوصول إلى بيانات هذه المدرسة. يرجى تسجيل الدخول مجدداً"
+      });
+    }
+    
+    next();
+  };
+
   // Get current user info (for role verification)
-  app.get("/api/auth/me", async (req, res) => {
+  app.get("/api/auth/me", requireAuth, async (req, res) => {
     try {
-      if (currentUser) {
-        // Check if the current user is banned
-        const latestUserData = await storage.getUser(currentUser.id);
-        if (latestUserData && latestUserData.banned) {
-          currentUser = null; // Clear the session
-          return res.status(403).json({ 
-            error: "تم حظر حسابك من التطبيق. السبب: " + (latestUserData.banReason || "مخالفة شروط الاستخدام")
-          });
-        }
-        
-        const { password: _, ...userWithoutPassword } = currentUser;
-        res.json({ user: userWithoutPassword });
-      } else {
-        res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      // Check if the current user is banned
+      const latestUserData = await storage.getUser(currentUser.id);
+      if (latestUserData && latestUserData.banned) {
+        currentUser = null; // Clear the session
+        return res.status(403).json({ 
+          error: "تم حظر حسابك من التطبيق. السبب: " + (latestUserData.banReason || "مخالفة شروط الاستخدام")
+        });
       }
+      
+      const { password: _, ...userWithoutPassword } = currentUser;
+      res.json({ user: userWithoutPassword });
     } catch (error) {
       res.status(500).json({ error: "خطأ في الخادم" });
     }
@@ -630,9 +645,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // User management routes (Admin only)
-  app.get("/api/users", async (req, res) => {
+  app.get("/api/users", requireAuth, async (req, res) => {
     try {
-      if (!currentUser || currentUser.role !== 'admin') {
+      if (currentUser.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -667,9 +682,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", requireAuth, async (req, res) => {
     try {
-      if (!currentUser || currentUser.role !== 'admin') {
+      if (currentUser.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -759,11 +774,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Announcement routes
-  app.get("/api/announcements", async (req, res) => {
+  app.get("/api/announcements", requireAuth, async (req, res) => {
     try {
-      if (!currentUser) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
-      }
       
       const announcements = await storage.getAnnouncementsBySchool(currentUser.schoolId);
       res.json(announcements);
@@ -886,11 +898,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Teacher routes
-  app.get("/api/teachers", async (req, res) => {
+  app.get("/api/teachers", requireAuth, async (req, res) => {
     try {
-      if (!currentUser) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
-      }
       
       const teachers = await storage.getTeachersBySchool(currentUser.schoolId);
       res.json(teachers);
@@ -899,9 +908,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/teachers-with-specializations", async (req, res) => {
+  app.get("/api/teachers-with-specializations", requireAuth, async (req, res) => {
     try {
-      if (!currentUser || currentUser.role !== 'admin') {
+      if (currentUser.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1222,11 +1231,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Suggestion routes
-  app.get("/api/suggestions", async (req, res) => {
+  app.get("/api/suggestions", requireAuth, async (req, res) => {
     try {
-      if (!currentUser) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
-      }
       
       // CRITICAL: Prevent access if user doesn't belong to a school
       if (!currentUser.schoolId) {
@@ -1277,11 +1283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Group routes
-  app.get("/api/groups", async (req, res) => {
+  app.get("/api/groups", requireAuth, async (req, res) => {
     try {
-      if (!currentUser) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
-      }
       
       const groups = await storage.getGroupsBySchool(currentUser.schoolId);
       res.json(groups);
