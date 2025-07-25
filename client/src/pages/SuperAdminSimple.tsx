@@ -202,6 +202,15 @@ export default function SuperAdminSimple() {
     e.preventDefault();
     
     try {
+      // Auto-generate keys if not provided
+      let finalSchoolData = { ...schoolData };
+      if (!finalSchoolData.adminKey) {
+        finalSchoolData.adminKey = generateRandomKey().toUpperCase();
+      }
+      if (!finalSchoolData.teacherKey) {
+        finalSchoolData.teacherKey = generateRandomKey().toUpperCase();
+      }
+      
       let logoUrl = "";
       
       // Upload logo if provided
@@ -225,7 +234,7 @@ export default function SuperAdminSimple() {
       
       // Create school with logo URL
       const schoolDataWithLogo = {
-        ...schoolData,
+        ...finalSchoolData,
         logoUrl
       };
       
