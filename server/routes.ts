@@ -15,6 +15,7 @@ import { EmailService } from "./email-service";
 
 // Simple session storage for demo (in production, use Redis or database)
 let currentUser: any = null;
+let currentSchool: any = null;
 
 // Secret keys for admin and teacher registration
 const ADMIN_SECRET_KEY = "ADMIN_2024_SECRET_KEY";
@@ -120,9 +121,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
-      // Create user first
+      // Create user first with school context
       const { educationLevel: _, grade: __, ...userDataOnly } = validatedData;
-      const user = await storage.createUser(userDataOnly);
+      const userWithSchool = {
+        ...userDataOnly,
+        schoolId: currentSchool?.id || null
+      };
+      const user = await storage.createUser(userWithSchool);
       
       // Create student record if this is a student
       if (userData.role === 'student' && educationLevel && grade) {
@@ -195,9 +200,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
-      // Create user with admin role
+      // Create user with admin role and school context
       const { adminKey: _, ...userDataWithoutKey } = validatedData;
-      const userWithRole = { ...userDataWithoutKey, role: 'admin' };
+      const userWithRole = { 
+        ...userDataWithoutKey, 
+        role: 'admin',
+        schoolId: currentSchool.id
+      };
       const user = await storage.createUser(userWithRole);
       
       // Remove password from response
@@ -249,9 +258,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
-      // Create user with teacher role
+      // Create user with teacher role and school context
       const { teacherKey: _, ...userDataWithoutKey } = validatedData;
-      const userWithRole = { ...userDataWithoutKey, role: 'teacher' };
+      const userWithRole = { 
+        ...userDataWithoutKey, 
+        role: 'teacher',
+        schoolId: currentSchool.id
+      };
       const user = await storage.createUser(userWithRole);
       
       // Create teacher profile in teachers table
@@ -2025,6 +2038,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!school) {
         return res.status(404).json({ error: "المدرسة غير موجودة أو غير مفعلة" });
       }
+
+      // Set current school for subsequent requests
+      currentSchool = school;
 
       res.json({ school });
     } catch (error) {
