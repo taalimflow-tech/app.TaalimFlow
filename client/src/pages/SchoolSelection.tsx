@@ -15,7 +15,7 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch school by code
+  // Fetch school by code only once when component mounts
   const { data: school, isLoading, error: fetchError } = useQuery({
     queryKey: ["/api/school/select", schoolCode],
     queryFn: async () => {
@@ -33,12 +33,13 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
 
       return result.school;
     },
-    retry: false,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window gains focus
-    refetchOnMount: false, // Don't refetch on component mount if data exists
-    refetchInterval: false, // Disable automatic refetching
+    retry: 1, // Only retry once on failure
+    staleTime: Infinity, // Data never becomes stale - only fetch once
+    gcTime: Infinity, // Keep in cache forever during session
+    refetchOnWindowFocus: false, // Never refetch on window focus
+    refetchOnMount: false, // Never refetch on component remount
+    refetchInterval: false, // Never refetch automatically
+    refetchOnReconnect: false, // Never refetch on reconnect
     enabled: !!schoolCode, // Only run query if schoolCode exists
   });
 
