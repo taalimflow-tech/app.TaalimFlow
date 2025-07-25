@@ -302,7 +302,9 @@ export class DatabaseStorage implements IStorage {
         .where(eq(users.schoolId, schoolId))
         .orderBy(desc(users.createdAt));
     }
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+    // If no schoolId provided, return empty array for security
+    console.warn('getAllUsers called without schoolId - returning empty array for security');
+    return [];
   }
 
   async searchUsers(query: string): Promise<User[]> {
@@ -605,7 +607,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSuggestions(schoolId?: number): Promise<any[]> {
-    let query = db
+    if (!schoolId) {
+      console.warn('getSuggestions called without schoolId - returning empty array for security');
+      return [];
+    }
+    
+    return await db
       .select({
         id: suggestions.id,
         userId: suggestions.userId,
@@ -617,13 +624,9 @@ export class DatabaseStorage implements IStorage {
         userName: users.name,
       })
       .from(suggestions)
-      .leftJoin(users, eq(suggestions.userId, users.id));
-    
-    if (schoolId) {
-      query = query.where(eq(users.schoolId, schoolId));
-    }
-    
-    return await query.orderBy(desc(suggestions.createdAt));
+      .leftJoin(users, eq(suggestions.userId, users.id))
+      .where(eq(users.schoolId, schoolId))
+      .orderBy(desc(suggestions.createdAt));
   }
 
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
@@ -659,12 +662,15 @@ export class DatabaseStorage implements IStorage {
   // Admin group management methods
   async getAdminGroups(schoolId?: number): Promise<any[]> {
     try {
-      // Get teaching modules - filter by school if provided
-      let modulesQuery = db.select().from(teachingModules);
-      if (schoolId) {
-        modulesQuery = modulesQuery.where(or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)));
+      if (!schoolId) {
+        console.warn('getAdminGroups called without schoolId - returning empty array for security');
+        return [];
       }
-      const allModules = await modulesQuery.orderBy(teachingModules.educationLevel, teachingModules.name);
+      
+      // Get teaching modules - filter by school if provided
+      const allModules = await db.select().from(teachingModules)
+        .where(or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)))
+        .orderBy(teachingModules.educationLevel, teachingModules.name);
       
       // Generate all possible groups based on education levels and subjects
       const allPossibleGroups = [];

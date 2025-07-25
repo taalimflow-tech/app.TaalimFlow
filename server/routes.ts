@@ -636,6 +636,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
+      // CRITICAL: Prevent access if admin doesn't belong to a school
+      if (!currentUser.schoolId) {
+        return res.status(403).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+      }
+      
       const { search, educationLevel, subject, assignedTeacher, role } = req.query;
       
       // Build filter object
@@ -673,6 +678,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         return res.status(404).json({ error: "المستخدم غير موجود" });
+      }
+      
+      // CRITICAL: Prevent access if admin doesn't belong to a school
+      if (!currentUser.schoolId) {
+        return res.status(403).json({ error: "المدير غير مرتبط بمدرسة محددة" });
       }
       
       // CRITICAL: Ensure user belongs to admin's school (multi-tenancy)
@@ -780,7 +790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const announcement = await storage.createAnnouncement(announcementData);
       
       // Create notifications for all users about new announcement
-      const allUsers = await storage.getAllUsers();
+      const allUsers = await storage.getAllUsers(currentUser.schoolId);
       const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
       if (nonAdminUsers.length > 0) {
         await storage.createNotificationForUsers(
@@ -832,7 +842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const blogPost = await storage.createBlogPost(blogPostData);
       
       // Create notifications for all users about new blog post
-      const allUsers = await storage.getAllUsers();
+      const allUsers = await storage.getAllUsers(currentUser.schoolId);
       const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
       if (nonAdminUsers.length > 0) {
         await storage.createNotificationForUsers(
@@ -1218,6 +1228,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
+      // CRITICAL: Prevent access if user doesn't belong to a school
+      if (!currentUser.schoolId) {
+        return res.status(403).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+      
       const suggestions = await storage.getSuggestions(currentUser.schoolId);
       res.json(suggestions);
     } catch (error) {
@@ -1326,6 +1341,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!currentUser || currentUser.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      // CRITICAL: Prevent access if admin doesn't belong to a school
+      if (!currentUser.schoolId) {
+        return res.status(403).json({ error: "المدير غير مرتبط بمدرسة محددة" });
       }
       
       const adminGroups = await storage.getAdminGroups(currentUser.schoolId);
@@ -1467,7 +1487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formation = await storage.createFormation(formationData);
       
       // Create notifications for all users about new formation
-      const allUsers = await storage.getAllUsers();
+      const allUsers = await storage.getAllUsers(currentUser.schoolId);
       const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
       if (nonAdminUsers.length > 0) {
         await storage.createNotificationForUsers(
