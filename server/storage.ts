@@ -509,7 +509,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(teachers).where(eq(teachers.id, id));
   }
 
-  async getTeachersWithSpecializations(): Promise<any[]> {
+  async getTeachersWithSpecializations(schoolId: number): Promise<any[]> {
     const result = await db
       .select({
         id: users.id,
@@ -528,7 +528,7 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .leftJoin(teacherSpecializations, eq(users.id, teacherSpecializations.teacherId))
       .leftJoin(teachingModules, eq(teacherSpecializations.moduleId, teachingModules.id))
-      .where(eq(users.role, 'teacher'))
+      .where(and(eq(users.role, 'teacher'), eq(users.schoolId, schoolId)))
       .orderBy(users.name);
 
     // Group by teacher to consolidate specializations

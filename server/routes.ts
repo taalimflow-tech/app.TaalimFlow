@@ -947,13 +947,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/teachers-with-specializations", requireAuth, async (req, res) => {
     try {
-      if (currentUser.role !== 'admin') {
-        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
-      }
-      
-      const teachers = await storage.getTeachersBySchool(currentUser.schoolId);
+      const teachers = await storage.getTeachersWithSpecializations(currentUser.schoolId);
       res.json(teachers);
     } catch (error) {
+      console.error('Error fetching teachers with specializations:', error);
       res.status(500).json({ error: "Failed to fetch teachers with specializations" });
     }
   });
