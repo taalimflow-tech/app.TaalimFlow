@@ -37,6 +37,9 @@ export default function Groups() {
   const [customSubjectNameAr, setCustomSubjectNameAr] = useState('');
   const [customSubjectLevel, setCustomSubjectLevel] = useState('');
   const [customSubjectGrade, setCustomSubjectGrade] = useState('');
+  
+  // Existing groups filter state
+  const [existingGroupsFilter, setExistingGroupsFilter] = useState('');
 
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
@@ -494,6 +497,130 @@ export default function Groups() {
               </CardContent>
             )}
           </Card>
+        </div>
+      )}
+      
+      {/* Admin-Created Groups Section */}
+      {user?.role === 'admin' && (
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <Settings className="h-5 w-5 ml-2 text-blue-600" />
+              المجموعات الموجودة (مصنفة حسب المستوى)
+            </h2>
+            
+            {/* Education Level Filter Tabs */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setExistingGroupsFilter(level === 'مجموعات مخصصة' ? 'custom' : level)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-blue-50'
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+
+            {/* Groups Display */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {existingGroupsFilter && (() => {
+                let filteredGroups = [];
+                
+                if (existingGroupsFilter === 'custom') {
+                  // Show custom/other groups - groups that don't belong to standard education levels
+                  filteredGroups = groups.filter(group => 
+                    !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.category || '') &&
+                    group.category !== 'general'
+                  );
+                } else {
+                  // Show groups by education level from category or description
+                  filteredGroups = groups.filter(group => 
+                    group.category === existingGroupsFilter || 
+                    (group.description && group.description.includes(existingGroupsFilter)) ||
+                    (group.name && group.name.includes(existingGroupsFilter))
+                  );
+                }
+
+                return filteredGroups.length > 0 ? (
+                  filteredGroups.map((group) => (
+                    <Card key={group.id} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base text-gray-800">{group.name}</CardTitle>
+                          <div className="flex items-center space-x-2">
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              existingGroupsFilter === 'الابتدائي' ? 'bg-green-100 text-green-800' :
+                              existingGroupsFilter === 'المتوسط' ? 'bg-blue-100 text-blue-800' :
+                              existingGroupsFilter === 'الثانوي' ? 'bg-purple-100 text-purple-800' :
+                              'bg-orange-100 text-orange-800'
+                            }`}>
+                              {existingGroupsFilter === 'custom' ? 'مخصص' : existingGroupsFilter}
+                            </span>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                          {group.description}
+                        </p>
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                          <div className="flex items-center">
+                            <Users className="h-3 w-3 ml-1" />
+                            <span>الحد الأقصى: {group.maxMembers || 'غير محدود'}</span>
+                          </div>
+                          <span className="bg-gray-100 px-2 py-1 rounded">
+                            {group.category || 'عام'}
+                          </span>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              setSelectedGroup(group);
+                              setShowJoinForm(true);
+                            }}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                            size="sm"
+                          >
+                            عرض التفاصيل
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                            onClick={() => {
+                              // Add edit functionality here
+                              toast({ title: 'وظيفة التعديل قريباً' });
+                            }}
+                          >
+                            تعديل
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-8">
+                    <div className="text-gray-500">
+                      <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">
+                        {existingGroupsFilter === 'custom' 
+                          ? 'لا توجد مجموعات مخصصة حالياً'
+                          : `لا توجد مجموعات في ${existingGroupsFilter} حالياً`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
         </div>
       )}
       

@@ -768,11 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      console.log('Creating announcement for user:', currentUser.email, 'role:', currentUser.role);
-      console.log('Request body:', JSON.stringify(req.body, null, 2));
-      
       const validatedData = insertAnnouncementSchema.parse(req.body);
-      console.log('Validated data:', JSON.stringify(validatedData, null, 2));
       
       // Add schoolId for multi-tenancy
       const announcementData = {
@@ -780,10 +776,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         schoolId: currentUser.schoolId,
         authorId: currentUser.id
       };
-      console.log('Announcement data with schoolId:', JSON.stringify(announcementData, null, 2));
       
       const announcement = await storage.createAnnouncement(announcementData);
-      console.log('Announcement created successfully:', JSON.stringify(announcement, null, 2));
       
       // Create notifications for all users about new announcement
       const allUsers = await storage.getAllUsers();
