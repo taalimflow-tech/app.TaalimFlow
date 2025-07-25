@@ -10,6 +10,10 @@ export function Header() {
   const [, navigate] = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // Get school context from storage
+  const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || 'null');
+  const schoolCode = sessionStorage.getItem('schoolCode');
+
   // Fetch unread notification count
   const { data: unreadCount = { count: 0 } } = useQuery({
     queryKey: ['/api/notifications/unread-count'],
@@ -21,22 +25,36 @@ export function Header() {
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
       <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
         <button 
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
           className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           <Menu className="w-6 h-6 text-gray-600" />
         </button>
         
         <div className="flex items-center space-x-reverse space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-sm">
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
-              <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
-            </svg>
-          </div>
+          {selectedSchool?.logoUrl ? (
+            <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm border-2 border-gray-200">
+              <img 
+                src={selectedSchool.logoUrl} 
+                alt={`${selectedSchool.name} Logo`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-sm">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+              </svg>
+            </div>
+          )}
           <div>
-            <h1 className="text-lg font-bold text-gray-800">مدرستي</h1>
-            <p className="text-xs text-gray-500">منصة التعلم الذكية</p>
+            <h1 className="text-lg font-bold text-gray-800">
+              {selectedSchool?.name || 'مدرستي'}
+            </h1>
+            <p className="text-xs text-gray-500">
+              {selectedSchool?.location ? `${selectedSchool.location} - منصة التعلم الذكية` : 'منصة التعلم الذكية'}
+            </p>
           </div>
         </div>
         
@@ -56,7 +74,7 @@ export function Header() {
           {user && (
             <>
               <button 
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
                 className="p-1 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 {user.profilePicture ? (
