@@ -1240,7 +1240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", async (req, res) => {
+  app.post("/api/messages", requireAuth, async (req, res) => {
     try {
       console.log('Received message request:', req.body);
       const validatedData = insertMessageSchema.parse(req.body);
@@ -1252,7 +1252,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "لا يمكنك إرسال رسائل لهذا المستخدم. تم حظرك من قبل المستخدم" });
       }
       
-      const message = await storage.createMessage(validatedData);
+      // Add school context to message
+      const messageData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId
+      };
+      
+      const message = await storage.createMessage(messageData);
       console.log('Created message:', message);
       
       // Create notification for message receiver
