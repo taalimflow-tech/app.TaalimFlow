@@ -349,9 +349,9 @@ export default function SuperAdminSimple() {
                 <h4 className="text-blue-200 font-semibold mb-2">معلومات الحساب الموجود</h4>
                 <div className="text-blue-100 text-sm space-y-2">
                   <p>• البريد الإلكتروني: <code className="bg-blue-900/30 px-1 rounded">mou3atheacc@gmail.com</code></p>
-                  <p>• الحساب موجود ومسجل كمسؤول عام</p>
-                  <p>• استخدم "نسيت كلمة المرور؟" لإعادة تعيين كلمة المرور</p>
-                  <p>• ستحتاج المفتاح السري: <code className="bg-blue-900/30 px-1 rounded">SUPER_ADMIN_2024_MASTER_KEY</code></p>
+                  <p>• كلمة المرور: <code className="bg-blue-900/30 px-1 rounded">SUPER_ADMIN_2024_MASTER_KEY</code></p>
+                  <p>• الحساب جاهز ومسجل كمسؤول عام</p>
+                  <p>• يمكنك تسجيل الدخول مباشرة بالبيانات أعلاه</p>
                 </div>
               </div>
 
