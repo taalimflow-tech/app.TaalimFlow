@@ -10,6 +10,15 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import express from "express";
+import session from "express-session";
+
+// Extend Express Request interface to include session with our custom properties
+declare module 'express-session' {
+  interface SessionData {
+    schoolId?: number;
+    schoolCode?: string;
+  }
+}
 import { SMSService } from "./sms-service";
 import { EmailService } from "./email-service";
 
@@ -55,6 +64,17 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+      secure: false, // Set to true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  }));
+
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -2221,8 +2241,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Set school context in session for registration
-      req.session.schoolId = school.id;
-      req.session.schoolCode = school.code;
+      if (req.session) {
+        req.session.schoolId = school.id;
+        req.session.schoolCode = school.code;
+      }
       
       res.json({ school });
     } catch (error) {
