@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "wouter";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -32,6 +33,16 @@ import TeacherSpecializations from "@/pages/TeacherSpecializations";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const [location, navigate] = useLocation();
+  
+  React.useEffect(() => {
+    // If user is authenticated and on a school selection route without a subpage,
+    // redirect to the home page within that school
+    if (user && location.match(/^\/school\/[^/]+$/)) {
+      const schoolCode = location.split('/')[2];
+      navigate(`/school/${schoolCode}/home`);
+    }
+  }, [user, location, navigate]);
   
   if (loading) {
     return (
@@ -66,7 +77,37 @@ function AppRoutes() {
         {(params) => <SchoolSelection schoolCode={params.code} />}
       </Route>
       
-      {/* Regular App Routes */}
+      {/* School-specific authenticated routes */}
+      <Route path="/school/:code/:page*">
+        {(params) => (
+          <AuthWrapper>
+            <Layout>
+              <Switch>
+                <Route path={`/school/${params.code}/home`} component={Home} />
+                <Route path={`/school/${params.code}/schedule`} component={Schedule} />
+                <Route path={`/school/${params.code}/teachers`} component={Teachers} />
+                <Route path={`/school/${params.code}/messages`} component={Messages} />
+                <Route path={`/school/${params.code}/suggestions`} component={Suggestions} />
+                <Route path={`/school/${params.code}/blog`} component={Blog} />
+                <Route path={`/school/${params.code}/groups`} component={Groups} />
+                <Route path={`/school/${params.code}/formations`} component={Formations} />
+                <Route path={`/school/${params.code}/announcements`} component={Announcements} />
+                <Route path={`/school/${params.code}/profile`} component={Profile} />
+                <Route path={`/school/${params.code}/teacher-specializations`} component={TeacherSpecializations} />
+                <Route path={`/school/${params.code}/admin`} component={AdminPanelTest} />
+                <Route path={`/school/${params.code}/admin/users`} component={AdminUsers} />
+                <Route path={`/school/${params.code}/admin/content`} component={AdminContent} />
+                <Route path={`/school/${params.code}/admin/suggestions`} component={AdminSuggestions} />
+                <Route path={`/school/${params.code}/admin/verification`} component={AdminVerification} />
+                <Route path={`/school/${params.code}/admin/reports`} component={AdminReports} />
+                <Route component={NotFound} />
+              </Switch>
+            </Layout>
+          </AuthWrapper>
+        )}
+      </Route>
+      
+      {/* Regular App Routes (for backward compatibility) */}
       <Route>
         <AuthWrapper>
           <Layout>

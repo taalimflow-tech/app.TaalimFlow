@@ -12,22 +12,26 @@ export function BottomNavigation() {
   const [location, navigate] = useLocation();
   const { user } = useAuth();
 
+  // Get school context for school-specific routes
+  const schoolCode = sessionStorage.getItem('schoolCode');
+  const basePath = schoolCode ? `/school/${schoolCode}` : '';
+
   const baseNavItems: NavItem[] = [
-    { icon: Home, label: 'الرئيسية', path: '/' },
-    { icon: Calendar, label: 'الجدول', path: '/schedule' },
-    { icon: MessageCircle, label: 'المعلمين', path: '/teachers' },
-    { icon: Mail, label: 'الرسائل', path: '/messages' },
+    { icon: Home, label: 'الرئيسية', path: `${basePath}/home` || '/' },
+    { icon: Calendar, label: 'الجدول', path: `${basePath}/schedule` || '/schedule' },
+    { icon: MessageCircle, label: 'المعلمين', path: `${basePath}/teachers` || '/teachers' },
+    { icon: Mail, label: 'الرسائل', path: `${basePath}/messages` || '/messages' },
   ];
 
   // Role-based navigation items
   let roleSpecificItems: NavItem[] = [];
   
   if (user?.role === 'admin') {
-    roleSpecificItems = [{ icon: Shield, label: 'الإدارة', path: '/admin' }];
+    roleSpecificItems = [{ icon: Shield, label: 'الإدارة', path: `${basePath}/admin` || '/admin' }];
   } else if (user?.role === 'teacher') {
-    roleSpecificItems = [{ icon: BookOpen, label: 'تخصصاتي', path: '/teacher-specializations' }];
+    roleSpecificItems = [{ icon: BookOpen, label: 'تخصصاتي', path: `${basePath}/teacher-specializations` || '/teacher-specializations' }];
   } else if (user?.role !== 'admin') {
-    roleSpecificItems = [{ icon: Lightbulb, label: 'اقتراحات', path: '/suggestions' }];
+    roleSpecificItems = [{ icon: Lightbulb, label: 'اقتراحات', path: `${basePath}/suggestions` || '/suggestions' }];
   }
 
   const navItems = [...baseNavItems, ...roleSpecificItems];
