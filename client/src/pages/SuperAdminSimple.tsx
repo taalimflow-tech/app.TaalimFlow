@@ -350,8 +350,9 @@ export default function SuperAdminSimple() {
                 <div className="text-blue-100 text-sm space-y-2">
                   <p>• البريد الإلكتروني: <code className="bg-blue-900/30 px-1 rounded">mou3atheacc@gmail.com</code></p>
                   <p>• كلمة المرور: <code className="bg-blue-900/30 px-1 rounded">SUPER_ADMIN_2024_MASTER_KEY</code></p>
-                  <p>• الحساب جاهز ومسجل كمسؤول عام</p>
+                  <p>• الحساب الوحيد المصرح له بالوصول للمسؤول العام</p>
                   <p>• يمكنك تسجيل الدخول مباشرة بالبيانات أعلاه</p>
+                  <p>• تم إزالة الوصول من الحسابات الأخرى لضمان الأمان</p>
                 </div>
               </div>
 
