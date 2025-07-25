@@ -469,7 +469,6 @@ export const insertScheduleTableSchema = createInsertSchema(scheduleTables).pick
   name: true,
   description: true,
   isActive: true,
-  schoolId: true,
 });
 
 export const insertScheduleCellSchema = createInsertSchema(scheduleCells).pick({

@@ -45,15 +45,18 @@ export interface IStorage {
   
   // Announcement methods
   getAnnouncements(): Promise<Announcement[]>;
+  getAnnouncementsBySchool(schoolId: number): Promise<Announcement[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
   
   // Blog post methods
   getBlogPosts(): Promise<BlogPost[]>;
+  getBlogPostsBySchool(schoolId: number): Promise<BlogPost[]>;
   createBlogPost(blogPost: InsertBlogPost): Promise<BlogPost>;
   deleteBlogPost(id: number): Promise<void>;
   
   // Teacher methods
   getTeachers(): Promise<Teacher[]>;
+  getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
   getTeachersWithSpecializations(): Promise<any[]>;
@@ -70,6 +73,7 @@ export interface IStorage {
   
   // Group methods
   getGroups(): Promise<Group[]>;
+  getGroupsBySchool(schoolId: number): Promise<Group[]>;
   createGroup(group: InsertGroup): Promise<Group>;
   deleteGroup(id: number): Promise<void>;
   
@@ -80,6 +84,7 @@ export interface IStorage {
   
   // Formation methods
   getFormations(): Promise<Formation[]>;
+  getFormationsBySchool(schoolId: number): Promise<Formation[]>;
   createFormation(formation: InsertFormation): Promise<Formation>;
   deleteFormation(id: number): Promise<void>;
   
@@ -439,6 +444,12 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
   }
 
+  async getAnnouncementsBySchool(schoolId: number): Promise<Announcement[]> {
+    return await db.select().from(announcements)
+      .where(eq(announcements.schoolId, schoolId))
+      .orderBy(desc(announcements.createdAt));
+  }
+
   async createAnnouncement(insertAnnouncement: InsertAnnouncement): Promise<Announcement> {
     const [announcement] = await db
       .insert(announcements)
@@ -449,6 +460,12 @@ export class DatabaseStorage implements IStorage {
 
   async getBlogPosts(): Promise<BlogPost[]> {
     return await db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt));
+  }
+
+  async getBlogPostsBySchool(schoolId: number): Promise<BlogPost[]> {
+    return await db.select().from(blogPosts)
+      .where(eq(blogPosts.schoolId, schoolId))
+      .orderBy(desc(blogPosts.createdAt));
   }
 
   async createBlogPost(insertBlogPost: InsertBlogPost): Promise<BlogPost> {
@@ -465,6 +482,12 @@ export class DatabaseStorage implements IStorage {
 
   async getTeachers(): Promise<Teacher[]> {
     return await db.select().from(teachers).orderBy(desc(teachers.createdAt));
+  }
+
+  async getTeachersBySchool(schoolId: number): Promise<Teacher[]> {
+    return await db.select().from(teachers)
+      .where(eq(teachers.schoolId, schoolId))
+      .orderBy(desc(teachers.createdAt));
   }
 
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
@@ -603,6 +626,12 @@ export class DatabaseStorage implements IStorage {
 
   async getGroups(): Promise<Group[]> {
     return await db.select().from(groups).orderBy(desc(groups.createdAt));
+  }
+
+  async getGroupsBySchool(schoolId: number): Promise<Group[]> {
+    return await db.select().from(groups)
+      .where(eq(groups.schoolId, schoolId))
+      .orderBy(desc(groups.createdAt));
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
@@ -772,6 +801,12 @@ export class DatabaseStorage implements IStorage {
 
   async getFormations(): Promise<Formation[]> {
     return await db.select().from(formations).orderBy(desc(formations.createdAt));
+  }
+
+  async getFormationsBySchool(schoolId: number): Promise<Formation[]> {
+    return await db.select().from(formations)
+      .where(eq(formations.schoolId, schoolId))
+      .orderBy(desc(formations.createdAt));
   }
 
   async createFormation(insertFormation: InsertFormation): Promise<Formation> {

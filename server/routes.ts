@@ -751,7 +751,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Announcement routes
   app.get("/api/announcements", async (req, res) => {
     try {
-      const announcements = await storage.getAnnouncements();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const announcements = await storage.getAnnouncementsBySchool(currentUser.schoolId);
       res.json(announcements);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch announcements" });
@@ -760,8 +764,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/announcements", async (req, res) => {
     try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
       const validatedData = insertAnnouncementSchema.parse(req.body);
-      const announcement = await storage.createAnnouncement(validatedData);
+      // Add schoolId for multi-tenancy
+      const announcementData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId,
+        authorId: currentUser.id
+      };
+      const announcement = await storage.createAnnouncement(announcementData);
       
       // Create notifications for all users about new announcement
       const allUsers = await storage.getAllUsers();
@@ -785,7 +799,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Blog post routes
   app.get("/api/blog-posts", async (req, res) => {
     try {
-      const blogPosts = await storage.getBlogPosts();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const blogPosts = await storage.getBlogPostsBySchool(currentUser.schoolId);
       res.json(blogPosts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch blog posts" });
@@ -794,8 +812,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/blog-posts", async (req, res) => {
     try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
       const validatedData = insertBlogPostSchema.parse(req.body);
-      const blogPost = await storage.createBlogPost(validatedData);
+      const blogPostData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId,
+        authorId: currentUser.id
+      };
+      const blogPost = await storage.createBlogPost(blogPostData);
       
       // Create notifications for all users about new blog post
       const allUsers = await storage.getAllUsers();
@@ -844,7 +871,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Teacher routes
   app.get("/api/teachers", async (req, res) => {
     try {
-      const teachers = await storage.getTeachersWithSpecializations();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const teachers = await storage.getTeachersBySchool(currentUser.schoolId);
       res.json(teachers);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teachers" });
@@ -866,8 +897,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/teachers", async (req, res) => {
     try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
       const validatedData = insertTeacherSchema.parse(req.body);
-      const teacher = await storage.createTeacher(validatedData);
+      const teacherData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId
+      };
+      const teacher = await storage.createTeacher(teacherData);
       res.status(201).json(teacher);
     } catch (error) {
       res.status(400).json({ error: "Invalid teacher data" });
@@ -1202,7 +1241,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Group routes
   app.get("/api/groups", async (req, res) => {
     try {
-      const groups = await storage.getGroups();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const groups = await storage.getGroupsBySchool(currentUser.schoolId);
       res.json(groups);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch groups" });
@@ -1211,8 +1254,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/groups", async (req, res) => {
     try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
       const validatedData = insertGroupSchema.parse(req.body);
-      const group = await storage.createGroup(validatedData);
+      const groupData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId
+      };
+      const group = await storage.createGroup(groupData);
       
       // Create notifications for all users about new group
       const allUsers = await storage.getAllUsers();
@@ -1368,7 +1419,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Formation routes
   app.get("/api/formations", async (req, res) => {
     try {
-      const formations = await storage.getFormations();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const formations = await storage.getFormationsBySchool(currentUser.schoolId);
       res.json(formations);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch formations" });
@@ -1377,8 +1432,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/formations", async (req, res) => {
     try {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
       const validatedData = insertFormationSchema.parse(req.body);
-      const formation = await storage.createFormation(validatedData);
+      const formationData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId
+      };
+      const formation = await storage.createFormation(formationData);
       
       // Create notifications for all users about new formation
       const allUsers = await storage.getAllUsers();
