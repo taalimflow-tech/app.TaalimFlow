@@ -164,9 +164,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertAdminSchema.parse(req.body);
       
-      // Verify admin secret key
-      if (validatedData.adminKey !== ADMIN_SECRET_KEY) {
-        return res.status(403).json({ error: "مفتاح الإدارة غير صحيح. تأكد من صحة المفتاح السري" });
+      // Verify admin secret key against school's admin key
+      if (!currentSchool) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى الوصول عبر رابط المدرسة المحدد" });
+      }
+      
+      if (validatedData.adminKey !== currentSchool.adminKey) {
+        return res.status(403).json({ error: "مفتاح الإدارة غير صحيح. تأكد من صحة المفتاح السري للمدرسة" });
       }
       
       // Check if user already exists by email
@@ -214,9 +218,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertTeacherUserSchema.parse(req.body);
       
-      // Verify teacher secret key
-      if (validatedData.teacherKey !== TEACHER_SECRET_KEY) {
-        return res.status(403).json({ error: "مفتاح المعلم غير صحيح. تأكد من صحة المفتاح السري" });
+      // Verify teacher secret key against school's teacher key
+      if (!currentSchool) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى الوصول عبر رابط المدرسة المحدد" });
+      }
+      
+      if (validatedData.teacherKey !== currentSchool.teacherKey) {
+        return res.status(403).json({ error: "مفتاح المعلم غير صحيح. تأكد من صحة المفتاح السري للمدرسة" });
       }
       
       // Check if user already exists by email
