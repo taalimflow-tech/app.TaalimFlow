@@ -27,6 +27,7 @@ export default function Login() {
   const [studentEducationLevel, setStudentEducationLevel] = useState('');
   const [studentGrade, setStudentGrade] = useState('');
   const [secretKey, setSecretKey] = useState('');
+  const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { login, register } = useAuth();
@@ -295,6 +296,16 @@ export default function Login() {
       return;
     }
     
+    if (!gender.trim()) {
+      toast({ 
+        title: 'خطأ في البيانات', 
+        description: 'يجب اختيار الجنس',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+    
     try {
       const response = await fetch('/api/auth/register-teacher', {
         method: 'POST',
@@ -304,6 +315,7 @@ export default function Login() {
           email, 
           phone, 
           password, 
+          gender,
           teacherKey: secretKey 
         }),
       });
@@ -994,6 +1006,22 @@ export default function Login() {
                           required
                         />
                       </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="teacher-gender">الجنس</Label>
+                      <Select
+                        value={gender}
+                        onValueChange={setGender}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر الجنس" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">ذكر</SelectItem>
+                          <SelectItem value="female">أنثى</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <div>
