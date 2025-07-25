@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw } from "lucide-react";
+import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw, BarChart } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -34,6 +34,9 @@ export default function SuperAdminSimple() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showCreateSchool, setShowCreateSchool] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState(null);
+  const [showKeysModal, setShowKeysModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [editingKeys, setEditingKeys] = useState({ adminKey: '', teacherKey: '' });
   const queryClient = useQueryClient();
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
@@ -118,6 +121,29 @@ export default function SuperAdminSimple() {
     },
     onError: (error: any) => {
       setError(error.message || "فشل في حذف المدرسة");
+    }
+  });
+
+  // Fetch school statistics
+  const { data: schoolStats } = useQuery({
+    queryKey: ['/api/super-admin/schools', selectedSchool?.id, 'stats'],
+    queryFn: () => fetch(`/api/super-admin/schools/${selectedSchool?.id}/stats`).then(res => res.json()),
+    enabled: !!selectedSchool && showStatsModal
+  });
+
+  // Update school keys mutation
+  const updateKeysMutation = useMutation({
+    mutationFn: ({ schoolId, adminKey, teacherKey }: { schoolId: number, adminKey: string, teacherKey: string }) => {
+      return apiRequest('PATCH', `/api/super-admin/schools/${schoolId}/keys`, { adminKey, teacherKey });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/schools'] });
+      setShowKeysModal(false);
+      setSelectedSchool(null);
+      setEditingKeys({ adminKey: '', teacherKey: '' });
+    },
+    onError: (error: any) => {
+      setError(error.message || "فشل في تحديث مفاتيح الوصول");
     }
   });
 
@@ -724,15 +750,11 @@ export default function SuperAdminSimple() {
                             </div>
                           </div>
                           
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedSchool(school)}
-                            className="text-xs"
-                          >
-                            <Key className="h-3 w-3 ml-1" />
-                            عرض المفاتيح
-                          </Button>
+                          <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                            <Badge variant="outline" className="text-xs">
+                              {school.userCount || 0} مستخدم
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                       
@@ -740,18 +762,35 @@ export default function SuperAdminSimple() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(`/school/${school.code}`, '_blank')}
-                          title={`عرض مدرسة ${school.name} (الكود: ${school.code})`}
+                          onClick={() => {
+                            setSelectedSchool(school);
+                            setShowStatsModal(true);
+                          }}
+                          title="عرض إحصائيات المدرسة"
                         >
-                          <Eye className="h-4 w-4" />
+                          <BarChart className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedSchool(school);
+                            setEditingKeys({ adminKey: school.adminKey, teacherKey: school.teacherKey });
+                            setShowKeysModal(true);
+                          }}
+                          title="إدارة مفاتيح الوصول"
+                        >
+                          <Key className="h-4 w-4" />
                         </Button>
                         
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setSelectedSchool(school)}
+                          onClick={() => window.open(`/school/${school.code}`, '_blank')}
+                          title={`عرض مدرسة ${school.name} (الكود: ${school.code})`}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                         
                         <Button
@@ -1143,6 +1182,215 @@ export default function SuperAdminSimple() {
             </CardContent>
           </Card>
         </div>
+
+        {/* School Statistics Modal */}
+        {showStatsModal && selectedSchool && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-3 rtl:space-x-reverse">
+                    <BarChart className="h-6 w-6 text-blue-600" />
+                    <span>إحصائيات مدرسة {selectedSchool.name}</span>
+                  </CardTitle>
+                  <CardDescription>
+                    نظرة شاملة على المستخدمين والمحتوى في المدرسة
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {schoolStats ? (
+                    <>
+                      {/* User Statistics */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">إحصائيات المستخدمين</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-blue-600">{schoolStats.totalUsers}</div>
+                            <div className="text-sm text-blue-800">إجمالي المستخدمين</div>
+                          </div>
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-green-600">{schoolStats.admins}</div>
+                            <div className="text-sm text-green-800">المديرين</div>
+                          </div>
+                          <div className="bg-purple-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-purple-600">{schoolStats.teachers}</div>
+                            <div className="text-sm text-purple-800">المعلمين</div>
+                          </div>
+                          <div className="bg-orange-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-orange-600">{schoolStats.students}</div>
+                            <div className="text-sm text-orange-800">الطلاب</div>
+                          </div>
+                          <div className="bg-indigo-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-indigo-600">{schoolStats.parents}</div>
+                            <div className="text-sm text-indigo-800">أولياء الأمور</div>
+                          </div>
+                          <div className="bg-pink-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-pink-600">{schoolStats.children}</div>
+                            <div className="text-sm text-pink-800">الأطفال</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Content Statistics */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">إحصائيات المحتوى</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="bg-yellow-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-yellow-600">{schoolStats.announcements}</div>
+                            <div className="text-sm text-yellow-800">الإعلانات</div>
+                          </div>
+                          <div className="bg-red-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-red-600">{schoolStats.blogPosts}</div>
+                            <div className="text-sm text-red-800">مقالات المدونة</div>
+                          </div>
+                          <div className="bg-teal-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-teal-600">{schoolStats.groups}</div>
+                            <div className="text-sm text-teal-800">المجموعات</div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-gray-600">{schoolStats.formations}</div>
+                            <div className="text-sm text-gray-800">التكوينات</div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="text-gray-500 mt-2">جاري تحميل الإحصائيات...</p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                    <Button variant="outline" onClick={() => {
+                      setShowStatsModal(false);
+                      setSelectedSchool(null);
+                    }}>
+                      إغلاق
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Access Keys Management Modal */}
+        {showKeysModal && selectedSchool && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-3 rtl:space-x-reverse">
+                    <Key className="h-6 w-6 text-green-600" />
+                    <span>إدارة مفاتيح الوصول - {selectedSchool.name}</span>
+                  </CardTitle>
+                  <CardDescription>
+                    تحديث مفاتيح الوصول للمديرين والمعلمين
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {error && (
+                    <Alert className="border-red-500/50 bg-red-500/10">
+                      <AlertDescription className="text-red-700">{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    updateKeysMutation.mutate({
+                      schoolId: selectedSchool.id,
+                      adminKey: editingKeys.adminKey,
+                      teacherKey: editingKeys.teacherKey
+                    });
+                  }} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="admin-key">مفتاح المدير</Label>
+                      <div className="flex space-x-2 rtl:space-x-reverse">
+                        <Input
+                          id="admin-key"
+                          type="text"
+                          value={editingKeys.adminKey}
+                          onChange={(e) => setEditingKeys({...editingKeys, adminKey: e.target.value})}
+                          placeholder="مفتاح المدير"
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setEditingKeys({
+                            ...editingKeys,
+                            adminKey: Math.random().toString(36).substring(2, 15).toUpperCase()
+                          })}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="teacher-key">مفتاح المعلم</Label>
+                      <div className="flex space-x-2 rtl:space-x-reverse">
+                        <Input
+                          id="teacher-key"
+                          type="text"
+                          value={editingKeys.teacherKey}
+                          onChange={(e) => setEditingKeys({...editingKeys, teacherKey: e.target.value})}
+                          placeholder="مفتاح المعلم"
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setEditingKeys({
+                            ...editingKeys,
+                            teacherKey: Math.random().toString(36).substring(2, 15).toUpperCase()
+                          })}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                        <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-yellow-600 text-sm font-bold">!</span>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-yellow-800">تحذير هام:</h4>
+                          <p className="text-sm text-yellow-700 mt-1">
+                            تغيير المفاتيح سيؤدي إلى إبطال المفاتيح القديمة. تأكد من إبلاغ المديرين والمعلمين بالمفاتيح الجديدة.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowKeysModal(false);
+                          setSelectedSchool(null);
+                          setEditingKeys({ adminKey: '', teacherKey: '' });
+                        }}
+                      >
+                        إلغاء
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={updateKeysMutation.isPending}
+                      >
+                        {updateKeysMutation.isPending ? 'جاري التحديث...' : 'تحديث المفاتيح'}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

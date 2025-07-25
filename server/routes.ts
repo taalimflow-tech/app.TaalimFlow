@@ -2049,5 +2049,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get school statistics
+  app.get("/api/super-admin/schools/:id/stats", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== "super_admin") {
+        return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const schoolId = parseInt(req.params.id);
+      const stats = await storage.getSchoolStatistics(schoolId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching school statistics:', error);
+      res.status(500).json({ error: "فشل في جلب إحصائيات المدرسة" });
+    }
+  });
+
+  // Update school access keys
+  app.patch("/api/super-admin/schools/:id/keys", async (req, res) => {
+    try {
+      if (!currentUser || currentUser.role !== "super_admin") {
+        return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const schoolId = parseInt(req.params.id);
+      const { adminKey, teacherKey } = req.body;
+
+      if (!adminKey || !teacherKey) {
+        return res.status(400).json({ error: "مفاتيح الوصول مطلوبة" });
+      }
+
+      await storage.updateSchoolKeys(schoolId, adminKey, teacherKey);
+      res.json({ message: "تم تحديث مفاتيح الوصول بنجاح" });
+    } catch (error) {
+      console.error('Error updating school keys:', error);
+      res.status(500).json({ error: "فشل في تحديث مفاتيح الوصول" });
+    }
+  });
+
   return httpServer;
 }

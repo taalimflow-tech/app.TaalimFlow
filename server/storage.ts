@@ -1,6 +1,6 @@
 import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, or, ilike, and, aliasedTable } from "drizzle-orm";
+import { eq, desc, or, ilike, and, aliasedTable, sql } from "drizzle-orm";
 
 export interface IStorage {
   // School methods (for multi-tenancy)
@@ -11,6 +11,8 @@ export interface IStorage {
   createSchool(school: InsertSchool): Promise<School>;
   updateSchool(id: number, updates: Partial<InsertSchool>): Promise<School>;
   deleteSchool(id: number): Promise<void>;
+  getSchoolStatistics(schoolId: number): Promise<any>;
+  updateSchoolKeys(schoolId: number, adminKey: string, teacherKey: string): Promise<void>;
 
   // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
@@ -1437,6 +1439,109 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return customSubject;
+  }
+
+  // School statistics and management methods
+  async getSchoolStatistics(schoolId: number): Promise<any> {
+    try {
+      // Get user counts by role
+      const userCounts = await db
+        .select({
+          role: users.role,
+          count: sql<number>`count(*)`
+        })
+        .from(users)
+        .where(eq(users.schoolId, schoolId))
+        .groupBy(users.role);
+
+      // Get children count
+      const [childrenCount] = await db
+        .select({
+          count: sql<number>`count(*)`
+        })
+        .from(children)
+        .leftJoin(users, eq(children.parentId, users.id))
+        .where(eq(users.schoolId, schoolId));
+
+      // Get announcements count
+      const [announcementsCount] = await db
+        .select({
+          count: sql<number>`count(*)`
+        })
+        .from(announcements)
+        .where(eq(announcements.schoolId, schoolId));
+
+      // Get blog posts count
+      const [blogPostsCount] = await db
+        .select({
+          count: sql<number>`count(*)`
+        })
+        .from(blogPosts)
+        .where(eq(blogPosts.schoolId, schoolId));
+
+      // Get groups count
+      const [groupsCount] = await db
+        .select({
+          count: sql<number>`count(*)`
+        })
+        .from(groups)
+        .where(eq(groups.schoolId, schoolId));
+
+      // Get formations count
+      const [formationsCount] = await db
+        .select({
+          count: sql<number>`count(*)`
+        })
+        .from(formations)
+        .where(eq(formations.schoolId, schoolId));
+
+      // Process user counts into a readable format
+      const stats = {
+        totalUsers: 0,
+        admins: 0,
+        teachers: 0,
+        students: 0,
+        parents: 0,
+        children: childrenCount?.count || 0,
+        announcements: announcementsCount?.count || 0,
+        blogPosts: blogPostsCount?.count || 0,
+        groups: groupsCount?.count || 0,
+        formations: formationsCount?.count || 0
+      };
+
+      userCounts.forEach(roleCount => {
+        stats.totalUsers += roleCount.count;
+        switch (roleCount.role) {
+          case 'admin':
+            stats.admins = roleCount.count;
+            break;
+          case 'teacher':
+            stats.teachers = roleCount.count;
+            break;
+          case 'student':
+            stats.students = roleCount.count;
+            break;
+          case 'user':
+            stats.parents = roleCount.count;
+            break;
+        }
+      });
+
+      return stats;
+    } catch (error) {
+      console.error('Error getting school statistics:', error);
+      throw error;
+    }
+  }
+
+  async updateSchoolKeys(schoolId: number, adminKey: string, teacherKey: string): Promise<void> {
+    await db
+      .update(schools)
+      .set({
+        adminKey,
+        teacherKey
+      })
+      .where(eq(schools.id, schoolId));
   }
 }
 
