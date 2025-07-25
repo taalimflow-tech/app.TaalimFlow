@@ -104,19 +104,29 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
         background: `linear-gradient(135deg, ${school.primaryColor}20, ${school.secondaryColor}20)`
       }}
     >
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center pb-6">
-          <div 
-            className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
-            style={{ backgroundColor: school.primaryColor }}
-          >
-            <School className="h-8 w-8 text-white" />
-          </div>
-          <CardTitle className="text-2xl" style={{ color: school.primaryColor }}>
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center pb-8">
+          {school.logoUrl ? (
+            <div className="w-20 h-20 rounded-full mx-auto mb-6 overflow-hidden shadow-lg border-4 border-white">
+              <img 
+                src={school.logoUrl} 
+                alt={`${school.name} Logo`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div 
+              className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg"
+              style={{ backgroundColor: school.primaryColor }}
+            >
+              <School className="h-10 w-10 text-white" />
+            </div>
+          )}
+          <CardTitle className="text-3xl mb-3" style={{ color: school.primaryColor }}>
             {school.name}
           </CardTitle>
-          <CardDescription className="text-lg">
-            مرحباً بك في بوابة المدرسة الإلكترونية
+          <CardDescription className="text-lg text-gray-600 mb-6">
+            مرحباً بك في منصة المدرسة الإلكترونية
           </CardDescription>
         </CardHeader>
 
@@ -127,95 +137,13 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
             </Alert>
           )}
 
-          {/* School Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-3 rtl:space-x-reverse p-3 bg-gray-50 rounded-lg">
-              <School className="h-5 w-5 text-gray-600" />
-              <div>
-                <p className="text-sm text-gray-600">كود المدرسة</p>
-                <p className="font-semibold">{school.code}</p>
-              </div>
-            </div>
-
-            {school.domain && (
-              <div className="flex items-center space-x-3 rtl:space-x-reverse p-3 bg-gray-50 rounded-lg">
-                <Globe className="h-5 w-5 text-gray-600" />
-                <div>
-                  <p className="text-sm text-gray-600">النطاق</p>
-                  <p className="font-semibold">{school.domain}</p>
-                </div>
-              </div>
-            )}
-
-            {school.location && (
-              <div className="flex items-center space-x-3 rtl:space-x-reverse p-3 bg-gray-50 rounded-lg">
-                <MapPin className="h-5 w-5 text-gray-600" />
-                <div>
-                  <p className="text-sm text-gray-600">الموقع</p>
-                  <p className="font-semibold">{school.location}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center space-x-3 rtl:space-x-reverse p-3 bg-gray-50 rounded-lg">
-              <Calendar className="h-5 w-5 text-gray-600" />
-              <div>
-                <p className="text-sm text-gray-600">تاريخ التأسيس</p>
-                <p className="font-semibold">{new Date(school.createdAt).toLocaleDateString('en-US')}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3 rtl:space-x-reverse p-3 bg-gray-50 rounded-lg">
-              <div 
-                className="w-5 h-5 rounded-full"
-                style={{ backgroundColor: school.primaryColor }}
-              />
-              <div>
-                <p className="text-sm text-gray-600">الألوان المميزة</p>
-                <div className="flex space-x-2 rtl:space-x-reverse">
-                  <div 
-                    className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: school.primaryColor }}
-                  />
-                  <div 
-                    className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: school.secondaryColor }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-3">الخدمات المتاحة</h3>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center space-x-2 rtl:space-x-reverse text-blue-700">
-                <Users className="h-4 w-4" />
-                <span>إدارة الطلاب والمعلمين</span>
-              </div>
-              <div className="flex items-center space-x-2 rtl:space-x-reverse text-blue-700">
-                <BookOpen className="h-4 w-4" />
-                <span>المناهج والجداول الدراسية</span>
-              </div>
-              <div className="flex items-center space-x-2 rtl:space-x-reverse text-blue-700">
-                <Calendar className="h-4 w-4" />
-                <span>الإعلانات والأحداث</span>
-              </div>
-              <div className="flex items-center space-x-2 rtl:space-x-reverse text-blue-700">
-                <Globe className="h-4 w-4" />
-                <span>التواصل والرسائل</span>
-              </div>
-            </div>
-          </div>
-
           {/* Access Button */}
-          <div className="text-center pt-4">
+          <div className="text-center">
             <Button
               size="lg"
               onClick={handleAccessSchool}
               disabled={loading}
-              className="w-full"
+              className="w-full py-3 text-lg"
               style={{ 
                 backgroundColor: school.primaryColor,
                 borderColor: school.primaryColor 
@@ -224,12 +152,6 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
               {loading ? "جاري الدخول..." : "دخول إلى المدرسة"}
               <ArrowRight className="h-5 w-5 mr-2" />
             </Button>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center text-sm text-gray-500 pt-4 border-t">
-            <p>نظام إدارة المدارس المتكامل</p>
-            <p>جميع الحقوق محفوظة © {new Date().getFullYear()}</p>
           </div>
         </CardContent>
       </Card>
