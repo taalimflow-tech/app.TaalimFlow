@@ -19,21 +19,49 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<Error | null>(null);
 
-  // TEMPORARILY DISABLED TO STOP INFINITE LOOP
+  // Fetch school data properly
   useEffect(() => {
-    if (!schoolCode || school) return;
+    if (!schoolCode) return;
     
-    // For now, just create a mock school to stop infinite loop
-    // This needs to be fixed properly later
-    setSchool({
-      id: 13,
-      name: "test school 2",
-      code: schoolCode,
-      logoUrl: null,
-      welcomeMessage: "مرحباً بكم"
-    });
-    setIsLoading(false);
-  }, [schoolCode, school]);
+    let isCancelled = false;
+    
+    const fetchSchool = async () => {
+      try {
+        setIsLoading(true);
+        setFetchError(null);
+        
+        const response = await fetch("/api/school/select", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schoolCode }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "فشل في جلب بيانات المدرسة");
+        }
+
+        if (!isCancelled) {
+          setSchool(result.school);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setFetchError(err as Error);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchSchool();
+    
+    return () => {
+      isCancelled = true;
+    };
+  }, [schoolCode]);
 
   const handleAccessSchool = async () => {
     setLoading(true);

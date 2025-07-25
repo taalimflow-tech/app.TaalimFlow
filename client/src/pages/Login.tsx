@@ -43,10 +43,39 @@ export default function Login() {
   
   // Validate school exists on component mount ONLY ONCE
   useEffect(() => {
-    // TEMPORARILY DISABLED TO STOP INFINITE LOOP
-    // Just set as validated without API call
-    setValidSchool(selectedSchool);
-    setSchoolValidated(true);
+    if (schoolValidated) return;
+    
+    const validateSchool = async () => {
+      if (selectedSchool && selectedSchool.code) {
+        try {
+          const response = await fetch("/api/school/select", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ schoolCode: selectedSchool.code }),
+          });
+          
+          if (!response.ok) {
+            localStorage.removeItem('selectedSchool');
+            sessionStorage.removeItem('currentSchoolId');
+            sessionStorage.removeItem('schoolCode');
+            setValidSchool(null);
+          } else {
+            const result = await response.json();
+            setValidSchool(result.school);
+          }
+        } catch (error) {
+          localStorage.removeItem('selectedSchool');
+          sessionStorage.removeItem('currentSchoolId');
+          sessionStorage.removeItem('schoolCode');
+          setValidSchool(null);
+        }
+      } else {
+        setValidSchool(selectedSchool);
+      }
+      setSchoolValidated(true);
+    };
+    
+    validateSchool();
   }, []); // Empty dependency array - run only once on mount
 
   // New state for step-by-step flow
