@@ -625,7 +625,10 @@ export class DatabaseStorage implements IStorage {
       })
       .from(suggestions)
       .leftJoin(users, eq(suggestions.userId, users.id))
-      .where(eq(users.schoolId, schoolId))
+      .where(and(
+        eq(suggestions.schoolId, schoolId),
+        eq(users.schoolId, schoolId)
+      ))
       .orderBy(desc(suggestions.createdAt));
   }
 
@@ -868,11 +871,19 @@ export class DatabaseStorage implements IStorage {
     return registration;
   }
 
-  async getNotifications(userId: number): Promise<Notification[]> {
+  async getNotifications(userId: number, schoolId?: number): Promise<Notification[]> {
+    if (!schoolId) {
+      console.warn('getNotifications called without schoolId - returning empty array for security');
+      return [];
+    }
+    
     return await db
       .select()
       .from(notifications)
-      .where(eq(notifications.userId, userId))
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.schoolId, schoolId)
+      ))
       .orderBy(desc(notifications.createdAt));
   }
 
@@ -898,23 +909,37 @@ export class DatabaseStorage implements IStorage {
       .where(eq(notifications.userId, userId));
   }
 
-  async getUnreadNotificationCount(userId: number): Promise<number> {
+  async getUnreadNotificationCount(userId: number, schoolId?: number): Promise<number> {
+    if (!schoolId) {
+      console.warn('getUnreadNotificationCount called without schoolId - returning 0 for security');
+      return 0;
+    }
+    
     const result = await db
       .select({ count: notifications.id })
       .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .where(eq(notifications.read, false));
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.schoolId, schoolId),
+        eq(notifications.read, false)
+      ));
     return result.length;
   }
 
-  async createNotificationForUsers(userIds: number[], type: string, title: string, message: string, relatedId?: number): Promise<Notification[]> {
+  async createNotificationForUsers(userIds: number[], type: string, title: string, message: string, relatedId?: number, schoolId?: number): Promise<Notification[]> {
+    if (!schoolId) {
+      console.warn('createNotificationForUsers called without schoolId - skipping notification creation for security');
+      return [];
+    }
+    
     const notificationPromises = userIds.map(userId => 
       this.createNotification({
         userId,
         type,
         title,
         message,
-        relatedId
+        relatedId,
+        schoolId
       })
     );
     return await Promise.all(notificationPromises);

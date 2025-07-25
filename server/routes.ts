@@ -855,7 +855,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'announcement',
           '📅 إعلان جديد',
           `إعلان جديد: "${announcement.title}"`,
-          announcement.id
+          announcement.id,
+          currentUser.schoolId
         );
       }
       
@@ -907,7 +908,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'blog',
           '📚 مقال جديد',
           `تم نشر مقال جديد: "${blogPost.title}"`,
-          blogPost.id
+          blogPost.id,
+          currentUser.schoolId
         );
       }
       
@@ -1324,7 +1326,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'suggestion',
           '📥 اقتراح جديد',
           `تم تقديم اقتراح جديد: "${suggestion.title}"`,
-          suggestion.id
+          suggestion.id,
+          currentUser.schoolId
         );
       }
       
@@ -1373,7 +1376,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'group_update',
           '👥 مجموعة جديدة',
           `تم إنشاء مجموعة جديدة: "${group.name}"`,
-          group.id
+          group.id,
+          currentUser.schoolId
         );
       }
       
@@ -1556,7 +1560,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'formation_update',
           '🎓 تدريب جديد',
           `تم إنشاء تدريب جديد: "${formation.name}"`,
-          formation.id
+          formation.id,
+          currentUser.schoolId
         );
       }
       
@@ -1656,7 +1661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
-      const notifications = await storage.getNotifications(currentUser.id);
+      const notifications = await storage.getNotifications(currentUser.id, currentUser.schoolId);
       res.json(notifications);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch notifications" });
@@ -1669,7 +1674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
-      const count = await storage.getUnreadNotificationCount(currentUser.id);
+      const count = await storage.getUnreadNotificationCount(currentUser.id, currentUser.schoolId);
       res.json({ count });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch unread count" });
