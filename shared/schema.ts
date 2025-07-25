@@ -309,14 +309,12 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
   title: true,
   content: true,
   imageUrl: true,
-  authorId: true,
 });
 
 export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
   title: true,
   content: true,
   imageUrl: true,
-  authorId: true,
   published: true,
 });
 

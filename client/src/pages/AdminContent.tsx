@@ -313,14 +313,12 @@ export default function AdminContent() {
       createAnnouncementMutation.mutate({
         title: formData.title,
         content: formData.content,
-        authorId: user?.id,
         imageUrl: imageUrl || null
       });
     } else if (activeTab === 'blog') {
       createBlogMutation.mutate({
         title: formData.title,
         content: formData.content,
-        authorId: user?.id,
         published: true,
         imageUrl: imageUrl || null
       });
