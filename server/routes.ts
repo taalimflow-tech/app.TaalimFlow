@@ -154,7 +154,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createStudent({
           userId: user.id,
           educationLevel,
-          grade
+          grade,
+          schoolId: currentSchool?.id || null
         });
       }
       
@@ -165,7 +166,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             parentId: user.id,
             name: child.name,
             educationLevel: child.educationLevel,
-            grade: child.grade
+            grade: child.grade,
+            schoolId: currentSchool?.id || null
           })
         );
         await Promise.all(childrenPromises);
