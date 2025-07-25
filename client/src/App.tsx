@@ -36,6 +36,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
   
   React.useEffect(() => {
+    // Super admins cannot access school-specific routes
+    if (user && user.role === 'super_admin' && location.includes('/school/')) {
+      navigate('/system/super-admin-access');
+      return;
+    }
+    
     // If user is authenticated and on a school selection route without a subpage,
     // redirect to the home page within that school
     if (user && location.match(/^\/school\/[^/]+$/)) {

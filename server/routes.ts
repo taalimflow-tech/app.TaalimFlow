@@ -296,14 +296,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
     }
     
-    // Validate that user can only access their own school's data
-    if (currentSchool && currentUser.schoolId !== currentSchool.id) {
-      // Clear invalid session
-      currentUser = null;
-      currentSchool = null;
-      return res.status(403).json({ 
-        error: "غير مسموح لك بالوصول إلى بيانات هذه المدرسة. يرجى تسجيل الدخول مجدداً"
-      });
+    // Super admins can only access super admin routes, not school-specific content
+    if (currentUser.role === 'super_admin') {
+      // Allow access only to super admin routes
+      if (!req.url.startsWith('/api/super-admin/') && !req.url.startsWith('/api/auth/')) {
+        return res.status(403).json({ 
+          error: "المسؤولين العامين لا يمكنهم الوصول إلى محتوى المدارس. استخدم لوحة المسؤول العام للإدارة"
+        });
+      }
+    } else {
+      // For regular users, validate school access
+      if (!currentSchool) {
+        return res.status(403).json({ 
+          error: "يجب تحديد المدرسة أولاً للوصول إلى هذا المحتوى"
+        });
+      }
+      
+      if (currentUser.schoolId !== currentSchool.id) {
+        // Clear invalid session
+        currentUser = null;
+        currentSchool = null;
+        return res.status(403).json({ 
+          error: "غير مسموح لك بالوصول إلى بيانات هذه المدرسة. يرجى تسجيل الدخول مجدداً"
+        });
+      }
     }
     
     next();

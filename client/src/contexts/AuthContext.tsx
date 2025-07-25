@@ -117,7 +117,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       
       // Redirect based on user role
-      if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
+      if (currentUserRole === 'super_admin') {
+        window.location.href = '/system/super-admin-access';
+      } else if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
         window.location.href = '/admin-login';
       } else {
         window.location.href = '/';
