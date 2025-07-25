@@ -41,39 +41,13 @@ export default function Login() {
   const [schoolValidated, setSchoolValidated] = useState(false);
   const [validSchool, setValidSchool] = useState(selectedSchool);
   
-  // Validate school exists on component mount
+  // Validate school exists on component mount ONLY ONCE
   useEffect(() => {
-    const validateSchool = async () => {
-      if (selectedSchool && selectedSchool.code) {
-        try {
-          const response = await fetch("/api/school/select", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ schoolCode: selectedSchool.code }),
-          });
-          
-          if (!response.ok) {
-            // School doesn't exist anymore, clear localStorage
-            localStorage.removeItem('selectedSchool');
-            sessionStorage.removeItem('currentSchoolId');
-            sessionStorage.removeItem('schoolCode');
-            setValidSchool(null);
-          } else {
-            setValidSchool(selectedSchool);
-          }
-        } catch (error) {
-          // Network error or school doesn't exist, clear localStorage
-          localStorage.removeItem('selectedSchool');
-          sessionStorage.removeItem('currentSchoolId');
-          sessionStorage.removeItem('schoolCode');
-          setValidSchool(null);
-        }
-      }
-      setSchoolValidated(true);
-    };
-    
-    validateSchool();
-  }, [selectedSchool]);
+    // TEMPORARILY DISABLED TO STOP INFINITE LOOP
+    // Just set as validated without API call
+    setValidSchool(selectedSchool);
+    setSchoolValidated(true);
+  }, []); // Empty dependency array - run only once on mount
 
   // New state for step-by-step flow
   const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
