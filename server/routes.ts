@@ -1828,7 +1828,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Teaching module routes
   app.get("/api/teaching-modules", async (req, res) => {
     try {
-      const modules = await storage.getTeachingModules();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const modules = await storage.getTeachingModulesBySchool(currentUser.schoolId);
       res.json(modules);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teaching modules" });

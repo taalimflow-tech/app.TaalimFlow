@@ -1136,6 +1136,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(teachingModules.createdAt));
   }
 
+  async getTeachingModulesBySchool(schoolId: number): Promise<TeachingModule[]> {
+    return await db
+      .select()
+      .from(teachingModules)
+      .where(or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)))
+      .orderBy(desc(teachingModules.createdAt));
+  }
+
   async createTeachingModule(insertModule: InsertTeachingModule): Promise<TeachingModule> {
     const [module] = await db
       .insert(teachingModules)
