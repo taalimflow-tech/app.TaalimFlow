@@ -647,8 +647,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: role && typeof role === 'string' ? role : undefined,
       };
       
-      // Use new filtered search method
-      const users = await storage.searchUsersWithFilters(filters);
+      // Use new filtered search method with schoolId filtering
+      const users = await storage.searchUsersWithFilters({
+        ...filters,
+        schoolId: currentUser.schoolId
+      });
       
       // Remove passwords from response
       const usersWithoutPasswords = users.map(({ password, ...user }) => user);
@@ -672,6 +675,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "المستخدم غير موجود" });
       }
       
+      // CRITICAL: Ensure user belongs to admin's school (multi-tenancy)
+      if (user.schoolId !== currentUser.schoolId) {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذا المستخدم" });
+      }
+      
       // Get user's children
       const children = await storage.getChildrenByParentId(userId);
       
@@ -691,6 +699,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const userId = parseInt(req.params.id);
+      // CRITICAL: Verify user belongs to admin's school before accessing messages
+      const user = await storage.getUser(userId);
+      if (!user || user.schoolId !== currentUser.schoolId) {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى رسائل هذا المستخدم" });
+      }
+      
       const messages = await storage.getMessagesByUserId(userId);
       res.json(messages);
     } catch (error) {

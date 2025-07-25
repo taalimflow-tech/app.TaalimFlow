@@ -310,6 +310,7 @@ export class DatabaseStorage implements IStorage {
     subject?: number;
     assignedTeacher?: number;
     role?: string;
+    schoolId?: number;
   }): Promise<User[]> {
     let query = db.select({
       id: users.id,
@@ -343,6 +344,11 @@ export class DatabaseStorage implements IStorage {
     .leftJoin(children, eq(users.id, children.parentId));
 
     const conditions = [];
+
+    // CRITICAL: School ID filter for multi-tenancy data isolation
+    if (filters.schoolId) {
+      conditions.push(eq(users.schoolId, filters.schoolId));
+    }
 
     // Search filter
     if (filters.search) {
