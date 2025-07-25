@@ -169,9 +169,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertAdminSchema.parse(req.body);
       
-      // Verify admin secret key against school's admin key
+      // Get school from session or request
+      const schoolId = req.session?.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
+      }
+      
+      const currentSchool = await storage.getSchoolById(schoolId);
       if (!currentSchool) {
-        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى الوصول عبر رابط المدرسة المحدد" });
+        return res.status(400).json({ error: "المدرسة غير موجودة" });
       }
       
       if (validatedData.adminKey !== currentSchool.adminKey) {
@@ -227,9 +233,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertTeacherUserSchema.parse(req.body);
       
-      // Verify teacher secret key against school's teacher key
+      // Get school from session or request
+      const schoolId = req.session?.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
+      }
+      
+      const currentSchool = await storage.getSchoolById(schoolId);
       if (!currentSchool) {
-        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى الوصول عبر رابط المدرسة المحدد" });
+        return res.status(400).json({ error: "المدرسة غير موجودة" });
       }
       
       if (validatedData.teacherKey !== currentSchool.teacherKey) {
@@ -2208,8 +2220,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "المدرسة غير موجودة أو غير مفعلة" });
       }
 
-      // IMPORTANT: Don't set global currentSchool - this was causing security issues
-      // This is just for displaying school info before login
+      // Set school context in session for registration
+      req.session.schoolId = school.id;
+      req.session.schoolCode = school.code;
+      
       res.json({ school });
     } catch (error) {
       console.error('Error selecting school:', error);
