@@ -6,7 +6,7 @@ This is a Progressive Web App (PWA) built with React that serves as a mobile por
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language in English. User prefers English communication over other languages.
 
 ## System Architecture
 
