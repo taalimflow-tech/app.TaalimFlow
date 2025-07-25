@@ -1784,7 +1784,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Schedule table routes
   app.get("/api/schedule-tables", async (req, res) => {
     try {
-      const tables = await storage.getScheduleTables();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const tables = await storage.getScheduleTablesBySchool(currentUser.schoolId);
       res.json(tables);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch schedule tables" });
@@ -1803,7 +1807,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tableData = insertScheduleTableSchema.parse(req.body);
       console.log('Validated table data:', tableData);
       
-      const table = await storage.createScheduleTable(tableData);
+      // Add schoolId for multi-tenancy
+      const tableDataWithSchool = {
+        ...tableData,
+        schoolId: currentUser.schoolId
+      };
+      console.log('Table data with schoolId:', tableDataWithSchool);
+      
+      const table = await storage.createScheduleTable(tableDataWithSchool);
       console.log('Schedule table created successfully:', table);
       res.json(table);
     } catch (error) {

@@ -128,6 +128,7 @@ export interface IStorage {
   
   // Schedule table methods
   getScheduleTables(): Promise<ScheduleTable[]>;
+  getScheduleTablesBySchool(schoolId: number): Promise<ScheduleTable[]>;
   getScheduleTable(id: number): Promise<ScheduleTable | undefined>;
   createScheduleTable(table: InsertScheduleTable): Promise<ScheduleTable>;
   updateScheduleTable(id: number, updates: Partial<InsertScheduleTable>): Promise<ScheduleTable>;
@@ -1113,6 +1114,12 @@ export class DatabaseStorage implements IStorage {
   // Schedule table methods
   async getScheduleTables(): Promise<ScheduleTable[]> {
     return await db.select().from(scheduleTables).orderBy(desc(scheduleTables.createdAt));
+  }
+
+  async getScheduleTablesBySchool(schoolId: number): Promise<ScheduleTable[]> {
+    return await db.select().from(scheduleTables)
+      .where(eq(scheduleTables.schoolId, schoolId))
+      .orderBy(desc(scheduleTables.createdAt));
   }
 
   async getScheduleTable(id: number): Promise<ScheduleTable | undefined> {
