@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,44 @@ export default function Login() {
   // Get school context if available
   const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || 'null');
   const currentSchoolId = sessionStorage.getItem('currentSchoolId');
+  
+  // Check if the selected school still exists by validating it
+  const [schoolValidated, setSchoolValidated] = useState(false);
+  const [validSchool, setValidSchool] = useState(selectedSchool);
+  
+  // Validate school exists on component mount
+  useEffect(() => {
+    const validateSchool = async () => {
+      if (selectedSchool && selectedSchool.code) {
+        try {
+          const response = await fetch("/api/school/select", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ schoolCode: selectedSchool.code }),
+          });
+          
+          if (!response.ok) {
+            // School doesn't exist anymore, clear localStorage
+            localStorage.removeItem('selectedSchool');
+            sessionStorage.removeItem('currentSchoolId');
+            sessionStorage.removeItem('schoolCode');
+            setValidSchool(null);
+          } else {
+            setValidSchool(selectedSchool);
+          }
+        } catch (error) {
+          // Network error or school doesn't exist, clear localStorage
+          localStorage.removeItem('selectedSchool');
+          sessionStorage.removeItem('currentSchoolId');
+          sessionStorage.removeItem('schoolCode');
+          setValidSchool(null);
+        }
+      }
+      setSchoolValidated(true);
+    };
+    
+    validateSchool();
+  }, [selectedSchool]);
 
   // New state for step-by-step flow
   const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
@@ -288,33 +326,60 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-bg p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center pb-6">
-          {selectedSchool?.logoUrl ? (
-            <div className="w-16 h-16 rounded-full mx-auto mb-4 overflow-hidden shadow-lg border-2 border-gray-200">
-              <img 
-                src={selectedSchool.logoUrl} 
-                alt={`${selectedSchool.name} Logo`}
-                className="w-full h-full object-cover"
-              />
+          {!schoolValidated ? (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-500 mt-2">جاري التحقق من المدرسة...</p>
             </div>
           ) : (
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
-                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
-              </svg>
-            </div>
+            <>
+              {validSchool?.logoUrl ? (
+                <div className="w-16 h-16 rounded-full mx-auto mb-4 overflow-hidden shadow-lg border-2 border-gray-200">
+                  <img 
+                    src={validSchool.logoUrl} 
+                    alt={`${validSchool.name} Logo`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                  </svg>
+                </div>
+              )}
+              <CardTitle className="text-2xl font-bold text-gray-800" style={{ color: validSchool?.primaryColor || '#1f2937' }}>
+                {validSchool ? validSchool.name : 'مدرستي'}
+              </CardTitle>
+              <CardDescription>
+                {validSchool ? 'منصة المدرسة الإلكترونية' : 'منصة التعلم الذكية'}
+              </CardDescription>
+              
+              {!validSchool && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-yellow-800 text-sm">
+                    لا توجد مدرسة محددة. يرجى العودة إلى الصفحة الرئيسية لاختيار مدرسة.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/')}
+                    className="mt-2 bg-yellow-600 hover:bg-yellow-700 text-white"
+                    size="sm"
+                  >
+                    العودة للصفحة الرئيسية
+                  </Button>
+                </div>
+              )}
+            </>
           )}
-          <CardTitle className="text-2xl font-bold text-gray-800" style={{ color: selectedSchool?.primaryColor || '#1f2937' }}>
-            {selectedSchool ? selectedSchool.name : 'مدرستي'}
-          </CardTitle>
-          <CardDescription>
-            {selectedSchool ? 'منصة المدرسة الإلكترونية' : 'منصة التعلم الذكية'}
-          </CardDescription>
         </CardHeader>
         
         <CardContent>
-          {/* Step 1: Choose Action */}
-          {currentStep === 'action' && (
+          {/* Only show forms if school is validated and exists */}
+          {schoolValidated && validSchool && (
+            <>
+              {/* Step 1: Choose Action */}
+              {currentStep === 'action' && (
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">مرحباً بك</h2>
@@ -965,6 +1030,8 @@ export default function Login() {
                 </Button>
               </div>
             </div>
+          )}
+            </>
           )}
         </CardContent>
       </Card>
