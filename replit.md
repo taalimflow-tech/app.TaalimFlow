@@ -124,6 +124,33 @@ The application now uses a unified PostgreSQL database approach:
 
 This unified approach provides better data consistency, easier queries, and improved performance while maintaining the authentication benefits of Firebase.
 
+## User Guide for AdminUsers Page
+
+**The AdminUsers page works correctly** - it shows users filtered by school. To see created users:
+
+### Schools and Their Users:
+1. **test school 1** (code: testschool1)
+   - 3 users: 1 student, 2 teachers
+   - Login as admin for this school to see them
+
+2. **المعهد** (code: Mahad) 
+   - 3 users: 1 admin, 2 teachers
+   - Admin login: `mou3athe0517@gmail.com` 
+   - This admin can see all users in المعهد school
+
+3. **Users without school assignment** (orphaned users)
+   - These won't appear in any school's AdminUsers page
+   - Super admin can see system-wide data
+
+### How to Access:
+1. Go to your school selection page
+2. Choose the specific school 
+3. Login as admin for that school
+4. Navigate to AdminUsers page
+5. You'll see only users from your school (proper multi-tenancy)
+
+**Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
+
 ## Recent Changes
 - **January 2025**: Fixed critical security vulnerability and infinite loop performance issues
   - **Security Fix**: Completely revamped requireAuth middleware to prevent cross-school data access
