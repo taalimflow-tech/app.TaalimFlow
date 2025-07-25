@@ -68,7 +68,7 @@ export interface IStorage {
   createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]>;
   
   // Suggestion methods
-  getSuggestions(): Promise<any[]>;
+  getSuggestions(schoolId?: number): Promise<any[]>;
   createSuggestion(suggestion: InsertSuggestion): Promise<Suggestion>;
   
   // Group methods
@@ -78,7 +78,7 @@ export interface IStorage {
   deleteGroup(id: number): Promise<void>;
   
   // Admin group management methods
-  getAdminGroups(): Promise<any[]>;
+  getAdminGroups(schoolId?: number): Promise<any[]>;
   updateGroupAssignments(groupId: number, studentIds: number[], teacherId: number): Promise<Group>;
   getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number): Promise<any[]>;
   
@@ -296,7 +296,12 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getAllUsers(): Promise<User[]> {
+  async getAllUsers(schoolId?: number): Promise<User[]> {
+    if (schoolId) {
+      return await db.select().from(users)
+        .where(eq(users.schoolId, schoolId))
+        .orderBy(desc(users.createdAt));
+    }
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
@@ -599,8 +604,8 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(messages).values(messagesToInsert).returning();
   }
 
-  async getSuggestions(): Promise<any[]> {
-    return await db
+  async getSuggestions(schoolId?: number): Promise<any[]> {
+    let query = db
       .select({
         id: suggestions.id,
         userId: suggestions.userId,
@@ -612,8 +617,13 @@ export class DatabaseStorage implements IStorage {
         userName: users.name,
       })
       .from(suggestions)
-      .leftJoin(users, eq(suggestions.userId, users.id))
-      .orderBy(desc(suggestions.createdAt));
+      .leftJoin(users, eq(suggestions.userId, users.id));
+    
+    if (schoolId) {
+      query = query.where(eq(users.schoolId, schoolId));
+    }
+    
+    return await query.orderBy(desc(suggestions.createdAt));
   }
 
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
@@ -647,17 +657,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Admin group management methods
-  async getAdminGroups(): Promise<any[]> {
+  async getAdminGroups(schoolId?: number): Promise<any[]> {
     try {
-      // Get all teaching modules organized by education level
-      const allModules = await db.select().from(teachingModules).orderBy(teachingModules.educationLevel, teachingModules.name);
+      // Get teaching modules - filter by school if provided
+      let modulesQuery = db.select().from(teachingModules);
+      if (schoolId) {
+        modulesQuery = modulesQuery.where(or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)));
+      }
+      const allModules = await modulesQuery.orderBy(teachingModules.educationLevel, teachingModules.name);
       
       // Generate all possible groups based on education levels and subjects
       const allPossibleGroups = [];
       
       for (const module of allModules) {
         // Check if there are existing groups for this module
-        const existingGroups = await db
+        let existingGroupsQuery = db
           .select({
             id: groups.id,
             name: groups.name,
@@ -673,11 +687,22 @@ export class DatabaseStorage implements IStorage {
           })
           .from(groups)
           .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
-          .leftJoin(users, eq(groups.teacherId, users.id))
-          .where(and(
+          .leftJoin(users, eq(groups.teacherId, users.id));
+        
+        if (schoolId) {
+          existingGroupsQuery = existingGroupsQuery.where(and(
+            eq(groups.educationLevel, module.educationLevel),
+            eq(groups.subjectId, module.id),
+            eq(groups.schoolId, schoolId)
+          ));
+        } else {
+          existingGroupsQuery = existingGroupsQuery.where(and(
             eq(groups.educationLevel, module.educationLevel),
             eq(groups.subjectId, module.id)
           ));
+        }
+        
+        const existingGroups = await existingGroupsQuery;
         
         if (existingGroups.length === 0) {
           // Create a placeholder group for this subject

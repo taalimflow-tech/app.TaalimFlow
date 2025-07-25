@@ -895,7 +895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
-      const teachers = await storage.getTeachersWithSpecializations();
+      const teachers = await storage.getTeachersBySchool(currentUser.schoolId);
       res.json(teachers);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teachers with specializations" });
@@ -1214,7 +1214,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Suggestion routes
   app.get("/api/suggestions", async (req, res) => {
     try {
-      const suggestions = await storage.getSuggestions();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const suggestions = await storage.getSuggestions(currentUser.schoolId);
       res.json(suggestions);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch suggestions" });
@@ -1223,11 +1227,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/suggestions", async (req, res) => {
     try {
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
       const validatedData = insertSuggestionSchema.parse(req.body);
-      const suggestion = await storage.createSuggestion(validatedData);
+      const suggestionData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId
+      };
+      const suggestion = await storage.createSuggestion(suggestionData);
       
       // Create notification for admins about new suggestion
-      const allUsers = await storage.getAllUsers();
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const allUsers = await storage.getAllUsers(currentUser.schoolId);
       const adminUsers = allUsers.filter(u => u.role === 'admin');
       if (adminUsers.length > 0) {
         await storage.createNotificationForUsers(
@@ -1273,7 +1289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const group = await storage.createGroup(groupData);
       
       // Create notifications for all users about new group
-      const allUsers = await storage.getAllUsers();
+      const allUsers = await storage.getAllUsers(currentUser.schoolId);
       const nonAdminUsers = allUsers.filter(u => u.role !== 'admin');
       if (nonAdminUsers.length > 0) {
         await storage.createNotificationForUsers(
@@ -1312,7 +1328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
-      const adminGroups = await storage.getAdminGroups();
+      const adminGroups = await storage.getAdminGroups(currentUser.schoolId);
       res.json(adminGroups);
     } catch (error) {
       console.error("Error in /api/admin/groups:", error);
@@ -1844,8 +1860,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teachers-by-module/:moduleId", async (req, res) => {
     try {
       const moduleId = parseInt(req.params.moduleId);
-      const teachers = await storage.getTeachersByModule(moduleId);
-      res.json(teachers);
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const teachers = await storage.getTeachers();
+      // Filter teachers by school and then by module specialization
+      const schoolTeachers = teachers.filter(t => t.schoolId === currentUser.schoolId);
+      const moduleTeachers = await storage.getTeachersByModule(moduleId);
+      const filteredTeachers = moduleTeachers.filter(t => 
+        schoolTeachers.some(st => st.id === t.id)
+      );
+      res.json(filteredTeachers);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teachers by module" });
     }
