@@ -112,15 +112,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      console.log('Registration request body:', req.body);
-      console.log('Session schoolId:', req.session?.schoolId);
-      
       const { children: childrenData, educationLevel, grade, ...userData } = req.body;
       
       // Get school from session or request FIRST
       const schoolId = req.session?.schoolId;
       if (!schoolId) {
-        console.log('No schoolId in session');
         return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
       }
       
@@ -128,9 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedUserData = insertUserSchema.parse(userData);
       
       // Check if user already exists by email in this school context
-      console.log('Checking for existing user with email:', validatedUserData.email, 'in school:', schoolId);
       const existingUser = await storage.getUserByEmail(validatedUserData.email, schoolId);
-      console.log('Existing user found:', existingUser);
       if (existingUser) {
         if (existingUser.banned) {
           return res.status(403).json({ 
@@ -2300,7 +2294,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set school context in session for registration
       req.session.schoolId = school.id;
       req.session.schoolCode = school.code;
-      console.log('School selected - set session:', { schoolId: school.id, schoolCode: school.code });
       
       res.json({ school });
     } catch (error) {

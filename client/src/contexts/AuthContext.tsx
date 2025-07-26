@@ -71,10 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, name: string, phone: string, children: any[] = [], role: string = 'user', studentData?: { educationLevel: string, grade: string }) => {
-    // First create Firebase user
-    const firebaseUser = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Then create user in our database
+    // First try to create user in our database
     const requestBody: any = { email, password, name, phone, role };
     
     if (role === 'student' && studentData) {
@@ -96,6 +93,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'خطأ في إنشاء الحساب');
+    }
+    
+    // Only create Firebase user after database registration succeeds
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (firebaseError: any) {
+      // If Firebase user already exists, that's okay - we'll use it
+      if (firebaseError.code !== 'auth/email-already-in-use') {
+        console.warn('Firebase registration failed:', firebaseError);
+        // Don't throw here - database registration succeeded
+      }
     }
     
     const { user } = await response.json();
