@@ -840,6 +840,7 @@ export class DatabaseStorage implements IStorage {
       // Add new student assignments
       if (studentIds.length > 0) {
         const assignments = studentIds.map(studentId => ({
+          schoolId: schoolId!,
           groupId: actualGroupId,
           userId: studentId,
           assignedBy: 1 // Default admin ID - in real app this would be currentUser.id
