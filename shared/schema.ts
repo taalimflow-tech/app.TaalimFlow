@@ -40,11 +40,11 @@ export const users = pgTable("users", {
   verified: boolean("verified").default(false), // Manual verification by admin
   verificationNotes: text("verification_notes"), // Admin notes about verification
   verifiedAt: timestamp("verified_at"),
-  verifiedBy: integer("verified_by").references(() => users.id), // Admin who verified
+  verifiedBy: integer("verified_by"), // Admin who verified - remove self-reference
   banned: boolean("banned").default(false), // User ban status
   banReason: text("ban_reason"), // Reason for ban
   bannedAt: timestamp("banned_at"), // When user was banned
-  bannedBy: integer("banned_by").references(() => users.id), // Admin who banned the user
+  bannedBy: integer("banned_by"), // Admin who banned the user - remove self-reference
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

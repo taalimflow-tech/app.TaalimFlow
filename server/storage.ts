@@ -59,7 +59,7 @@ export interface IStorage {
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
-  getTeachersWithSpecializations(): Promise<any[]>;
+  getTeachersWithSpecializations(schoolId: number): Promise<any[]>;
   
   // Message methods
   getMessages(): Promise<Message[]>;
@@ -504,7 +504,7 @@ export class DatabaseStorage implements IStorage {
   async createAnnouncement(insertAnnouncement: InsertAnnouncement): Promise<Announcement> {
     const [announcement] = await db
       .insert(announcements)
-      .values(insertAnnouncement)
+      .values([insertAnnouncement])
       .returning();
     return announcement;
   }
@@ -522,7 +522,7 @@ export class DatabaseStorage implements IStorage {
   async createBlogPost(insertBlogPost: InsertBlogPost): Promise<BlogPost> {
     const [blogPost] = await db
       .insert(blogPosts)
-      .values(insertBlogPost)
+      .values([insertBlogPost])
       .returning();
     return blogPost;
   }
@@ -544,7 +544,7 @@ export class DatabaseStorage implements IStorage {
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
     const [teacher] = await db
       .insert(teachers)
-      .values(insertTeacher)
+      .values([insertTeacher])
       .returning();
     return teacher;
   }
@@ -613,7 +613,7 @@ export class DatabaseStorage implements IStorage {
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const [message] = await db
       .insert(messages)
-      .values(insertMessage)
+      .values([insertMessage])
       .returning();
     return message;
   }
@@ -679,7 +679,7 @@ export class DatabaseStorage implements IStorage {
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
     const [suggestion] = await db
       .insert(suggestions)
-      .values(insertSuggestion)
+      .values([insertSuggestion])
       .returning();
     return suggestion;
   }
@@ -697,7 +697,7 @@ export class DatabaseStorage implements IStorage {
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
     const [group] = await db
       .insert(groups)
-      .values(insertGroup)
+      .values([insertGroup])
       .returning();
     return group;
   }
@@ -910,7 +910,7 @@ export class DatabaseStorage implements IStorage {
   async createFormation(insertFormation: InsertFormation): Promise<Formation> {
     const [formation] = await db
       .insert(formations)
-      .values(insertFormation)
+      .values([insertFormation])
       .returning();
     return formation;
   }
@@ -922,7 +922,7 @@ export class DatabaseStorage implements IStorage {
   async createGroupRegistration(insertGroupRegistration: InsertGroupRegistration): Promise<GroupRegistration> {
     const [registration] = await db
       .insert(groupRegistrations)
-      .values(insertGroupRegistration)
+      .values([insertGroupRegistration])
       .returning();
     return registration;
   }
@@ -930,7 +930,7 @@ export class DatabaseStorage implements IStorage {
   async createFormationRegistration(insertFormationRegistration: InsertFormationRegistration): Promise<FormationRegistration> {
     const [registration] = await db
       .insert(formationRegistrations)
-      .values(insertFormationRegistration)
+      .values([insertFormationRegistration])
       .returning();
     return registration;
   }
@@ -954,7 +954,7 @@ export class DatabaseStorage implements IStorage {
   async createNotification(insertNotification: InsertNotification): Promise<Notification> {
     const [notification] = await db
       .insert(notifications)
-      .values(insertNotification)
+      .values([insertNotification])
       .returning();
     return notification;
   }
