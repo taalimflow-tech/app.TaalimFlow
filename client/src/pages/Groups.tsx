@@ -41,6 +41,10 @@ export default function Groups() {
   // Existing groups filter state
   const [existingGroupsFilter, setExistingGroupsFilter] = useState('');
   const [selectedYearFilter, setSelectedYearFilter] = useState('');
+  
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<any>(null);
 
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
@@ -132,6 +136,30 @@ export default function Groups() {
     }
   });
 
+  // Delete group mutation
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (groupId: number) => {
+      return apiRequest('DELETE', `/api/admin/groups/${groupId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم حذف المجموعة بنجاح",
+        description: "تم حذف المجموعة وجميع التعيينات المرتبطة بها"
+      });
+      setShowDeleteConfirm(false);
+      setGroupToDelete(null);
+      // Invalidate admin groups to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/groups'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في حذف المجموعة",
+        description: error.response?.data?.error || "حدث خطأ أثناء حذف المجموعة",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleJoinGroup = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedGroup) {
@@ -169,6 +197,17 @@ export default function Groups() {
         educationLevel: customSubjectLevel,
         grade: customSubjectGrade || undefined
       });
+    }
+  };
+
+  const handleDeleteGroup = (group: any) => {
+    setGroupToDelete(group);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteGroup = () => {
+    if (groupToDelete && groupToDelete.id) {
+      deleteGroupMutation.mutate(groupToDelete.id);
     }
   };
 
@@ -669,6 +708,16 @@ export default function Groups() {
                           >
                             إدارة المجموعة
                           </Button>
+                          {group.id && ( // Only show delete button for actual groups (not placeholders)
+                            <Button
+                              onClick={() => handleDeleteGroup(group)}
+                              variant="outline"
+                              className="px-3 border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                              size="sm"
+                            >
+                              🗑️
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -975,6 +1024,54 @@ export default function Groups() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && groupToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-red-800">تأكيد حذف المجموعة</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-700 mb-2">
+                هل أنت متأكد من أنك تريد حذف هذه المجموعة؟
+              </p>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="font-medium">{groupToDelete.name}</p>
+                <p className="text-sm text-gray-600">{groupToDelete.educationLevel} - {groupToDelete.nameAr || groupToDelete.subjectName}</p>
+                <p className="text-sm text-red-600 mt-2">
+                  ⚠️ سيتم حذف جميع الطلاب المسجلين في هذه المجموعة
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowDeleteConfirm(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                إلغاء
+              </Button>
+              <Button
+                onClick={confirmDeleteGroup}
+                disabled={deleteGroupMutation.isPending}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                {deleteGroupMutation.isPending ? 'جاري الحذف...' : 'حذف المجموعة'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

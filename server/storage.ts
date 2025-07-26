@@ -806,7 +806,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group> {
+  async updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number, adminId?: number): Promise<Group> {
     let actualGroupId = groupId;
     
     // If groupId is null, create a new group first
@@ -843,7 +843,7 @@ export class DatabaseStorage implements IStorage {
           schoolId: schoolId!,
           groupId: actualGroupId,
           userId: studentId,
-          assignedBy: 1 // Default admin ID - in real app this would be currentUser.id
+          assignedBy: adminId || null // Use actual admin ID
         }));
         await db.insert(groupUserAssignments).values(assignments);
       }
@@ -877,6 +877,24 @@ export class DatabaseStorage implements IStorage {
       .orderBy(users.name);
 
     return result;
+  }
+
+  async deleteGroup(groupId: number, schoolId: number): Promise<boolean> {
+    try {
+      // First delete all group user assignments
+      await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, groupId));
+      
+      // Then delete the group itself
+      const result = await db
+        .delete(groups)
+        .where(and(eq(groups.id, groupId), eq(groups.schoolId, schoolId)))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      throw error;
+    }
   }
 
   async getFormations(): Promise<Formation[]> {

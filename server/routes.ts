@@ -1461,11 +1461,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid assignment data" });
       }
       
-      const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId, groupData, req.session.user.schoolId);
+      const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId, groupData, req.session.user.schoolId, req.session.user.id);
       res.json(updatedGroup);
     } catch (error) {
       console.error("Error updating group assignments:", error);
       res.status(500).json({ error: "Failed to update group assignments" });
+    }
+  });
+
+  // Delete group route
+  app.delete("/api/admin/groups/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      const groupId = parseInt(req.params.id);
+      
+      if (isNaN(groupId)) {
+        return res.status(400).json({ error: "معرف المجموعة غير صحيح" });
+      }
+      
+      const deleted = await storage.deleteGroup(groupId, req.session.user.schoolId);
+      
+      if (deleted) {
+        res.json({ success: true, message: "تم حذف المجموعة بنجاح" });
+      } else {
+        res.status(404).json({ error: "المجموعة غير موجودة" });
+      }
+    } catch (error) {
+      console.error("Error deleting group:", error);
+      res.status(500).json({ error: "فشل في حذف المجموعة" });
     }
   });
 
