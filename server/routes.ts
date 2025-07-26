@@ -1312,9 +1312,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/suggestions", requireAuth, async (req, res) => {
+  app.post("/api/suggestions", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1329,10 +1329,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const suggestion = await storage.createSuggestion(suggestionData);
       
       // Create notification for admins about new suggestion
-      if (!currentUser) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
-      }
-      
       const allUsers = await storage.getAllUsers(req.session.user.schoolId);
       const adminUsers = allUsers.filter(u => u.role === 'admin');
       if (adminUsers.length > 0) {
@@ -1672,7 +1668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notification routes
   app.get("/api/notifications", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1685,7 +1681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/notifications/unread-count", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1698,7 +1694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/notifications/:id/read", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1712,7 +1708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/notifications/mark-all-read", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
