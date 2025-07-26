@@ -511,12 +511,12 @@ export default function Groups() {
             
             {/* Education Level Filter Tabs */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة', 'المجموعات العامة'].map((level) => (
+              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
                 <button
                   key={level}
-                  onClick={() => setExistingGroupsFilter(level === 'مجموعات مخصصة' ? 'custom' : level === 'المجموعات العامة' ? 'public' : level)}
+                  onClick={() => setExistingGroupsFilter(level === 'مجموعات مخصصة' ? 'custom' : level)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level === 'المجموعات العامة' ? 'public' : level)
+                    existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level)
                       ? 'bg-blue-600 text-white'
                       : 'bg-white text-gray-700 hover:bg-blue-50'
                   }`}
@@ -531,16 +531,13 @@ export default function Groups() {
               {existingGroupsFilter && (() => {
                 let filteredGroups = [];
                 
-                if (existingGroupsFilter === 'public') {
-                  // Show all public groups (the ones from the groups query)
-                  filteredGroups = groups;
-                } else if (existingGroupsFilter === 'custom') {
+                if (existingGroupsFilter === 'custom') {
                   // Show custom/other groups from admin groups that don't belong to standard education levels
                   filteredGroups = adminGroups.filter(group => 
                     group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)
                   );
                 } else {
-                  // Show admin groups by education level
+                  // Show admin groups by education level - only admin-created groups
                   filteredGroups = adminGroups.filter(group => 
                     group.educationLevel === existingGroupsFilter
                   );
@@ -557,10 +554,9 @@ export default function Groups() {
                               existingGroupsFilter === 'الابتدائي' ? 'bg-green-100 text-green-800' :
                               existingGroupsFilter === 'المتوسط' ? 'bg-blue-100 text-blue-800' :
                               existingGroupsFilter === 'الثانوي' ? 'bg-purple-100 text-purple-800' :
-                              existingGroupsFilter === 'public' ? 'bg-teal-100 text-teal-800' :
                               'bg-orange-100 text-orange-800'
                             }`}>
-                              {existingGroupsFilter === 'custom' ? 'مخصص' : existingGroupsFilter === 'public' ? 'عام' : existingGroupsFilter}
+                              {existingGroupsFilter === 'custom' ? 'مخصص' : existingGroupsFilter}
                             </span>
                           </div>
                         </div>
@@ -583,36 +579,21 @@ export default function Groups() {
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                           <div className="flex items-center">
                             <Users className="h-3 w-3 ml-1" />
-                            <span>{existingGroupsFilter === 'public' ? `الحد الأقصى: ${group.maxMembers || 'غير محدود'}` : `الطلاب: ${group.studentsAssigned?.length || 0}`}</span>
+                            <span>الطلاب: {group.studentsAssigned?.length || 0}</span>
                           </div>
                           <span className="bg-gray-100 px-2 py-1 rounded">
-                            {existingGroupsFilter === 'public' ? (group.category || 'عام') : (group.nameAr || group.subjectName || 'مادة')}
+                            {group.nameAr || group.subjectName || 'مادة'}
                           </span>
                         </div>
 
                         <div className="flex gap-2">
-                          {existingGroupsFilter === 'public' ? (
-                            // For public groups, show join button
-                            <Button
-                              onClick={() => {
-                                setSelectedGroup(group);
-                                setShowJoinForm(true);
-                              }}
-                              className="flex-1 bg-teal-600 hover:bg-teal-700 text-white text-sm"
-                              size="sm"
-                            >
-                              انضم الآن
-                            </Button>
-                          ) : (
-                            // For admin groups, show management button
-                            <Button
-                              onClick={() => handleOpenAssignmentModal(group)}
-                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                              size="sm"
-                            >
-                              إدارة المجموعة
-                            </Button>
-                          )}
+                          <Button
+                            onClick={() => handleOpenAssignmentModal(group)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                            size="sm"
+                          >
+                            إدارة المجموعة
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -624,8 +605,6 @@ export default function Groups() {
                       <p className="text-sm">
                         {existingGroupsFilter === 'custom' 
                           ? 'لا توجد مجموعات مخصصة حالياً'
-                          : existingGroupsFilter === 'public'
-                          ? 'لا توجد مجموعات عامة حالياً'
                           : `لا توجد مجموعات في ${existingGroupsFilter} حالياً`
                         }
                       </p>
