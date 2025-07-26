@@ -1092,7 +1092,7 @@ export class DatabaseStorage implements IStorage {
         verifiedAt: children.verifiedAt,
         verifiedBy: children.verifiedBy,
         verificationNotes: children.verificationNotes,
-        selectedSubjects: children.subjects,
+        selectedSubjects: children.selectedSubjects,
         createdAt: children.createdAt,
         schoolId: children.schoolId
       })
@@ -1112,7 +1112,7 @@ export class DatabaseStorage implements IStorage {
         verifiedAt: students.verifiedAt,
         verifiedBy: students.verifiedBy,
         verificationNotes: students.verificationNotes,
-        selectedSubjects: students.subjects,
+        selectedSubjects: students.selectedSubjects,
         name: users.name
       })
       .from(students)

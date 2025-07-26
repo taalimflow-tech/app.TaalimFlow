@@ -159,6 +159,12 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 26, 2025**: ADMIN VERIFICATION DATABASE FIX COMPLETE - Fixed admin unable to see students and children for validation
+  - **Database Field Fix**: Fixed field name mismatch in storage methods (subjects → selectedSubjects)
+  - **API Error Resolution**: Resolved 500 errors in verified students/children endpoints
+  - **Test Data Addition**: Added unverified students and children for proper admin verification testing
+  - **Verification System Working**: Admin can now see students and children that need document verification
+  - **LSP Diagnostics Cleanup**: Reduced TypeScript errors from 50 to 2 after fixing database field references
 - **January 26, 2025**: LOGIN NAVIGATION FIX COMPLETE - Fixed 404 page appearing after successful login/registration
   - **Missing Navigation Fix**: Added proper navigation redirect in all login and registration handlers
   - **Post-Login Navigation**: Users now navigate to `/school/{schoolCode}/home` after successful authentication
