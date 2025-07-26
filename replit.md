@@ -159,6 +159,12 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 2025**: Fixed school deletion cascade issue and implemented proper data cleanup
+  - **Cascade Deletion Fix**: Updated deleteSchool method to properly delete all related data
+  - **Data Integrity**: School deletion now cascades through all 20 related tables in correct order
+  - **Orphaned Data Cleanup**: Cleaned up existing orphaned data from previously deleted schools
+  - **Database Consistency**: Ensures complete data removal when schools are deleted by super admin
+  - **Proper Order**: Deletes foreign key dependent data first, then parent records to avoid constraint violations
 - **January 2025**: Fixed critical security vulnerability and infinite loop performance issues
   - **Security Fix**: Completely revamped requireAuth middleware to prevent cross-school data access
   - **Multi-Tenancy Enforcement**: Enhanced security by removing global currentSchool variable that caused race conditions

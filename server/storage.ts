@@ -221,7 +221,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSchool(id: number): Promise<void> {
-    await db.update(schools).set({ active: false }).where(eq(schools.id, id));
+    // Delete all related data in the correct order (foreign key dependencies)
+    await db.delete(notifications).where(eq(notifications.schoolId, id));
+    await db.delete(userReports).where(eq(userReports.schoolId, id));
+    await db.delete(scheduleCells).where(eq(scheduleCells.schoolId, id));
+    await db.delete(scheduleTables).where(eq(scheduleTables.schoolId, id));
+    await db.delete(formationRegistrations).where(eq(formationRegistrations.schoolId, id));
+    await db.delete(groupRegistrations).where(eq(groupRegistrations.schoolId, id));
+    await db.delete(groupUserAssignments).where(eq(groupUserAssignments.schoolId, id));
+    await db.delete(messages).where(eq(messages.schoolId, id));
+    await db.delete(suggestions).where(eq(suggestions.schoolId, id));
+    await db.delete(children).where(eq(children.schoolId, id));
+    await db.delete(students).where(eq(students.schoolId, id));
+    await db.delete(teacherSpecializations).where(eq(teacherSpecializations.schoolId, id));
+    await db.delete(teachers).where(eq(teachers.schoolId, id));
+    await db.delete(formations).where(eq(formations.schoolId, id));
+    await db.delete(groups).where(eq(groups.schoolId, id));
+    await db.delete(blogPosts).where(eq(blogPosts.schoolId, id));
+    await db.delete(announcements).where(eq(announcements.schoolId, id));
+    await db.delete(teachingModules).where(eq(teachingModules.schoolId, id));
+    await db.delete(blockedUsers).where(eq(blockedUsers.schoolId, id));
+    await db.delete(users).where(eq(users.schoolId, id));
+    
+    // Finally delete the school itself
+    await db.delete(schools).where(eq(schools.id, id));
   }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
