@@ -1281,6 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create notification for message receiver
       const sender = await storage.getUser(message.senderId!);
       await storage.createNotification({
+        schoolId: req.session.user.schoolId!,
         userId: message.receiverId!,
         type: 'message',
         title: '💬 رسالة جديدة',
@@ -1814,6 +1815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create notification for the parent
       await storage.createNotification({
+        schoolId: req.session.user.schoolId!,
         userId: verifiedChild.parentId!,
         type: 'verification',
         title: '✅ تم التحقق من طفلك',
@@ -1836,13 +1838,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studentId = parseInt(req.params.id);
       const { notes, educationLevel, selectedSubjects } = req.body;
       
+      console.log('Verifying student:', studentId, 'with data:', { notes, educationLevel, selectedSubjects });
+      
       const verifiedStudent = await storage.verifyStudent(studentId, req.session.user.id, notes, educationLevel, selectedSubjects);
+      console.log('Student verified:', verifiedStudent);
       
       // Get user associated with student
       const user = await storage.getUser(verifiedStudent.userId!);
       if (user) {
+        console.log('Creating notification for user:', user.id);
         // Create notification for the student
         await storage.createNotification({
+          schoolId: req.session.user.schoolId!,
           userId: user.id,
           type: 'verification',
           title: '✅ تم التحقق من حسابك الطلابي',
@@ -1853,6 +1860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "تم التحقق من الطالب بنجاح", student: verifiedStudent });
     } catch (error) {
+      console.error('Error verifying student:', error);
       res.status(500).json({ error: "Failed to verify student" });
     }
   });

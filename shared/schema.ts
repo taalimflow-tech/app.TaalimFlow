@@ -443,6 +443,7 @@ export const insertStudentDataSchema = createInsertSchema(students).pick({
 });
 
 export const insertNotificationSchema = createInsertSchema(notifications).pick({
+  schoolId: true,
   userId: true,
   type: true,
   title: true,
