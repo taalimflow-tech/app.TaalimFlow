@@ -79,7 +79,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
-      const user = await storage.authenticateUser(email, password);
+      
+      // Get school context from session if available
+      const schoolId = req.session?.schoolId;
+      
+      // Authenticate user with optional school context
+      const user = await storage.authenticateUser(email, password, schoolId);
       
       if (user) {
         // Check if user is banned
@@ -125,8 +130,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
       }
       
-      // Check if user already exists by email
-      const existingUser = await storage.getUserByEmail(validatedData.email);
+      // Check if user already exists by email in this school context
+      const existingUser = await storage.getUserByEmail(validatedData.email, schoolId);
       if (existingUser) {
         if (existingUser.banned) {
           return res.status(403).json({ 
@@ -136,8 +141,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
       }
       
-      // Check if phone number already exists
-      const existingPhone = await storage.getUserByPhone(validatedData.phone);
+      // Check if phone number already exists in this school context
+      const existingPhone = await storage.getUserByPhone(validatedData.phone, schoolId);
       if (existingPhone) {
         if (existingPhone.banned) {
           return res.status(403).json({ 
@@ -212,8 +217,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "مفتاح الإدارة غير صحيح. تأكد من صحة المفتاح السري للمدرسة" });
       }
       
-      // Check if user already exists by email
-      const existingUser = await storage.getUserByEmail(validatedData.email);
+      // Check if user already exists by email in this school context
+      const existingUser = await storage.getUserByEmail(validatedData.email, schoolId);
       if (existingUser) {
         if (existingUser.banned) {
           return res.status(403).json({ 
@@ -223,8 +228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
       }
       
-      // Check if phone number already exists
-      const existingPhone = await storage.getUserByPhone(validatedData.phone);
+      // Check if phone number already exists in this school context
+      const existingPhone = await storage.getUserByPhone(validatedData.phone, schoolId);
       if (existingPhone) {
         if (existingPhone.banned) {
           return res.status(403).json({ 
@@ -276,8 +281,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "مفتاح المعلم غير صحيح. تأكد من صحة المفتاح السري للمدرسة" });
       }
       
-      // Check if user already exists by email
-      const existingUser = await storage.getUserByEmail(validatedData.email);
+      // Check if user already exists by email in this school context
+      const existingUser = await storage.getUserByEmail(validatedData.email, schoolId);
       if (existingUser) {
         if (existingUser.banned) {
           return res.status(403).json({ 
@@ -287,8 +292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "المستخدم موجود بالفعل" });
       }
       
-      // Check if phone number already exists
-      const existingPhone = await storage.getUserByPhone(validatedData.phone);
+      // Check if phone number already exists in this school context
+      const existingPhone = await storage.getUserByPhone(validatedData.phone, schoolId);
       if (existingPhone) {
         if (existingPhone.banned) {
           return res.status(403).json({ 

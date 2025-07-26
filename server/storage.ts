@@ -17,10 +17,10 @@ export interface IStorage {
   // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByPhone(phone: string): Promise<User | undefined>;
+  getUserByEmail(email: string, schoolId?: number): Promise<User | undefined>;
+  getUserByPhone(phone: string, schoolId?: number): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  authenticateUser(email: string, password: string): Promise<User | null>;
+  authenticateUser(email: string, password: string, schoolId?: number): Promise<User | null>;
   getAllUsers(schoolId?: number): Promise<User[]>;
   searchUsers(query: string, schoolId?: number): Promise<User[]>;
   searchUsersWithFilters(filters: {
@@ -233,23 +233,56 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
+  async getUserByEmail(email: string, schoolId?: number): Promise<User | undefined> {
+    let query = db.select().from(users).where(eq(users.email, email));
+    
+    if (schoolId) {
+      query = query.where(eq(users.schoolId, schoolId));
+    }
+    
+    const users_found = await query;
+    // If schoolId is provided, prioritize users from that school
+    if (schoolId && users_found.length > 0) {
+      const schoolUser = users_found.find(u => u.schoolId === schoolId);
+      return schoolUser || users_found[0];
+    }
+    
+    return users_found[0] || undefined;
   }
 
-  async getUserByPhone(phone: string): Promise<User | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.phone, phone))
-      .orderBy(desc(users.id));
-    return user || undefined;
+  async getUserByPhone(phone: string, schoolId?: number): Promise<User | undefined> {
+    let query = db.select().from(users).where(eq(users.phone, phone));
+    
+    if (schoolId) {
+      query = query.where(eq(users.schoolId, schoolId));
+    }
+    
+    const users_found = await query.orderBy(desc(users.id));
+    // If schoolId is provided, prioritize users from that school
+    if (schoolId && users_found.length > 0) {
+      const schoolUser = users_found.find(u => u.schoolId === schoolId);
+      return schoolUser || users_found[0];
+    }
+    
+    return users_found[0] || undefined;
   }
 
-  async authenticateUser(email: string, password: string): Promise<User | null> {
+  async authenticateUser(email: string, password: string, schoolId?: number): Promise<User | null> {
     const bcrypt = await import('bcrypt');
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    
+    let query = db.select().from(users).where(eq(users.email, email));
+    if (schoolId) {
+      query = query.where(eq(users.schoolId, schoolId));
+    }
+    
+    const users_found = await query;
+    let user = users_found[0];
+    
+    // If schoolId is provided and multiple users exist, prioritize the school user
+    if (schoolId && users_found.length > 0) {
+      const schoolUser = users_found.find(u => u.schoolId === schoolId);
+      user = schoolUser || users_found[0];
+    }
     
     if (user) {
       console.log('Found user:', user.email);

@@ -23,7 +23,7 @@ export const schools = pgTable("schools", {
 export const users: any = pgTable("users", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id), // null for super admin
-  email: text("email").notNull().unique(),
+  email: text("email").notNull(),
   password: text("password").notNull(),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
