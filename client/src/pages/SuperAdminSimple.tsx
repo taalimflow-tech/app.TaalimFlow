@@ -680,126 +680,86 @@ export default function SuperAdminSimple() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {schools.map((school: any) => (
-                  <div key={school.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse mb-2">
-                          {school.logoUrl ? (
-                            <img 
-                              src={school.logoUrl} 
-                              alt={`شعار ${school.name}`}
-                              className="w-8 h-8 rounded-full object-cover border-2"
-                              style={{ borderColor: school.primaryColor }}
-                            />
-                          ) : (
-                            <div 
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                              style={{ backgroundColor: school.primaryColor }}
-                            >
-                              {school.name.charAt(0)}
-                            </div>
-                          )}
-                          <h3 className="text-lg font-semibold">{school.name}</h3>
-                          <Badge variant={school.active ? "default" : "secondary"}>
-                            {school.active ? "نشط" : "غير نشط"}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                  <div key={school.id} className="border rounded-lg p-3 bg-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        {school.logoUrl ? (
+                          <img 
+                            src={school.logoUrl} 
+                            alt={`شعار ${school.name}`}
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div 
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                            style={{ backgroundColor: school.primaryColor }}
+                          >
+                            {school.name.charAt(0)}
+                          </div>
+                        )}
+                        <div className="flex-1">
                           <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                            <School className="h-4 w-4" />
-                            <span>الكود: {school.code}</span>
-                          </div>
-                          
-                          {school.domain && (
-                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                              <Globe className="h-4 w-4" />
-                              <span>النطاق: {school.domain}</span>
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                            <MapPin className="h-4 w-4" />
-                            <span>الموقع: {school.location || "غير محدد"}</span>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                            <Calendar className="h-4 w-4" />
-                            <span>أنشئت: {new Date(school.createdAt).toLocaleDateString('en-US')}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                              <Palette className="h-4 w-4 text-gray-400" />
-                              <div className="flex space-x-1 rtl:space-x-reverse">
-                                <div 
-                                  className="w-4 h-4 rounded border"
-                                  style={{ backgroundColor: school.primaryColor }}
-                                  title="اللون الأساسي"
-                                />
-                                <div 
-                                  className="w-4 h-4 rounded border"
-                                  style={{ backgroundColor: school.secondaryColor }}
-                                  title="اللون الثانوي"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                            <Badge variant="outline" className="text-xs">
-                              {school.userCount || 0} مستخدم
+                            <h3 className="text-sm font-medium">{school.name}</h3>
+                            <span className="text-xs text-gray-500">({school.code})</span>
+                            <Badge variant="outline" className="text-xs px-1 py-0">
+                              {school.userCount || 0}
                             </Badge>
                           </div>
+                          {school.location && (
+                            <div className="text-xs text-gray-500 mt-1">{school.location}</div>
+                          )}
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <div className="flex items-center space-x-1 rtl:space-x-reverse">
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
                           onClick={() => {
                             setSelectedSchool(school);
                             setShowStatsModal(true);
                           }}
-                          title="عرض إحصائيات المدرسة"
+                          title="إحصائيات"
                         >
-                          <BarChart className="h-4 w-4" />
+                          <BarChart className="h-3 w-3" />
                         </Button>
 
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
                           onClick={() => {
                             setSelectedSchool(school);
                             setEditingKeys({ adminKey: school.adminKey, teacherKey: school.teacherKey });
                             setShowKeysModal(true);
                           }}
-                          title="إدارة مفاتيح الوصول"
+                          title="مفاتيح"
                         >
-                          <Key className="h-4 w-4" />
+                          <Key className="h-3 w-3" />
                         </Button>
                         
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
                           onClick={() => window.open(`/school/${school.code}`, '_blank')}
-                          title={`عرض مدرسة ${school.name} (الكود: ${school.code})`}
+                          title="عرض"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3" />
                         </Button>
                         
                         <Button
                           size="sm"
-                          variant="destructive"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => handleDeleteSchool(school.id, school.name)}
                           disabled={deleteSchoolMutation.isPending}
+                          title="حذف"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
@@ -1202,54 +1162,54 @@ export default function SuperAdminSimple() {
                     <>
                       {/* User Statistics */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4">إحصائيات المستخدمين</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          <div className="bg-blue-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-blue-600">{schoolStats.totalUsers}</div>
-                            <div className="text-sm text-blue-800">إجمالي المستخدمين</div>
+                        <h3 className="text-sm font-medium mb-3 text-gray-700">المستخدمين</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.totalUsers}</div>
+                            <div className="text-xs text-gray-600">المجموع</div>
                           </div>
-                          <div className="bg-green-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-green-600">{schoolStats.admins}</div>
-                            <div className="text-sm text-green-800">المديرين</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.admins}</div>
+                            <div className="text-xs text-gray-600">مديرين</div>
                           </div>
-                          <div className="bg-purple-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-purple-600">{schoolStats.teachers}</div>
-                            <div className="text-sm text-purple-800">المعلمين</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.teachers}</div>
+                            <div className="text-xs text-gray-600">معلمين</div>
                           </div>
-                          <div className="bg-orange-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-orange-600">{schoolStats.students}</div>
-                            <div className="text-sm text-orange-800">الطلاب</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.students}</div>
+                            <div className="text-xs text-gray-600">طلاب</div>
                           </div>
-                          <div className="bg-indigo-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-indigo-600">{schoolStats.parents}</div>
-                            <div className="text-sm text-indigo-800">أولياء الأمور</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.parents}</div>
+                            <div className="text-xs text-gray-600">أولياء أمور</div>
                           </div>
-                          <div className="bg-pink-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-pink-600">{schoolStats.children}</div>
-                            <div className="text-sm text-pink-800">الأطفال</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.children}</div>
+                            <div className="text-xs text-gray-600">أطفال</div>
                           </div>
                         </div>
                       </div>
 
                       {/* Content Statistics */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4">إحصائيات المحتوى</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="bg-yellow-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-yellow-600">{schoolStats.announcements}</div>
-                            <div className="text-sm text-yellow-800">الإعلانات</div>
+                        <h3 className="text-sm font-medium mb-3 text-gray-700">المحتوى</h3>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.announcements}</div>
+                            <div className="text-xs text-gray-600">إعلانات</div>
                           </div>
-                          <div className="bg-red-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-red-600">{schoolStats.blogPosts}</div>
-                            <div className="text-sm text-red-800">مقالات المدونة</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.blogPosts}</div>
+                            <div className="text-xs text-gray-600">مقالات</div>
                           </div>
-                          <div className="bg-teal-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-teal-600">{schoolStats.groups}</div>
-                            <div className="text-sm text-teal-800">المجموعات</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.groups}</div>
+                            <div className="text-xs text-gray-600">مجموعات</div>
                           </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-gray-600">{schoolStats.formations}</div>
-                            <div className="text-sm text-gray-800">التكوينات</div>
+                          <div className="bg-gray-50 p-2 rounded border">
+                            <div className="text-lg font-bold text-gray-800">{schoolStats.formations}</div>
+                            <div className="text-xs text-gray-600">تكوينات</div>
                           </div>
                         </div>
                       </div>
