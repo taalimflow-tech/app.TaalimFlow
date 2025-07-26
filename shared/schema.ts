@@ -481,6 +481,7 @@ export const insertScheduleCellSchema = createInsertSchema(scheduleCells).pick({
   educationLevel: true,
   subjectId: true,
   teacherId: true,
+  schoolId: true,
 });
 
 // Types

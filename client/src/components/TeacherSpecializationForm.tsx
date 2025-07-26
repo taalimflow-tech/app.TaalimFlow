@@ -53,8 +53,7 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
   useEffect(() => {
     if (selectedLevel) {
       const filtered = modules.filter(module => module.educationLevel === selectedLevel);
-      console.log('Selected level:', selectedLevel);
-      console.log('Filtered modules:', filtered);
+
       setFilteredModules(filtered);
     } else {
       setFilteredModules([]);
@@ -66,7 +65,7 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
       const response = await fetch('/api/teaching-modules');
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched modules:', data);
+
         setModules(data);
       }
     } catch (error) {

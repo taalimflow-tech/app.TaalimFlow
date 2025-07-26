@@ -2073,7 +2073,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      const cellData = insertScheduleCellSchema.parse(req.body);
+      const cellDataWithSchool = {
+        ...req.body,
+        schoolId: req.session.user.schoolId
+      };
+      const cellData = insertScheduleCellSchema.parse(cellDataWithSchool);
       const cell = await storage.createScheduleCell(cellData);
       res.json(cell);
     } catch (error) {
