@@ -69,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Create session for anonymous users for school selection
     cookie: { 
       secure: false, // Set to true in production with HTTPS
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
@@ -112,28 +112,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { children: childrenData, educationLevel, grade, ...userData } = req.body;
+      console.log('Registration request body:', req.body);
+      console.log('Session schoolId:', req.session?.schoolId);
       
-      // Validate based on role
-      let validatedData;
-      if (userData.role === 'student') {
-        validatedData = insertStudentSchema.parse({
-          ...userData,
-          educationLevel,
-          grade
-        });
-      } else {
-        validatedData = insertUserSchema.parse(userData);
-      }
+      const { children: childrenData, educationLevel, grade, ...userData } = req.body;
       
       // Get school from session or request FIRST
       const schoolId = req.session?.schoolId;
       if (!schoolId) {
+        console.log('No schoolId in session');
         return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
       }
       
+      // Validate basic user data first
+      const validatedUserData = insertUserSchema.parse(userData);
+      
       // Check if user already exists by email in this school context
-      const existingUser = await storage.getUserByEmail(validatedData.email, schoolId);
+      console.log('Checking for existing user with email:', validatedUserData.email, 'in school:', schoolId);
+      const existingUser = await storage.getUserByEmail(validatedUserData.email, schoolId);
+      console.log('Existing user found:', existingUser);
       if (existingUser) {
         if (existingUser.banned) {
           return res.status(403).json({ 
@@ -144,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if phone number already exists in this school context
-      const existingPhone = await storage.getUserByPhone(validatedData.phone, schoolId);
+      const existingPhone = await storage.getUserByPhone(validatedUserData.phone, schoolId);
       if (existingPhone) {
         if (existingPhone.banned) {
           return res.status(403).json({ 
@@ -155,9 +152,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create user first with school context
-      const { educationLevel: _, grade: __, ...userDataOnly } = validatedData;
       const userWithSchool = {
-        ...userDataOnly,
+        ...validatedUserData,
         schoolId: schoolId
       };
       const user = await storage.createUser(userWithSchool);
@@ -2302,10 +2298,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Set school context in session for registration
-      if (req.session) {
-        req.session.schoolId = school.id;
-        req.session.schoolCode = school.code;
-      }
+      req.session.schoolId = school.id;
+      req.session.schoolCode = school.code;
+      console.log('School selected - set session:', { schoolId: school.id, schoolCode: school.code });
       
       res.json({ school });
     } catch (error) {
