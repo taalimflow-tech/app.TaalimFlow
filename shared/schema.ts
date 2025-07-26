@@ -20,7 +20,7 @@ export const schools = pgTable("schools", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const users: any = pgTable("users", {
+export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id), // null for super admin
   email: text("email").notNull(),
@@ -275,27 +275,39 @@ export const scheduleCells = pgTable("schedule_cells", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  email: true,
-  password: true,
-  name: true,
-  phone: true,
-  role: true,
-}).extend({
-  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+export const insertUserSchema = z.object({
+  email: z.string().email("بريد إلكتروني غير صحيح"),
   password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
+  name: z.string().min(1, "الاسم مطلوب"),
+  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+  role: z.string().optional(),
 });
 
-export const insertAdminSchema = insertUserSchema.extend({
+export const insertAdminSchema = z.object({
+  email: z.string().email("بريد إلكتروني غير صحيح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
+  name: z.string().min(1, "الاسم مطلوب"),
+  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+  role: z.string().optional(),
   adminKey: z.string().min(1, "مفتاح الإدارة مطلوب"),
 });
 
-export const insertTeacherUserSchema = insertUserSchema.extend({
+export const insertTeacherUserSchema = z.object({
+  email: z.string().email("بريد إلكتروني غير صحيح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
+  name: z.string().min(1, "الاسم مطلوب"),
+  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+  role: z.string().optional(),
   teacherKey: z.string().min(1, "مفتاح المعلم مطلوب"),
   gender: z.enum(["male", "female"], { required_error: "الجنس مطلوب" }),
 });
 
-export const insertStudentSchema = insertUserSchema.extend({
+export const insertStudentSchema = z.object({
+  email: z.string().email("بريد إلكتروني غير صحيح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل"),
+  name: z.string().min(1, "الاسم مطلوب"),
+  phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
+  role: z.string().optional(),
   educationLevel: z.string().min(1, "المستوى التعليمي مطلوب"),
   grade: z.string().min(1, "السنة الدراسية مطلوبة"),
 });
@@ -486,7 +498,7 @@ export const insertScheduleCellSchema = createInsertSchema(scheduleCells).pick({
 
 // Types
 export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertUser = typeof users.$inferInsert;
 export type Announcement = typeof announcements.$inferSelect;
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
