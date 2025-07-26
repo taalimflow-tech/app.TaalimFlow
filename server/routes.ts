@@ -124,7 +124,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedUserData = insertUserSchema.parse(userData);
       
       // Check if user already exists by email in this school context
+      console.log('Checking for existing user with email:', validatedUserData.email, 'in school:', schoolId);
       const existingUser = await storage.getUserByEmail(validatedUserData.email, schoolId);
+      console.log('Existing user found:', existingUser);
       if (existingUser) {
         if (existingUser.banned) {
           return res.status(403).json({ 
@@ -135,7 +137,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if phone number already exists in this school context
+      console.log('Checking for existing phone:', validatedUserData.phone, 'in school:', schoolId);
       const existingPhone = await storage.getUserByPhone(validatedUserData.phone, schoolId);
+      console.log('Existing phone found:', existingPhone);
       if (existingPhone) {
         if (existingPhone.banned) {
           return res.status(403).json({ 

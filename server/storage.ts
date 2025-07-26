@@ -1,6 +1,6 @@
 import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, or, ilike, and, aliasedTable, sql } from "drizzle-orm";
+import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL } from "drizzle-orm";
 
 export interface IStorage {
   // School methods (for multi-tenancy)
@@ -257,55 +257,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string, schoolId?: number): Promise<User | undefined> {
-    let query = db.select().from(users).where(eq(users.email, email));
+    let query = db.select().from(users);
     
     if (schoolId) {
-      query = query.where(eq(users.schoolId, schoolId));
+      query = query.where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+    } else {
+      query = query.where(eq(users.email, email));
     }
     
     const users_found = await query;
-    // If schoolId is provided, prioritize users from that school
-    if (schoolId && users_found.length > 0) {
-      const schoolUser = users_found.find(u => u.schoolId === schoolId);
-      return schoolUser || users_found[0];
-    }
-    
     return users_found[0] || undefined;
   }
 
   async getUserByPhone(phone: string, schoolId?: number): Promise<User | undefined> {
-    let query = db.select().from(users).where(eq(users.phone, phone));
+    let query = db.select().from(users);
     
     if (schoolId) {
-      query = query.where(eq(users.schoolId, schoolId));
+      query = query.where(and(eq(users.phone, phone), eq(users.schoolId, schoolId)));
+    } else {
+      query = query.where(eq(users.phone, phone));
     }
     
     const users_found = await query.orderBy(desc(users.id));
-    // If schoolId is provided, prioritize users from that school
-    if (schoolId && users_found.length > 0) {
-      const schoolUser = users_found.find(u => u.schoolId === schoolId);
-      return schoolUser || users_found[0];
-    }
-    
     return users_found[0] || undefined;
   }
 
   async authenticateUser(email: string, password: string, schoolId?: number): Promise<User | null> {
     const bcrypt = await import('bcrypt');
     
-    let query = db.select().from(users).where(eq(users.email, email));
+    let query = db.select().from(users);
     if (schoolId) {
-      query = query.where(eq(users.schoolId, schoolId));
+      query = query.where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+    } else {
+      query = query.where(eq(users.email, email));
     }
     
     const users_found = await query;
     let user = users_found[0];
-    
-    // If schoolId is provided and multiple users exist, prioritize the school user
-    if (schoolId && users_found.length > 0) {
-      const schoolUser = users_found.find(u => u.schoolId === schoolId);
-      user = schoolUser || users_found[0];
-    }
     
     if (user) {
       console.log('Found user:', user.email);
