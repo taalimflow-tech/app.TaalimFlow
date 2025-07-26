@@ -632,14 +632,10 @@ export default function Groups() {
                   // Apply year filter if selected
                   if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
-                      // Check if group name or description contains the year level
-                      const groupText = `${group.name} ${group.description || ''}`.toLowerCase();
-                      const yearKeywords = selectedYearFilter.toLowerCase();
-                      return groupText.includes(yearKeywords) || 
-                             groupText.includes(selectedYearFilter) ||
-                             (group.studentsAssigned && group.studentsAssigned.some((student: any) => 
-                               student.grade && student.grade.includes(selectedYearFilter.split(' ')[1]) // Extract year number
-                             ));
+                      // Check if any assigned student has the selected grade level
+                      return group.studentsAssigned && group.studentsAssigned.some((student: any) => 
+                        student.grade === selectedYearFilter
+                      );
                     });
                   }
                 }
@@ -681,11 +677,21 @@ export default function Groups() {
                         {group.studentsAssigned && group.studentsAssigned.length > 0 && (
                           <div className="mb-3">
                             <div className="flex flex-wrap gap-1">
-                              {[...new Set(group.studentsAssigned.map((student: any) => student.grade).filter(Boolean))].map((grade: string) => (
-                                <span key={grade} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                                  {grade}
-                                </span>
-                              ))}
+                              {[...new Set(group.studentsAssigned.map((student: any) => student.grade).filter(Boolean))].map((grade: string) => {
+                                // Format the grade display correctly
+                                const formatGrade = (gradeStr: string) => {
+                                  if (gradeStr.includes('ثانوي')) return gradeStr; // Already formatted correctly
+                                  if (gradeStr.includes('متوسط')) return gradeStr; // Already formatted correctly
+                                  if (gradeStr.includes('ابتدائي')) return gradeStr; // Already formatted correctly
+                                  return gradeStr; // Return as-is for any other format
+                                };
+                                
+                                return (
+                                  <span key={grade} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                                    {formatGrade(grade)}
+                                  </span>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
