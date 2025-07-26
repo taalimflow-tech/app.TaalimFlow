@@ -159,6 +159,13 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 26, 2025**: ENGINEERING SUBJECTS RESTRUCTURE - Updated Technical Track Specializations  
+  - **Subject Separation**: Replaced single "التكنولوجيا" subject with 3 distinct engineering specializations
+  - **New Technical Subjects**: الهندسة الميكانيكية (Mechanical Engineering), الهندسة الكهربائية (Electrical Engineering), الهندسة المدنية (Civil Engineering)
+  - **Database Migration**: Updated teaching_modules table across all schools (global and school-specific)
+  - **Teacher Specializations**: Teachers can now specialize in specific engineering fields rather than generic technology
+  - **Enhanced Accuracy**: Better reflects actual Algerian technical education structure with distinct engineering tracks
+  - **Documentation Update**: Updated total subjects count from 31 to 32 modules (22 secondary subjects)
 - **January 26, 2025**: MAJOR AUTHENTICATION SYSTEM OVERHAUL - TypeScript Error Resolution Complete
   - **TypeScript Error Resolution**: Successfully eliminated all 62 TypeScript errors that were preventing app startup
   - **Authentication Architecture Fix**: Systematically replaced deprecated global `currentUser` variable with proper session-based authentication (`req.session.user`)
@@ -286,14 +293,14 @@ This unified approach provides better data consistency, easier queries, and impr
 - **January 2025**: Updated teaching module system to reflect accurate Algerian education structure
   - **Primary Education (الابتدائي)**: 3 subjects - Arabic+Math combined, French, English
   - **Middle School (المتوسط)**: 7 subjects for all 4 grades - Arabic, Math, Physics, Natural Sciences, French, English, History+Geography
-  - **Secondary Education (الثانوي)**: 21 consolidated subjects - teachers can teach across all secondary levels/branches:
+  - **Secondary Education (الثانوي)**: 22 consolidated subjects - teachers can teach across all secondary levels/branches:
     - Core subjects for all tracks: Arabic, French, English, Math, Philosophy, History+Geography, Islamic Studies, Physical Education, Artistic Education, Computer Science
-    - Scientific track subjects: Physics, Natural Sciences, Civil Engineering
-    - Technical track subjects: Mechanics, Electrical Engineering  
+    - Scientific track subjects: Physics, Natural Sciences
+    - Technical track subjects: Mechanical Engineering, Electrical Engineering, Civil Engineering  
     - Languages track subjects: German, Spanish
     - Economics track subjects: Economics, Law, Accounting
     - Literary track subjects: Civic Education
-  - **Total: 31 modules** (3 primary + 7 middle + 21 secondary)
+  - **Total: 32 modules** (3 primary + 7 middle + 22 secondary)
   - Eliminated duplicate subjects - teachers now select one subject they can teach across all applicable secondary levels
   - Corrected subject combinations: History+Geography as one subject, no separate chemistry (part of Natural Sciences)
   - Teachers can specialize in subjects across entire education levels matching real Algerian system
