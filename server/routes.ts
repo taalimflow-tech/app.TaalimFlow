@@ -1460,7 +1460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid assignment data" });
       }
       
-      const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId, groupData);
+      const updatedGroup = await storage.updateGroupAssignments(groupId, studentIds, teacherId, groupData, req.session.user.schoolId);
       res.json(updatedGroup);
     } catch (error) {
       console.error("Error updating group assignments:", error);

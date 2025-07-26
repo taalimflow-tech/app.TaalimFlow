@@ -79,7 +79,7 @@ export interface IStorage {
   
   // Admin group management methods
   getAdminGroups(schoolId?: number): Promise<any[]>;
-  updateGroupAssignments(groupId: number, studentIds: number[], teacherId: number): Promise<Group>;
+  updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group>;
   getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number): Promise<any[]>;
   
   // Formation methods
@@ -806,14 +806,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any): Promise<Group> {
+  async updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group> {
     let actualGroupId = groupId;
     
     // If groupId is null, create a new group first
-    if (!groupId && groupData) {
+    if (!groupId && groupData && schoolId) {
       const [newGroup] = await db
         .insert(groups)
         .values({
+          schoolId: schoolId,
           name: groupData.name,
           description: groupData.description,
           category: groupData.category,
