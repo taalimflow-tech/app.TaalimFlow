@@ -420,12 +420,14 @@ export const insertChildSchema = createInsertSchema(children).pick({
   name: true,
   educationLevel: true,
   grade: true,
+  schoolId: true,
 });
 
 export const insertStudentDataSchema = createInsertSchema(students).pick({
   userId: true,
   educationLevel: true,
   grade: true,
+  schoolId: true,
 });
 
 export const insertNotificationSchema = createInsertSchema(notifications).pick({

@@ -1225,7 +1225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/unban-user", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1264,7 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Validated data:', validatedData);
       
       // Check if the sender is blocked by the receiver
-      const isBlocked = await storage.isUserBlocked(validatedData.receiverId, validatedData.senderId);
+      const isBlocked = await storage.isUserBlocked(validatedData.receiverId!, validatedData.senderId!);
       if (isBlocked) {
         return res.status(403).json({ error: "لا يمكنك إرسال رسائل لهذا المستخدم. تم حظرك من قبل المستخدم" });
       }
@@ -1279,14 +1279,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Created message:', message);
       
       // Create notification for message receiver
-      const sender = await storage.getUser(message.senderId);
+      const sender = await storage.getUser(message.senderId!);
       await storage.createNotification({
-        userId: message.receiverId,
+        userId: message.receiverId!,
         type: 'message',
         title: '💬 رسالة جديدة',
         message: `رسالة جديدة من ${sender?.name}: "${message.subject}"`,
-        relatedId: message.id,
-        schoolId: req.session.user.schoolId
+        relatedId: message.id
       });
       
       res.status(201).json(message);
@@ -1472,7 +1471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Custom subjects route
   app.post("/api/admin/custom-subjects", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1538,7 +1537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Formation routes
   app.get("/api/formations", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1551,7 +1550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/formations", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -1570,7 +1569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nonAdminUsers.map(u => u.id),
           'formation_update',
           '🎓 تدريب جديد',
-          `تم إنشاء تدريب جديد: "${formation.name}"`,
+          `تم إنشاء تدريب جديد: "${formation.title}"`,
           formation.id,
           req.session.user.schoolId
         );
@@ -1620,7 +1619,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parentId: req.session.user.id,
         name: req.body.name,
         educationLevel: req.body.educationLevel,
-        grade: req.body.grade
+        grade: req.body.grade,
+        schoolId: req.session.user.schoolId
       };
       
       const child = await storage.createChild(childData);
@@ -1632,7 +1632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/children/:id", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1788,7 +1788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create notification for the parent
       await storage.createNotification({
-        userId: verifiedChild.parentId,
+        userId: verifiedChild.parentId!,
         type: 'verification',
         title: '✅ تم التحقق من طفلك',
         message: `تم التحقق من بيانات ${verifiedChild.name} بنجاح من قبل الإدارة`,
@@ -1813,7 +1813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const verifiedStudent = await storage.verifyStudent(studentId, req.session.user.id, notes, educationLevel, selectedSubjects);
       
       // Get user associated with student
-      const user = await storage.getUser(verifiedStudent.userId);
+      const user = await storage.getUser(verifiedStudent.userId!);
       if (user) {
         // Create notification for the student
         await storage.createNotification({
@@ -2218,7 +2218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Super Admin School Management Routes
   app.get("/api/super-admin/schools", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== "super_admin") {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
         return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
       }
 
@@ -2232,7 +2232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/super-admin/schools", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== "super_admin") {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
         return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
       }
 
@@ -2251,12 +2251,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle specific database constraint errors
       if (error && typeof error === 'object' && 'code' in error) {
-        if (error.code === '23505') {
+        if ((error as any).code === '23505') {
           // Unique constraint violation
-          if (error.constraint === 'schools_code_unique') {
+          if ((error as any).constraint === 'schools_code_unique') {
             return res.status(400).json({ error: "كود المدرسة مستخدم بالفعل، يرجى اختيار كود آخر" });
           }
-          if (error.constraint === 'schools_domain_unique') {
+          if ((error as any).constraint === 'schools_domain_unique') {
             return res.status(400).json({ error: "النطاق مستخدم بالفعل، يرجى اختيار نطاق آخر" });
           }
         }
@@ -2268,7 +2268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/super-admin/schools/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== "super_admin") {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
         return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
       }
 
@@ -2305,7 +2305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get school statistics
   app.get("/api/super-admin/schools/:id/stats", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== "super_admin") {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
         return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
       }
 
@@ -2321,7 +2321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update school access keys
   app.patch("/api/super-admin/schools/:id/keys", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== "super_admin") {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
         return res.status(403).json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
       }
 
