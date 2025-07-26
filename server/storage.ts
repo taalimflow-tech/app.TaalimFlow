@@ -1706,24 +1706,37 @@ export class DatabaseStorage implements IStorage {
       };
 
       userCounts.forEach(roleCount => {
-        stats.totalUsers += roleCount.count;
+        const count = parseInt(roleCount.count.toString()) || 0;
+        stats.totalUsers += count;
         switch (roleCount.role) {
           case 'admin':
-            stats.admins = roleCount.count;
+            stats.admins = count;
             break;
           case 'teacher':
-            stats.teachers = roleCount.count;
+            stats.teachers = count;
             break;
           case 'student':
-            stats.students = roleCount.count;
+            stats.students = count;
             break;
           case 'user':
-            stats.parents = roleCount.count;
+            stats.parents = count;
             break;
         }
       });
 
-      return stats;
+      // Ensure all stats are proper integers
+      return {
+        totalUsers: parseInt(stats.totalUsers.toString()) || 0,
+        admins: parseInt(stats.admins.toString()) || 0,
+        teachers: parseInt(stats.teachers.toString()) || 0,
+        students: parseInt(stats.students.toString()) || 0,
+        parents: parseInt(stats.parents.toString()) || 0,
+        children: parseInt(stats.children.toString()) || 0,
+        announcements: parseInt(stats.announcements.toString()) || 0,
+        blogPosts: parseInt(stats.blogPosts.toString()) || 0,
+        groups: parseInt(stats.groups.toString()) || 0,
+        formations: parseInt(stats.formations.toString()) || 0
+      };
     } catch (error) {
       console.error('Error getting school statistics:', error);
       throw error;
