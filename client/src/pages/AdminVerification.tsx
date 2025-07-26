@@ -551,6 +551,27 @@ export default function AdminVerification() {
                           <p className="text-sm text-gray-600 mt-1">
                             {formatEducationLevel(child.educationLevel, child.grade)}
                           </p>
+                          {/* Show selected subjects in verified child card */}
+                          {child.selectedSubjects && child.selectedSubjects.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs text-gray-500 mb-1">المواد المختارة:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {getSubjectNamesFromIds(child.selectedSubjects).slice(0, 3).map((subject, index) => (
+                                  <span 
+                                    key={index}
+                                    className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200"
+                                  >
+                                    {subject}
+                                  </span>
+                                ))}
+                                {getSubjectNamesFromIds(child.selectedSubjects).length > 3 && (
+                                  <span className="text-xs text-gray-500">
+                                    +{getSubjectNamesFromIds(child.selectedSubjects).length - 3} أخرى
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <Button 
                           variant="outline"
@@ -584,6 +605,27 @@ export default function AdminVerification() {
                           <p className="text-sm text-gray-600 mt-1">
                             {formatEducationLevel(student.educationLevel, student.grade)}
                           </p>
+                          {/* Show selected subjects in verified student card */}
+                          {student.selectedSubjects && student.selectedSubjects.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs text-gray-500 mb-1">المواد المختارة:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {getSubjectNamesFromIds(student.selectedSubjects).slice(0, 3).map((subject, index) => (
+                                  <span 
+                                    key={index}
+                                    className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200"
+                                  >
+                                    {subject}
+                                  </span>
+                                ))}
+                                {getSubjectNamesFromIds(student.selectedSubjects).length > 3 && (
+                                  <span className="text-xs text-gray-500">
+                                    +{getSubjectNamesFromIds(student.selectedSubjects).length - 3} أخرى
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <Button 
                           variant="outline"
