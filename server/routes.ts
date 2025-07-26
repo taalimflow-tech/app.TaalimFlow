@@ -362,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user info (for role verification)
   app.get("/api/auth/me", requireAuth, async (req, res) => {
     try {
-      const currentUser = req.currentUser;
+      const currentUser = req.session.user;
       // Check if the current user is banned
       const latestUserData = await storage.getUser(req.session.user.id);
       if (latestUserData && latestUserData.banned) {
@@ -382,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Logout endpoint
   app.post("/api/auth/logout", async (req, res) => {
     req.session.user = null;
-    req.session.userId = null;
+    req.session.userId = undefined;
     res.json({ message: "تم تسجيل الخروج بنجاح" });
   });
 
@@ -776,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users/:id/messages", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -798,7 +798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bulk messaging route (Admin only)
   app.post("/api/messages/bulk", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -936,7 +936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/blog-posts/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -982,7 +982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/teachers", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -1000,7 +1000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/teachers/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1025,7 +1025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced messages with user info
   app.get("/api/messages/with-user-info", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1040,7 +1040,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get conversation history between current user and another user
   app.get("/api/messages/conversation/:userId", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1056,7 +1056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark message as read
   app.post("/api/messages/:id/mark-read", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1072,7 +1072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Block user
   app.post("/api/block-user", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1097,7 +1097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Unblock user
   app.post("/api/unblock-user", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1133,7 +1133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Report user
   app.post("/api/report-user", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1166,7 +1166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes for reports and user management
   app.get("/api/admin/reports", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1180,7 +1180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/admin/reports/:id/status", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1201,7 +1201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/ban-user", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1245,7 +1245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/banned-users", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1367,7 +1367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/groups", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -1400,7 +1400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/groups/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1415,7 +1415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin group management routes
   app.get("/api/admin/groups", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1434,7 +1434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/groups/students/:educationLevel/:subjectId", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1450,7 +1450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/admin/groups/:id/assignments", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1584,7 +1584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/formations/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
@@ -1599,7 +1599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Children routes
   app.get("/api/children", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1612,7 +1612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/children", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1888,7 +1888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/teaching-modules", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -1902,7 +1902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/admin/teaching-modules/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -1927,7 +1927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/teacher-specializations", async (req, res) => {
     try {
-      if (!currentUser || (req.session.user.role !== 'teacher' && req.session.user.role !== 'admin')) {
+      if (!req.session.user || (req.session.user.role !== 'teacher' && req.session.user.role !== 'admin')) {
         return res.status(403).json({ error: "صلاحيات المعلم أو المدير مطلوبة" });
       }
       
@@ -1953,7 +1953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/teacher-specializations/:id", async (req, res) => {
     try {
-      if (!currentUser || (req.session.user.role !== 'teacher' && req.session.user.role !== 'admin')) {
+      if (!req.session.user || (req.session.user.role !== 'teacher' && req.session.user.role !== 'admin')) {
         return res.status(403).json({ error: "صلاحيات المعلم أو المدير مطلوبة" });
       }
       
@@ -1968,7 +1968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teachers-by-module/:moduleId", async (req, res) => {
     try {
       const moduleId = parseInt(req.params.moduleId);
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -1988,7 +1988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Schedule table routes
   app.get("/api/schedule-tables", async (req, res) => {
     try {
-      if (!currentUser) {
+      if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
@@ -2001,7 +2001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/schedule-tables", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -2029,7 +2029,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/schedule-tables/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -2044,7 +2044,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/schedule-tables/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -2069,7 +2069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/schedule-cells", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -2083,7 +2083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/schedule-cells/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
@@ -2098,7 +2098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/schedule-cells/:id", async (req, res) => {
     try {
-      if (!currentUser || req.session.user.role !== 'admin') {
+      if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
