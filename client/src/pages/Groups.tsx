@@ -511,12 +511,12 @@ export default function Groups() {
             
             {/* Education Level Filter Tabs */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
+              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة', 'المجموعات العامة'].map((level) => (
                 <button
                   key={level}
-                  onClick={() => setExistingGroupsFilter(level === 'مجموعات مخصصة' ? 'custom' : level)}
+                  onClick={() => setExistingGroupsFilter(level === 'مجموعات مخصصة' ? 'custom' : level === 'المجموعات العامة' ? 'public' : level)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level)
+                    existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level === 'المجموعات العامة' ? 'public' : level)
                       ? 'bg-blue-600 text-white'
                       : 'bg-white text-gray-700 hover:bg-blue-50'
                   }`}
@@ -537,6 +537,9 @@ export default function Groups() {
                     !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.category || '') &&
                     group.category !== 'general'
                   );
+                } else if (existingGroupsFilter === 'public') {
+                  // Show all public groups (the ones from the groups query)
+                  filteredGroups = groups;
                 } else {
                   // Show groups by education level from category or description
                   filteredGroups = groups.filter(group => 
@@ -557,14 +560,25 @@ export default function Groups() {
                               existingGroupsFilter === 'الابتدائي' ? 'bg-green-100 text-green-800' :
                               existingGroupsFilter === 'المتوسط' ? 'bg-blue-100 text-blue-800' :
                               existingGroupsFilter === 'الثانوي' ? 'bg-purple-100 text-purple-800' :
+                              existingGroupsFilter === 'public' ? 'bg-teal-100 text-teal-800' :
                               'bg-orange-100 text-orange-800'
                             }`}>
-                              {existingGroupsFilter === 'custom' ? 'مخصص' : existingGroupsFilter}
+                              {existingGroupsFilter === 'custom' ? 'مخصص' : existingGroupsFilter === 'public' ? 'عام' : existingGroupsFilter}
                             </span>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent>
+                        {group.imageUrl && (
+                          <div className="mb-3">
+                            <img 
+                              src={group.imageUrl} 
+                              alt={group.name} 
+                              className="w-full h-32 object-cover rounded-lg"
+                              style={{ aspectRatio: '16/9' }}
+                            />
+                          </div>
+                        )}
                         <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                           {group.description}
                         </p>
@@ -580,27 +594,41 @@ export default function Groups() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button
-                            onClick={() => {
-                              setSelectedGroup(group);
-                              setShowJoinForm(true);
-                            }}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                            size="sm"
-                          >
-                            عرض التفاصيل
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-gray-600 border-gray-300 hover:bg-gray-50"
-                            onClick={() => {
-                              // Add edit functionality here
-                              toast({ title: 'وظيفة التعديل قريباً' });
-                            }}
-                          >
-                            تعديل
-                          </Button>
+                          {existingGroupsFilter === 'public' ? (
+                            // For public groups, show join button
+                            <Button
+                              onClick={() => {
+                                setSelectedGroup(group);
+                                setShowJoinForm(true);
+                              }}
+                              className="flex-1 bg-teal-600 hover:bg-teal-700 text-white text-sm"
+                              size="sm"
+                            >
+                              انضم الآن
+                            </Button>
+                          ) : (
+                            <>
+                              {/* For admin groups, show management buttons */}
+                              <Button
+                                onClick={() => handleOpenAssignmentModal(group)}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                                size="sm"
+                              >
+                                إدارة المجموعة
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                                onClick={() => {
+                                  // Add edit functionality here
+                                  toast({ title: 'وظيفة التعديل قريباً' });
+                                }}
+                              >
+                                تعديل
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -612,6 +640,8 @@ export default function Groups() {
                       <p className="text-sm">
                         {existingGroupsFilter === 'custom' 
                           ? 'لا توجد مجموعات مخصصة حالياً'
+                          : existingGroupsFilter === 'public'
+                          ? 'لا توجد مجموعات عامة حالياً'
                           : `لا توجد مجموعات في ${existingGroupsFilter} حالياً`
                         }
                       </p>
@@ -624,51 +654,7 @@ export default function Groups() {
         </div>
       )}
       
-      {/* Public Groups Section */}
-      <div className="grid grid-cols-1 gap-4">
-        {groups.length > 0 ? (
-          groups.map((group) => (
-            <Card key={group.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle>{group.name}</CardTitle>
-                <p className="text-sm text-gray-600">{group.category}</p>
-              </CardHeader>
-              <CardContent>
-                {group.imageUrl && (
-                  <div className="mb-4">
-                    <img 
-                      src={group.imageUrl} 
-                      alt={group.name} 
-                      className="w-full h-48 object-cover rounded-lg"
-                      style={{ aspectRatio: '16/9' }}
-                    />
-                  </div>
-                )}
-                <p className="text-gray-700 mb-4">{group.description}</p>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-gray-600">
-                    {group.maxMembers && `أقصى عدد: ${group.maxMembers} عضو`}
-                  </div>
-                </div>
-                
-                <Button 
-                  className="w-full bg-gradient-to-r from-primary to-secondary"
-                  onClick={() => {
-                    setSelectedGroup(group);
-                    setShowJoinForm(true);
-                  }}
-                >
-                  انضم الآن
-                </Button>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-sm">لا توجد مجموعات حالياً</p>
-          </div>
-        )}
-      </div>
+      {/* Public Groups are now integrated into the admin section above */}
 
       {/* Join Group Modal */}
       {showJoinForm && selectedGroup && (

@@ -1281,6 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create notification for message receiver
       const sender = await storage.getUser(message.senderId!);
       await storage.createNotification({
+        schoolId: req.session.user.schoolId,
         userId: message.receiverId!,
         type: 'message',
         title: '💬 رسالة جديدة',
