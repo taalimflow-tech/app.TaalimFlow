@@ -159,6 +159,13 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 2025**: CRITICAL SECURITY FIX - Eliminated session bleeding vulnerability
+  - **Security Vulnerability Resolved**: Completely removed global currentUser variable that caused automatic super admin login
+  - **Session Management Overhaul**: Replaced all global currentUser references with proper req.session.user management
+  - **Authentication Security**: Fixed critical bug where users were automatically logged in as super admin due to race conditions
+  - **Multi-User Safety**: Each request now uses isolated session data instead of shared global state
+  - **Session Validation**: Enhanced session-based authentication throughout all API endpoints
+  - **Database Security**: Prevented unauthorized cross-school data access through proper session isolation
 - **January 2025**: Fixed school deletion cascade issue and implemented proper data cleanup
   - **Cascade Deletion Fix**: Updated deleteSchool method to properly delete all related data
   - **Data Integrity**: School deletion now cascades through all 20 related tables in correct order
