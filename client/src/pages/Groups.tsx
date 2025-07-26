@@ -531,27 +531,24 @@ export default function Groups() {
               {existingGroupsFilter && (() => {
                 let filteredGroups = [];
                 
-                if (existingGroupsFilter === 'custom') {
-                  // Show custom/other groups - groups that don't belong to standard education levels
-                  filteredGroups = groups.filter(group => 
-                    !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.category || '') &&
-                    group.category !== 'general'
-                  );
-                } else if (existingGroupsFilter === 'public') {
+                if (existingGroupsFilter === 'public') {
                   // Show all public groups (the ones from the groups query)
                   filteredGroups = groups;
+                } else if (existingGroupsFilter === 'custom') {
+                  // Show custom/other groups from admin groups that don't belong to standard education levels
+                  filteredGroups = adminGroups.filter(group => 
+                    group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)
+                  );
                 } else {
-                  // Show groups by education level from category or description
-                  filteredGroups = groups.filter(group => 
-                    group.category === existingGroupsFilter || 
-                    (group.description && group.description.includes(existingGroupsFilter)) ||
-                    (group.name && group.name.includes(existingGroupsFilter))
+                  // Show admin groups by education level
+                  filteredGroups = adminGroups.filter(group => 
+                    group.educationLevel === existingGroupsFilter
                   );
                 }
 
                 return filteredGroups.length > 0 ? (
                   filteredGroups.map((group) => (
-                    <Card key={group.id} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+                    <Card key={group.id || group.name} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-base text-gray-800">{group.name}</CardTitle>
@@ -580,16 +577,16 @@ export default function Groups() {
                           </div>
                         )}
                         <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                          {group.description}
+                          {group.description || `مجموعة ${group.nameAr || group.subjectName} - ${group.educationLevel}`}
                         </p>
                         
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                           <div className="flex items-center">
                             <Users className="h-3 w-3 ml-1" />
-                            <span>الحد الأقصى: {group.maxMembers || 'غير محدود'}</span>
+                            <span>{existingGroupsFilter === 'public' ? `الحد الأقصى: ${group.maxMembers || 'غير محدود'}` : `الطلاب: ${group.studentsAssigned?.length || 0}`}</span>
                           </div>
                           <span className="bg-gray-100 px-2 py-1 rounded">
-                            {group.category || 'عام'}
+                            {existingGroupsFilter === 'public' ? (group.category || 'عام') : (group.nameAr || group.subjectName || 'مادة')}
                           </span>
                         </div>
 
@@ -607,27 +604,14 @@ export default function Groups() {
                               انضم الآن
                             </Button>
                           ) : (
-                            <>
-                              {/* For admin groups, show management buttons */}
-                              <Button
-                                onClick={() => handleOpenAssignmentModal(group)}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                                size="sm"
-                              >
-                                إدارة المجموعة
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-gray-600 border-gray-300 hover:bg-gray-50"
-                                onClick={() => {
-                                  // Add edit functionality here
-                                  toast({ title: 'وظيفة التعديل قريباً' });
-                                }}
-                              >
-                                تعديل
-                              </Button>
-                            </>
+                            // For admin groups, show management button
+                            <Button
+                              onClick={() => handleOpenAssignmentModal(group)}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                              size="sm"
+                            >
+                              إدارة المجموعة
+                            </Button>
                           )}
                         </div>
                       </CardContent>
