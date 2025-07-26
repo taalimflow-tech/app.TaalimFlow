@@ -2110,6 +2110,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User details route for admin verification
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "المستخدم غير موجود" });
+      }
+      
+      // Return user without sensitive information
+      const { password: _, firebaseUid: __, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ error: "Failed to fetch user details" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Super Admin Authentication Routes (Hidden Access)

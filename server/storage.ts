@@ -1060,8 +1060,25 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(students.createdAt));
   }
 
-  async getVerifiedChildren(schoolId: number): Promise<Child[]> {
-    return await db.select().from(children).where(and(eq(children.verified, true), eq(children.schoolId, schoolId))).orderBy(desc(children.verifiedAt));
+  async getVerifiedChildren(schoolId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: children.id,
+        parentId: children.parentId,
+        name: children.name,
+        educationLevel: children.educationLevel,
+        grade: children.grade,
+        verified: children.verified,
+        verifiedAt: children.verifiedAt,
+        verifiedBy: children.verifiedBy,
+        verificationNotes: children.verificationNotes,
+        selectedSubjects: children.subjects,
+        createdAt: children.createdAt,
+        schoolId: children.schoolId
+      })
+      .from(children)
+      .where(and(eq(children.verified, true), eq(children.schoolId, schoolId)))
+      .orderBy(desc(children.verifiedAt));
   }
 
   async getVerifiedStudents(schoolId: number): Promise<any[]> {
@@ -1075,6 +1092,7 @@ export class DatabaseStorage implements IStorage {
         verifiedAt: students.verifiedAt,
         verifiedBy: students.verifiedBy,
         verificationNotes: students.verificationNotes,
+        selectedSubjects: students.subjects,
         name: users.name
       })
       .from(students)

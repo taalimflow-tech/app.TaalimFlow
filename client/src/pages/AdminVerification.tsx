@@ -41,6 +41,7 @@ interface VerifiedChild {
   verifiedAt: string;
   verifiedBy: number;
   verificationNotes: string;
+  selectedSubjects?: string[];
 }
 
 interface VerifiedStudent {
@@ -53,6 +54,7 @@ interface VerifiedStudent {
   verifiedBy: number;
   verificationNotes: string;
   name: string;
+  selectedSubjects?: string[];
 }
 
 interface TeachingModule {
@@ -103,6 +105,8 @@ export default function AdminVerification() {
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [availableSubjects, setAvailableSubjects] = useState<TeachingModule[]>([]);
+  const [verifierAdminName, setVerifierAdminName] = useState<string>('');
+  const [verifiedItemSubjects, setVerifiedItemSubjects] = useState<string[]>([]);
 
   // Check if user has admin privileges
   if (!user || user.role !== 'admin') {
@@ -135,6 +139,45 @@ export default function AdminVerification() {
       </div>
     );
   }
+
+  // Function to fetch admin details by ID
+  const fetchAdminDetails = async (adminId: number) => {
+    try {
+      const response = await fetch(`/api/users/${adminId}`);
+      if (response.ok) {
+        const admin = await response.json();
+        return admin.name || 'مدير غير معروف';
+      }
+    } catch (error) {
+      console.error('Error fetching admin details:', error);
+    }
+    return 'مدير غير معروف';
+  };
+
+  // Function to get subject names from IDs
+  const getSubjectNamesFromIds = (subjectIds: string[]): string[] => {
+    if (!subjectIds || subjectIds.length === 0) return [];
+    
+    return subjectIds.map(id => {
+      const subject = teachingModules.find(module => module.id.toString() === id);
+      return subject ? subject.nameAr : `مادة غير معروفة (${id})`;
+    });
+  };
+
+  // Function to load verification details when viewing verified items
+  const loadVerificationDetails = async (item: any) => {
+    if (item.data?.verifiedBy) {
+      const adminName = await fetchAdminDetails(item.data.verifiedBy);
+      setVerifierAdminName(adminName);
+    }
+    
+    if (item.data?.selectedSubjects) {
+      const subjectNames = getSubjectNamesFromIds(item.data.selectedSubjects);
+      setVerifiedItemSubjects(subjectNames);
+    } else {
+      setVerifiedItemSubjects([]);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -512,8 +555,10 @@ export default function AdminVerification() {
                         <Button 
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedItem({type: 'verified-child', id: child.id, data: child});
+                          onClick={async () => {
+                            const selectedData = {type: 'verified-child', id: child.id, data: child};
+                            setSelectedItem(selectedData);
+                            await loadVerificationDetails(selectedData);
                             setShowModal(true);
                           }}
                           className="text-xs"
@@ -543,8 +588,10 @@ export default function AdminVerification() {
                         <Button 
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedItem({type: 'verified-student', id: student.id, data: student});
+                          onClick={async () => {
+                            const selectedData = {type: 'verified-student', id: student.id, data: student};
+                            setSelectedItem(selectedData);
+                            await loadVerificationDetails(selectedData);
                             setShowModal(true);
                           }}
                           className="text-xs"
@@ -607,9 +654,32 @@ export default function AdminVerification() {
                             <Users className="w-5 h-5 text-purple-500" />
                             <span className="text-sm">
                               <strong className="text-gray-900">تم التحقق بواسطة:</strong> 
-                              <span className="text-gray-700 mr-1">المدير (ID: {selectedItem?.data?.verifiedBy})</span>
+                              <span className="text-gray-700 mr-1">{verifierAdminName}</span>
                             </span>
                           </div>
+                          
+                          {/* Selected Subjects */}
+                          {verifiedItemSubjects.length > 0 && (
+                            <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                              <BookOpen className="w-5 h-5 text-green-500 mt-0.5" />
+                              <div className="flex-1">
+                                <strong className="text-gray-900 text-sm block mb-2">المواد المختارة:</strong>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {verifiedItemSubjects.map((subject, index) => (
+                                    <span 
+                                      key={index}
+                                      className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 inline-block"
+                                    >
+                                      {subject}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p className="text-xs text-green-600 mt-2">
+                                  المجموع: {verifiedItemSubjects.length} مادة
+                                </p>
+                              </div>
+                            </div>
+                          )}
                           {selectedItem?.data?.verificationNotes && (
                             <div className="mt-4">
                               <p className="text-sm font-semibold mb-2 text-gray-900">ملاحظات التحقق:</p>
