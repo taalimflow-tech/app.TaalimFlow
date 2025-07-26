@@ -122,6 +122,13 @@ export default function Login() {
     try {
       await login(email, password);
       setErrorMessage(''); // Clear error on success
+      
+      // Navigate to home after successful login
+      if (validSchool && validSchool.code) {
+        navigate(`/school/${validSchool.code}/home`);
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       // Enhanced error handling with specific Arabic messages
       let errorMsg = 'خطأ غير متوقع';
@@ -196,6 +203,13 @@ export default function Login() {
     try {
       await register(email, password, name, phone, validChildren);
       toast({ title: 'تم إنشاء الحساب بنجاح' });
+      
+      // Navigate to home after successful registration
+      if (validSchool && validSchool.code) {
+        navigate(`/school/${validSchool.code}/home`);
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
@@ -227,6 +241,13 @@ export default function Login() {
         grade: studentGrade
       });
       toast({ title: 'تم إنشاء الحساب بنجاح' });
+      
+      // Navigate to home after successful registration
+      if (validSchool && validSchool.code) {
+        navigate(`/school/${validSchool.code}/home`);
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
@@ -271,6 +292,13 @@ export default function Login() {
       }
       
       toast({ title: 'تم إنشاء حساب المدير بنجاح' });
+      
+      // Navigate to home after successful admin registration
+      if (validSchool && validSchool.code) {
+        navigate(`/school/${validSchool.code}/home`);
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
@@ -326,6 +354,13 @@ export default function Login() {
       }
       
       toast({ title: 'تم إنشاء حساب المعلم بنجاح' });
+      
+      // Navigate to home after successful teacher registration
+      if (validSchool && validSchool.code) {
+        navigate(`/school/${validSchool.code}/home`);
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
