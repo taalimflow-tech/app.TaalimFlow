@@ -1048,7 +1048,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (selectedSubjects && selectedSubjects.length > 0) {
-      updateData.subjects = selectedSubjects;
+      updateData.selectedSubjects = selectedSubjects;
     }
     
     const [student] = await db
@@ -1128,7 +1128,8 @@ export class DatabaseStorage implements IStorage {
         verified: false,
         verificationNotes: null,
         verifiedAt: null,
-        verifiedBy: null
+        verifiedBy: null,
+        selectedSubjects: null
       })
       .where(eq(children.id, childId))
       .returning();
@@ -1142,7 +1143,8 @@ export class DatabaseStorage implements IStorage {
         verified: false,
         verificationNotes: null,
         verifiedAt: null,
-        verifiedBy: null
+        verifiedBy: null,
+        selectedSubjects: null
       })
       .where(eq(students.id, studentId))
       .returning();
