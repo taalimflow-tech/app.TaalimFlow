@@ -162,9 +162,12 @@ This unified approach provides better data consistency, easier queries, and impr
 - **January 26, 2025**: ADMIN GROUPS INTERFACE REFINEMENT - Removed public groups from admin section
   - **Removed Public Groups Tab**: Eliminated "المجموعات العامة" tab from admin management interface
   - **Admin-Only Groups Display**: Admin section now exclusively shows admin-created groups by education level
+  - **Filtered Placeholder Groups**: Added `!group.isPlaceholder` filter to show only groups actually created by administrators
+  - **Year-Level Filtering**: Added dropdown filtering by specific academic years (like "السنة الثانية ثانوي") within each education level
   - **Simplified Interface**: Streamlined tabs to show only الابتدائي, المتوسط, الثانوي, and مجموعات مخصصة
   - **Clean Data Separation**: Public groups and admin groups are now completely separate interfaces
   - **Enhanced Admin Control**: Admin interface focuses solely on groups created and managed by administrators
+  - **Student Grade Display**: Shows assigned students' grade levels as badges on group cards for better organization
 - **January 26, 2025**: CRITICAL GROUP ASSIGNMENT DATABASE FIX COMPLETE - Resolved all schoolId constraint violations
   - **Database Constraint Fix**: Fixed null value in column "school_id" error when creating new groups through admin interface
   - **Group Assignment Enhancement**: Updated updateGroupAssignments method to properly include schoolId for both group creation and user assignments

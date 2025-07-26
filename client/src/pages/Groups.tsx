@@ -40,6 +40,7 @@ export default function Groups() {
   
   // Existing groups filter state
   const [existingGroupsFilter, setExistingGroupsFilter] = useState('');
+  const [selectedYearFilter, setSelectedYearFilter] = useState('');
 
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
@@ -510,11 +511,15 @@ export default function Groups() {
             </h2>
             
             {/* Education Level Filter Tabs */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-4">
               {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
                 <button
                   key={level}
-                  onClick={() => setExistingGroupsFilter(level === 'مجموعات مخصصة' ? 'custom' : level)}
+                  onClick={() => {
+                    const filterValue = level === 'مجموعات مخصصة' ? 'custom' : level;
+                    setExistingGroupsFilter(filterValue);
+                    setSelectedYearFilter(''); // Reset year filter when changing education level
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level)
                       ? 'bg-blue-600 text-white'
@@ -526,21 +531,78 @@ export default function Groups() {
               ))}
             </div>
 
+            {/* Year Level Filter - Only show for specific education levels */}
+            {existingGroupsFilter && existingGroupsFilter !== 'custom' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  فلترة حسب السنة الدراسية
+                </label>
+                <select
+                  value={selectedYearFilter}
+                  onChange={(e) => setSelectedYearFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">جميع السنوات</option>
+                  {existingGroupsFilter === 'الابتدائي' && (
+                    <>
+                      <option value="السنة الأولى ابتدائي">السنة الأولى ابتدائي</option>
+                      <option value="السنة الثانية ابتدائي">السنة الثانية ابتدائي</option>
+                      <option value="السنة الثالثة ابتدائي">السنة الثالثة ابتدائي</option>
+                      <option value="السنة الرابعة ابتدائي">السنة الرابعة ابتدائي</option>
+                      <option value="السنة الخامسة ابتدائي">السنة الخامسة ابتدائي</option>
+                    </>
+                  )}
+                  {existingGroupsFilter === 'المتوسط' && (
+                    <>
+                      <option value="السنة الأولى متوسط">السنة الأولى متوسط</option>
+                      <option value="السنة الثانية متوسط">السنة الثانية متوسط</option>
+                      <option value="السنة الثالثة متوسط">السنة الثالثة متوسط</option>
+                      <option value="السنة الرابعة متوسط">السنة الرابعة متوسط</option>
+                    </>
+                  )}
+                  {existingGroupsFilter === 'الثانوي' && (
+                    <>
+                      <option value="السنة الأولى ثانوي">السنة الأولى ثانوي</option>
+                      <option value="السنة الثانية ثانوي">السنة الثانية ثانوي</option>
+                      <option value="السنة الثالثة ثانوي">السنة الثالثة ثانوي</option>
+                    </>
+                  )}
+                </select>
+              </div>
+            )}
+
             {/* Groups Display */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {existingGroupsFilter && (() => {
                 let filteredGroups = [];
                 
+                // First filter to only show admin-created groups (not placeholders)
+                const adminCreatedGroups = adminGroups.filter(group => !group.isPlaceholder);
+                
                 if (existingGroupsFilter === 'custom') {
                   // Show custom/other groups from admin groups that don't belong to standard education levels
-                  filteredGroups = adminGroups.filter(group => 
+                  filteredGroups = adminCreatedGroups.filter(group => 
                     group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)
                   );
                 } else {
                   // Show admin groups by education level - only admin-created groups
-                  filteredGroups = adminGroups.filter(group => 
+                  filteredGroups = adminCreatedGroups.filter(group => 
                     group.educationLevel === existingGroupsFilter
                   );
+                  
+                  // Apply year filter if selected
+                  if (selectedYearFilter) {
+                    filteredGroups = filteredGroups.filter(group => {
+                      // Check if group name or description contains the year level
+                      const groupText = `${group.name} ${group.description || ''}`.toLowerCase();
+                      const yearKeywords = selectedYearFilter.toLowerCase();
+                      return groupText.includes(yearKeywords) || 
+                             groupText.includes(selectedYearFilter) ||
+                             (group.studentsAssigned && group.studentsAssigned.some((student: any) => 
+                               student.grade && student.grade.includes(selectedYearFilter.split(' ')[1]) // Extract year number
+                             ));
+                    });
+                  }
                 }
 
                 return filteredGroups.length > 0 ? (
@@ -575,6 +637,19 @@ export default function Groups() {
                         <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                           {group.description || `مجموعة ${group.nameAr || group.subjectName} - ${group.educationLevel}`}
                         </p>
+                        
+                        {/* Show assigned students' grade levels if available */}
+                        {group.studentsAssigned && group.studentsAssigned.length > 0 && (
+                          <div className="mb-3">
+                            <div className="flex flex-wrap gap-1">
+                              {[...new Set(group.studentsAssigned.map((student: any) => student.grade).filter(Boolean))].map((grade: string) => (
+                                <span key={grade} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                                  {grade}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                           <div className="flex items-center">
