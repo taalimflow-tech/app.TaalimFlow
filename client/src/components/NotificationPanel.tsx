@@ -83,7 +83,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         navigate('/blog');
         break;
       case 'announcement':
-        navigate('/');
+        navigate('/announcements');
         break;
       case 'group_update':
         navigate('/groups');
@@ -97,9 +97,12 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
       case 'suggestion':
         if (user?.role === 'admin') {
           navigate('/admin/suggestions');
+        } else {
+          navigate('/suggestions');
         }
         break;
       default:
+        // For unknown types, don't navigate but still close panel
         break;
     }
     
@@ -216,7 +219,10 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                       
                       {!notification.read && (
                         <Button
-                          onClick={() => markAsReadMutation.mutate(notification.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAsReadMutation.mutate(notification.id);
+                          }}
                           disabled={markAsReadMutation.isPending}
                           variant="ghost"
                           size="sm"
