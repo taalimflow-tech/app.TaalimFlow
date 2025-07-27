@@ -507,24 +507,24 @@ export default function Schedule() {
 
             <div className="overflow-x-auto rounded-xl shadow-2xl border border-gray-200 bg-white">
               <table className="w-full border-collapse">
-                <thead className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800">
+                <thead className="bg-slate-900">
                   <tr>
-                    <th className="border-r border-slate-600 p-4 text-center font-bold text-white w-32 bg-gradient-to-br from-slate-700 to-slate-800">
+                    <th className="border-r border-slate-600 p-4 text-center font-bold text-white w-32 bg-slate-900">
                       <div className="flex items-center justify-center space-x-reverse space-x-2">
-                        <Calendar className="w-5 h-5 text-slate-300" />
-                        <span className="text-sm tracking-wide">اليوم</span>
+                        <Calendar className="w-5 h-5 text-yellow-400" />
+                        <span className="text-sm tracking-wide font-bold">اليوم</span>
                       </div>
                     </th>
                     {timeSlots.map((slot, index) => (
-                      <th key={slot.period} className="border-r border-slate-600 p-1 text-center font-semibold w-12 min-w-12 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 transition-all duration-300">
+                      <th key={slot.period} className="border-r border-slate-600 p-1 text-center font-semibold w-12 min-w-12 bg-slate-900 hover:bg-slate-800 transition-colors duration-300">
                         <div className="flex flex-col items-center space-y-0.5">
-                          <div className="w-4 h-4 rounded-full bg-slate-600 flex items-center justify-center">
-                            <Clock className="w-2 h-2 text-slate-200" />
+                          <div className="w-4 h-4 rounded-full bg-yellow-500 flex items-center justify-center">
+                            <Clock className="w-2 h-2 text-slate-900" />
                           </div>
                           <div className="text-white text-xs font-bold tracking-wide">
                             {slot.label}
                           </div>
-                          <div className="text-slate-300 text-xs font-medium bg-slate-600/50 px-1 py-0.5 rounded-full">
+                          <div className="text-yellow-300 text-xs font-bold bg-slate-800 px-1 py-0.5 rounded-full">
                             {parseInt(slot.time.split(':')[0]) < 12 ? 'ص' : 'م'}
                           </div>
                         </div>
@@ -535,9 +535,9 @@ export default function Schedule() {
                 <tbody className="divide-y divide-gray-100">
                   {daysOfWeek.map((day, dayIndex) => (
                     <tr key={dayIndex} className="hover:bg-gray-50/50 transition-colors duration-200">
-                      <td className="border-r border-gray-200 p-2 bg-gradient-to-l from-slate-50 via-gray-50 to-slate-50 text-center font-bold text-slate-700 shadow-sm">
+                      <td className="border-r border-gray-200 p-2 bg-gray-100 text-center font-bold text-slate-700 shadow-sm">
                         <div className="flex items-center justify-center">
-                          <div className="bg-gradient-to-r from-slate-600 to-slate-700 text-white px-2 py-1 rounded-lg shadow-md text-xs font-bold tracking-wide">
+                          <div className="bg-slate-900 text-yellow-400 px-3 py-2 rounded-lg shadow-lg text-sm font-bold tracking-wide border border-slate-700">
                             {day}
                           </div>
                         </div>
