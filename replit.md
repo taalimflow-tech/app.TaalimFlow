@@ -159,13 +159,14 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
-- **January 27, 2025**: SCHEDULE 30-MINUTE INTERVAL SYSTEM - Restructured schedule table for accurate fractional duration display
+- **January 27, 2025**: SCHEDULE TABLE MODERN REDESIGN - Complete UI overhaul with 30-minute interval system
   - **30-Minute Time Slots**: Converted hourly schedule to 30-minute intervals (8:00, 8:30, 9:00, 9:30, etc.)
   - **Precise Duration Display**: 1.5-hour lessons now span exactly 3 columns (3 × 30min = 90min)
-  - **Accurate Column Calculation**: Updated colSpan logic to use 30-minute increments (90min = 3 slots, 120min = 4 slots)
-  - **Form Integration**: Updated time selection form to work with 30-minute interval periods
-  - **Visual Consistency**: Lessons now display with correct visual width matching actual time duration
-  - **HTML Table Compatibility**: Solved fractional colSpan limitation by using integer slots for fractional hours
+  - **Modern Clean Design**: Redesigned table with modern slate color scheme, rounded corners, and subtle shadows
+  - **Smart Time Headers**: Shows full time labels for hourly marks and dots for 30-minute intervals to reduce clutter
+  - **Enhanced Visual Hierarchy**: Sticky column headers, gradient backgrounds, and improved typography
+  - **Professional Cell Layout**: Rounded badges, better spacing, and hover effects for admin controls
+  - **Optimized Mobile View**: Horizontal scroll with sticky day column for better mobile experience
 - **January 26, 2025**: SUPER ADMIN UI MINIMIZATION COMPLETE - Created clean, minimized interface for school management
   - **School Card Redesign**: Transformed verbose school cards into compact single-line format with essential info only
   - **Static Button Design**: Replaced large outline buttons with small ghost buttons using 3x3 pixel icons

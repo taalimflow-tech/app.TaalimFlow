@@ -159,36 +159,36 @@ export default function Schedule() {
     { value: 4, label: '4.5 ساعات' }
   ];
 
-  // Get level colors function
+  // Get level colors function - modern design
   const getLevelColors = (level: string) => {
     switch (level) {
       case 'الابتدائي':
         return {
-          bg: 'bg-green-50',
-          border: 'border-green-200',
-          text: 'text-green-800',
-          badge: 'bg-green-100 text-green-800'
+          bg: 'bg-emerald-50 hover:bg-emerald-100',
+          border: 'border-emerald-200',
+          text: 'text-emerald-800',
+          badge: 'bg-emerald-100 text-emerald-700 border border-emerald-200'
         };
       case 'المتوسط':
         return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-800',
-          badge: 'bg-blue-100 text-blue-800'
+          bg: 'bg-sky-50 hover:bg-sky-100',
+          border: 'border-sky-200',
+          text: 'text-sky-800',
+          badge: 'bg-sky-100 text-sky-700 border border-sky-200'
         };
       case 'الثانوي':
         return {
-          bg: 'bg-purple-50',
-          border: 'border-purple-200',
-          text: 'text-purple-800',
-          badge: 'bg-purple-100 text-purple-800'
+          bg: 'bg-violet-50 hover:bg-violet-100',
+          border: 'border-violet-200',
+          text: 'text-violet-800',
+          badge: 'bg-violet-100 text-violet-700 border border-violet-200'
         };
       default:
         return {
-          bg: 'bg-gray-50',
-          border: 'border-gray-200',
-          text: 'text-gray-800',
-          badge: 'bg-gray-100 text-gray-800'
+          bg: 'bg-slate-50 hover:bg-slate-100',
+          border: 'border-slate-200',
+          text: 'text-slate-800',
+          badge: 'bg-slate-100 text-slate-700 border border-slate-200'
         };
     }
   };
@@ -501,35 +501,49 @@ export default function Schedule() {
               </div>
             )}
 
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300 shadow-lg rounded-lg overflow-hidden">
+            <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr>
-                    <th className="border border-gray-300 p-3 bg-gradient-to-b from-gray-50 to-gray-100 text-center font-bold text-gray-700 w-32">
-                      <div className="flex items-center justify-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        اليوم
+                  <tr className="bg-gradient-to-r from-slate-50 to-slate-100">
+                    <th className="sticky right-0 bg-gradient-to-r from-slate-50 to-slate-100 p-4 text-center font-semibold text-slate-700 w-32 border-b border-slate-200">
+                      <div className="flex items-center justify-center space-x-2 space-x-reverse">
+                        <Calendar className="w-4 h-4 text-slate-600" />
+                        <span>اليوم</span>
                       </div>
                     </th>
-                    {timeSlots.map((slot) => (
-                      <th key={slot.period} className="border border-gray-300 p-1 bg-gradient-to-b from-blue-50 to-blue-100 text-center font-semibold w-16 min-w-16">
-                        <div className="flex flex-col items-center space-y-1">
-                          <Clock className="w-3 h-3 text-blue-600" />
-                          <div className="text-blue-800 text-xs font-bold">
-                            {slot.label}
-                          </div>
-                          <div className="text-blue-600 text-xs font-medium">
-                            {parseInt(slot.time.split(':')[0]) < 12 ? 'ص' : 'م'}
-                          </div>
-                        </div>
-                      </th>
-                    ))}
+                    {timeSlots.map((slot, index) => {
+                      // Show header only for hourly intervals (every 2nd slot) and 30-minute marks for major hours
+                      const showHeader = slot.time.endsWith(':00') || (slot.time.endsWith(':30') && [8, 12, 16, 20].includes(parseInt(slot.time.split(':')[0])));
+                      return (
+                        <th 
+                          key={slot.period} 
+                          className={`p-2 text-center font-medium text-slate-700 w-12 min-w-12 border-b border-slate-200 ${
+                            slot.time.endsWith(':00') ? 'bg-slate-100' : 'bg-slate-50'
+                          }`}
+                        >
+                          {showHeader ? (
+                            <div className="flex flex-col items-center">
+                              <div className="text-slate-800 text-xs font-semibold">
+                                {slot.time.endsWith(':00') ? slot.time.split(':')[0] : slot.label}
+                              </div>
+                              {slot.time.endsWith(':00') && (
+                                <div className="text-slate-500 text-xs">
+                                  {parseInt(slot.time.split(':')[0]) < 12 ? 'ص' : 'م'}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="w-2 h-2 bg-slate-300 rounded-full mx-auto"></div>
+                          )}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
                   {daysOfWeek.map((day, dayIndex) => (
-                    <tr key={dayIndex}>
-                      <td className="border border-gray-300 p-3 bg-gradient-to-l from-gray-50 to-gray-100 text-center font-bold text-gray-700">
+                    <tr key={dayIndex} className="hover:bg-slate-25 transition-colors">
+                      <td className="sticky right-0 bg-gradient-to-l from-slate-50 to-slate-100 p-4 text-center font-semibold text-slate-700 border-r border-slate-200">
                         <div className="flex items-center justify-center">
                           {day}
                         </div>
@@ -573,29 +587,29 @@ export default function Schedule() {
                           return (
                             <td
                               key={slot.period}
-                              className={`border border-gray-300 p-2 ${levelColors.bg} relative`}
+                              className={`${levelColors.bg} relative p-3 border-r border-slate-200 shadow-sm group`}
                               colSpan={actualColSpan}
                             >
-                              <div className="text-xs space-y-1">
-                                <div className={`inline-block px-2 py-1 rounded text-xs ${levelColors.badge}`}>
+                              <div className="text-xs space-y-2">
+                                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${levelColors.badge}`}>
                                   {cell.educationLevel}
                                 </div>
                                 
                                 {cell.subject && (
-                                  <div className="font-medium">
+                                  <div className="font-semibold text-slate-800 text-sm leading-tight">
                                     {cell.subject.nameAr}
                                   </div>
                                 )}
                                 
                                 {cell.teacher && (
-                                  <div className="text-gray-600">
+                                  <div className="text-slate-600 text-xs">
                                     {cell.teacher.gender === 'male' ? 'الأستاذ ' : 'الأستاذة '}
                                     {cell.teacher.name}
                                   </div>
                                 )}
                                 
                                 {(cell.startTime || cell.endTime) && (
-                                  <div className="text-xs text-blue-600 font-medium">
+                                  <div className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
                                     {cell.startTime && cell.endTime ? 
                                       `${cell.startTime} - ${cell.endTime}` : 
                                       cell.startTime ? `من ${cell.startTime}` : 
@@ -606,11 +620,11 @@ export default function Schedule() {
                               </div>
                               
                               {isAdmin && (
-                                <div className="absolute top-1 left-1 flex gap-1">
+                                <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-5 w-5 p-0"
+                                    className="h-6 w-6 p-0 bg-white shadow-sm hover:bg-slate-50"
                                     onClick={() => {
                                       setEditingCell(cell);
                                       setCellForm({
@@ -627,19 +641,19 @@ export default function Schedule() {
                                       setShowCellForm(true);
                                     }}
                                   >
-                                    <Edit2 className="w-3 h-3" />
+                                    <Edit2 className="w-3 h-3 text-slate-600" />
                                   </Button>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-5 w-5 p-0"
+                                    className="h-6 w-6 p-0 bg-white shadow-sm hover:bg-red-50"
                                     onClick={() => {
                                       if (confirm('هل أنت متأكد من حذف هذه الحصة؟')) {
                                         deleteCellMutation.mutate(cell.id);
                                       }
                                     }}
                                   >
-                                    <Trash2 className="w-3 h-3" />
+                                    <Trash2 className="w-3 h-3 text-red-500" />
                                   </Button>
                                 </div>
                               )}
@@ -650,9 +664,9 @@ export default function Schedule() {
                         return (
                           <td
                             key={slot.period}
-                            className="border border-gray-300 p-2 text-center h-16"
+                            className="p-3 text-center h-16 border-r border-slate-200 hover:bg-slate-50 transition-colors"
                           >
-                            <div className="text-gray-300">-</div>
+                            <div className="text-slate-300 text-sm">—</div>
                           </td>
                         );
                       })}
