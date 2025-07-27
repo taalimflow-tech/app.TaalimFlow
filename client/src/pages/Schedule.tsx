@@ -88,24 +88,39 @@ export default function Schedule() {
   const [editingCell, setEditingCell] = useState<ScheduleCell | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ day: number; period: number } | null>(null);
   
-  // Days of the week (starting with Friday) and time slots
+  // Days of the week (starting with Friday) and time slots (30-minute intervals)
   const daysOfWeek = ['الجمعة', 'السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const timeSlots = [
-    { period: 1, time: '8' },
-    { period: 2, time: '9' },
-    { period: 3, time: '10' },
-    { period: 4, time: '11' },
-    { period: 5, time: '12' },
-    { period: 6, time: '13' },
-    { period: 7, time: '14' },
-    { period: 8, time: '15' },
-    { period: 9, time: '16' },
-    { period: 10, time: '17' },
-    { period: 11, time: '18' },
-    { period: 12, time: '19' },
-    { period: 13, time: '20' },
-    { period: 14, time: '21' },
-    { period: 15, time: '22' },
+    { period: 1, time: '8:00', label: '8:00' },
+    { period: 2, time: '8:30', label: '8:30' },
+    { period: 3, time: '9:00', label: '9:00' },
+    { period: 4, time: '9:30', label: '9:30' },
+    { period: 5, time: '10:00', label: '10:00' },
+    { period: 6, time: '10:30', label: '10:30' },
+    { period: 7, time: '11:00', label: '11:00' },
+    { period: 8, time: '11:30', label: '11:30' },
+    { period: 9, time: '12:00', label: '12:00' },
+    { period: 10, time: '12:30', label: '12:30' },
+    { period: 11, time: '13:00', label: '13:00' },
+    { period: 12, time: '13:30', label: '13:30' },
+    { period: 13, time: '14:00', label: '14:00' },
+    { period: 14, time: '14:30', label: '14:30' },
+    { period: 15, time: '15:00', label: '15:00' },
+    { period: 16, time: '15:30', label: '15:30' },
+    { period: 17, time: '16:00', label: '16:00' },
+    { period: 18, time: '16:30', label: '16:30' },
+    { period: 19, time: '17:00', label: '17:00' },
+    { period: 20, time: '17:30', label: '17:30' },
+    { period: 21, time: '18:00', label: '18:00' },
+    { period: 22, time: '18:30', label: '18:30' },
+    { period: 23, time: '19:00', label: '19:00' },
+    { period: 24, time: '19:30', label: '19:30' },
+    { period: 25, time: '20:00', label: '20:00' },
+    { period: 26, time: '20:30', label: '20:30' },
+    { period: 27, time: '21:00', label: '21:00' },
+    { period: 28, time: '21:30', label: '21:30' },
+    { period: 29, time: '22:00', label: '22:00' },
+    { period: 30, time: '22:30', label: '22:30' },
   ];
   
   // Education levels with detailed grades
@@ -374,12 +389,15 @@ export default function Schedule() {
           const endTotalMin = endHour * 60 + endMin;
           const durationMin = endTotalMin - startTotalMin;
           
-          // Use same logic as the table rendering
-          actualSpan = Math.max(1, Math.ceil(durationMin / 60));
-          if (durationMin === 90) actualSpan = 2; // 1.5 hours
-          else if (durationMin === 150) actualSpan = 3; // 2.5 hours  
-          else if (durationMin === 210) actualSpan = 4; // 3.5 hours
-          else if (durationMin === 270) actualSpan = 5; // 4.5 hours
+          // Use same logic as the table rendering - based on 30-minute intervals
+          actualSpan = Math.max(1, Math.ceil(durationMin / 30)); // Each slot is 30 minutes
+          if (durationMin === 90) actualSpan = 3; // 1.5 hours = 3 slots
+          else if (durationMin === 120) actualSpan = 4; // 2 hours = 4 slots
+          else if (durationMin === 150) actualSpan = 5; // 2.5 hours = 5 slots  
+          else if (durationMin === 180) actualSpan = 6; // 3 hours = 6 slots
+          else if (durationMin === 210) actualSpan = 7; // 3.5 hours = 7 slots
+          else if (durationMin === 240) actualSpan = 8; // 4 hours = 8 slots
+          else if (durationMin === 270) actualSpan = 9; // 4.5 hours = 9 slots
         } else {
           actualSpan = previousCell.duration;
         }
@@ -494,14 +512,14 @@ export default function Schedule() {
                       </div>
                     </th>
                     {timeSlots.map((slot) => (
-                      <th key={slot.period} className="border border-gray-300 p-2 bg-gradient-to-b from-blue-50 to-blue-100 text-center font-semibold w-28 min-w-28">
+                      <th key={slot.period} className="border border-gray-300 p-1 bg-gradient-to-b from-blue-50 to-blue-100 text-center font-semibold w-16 min-w-16">
                         <div className="flex flex-col items-center space-y-1">
                           <Clock className="w-3 h-3 text-blue-600" />
-                          <div className="text-blue-800 text-sm font-bold">
-                            {slot.time}:00
+                          <div className="text-blue-800 text-xs font-bold">
+                            {slot.label}
                           </div>
                           <div className="text-blue-600 text-xs font-medium">
-                            {parseInt(slot.time) < 12 ? 'ص' : 'م'}
+                            {parseInt(slot.time.split(':')[0]) < 12 ? 'ص' : 'م'}
                           </div>
                         </div>
                       </th>
@@ -535,15 +553,18 @@ export default function Schedule() {
                             const endTotalMin = endHour * 60 + endMin;
                             const durationMin = endTotalMin - startTotalMin;
                             
-                            // Convert duration to column spans (each hour = 1 column, 30min = 0.5 column)
-                            // Since HTML colSpan only accepts integers, we need to calculate based on 30-minute increments
-                            actualColSpan = Math.max(1, Math.ceil(durationMin / 60)); // Round up to nearest hour
+                            // Convert duration to column spans based on 30-minute intervals
+                            // Each 30-minute slot = 1 column, so 90 minutes = 3 columns
+                            actualColSpan = Math.max(1, Math.ceil(durationMin / 30)); // Each slot is 30 minutes
                             
-                            // For 1.5-hour lessons (90 minutes), this should give colSpan=2
-                            if (durationMin === 90) actualColSpan = 2; // 1.5 hours
-                            else if (durationMin === 150) actualColSpan = 3; // 2.5 hours  
-                            else if (durationMin === 210) actualColSpan = 4; // 3.5 hours
-                            else if (durationMin === 270) actualColSpan = 5; // 4.5 hours
+                            // For precise durations:
+                            if (durationMin === 90) actualColSpan = 3; // 1.5 hours = 3 slots
+                            else if (durationMin === 120) actualColSpan = 4; // 2 hours = 4 slots
+                            else if (durationMin === 150) actualColSpan = 5; // 2.5 hours = 5 slots  
+                            else if (durationMin === 180) actualColSpan = 6; // 3 hours = 6 slots
+                            else if (durationMin === 210) actualColSpan = 7; // 3.5 hours = 7 slots
+                            else if (durationMin === 240) actualColSpan = 8; // 4 hours = 8 slots
+                            else if (durationMin === 270) actualColSpan = 9; // 4.5 hours = 9 slots
                           } else {
                             // Fallback to duration field
                             actualColSpan = cell.duration;
@@ -757,25 +778,14 @@ export default function Schedule() {
                     value={cellForm.startTime}
                     onChange={(e) => {
                       const startTime = e.target.value;
-                      // Automatically determine period based on start time
-                      const hour = parseInt(startTime.split(':')[0]);
-                      let period = 1;
-                      if (hour >= 8 && hour < 9) period = 1;
-                      else if (hour >= 9 && hour < 10) period = 2;
-                      else if (hour >= 10 && hour < 11) period = 3;
-                      else if (hour >= 11 && hour < 12) period = 4;
-                      else if (hour >= 12 && hour < 13) period = 5;
-                      else if (hour >= 13 && hour < 14) period = 6;
-                      else if (hour >= 14 && hour < 15) period = 7;
-                      else if (hour >= 15 && hour < 16) period = 8;
-                      else if (hour >= 16 && hour < 17) period = 9;
-                      else if (hour >= 17 && hour < 18) period = 10;
-                      else if (hour >= 18 && hour < 19) period = 11;
-                      else if (hour >= 19 && hour < 20) period = 12;
-                      else if (hour >= 20 && hour < 21) period = 13;
-                      else if (hour >= 21 && hour < 22) period = 14;
-                      else if (hour >= 22 && hour < 23) period = 15;
+                      // Automatically determine period based on start time (30-minute intervals)
+                      const [hour, minute] = startTime.split(':').map(Number);
+                      const timeSlot = timeSlots.find(slot => {
+                        const [slotHour, slotMin] = slot.time.split(':').map(Number);
+                        return slotHour === hour && slotMin === minute;
+                      });
                       
+                      const period = timeSlot ? timeSlot.period : 1;
                       setCellForm({ ...cellForm, startTime, period: period.toString() });
                     }}
                     className="w-full"

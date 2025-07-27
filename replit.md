@@ -159,12 +159,13 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
-- **January 27, 2025**: SCHEDULE FLEXIBLE DURATION DISPLAY FIX - Fixed lesson duration visual representation in schedule tables
-  - **Accurate Column Spanning**: Fixed colSpan calculation to properly show 1.5-hour lessons spanning 2 columns instead of 1  
-  - **Precise Time Calculation**: Updated duration logic to handle fractional hours (90min = 2 columns, 150min = 3 columns)
-  - **Consistent Logic**: Applied same duration calculation to both table rendering and cell occupation checking
-  - **Visual Accuracy**: Schedule table now correctly represents lesson durations matching their actual time spans
-  - **Enhanced User Experience**: Lessons with custom start/end times now display with proper visual width proportional to duration
+- **January 27, 2025**: SCHEDULE 30-MINUTE INTERVAL SYSTEM - Restructured schedule table for accurate fractional duration display
+  - **30-Minute Time Slots**: Converted hourly schedule to 30-minute intervals (8:00, 8:30, 9:00, 9:30, etc.)
+  - **Precise Duration Display**: 1.5-hour lessons now span exactly 3 columns (3 × 30min = 90min)
+  - **Accurate Column Calculation**: Updated colSpan logic to use 30-minute increments (90min = 3 slots, 120min = 4 slots)
+  - **Form Integration**: Updated time selection form to work with 30-minute interval periods
+  - **Visual Consistency**: Lessons now display with correct visual width matching actual time duration
+  - **HTML Table Compatibility**: Solved fractional colSpan limitation by using integer slots for fractional hours
 - **January 26, 2025**: SUPER ADMIN UI MINIMIZATION COMPLETE - Created clean, minimized interface for school management
   - **School Card Redesign**: Transformed verbose school cards into compact single-line format with essential info only
   - **Static Button Design**: Replaced large outline buttons with small ghost buttons using 3x3 pixel icons
