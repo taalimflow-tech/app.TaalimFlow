@@ -521,7 +521,7 @@ export default function Schedule() {
                           <div className="w-4 h-4 rounded-full bg-yellow-500 flex items-center justify-center">
                             <Clock className="w-2 h-2 text-slate-900" />
                           </div>
-                          <div className="text-white text-xs font-bold tracking-wide">
+                          <div className="text-yellow-400 text-sm font-bold tracking-wide bg-slate-800 px-2 py-1 rounded">
                             {slot.label}
                           </div>
                           <div className="text-yellow-300 text-xs font-bold bg-slate-800 px-1 py-0.5 rounded-full">
