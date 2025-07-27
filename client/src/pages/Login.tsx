@@ -14,6 +14,7 @@ import PasswordResetModal from '@/components/PasswordResetModal';
 
 interface Child {
   name: string;
+  gender: string;
   educationLevel: string;
   grade: string;
 }
@@ -23,9 +24,10 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [children, setChildren] = useState<Child[]>([{ name: '', educationLevel: '', grade: '' }]);
+  const [children, setChildren] = useState<Child[]>([{ name: '', gender: '', educationLevel: '', grade: '' }]);
   const [studentEducationLevel, setStudentEducationLevel] = useState('');
   const [studentGrade, setStudentGrade] = useState('');
+  const [studentGender, setStudentGender] = useState('');
   const [secretKey, setSecretKey] = useState('');
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
@@ -159,7 +161,7 @@ export default function Login() {
 
   const addChild = () => {
     if (children.length < 5) {
-      setChildren([...children, { name: '', educationLevel: '', grade: '' }]);
+      setChildren([...children, { name: '', gender: '', educationLevel: '', grade: '' }]);
     }
   };
 
@@ -225,10 +227,10 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     
-    if (!studentEducationLevel || !studentGrade) {
+    if (!studentEducationLevel || !studentGrade || !studentGender) {
       toast({ 
         title: 'خطأ في البيانات', 
-        description: 'يجب اختيار المستوى التعليمي والسنة الدراسية',
+        description: 'يجب اختيار المستوى التعليمي والسنة الدراسية والجنس',
         variant: 'destructive'
       });
       setLoading(false);
@@ -237,6 +239,7 @@ export default function Login() {
     
     try {
       await register(email, password, name, phone, undefined, 'student', {
+        gender: studentGender,
         educationLevel: studentEducationLevel,
         grade: studentGrade
       });
@@ -712,7 +715,7 @@ export default function Login() {
                               )}
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                               <div>
                                 <Label htmlFor={`child-name-${index}`} className="text-sm">اسم الطفل</Label>
                                 <Input
@@ -724,6 +727,22 @@ export default function Login() {
                                   required
                                   className="mt-1"
                                 />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor={`child-gender-${index}`} className="text-sm">الجنس</Label>
+                                <Select
+                                  value={child.gender}
+                                  onValueChange={(value) => updateChild(index, 'gender', value)}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="اختر الجنس" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="male">ذكر</SelectItem>
+                                    <SelectItem value="female">أنثى</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                               
                               <div>
@@ -744,7 +763,7 @@ export default function Login() {
                               </div>
                               
                               {child.educationLevel && (
-                                <div className="md:col-span-2">
+                                <div className="md:col-span-3">
                                   <Label htmlFor={`child-grade-${index}`} className="text-sm">السنة الدراسية</Label>
                                   <Select
                                     value={child.grade}
@@ -844,9 +863,25 @@ export default function Login() {
                     </div>
                     
                     <div className="space-y-4 border-t pt-4">
-                      <Label className="text-base font-medium">المعلومات الدراسية</Label>
+                      <Label className="text-base font-medium">المعلومات الشخصية والدراسية</Label>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="student-gender">الجنس</Label>
+                          <Select
+                            value={studentGender}
+                            onValueChange={setStudentGender}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر الجنس" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">ذكر</SelectItem>
+                              <SelectItem value="female">أنثى</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
                         <div>
                           <Label htmlFor="student-education-level">المستوى التعليمي</Label>
                           <Select

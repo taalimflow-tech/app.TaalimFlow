@@ -521,10 +521,10 @@ export default function Schedule() {
                           <div className="w-4 h-4 rounded-full bg-yellow-500 flex items-center justify-center">
                             <Clock className="w-2 h-2 text-slate-900" />
                           </div>
-                          <div className="text-yellow-400 text-sm font-bold tracking-wide bg-slate-800 px-2 py-1 rounded">
+                          <div className="text-white text-sm font-bold tracking-wide bg-blue-600 px-2 py-1 rounded shadow-md">
                             {slot.label}
                           </div>
-                          <div className="text-yellow-300 text-xs font-bold bg-slate-800 px-1 py-0.5 rounded-full">
+                          <div className="text-white text-xs font-bold bg-green-600 px-1 py-0.5 rounded-full shadow-sm">
                             {parseInt(slot.time.split(':')[0]) < 12 ? 'ص' : 'م'}
                           </div>
                         </div>
@@ -537,7 +537,7 @@ export default function Schedule() {
                     <tr key={dayIndex} className="hover:bg-gray-50/50 transition-colors duration-200">
                       <td className="border-r border-gray-200 p-2 bg-gray-100 text-center font-bold text-slate-700 shadow-sm">
                         <div className="flex items-center justify-center">
-                          <div className="bg-slate-900 text-yellow-400 px-3 py-2 rounded-lg shadow-lg text-sm font-bold tracking-wide border border-slate-700">
+                          <div className="bg-slate-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold tracking-wide border border-slate-700">
                             {day}
                           </div>
                         </div>

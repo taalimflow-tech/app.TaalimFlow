@@ -18,6 +18,7 @@ import { EmailVerificationModal } from '@/components/EmailVerificationModal';
 interface Child {
   id: number;
   name: string;
+  gender?: string;
   educationLevel: string;
   grade: string;
   parentId: number;
@@ -35,6 +36,7 @@ export default function Profile() {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [newChild, setNewChild] = useState({
     name: '',
+    gender: '',
     educationLevel: '',
     grade: ''
   });
@@ -115,7 +117,7 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/children'] });
-      setNewChild({ name: '', educationLevel: '', grade: '' });
+      setNewChild({ name: '', gender: '', educationLevel: '', grade: '' });
       setShowAddChild(false);
       toast({ title: 'تم إضافة الطفل بنجاح' });
     },
@@ -528,7 +530,9 @@ export default function Profile() {
                           </div>
                           <div>
                             <h4 className="font-semibold text-gray-800">{child.name}</h4>
-                            <p className="text-sm text-gray-600">{child.educationLevel} - {child.grade}</p>
+                            <p className="text-sm text-gray-600">
+                              {child.gender === 'male' ? 'ذكر' : child.gender === 'female' ? 'أنثى' : ''} • {child.educationLevel} - {child.grade}
+                            </p>
                           </div>
                         </div>
                         <Button
@@ -560,6 +564,22 @@ export default function Profile() {
                         placeholder="أدخل اسم الطفل"
                         required
                       />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="childGender">الجنس</Label>
+                      <Select
+                        value={newChild.gender}
+                        onValueChange={(value) => setNewChild({ ...newChild, gender: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر الجنس" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">ذكر</SelectItem>
+                          <SelectItem value="female">أنثى</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <div className="space-y-2">

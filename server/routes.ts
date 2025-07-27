@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema, insertChildSchema, insertStudentDataSchema } from "@shared/schema";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -160,6 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userData.role === 'student' && educationLevel && grade) {
         await storage.createStudent({
           userId: user.id,
+          gender: studentData?.gender,
           educationLevel,
           grade,
           schoolId: schoolId
@@ -172,6 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           storage.createChild({
             parentId: user.id,
             name: child.name,
+            gender: child.gender,
             educationLevel: child.educationLevel,
             grade: child.grade,
             schoolId: schoolId
@@ -1645,6 +1647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const childData = {
         parentId: req.session.user.id,
         name: req.body.name,
+        gender: req.body.gender,
         educationLevel: req.body.educationLevel,
         grade: req.body.grade,
         schoolId: req.session.user.schoolId

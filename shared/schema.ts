@@ -191,6 +191,7 @@ export const children = pgTable("children", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   parentId: integer("parent_id").references(() => users.id),
   name: text("name").notNull(),
+  gender: text("gender", { enum: ["male", "female"] }), // Gender field for children
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
   selectedSubjects: text("selected_subjects").array(), // Array of subject IDs they want to study
@@ -205,6 +206,7 @@ export const students = pgTable("students", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").references(() => users.id),
+  gender: text("gender", { enum: ["male", "female"] }), // Gender field for students
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
   selectedSubjects: text("selected_subjects").array(), // Array of subject IDs they want to study
@@ -308,9 +310,12 @@ export const insertStudentSchema = z.object({
   name: z.string().min(1, "الاسم مطلوب"),
   phone: z.string().regex(/^(\+213|0)(5|6|7)[0-9]{8}$/, "رقم هاتف جزائري غير صحيح"),
   role: z.string().optional(),
+  gender: z.enum(["male", "female"], { required_error: "الجنس مطلوب" }),
   educationLevel: z.string().min(1, "المستوى التعليمي مطلوب"),
   grade: z.string().min(1, "السنة الدراسية مطلوبة"),
 });
+
+
 
 export const loginSchema = z.object({
   email: z.string().email("بريد إلكتروني غير صحيح"),
@@ -430,6 +435,7 @@ export const insertFormationRegistrationSchema = createInsertSchema(formationReg
 export const insertChildSchema = createInsertSchema(children).pick({
   parentId: true,
   name: true,
+  gender: true,
   educationLevel: true,
   grade: true,
   schoolId: true,
@@ -437,6 +443,7 @@ export const insertChildSchema = createInsertSchema(children).pick({
 
 export const insertStudentDataSchema = createInsertSchema(students).pick({
   userId: true,
+  gender: true,
   educationLevel: true,
   grade: true,
   schoolId: true,
