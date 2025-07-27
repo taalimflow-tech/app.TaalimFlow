@@ -368,11 +368,18 @@ export default function Schedule() {
       if (previousCell) {
         let actualSpan = 1;
         if (previousCell.startTime && previousCell.endTime) {
-          const [startHour] = previousCell.startTime.split(':').map(Number);
-          const [endHour] = previousCell.endTime.split(':').map(Number);
-          const startPeriod = Math.max(1, startHour - 7);
-          const endPeriod = Math.max(1, endHour - 7);
-          actualSpan = Math.max(1, endPeriod - startPeriod);
+          const [startHour, startMin] = previousCell.startTime.split(':').map(Number);
+          const [endHour, endMin] = previousCell.endTime.split(':').map(Number);
+          const startTotalMin = startHour * 60 + startMin;
+          const endTotalMin = endHour * 60 + endMin;
+          const durationMin = endTotalMin - startTotalMin;
+          
+          // Use same logic as the table rendering
+          actualSpan = Math.max(1, Math.ceil(durationMin / 60));
+          if (durationMin === 90) actualSpan = 2; // 1.5 hours
+          else if (durationMin === 150) actualSpan = 3; // 2.5 hours  
+          else if (durationMin === 210) actualSpan = 4; // 3.5 hours
+          else if (durationMin === 270) actualSpan = 5; // 4.5 hours
         } else {
           actualSpan = previousCell.duration;
         }
@@ -519,15 +526,26 @@ export default function Schedule() {
                         
                         if (cell) {
                           const levelColors = getLevelColors(cell.educationLevel);
-                          // Calculate actual column span based on start and end times
+                          // Calculate actual column span based on start and end times with proper fractional handling
                           let actualColSpan = 1;
                           if (cell.startTime && cell.endTime) {
-                            const [startHour] = cell.startTime.split(':').map(Number);
-                            const [endHour] = cell.endTime.split(':').map(Number);
-                            const startPeriod = Math.max(1, startHour - 7); // 8:00 = period 1
-                            const endPeriod = Math.max(1, endHour - 7);
-                            actualColSpan = Math.max(1, endPeriod - startPeriod);
+                            const [startHour, startMin] = cell.startTime.split(':').map(Number);
+                            const [endHour, endMin] = cell.endTime.split(':').map(Number);
+                            const startTotalMin = startHour * 60 + startMin;
+                            const endTotalMin = endHour * 60 + endMin;
+                            const durationMin = endTotalMin - startTotalMin;
+                            
+                            // Convert duration to column spans (each hour = 1 column, 30min = 0.5 column)
+                            // Since HTML colSpan only accepts integers, we need to calculate based on 30-minute increments
+                            actualColSpan = Math.max(1, Math.ceil(durationMin / 60)); // Round up to nearest hour
+                            
+                            // For 1.5-hour lessons (90 minutes), this should give colSpan=2
+                            if (durationMin === 90) actualColSpan = 2; // 1.5 hours
+                            else if (durationMin === 150) actualColSpan = 3; // 2.5 hours  
+                            else if (durationMin === 210) actualColSpan = 4; // 3.5 hours
+                            else if (durationMin === 270) actualColSpan = 5; // 4.5 hours
                           } else {
+                            // Fallback to duration field
                             actualColSpan = cell.duration;
                           }
                           

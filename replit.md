@@ -159,6 +159,12 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 27, 2025**: SCHEDULE FLEXIBLE DURATION DISPLAY FIX - Fixed lesson duration visual representation in schedule tables
+  - **Accurate Column Spanning**: Fixed colSpan calculation to properly show 1.5-hour lessons spanning 2 columns instead of 1  
+  - **Precise Time Calculation**: Updated duration logic to handle fractional hours (90min = 2 columns, 150min = 3 columns)
+  - **Consistent Logic**: Applied same duration calculation to both table rendering and cell occupation checking
+  - **Visual Accuracy**: Schedule table now correctly represents lesson durations matching their actual time spans
+  - **Enhanced User Experience**: Lessons with custom start/end times now display with proper visual width proportional to duration
 - **January 26, 2025**: SUPER ADMIN UI MINIMIZATION COMPLETE - Created clean, minimized interface for school management
   - **School Card Redesign**: Transformed verbose school cards into compact single-line format with essential info only
   - **Static Button Design**: Replaced large outline buttons with small ghost buttons using 3x3 pixel icons
