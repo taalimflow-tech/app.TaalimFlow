@@ -1391,7 +1391,7 @@ export default function Groups() {
                           </tr>
                         </thead>
                         <tbody>
-                          {attendanceHistory && attendanceHistory.length > 0 ? (
+                          {Array.isArray(attendanceHistory) && attendanceHistory.length > 0 ? (
                             attendanceHistory.map((record: any, index: number) => (
                               <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                 <td className="border border-gray-300 px-4 py-2">
@@ -1433,19 +1433,19 @@ export default function Groups() {
                       <div className="bg-green-100 rounded-lg p-3 text-center">
                         <h5 className="font-medium text-green-800">إجمالي الحضور</h5>
                         <p className="text-2xl font-bold text-green-900">
-                          {attendanceHistory ? attendanceHistory.filter((r: any) => r.status === 'present').length : 0}
+                          {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'present').length : 0}
                         </p>
                       </div>
                       <div className="bg-red-100 rounded-lg p-3 text-center">
                         <h5 className="font-medium text-red-800">إجمالي الغياب</h5>
                         <p className="text-2xl font-bold text-red-900">
-                          {attendanceHistory ? attendanceHistory.filter((r: any) => r.status === 'absent').length : 0}
+                          {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'absent').length : 0}
                         </p>
                       </div>
                       <div className="bg-blue-100 rounded-lg p-3 text-center">
                         <h5 className="font-medium text-blue-800">نسبة الحضور</h5>
                         <p className="text-2xl font-bold text-blue-900">
-                          {attendanceHistory && attendanceHistory.length > 0 
+                          {Array.isArray(attendanceHistory) && attendanceHistory.length > 0 
                             ? Math.round((attendanceHistory.filter((r: any) => r.status === 'present').length / attendanceHistory.length) * 100)
                             : 0}%
                         </p>
