@@ -2432,6 +2432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const attendanceData = {
         ...req.body,
         groupId,
+        attendanceDate: new Date(req.body.attendanceDate),
         markedBy: req.session.user.id,
         schoolId: req.session.user.schoolId
       };
