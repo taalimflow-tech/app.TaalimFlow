@@ -900,10 +900,24 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGroup(groupId: number, schoolId: number): Promise<boolean> {
     try {
-      // First delete all group user assignments
+      // Delete in correct order to respect foreign key constraints
+      
+      // 1. Delete group attendance records
+      await db.delete(groupAttendance).where(eq(groupAttendance.groupId, groupId));
+      
+      // 2. Delete group financial transactions
+      await db.delete(groupTransactions).where(eq(groupTransactions.groupId, groupId));
+      
+      // 3. Delete group schedule assignments
+      await db.delete(groupScheduleAssignments).where(eq(groupScheduleAssignments.groupId, groupId));
+      
+      // 4. Delete group registrations
+      await db.delete(groupRegistrations).where(eq(groupRegistrations.groupId, groupId));
+      
+      // 5. Delete group user assignments
       await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, groupId));
       
-      // Then delete the group itself
+      // 6. Finally delete the group itself
       const result = await db
         .delete(groups)
         .where(and(eq(groups.id, groupId), eq(groups.schoolId, schoolId)))
