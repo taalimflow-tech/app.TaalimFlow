@@ -1376,6 +1376,7 @@ export class DatabaseStorage implements IStorage {
         startTime: scheduleCells.startTime,
         endTime: scheduleCells.endTime,
         educationLevel: scheduleCells.educationLevel,
+        gender: scheduleCells.gender,
         subject: {
           id: teachingModules.id,
           name: teachingModules.name,

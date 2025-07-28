@@ -270,6 +270,7 @@ export const scheduleCells = pgTable("schedule_cells", {
   startTime: text("start_time"), // HH:MM format (e.g., "08:30")
   endTime: text("end_time"), // HH:MM format (e.g., "10:00")
   educationLevel: text("education_level").notNull(), // 'الابتدائي', 'المتوسط', 'الثانوي'
+  gender: text("gender", { enum: ["male", "female", "mixed"] }), // Group gender type
   subjectId: integer("subject_id").references(() => teachingModules.id),
   teacherId: integer("teacher_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

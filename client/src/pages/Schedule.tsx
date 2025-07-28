@@ -143,6 +143,7 @@ export default function Schedule() {
   const [cellForm, setCellForm] = useState({
     educationLevel: '',
     grade: '',
+    gender: '',
     subjectId: '',
     teacherId: '',
     duration: 1,
@@ -277,7 +278,7 @@ export default function Schedule() {
       queryClient.refetchQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setShowCellForm(false);
       setSelectedCell(null);
-      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
+      setCellForm({ educationLevel: '', grade: '', gender: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
       console.log('Cell modal closed and form reset');
     },
     onError: (error: any) => {
@@ -294,7 +295,7 @@ export default function Schedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
       setEditingCell(null);
-      setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
+      setCellForm({ educationLevel: '', grade: '', gender: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
     }
   });
 
@@ -358,6 +359,7 @@ export default function Schedule() {
       startTime: cellForm.startTime || null,
       endTime: cellForm.endTime || null,
       educationLevel: cellForm.educationLevel,
+      gender: cellForm.gender || null,
       subjectId: parseInt(cellForm.subjectId),
       teacherId: parseInt(cellForm.teacherId),
     };
@@ -636,6 +638,7 @@ export default function Schedule() {
                                       setCellForm({
                                         educationLevel: cell.educationLevel,
                                         grade: '',
+                                        gender: '',
                                         subjectId: cell.subject?.id?.toString() || '',
                                         teacherId: cell.teacher?.id?.toString() || '',
                                         duration: cell.duration,
@@ -764,7 +767,7 @@ export default function Schedule() {
                   setShowCellForm(false);
                   setEditingCell(null);
                   setSelectedCell(null);
-                  setCellForm({ educationLevel: '', grade: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
+                  setCellForm({ educationLevel: '', grade: '', gender: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
                 }}
               >
                 <X className="w-4 h-4" />
@@ -887,6 +890,24 @@ export default function Schedule() {
                   </Select>
                 </div>
               )}
+              
+              {/* Gender Selection for Groups */}
+              <div>
+                <Label htmlFor="gender">نوع المجموعة</Label>
+                <Select
+                  value={cellForm.gender}
+                  onValueChange={(value) => setCellForm({ ...cellForm, gender: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر نوع المجموعة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">ذكور</SelectItem>
+                    <SelectItem value="female">إناث</SelectItem>
+                    <SelectItem value="mixed">مختلط</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               <div>
                 <Label htmlFor="subject">المادة</Label>
