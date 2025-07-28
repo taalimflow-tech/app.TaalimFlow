@@ -603,10 +603,7 @@ export default function Schedule() {
                                   
                                   {cell.teacher && (
                                     <div className="text-xs text-gray-700 bg-white/40 px-1 py-0.5 rounded font-medium">
-                                      <span className="text-slate-600">
-                                        {cell.teacher.gender === 'male' ? '👨‍🏫' : '👩‍🏫'}
-                                      </span>
-                                      <span className="font-bold ml-1">{cell.teacher.name}</span>
+                                      <span className="font-bold">{cell.teacher.name}</span>
                                     </div>
                                   )}
                                   
