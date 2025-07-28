@@ -6,7 +6,7 @@ import { Group } from '@shared/schema';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, User, Plus } from 'lucide-react';
+import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, User, Plus, Calendar, DollarSign, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
 
 export default function Groups() {
   const { user } = useAuth();
@@ -46,6 +46,27 @@ export default function Groups() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<any>(null);
 
+  // Group management state
+  const [managementView, setManagementView] = useState<'attendance' | 'financial' | null>(null);
+  const [managementGroup, setManagementGroup] = useState<Group | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  
+  // Attendance state
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [markingAttendance, setMarkingAttendance] = useState<{ [key: number]: string }>({});
+  
+  // Financial state
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
+  const [newTransaction, setNewTransaction] = useState({
+    studentId: '',
+    transactionType: 'fee',
+    amount: '',
+    description: '',
+    dueDate: '',
+    status: 'pending'
+  });
+
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
     queryKey: ['/api/admin/groups'],
@@ -65,6 +86,18 @@ export default function Groups() {
   const { data: availableStudents = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/groups/students', selectedAdminGroup?.educationLevel, selectedAdminGroup?.subjectId],
     enabled: !!user && user.role === 'admin' && !!selectedAdminGroup?.educationLevel && !!selectedAdminGroup?.subjectId,
+  });
+
+  // Attendance data queries
+  const { data: attendanceData = [], refetch: refetchAttendance } = useQuery<any[]>({
+    queryKey: ['/api/groups', managementGroup?.id, 'attendance', selectedDate],
+    enabled: !!managementGroup && managementView === 'attendance',
+  });
+
+  // Financial data queries
+  const { data: financialData = [], refetch: refetchFinancial } = useQuery<any[]>({
+    queryKey: ['/api/groups', managementGroup?.id, 'transactions'],
+    enabled: !!managementGroup && managementView === 'financial',
   });
 
   const joinGroupMutation = useMutation({
@@ -160,6 +193,57 @@ export default function Groups() {
     }
   });
 
+  // Attendance mutations
+  const markAttendanceMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', `/api/groups/${managementGroup?.id}/attendance`, data);
+    },
+    onSuccess: () => {
+      refetchAttendance();
+      toast({
+        title: "تم تسجيل الحضور",
+        description: "تم تسجيل حضور الطالب بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في تسجيل الحضور",
+        description: error.response?.data?.error || "فشل في تسجيل الحضور",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Financial mutations
+  const createTransactionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', `/api/groups/${managementGroup?.id}/transactions`, data);
+    },
+    onSuccess: () => {
+      refetchFinancial();
+      setShowNewTransactionModal(false);
+      setNewTransaction({
+        studentId: '',
+        transactionType: 'fee',
+        amount: '',
+        description: '',
+        dueDate: '',
+        status: 'pending'
+      });
+      toast({
+        title: "تم إنشاء المعاملة",
+        description: "تم إنشاء المعاملة المالية بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إنشاء المعاملة",
+        description: error.response?.data?.error || "فشل في إنشاء المعاملة",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleJoinGroup = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedGroup) {
@@ -203,6 +287,50 @@ export default function Groups() {
   const handleDeleteGroup = (group: any) => {
     setGroupToDelete(group);
     setShowDeleteConfirm(true);
+  };
+
+  // Group management handlers
+  const openGroupManagement = (group: Group, view: 'attendance' | 'financial') => {
+    setManagementGroup(group);
+    setManagementView(view);
+  };
+
+  const closeGroupManagement = () => {
+    setManagementGroup(null);
+    setManagementView(null);
+  };
+
+  // Attendance handlers
+  const handleMarkAttendance = (studentId: number, status: string) => {
+    const attendanceData = {
+      studentId,
+      status,
+      attendanceDate: new Date(selectedDate),
+      notes: ''
+    };
+    markAttendanceMutation.mutate(attendanceData);
+  };
+
+  // Financial handlers
+  const handleCreateTransaction = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTransaction.studentId || !newTransaction.amount || !newTransaction.description) {
+      toast({
+        title: "بيانات غير مكتملة",
+        description: "يرجى ملء جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const transactionData = {
+      ...newTransaction,
+      studentId: parseInt(newTransaction.studentId),
+      amount: parseInt(newTransaction.amount) * 100, // Convert to cents
+      dueDate: newTransaction.dueDate ? new Date(newTransaction.dueDate) : null,
+    };
+    
+    createTransactionMutation.mutate(transactionData);
   };
 
   const confirmDeleteGroup = () => {
@@ -511,7 +639,7 @@ export default function Groups() {
                                 </div>
                               </div>
                               
-                              <div className="mt-3 pt-3 border-t">
+                              <div className="mt-3 pt-3 border-t space-y-2">
                                 <Button
                                   size="sm"
                                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
@@ -519,6 +647,29 @@ export default function Groups() {
                                 >
                                   إدارة المجموعة
                                 </Button>
+                                
+                                {!group.isPlaceholder && (
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1 border-green-500 text-green-600 hover:bg-green-50"
+                                      onClick={() => openGroupManagement(group, 'attendance')}
+                                    >
+                                      <Calendar className="w-4 h-4 mr-1" />
+                                      الحضور
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1 border-purple-500 text-purple-600 hover:bg-purple-50"
+                                      onClick={() => openGroupManagement(group, 'financial')}
+                                    >
+                                      <DollarSign className="w-4 h-4 mr-1" />
+                                      المالية
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -1107,6 +1258,330 @@ export default function Groups() {
               >
                 {deleteGroupMutation.isPending ? 'جاري الحذف...' : 'حذف المجموعة'}
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Group Management Modal - Attendance */}
+      {managementView === 'attendance' && managementGroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold flex items-center">
+                    <Calendar className="w-5 h-5 ml-2 text-green-600" />
+                    إدارة الحضور - {managementGroup.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {managementGroup.nameAr || managementGroup.subjectName} - {managementGroup.educationLevel}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={closeGroupManagement}
+                >
+                  إغلاق
+                </Button>
+              </div>
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  تاريخ الحضور
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+
+            <div className="p-6">
+              {managementGroup.studentsAssigned && managementGroup.studentsAssigned.length > 0 ? (
+                <div className="space-y-4">
+                  {managementGroup.studentsAssigned.map((student: any) => (
+                    <div key={student.id} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">{student.name}</h4>
+                          <p className="text-sm text-gray-600">{student.email}</p>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant={markingAttendance[student.id] === 'present' ? 'default' : 'outline'}
+                            className={markingAttendance[student.id] === 'present' ? 'bg-green-600 hover:bg-green-700' : 'border-green-500 text-green-600 hover:bg-green-50'}
+                            onClick={() => {
+                              setMarkingAttendance(prev => ({ ...prev, [student.id]: 'present' }));
+                              handleMarkAttendance(student.id, 'present');
+                            }}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            حاضر
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant={markingAttendance[student.id] === 'absent' ? 'default' : 'outline'}
+                            className={markingAttendance[student.id] === 'absent' ? 'bg-red-600 hover:bg-red-700' : 'border-red-500 text-red-600 hover:bg-red-50'}
+                            onClick={() => {
+                              setMarkingAttendance(prev => ({ ...prev, [student.id]: 'absent' }));
+                              handleMarkAttendance(student.id, 'absent');
+                            }}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            غائب
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant={markingAttendance[student.id] === 'late' ? 'default' : 'outline'}
+                            className={markingAttendance[student.id] === 'late' ? 'bg-yellow-600 hover:bg-yellow-700' : 'border-yellow-500 text-yellow-600 hover:bg-yellow-50'}
+                            onClick={() => {
+                              setMarkingAttendance(prev => ({ ...prev, [student.id]: 'late' }));
+                              handleMarkAttendance(student.id, 'late');
+                            }}
+                          >
+                            <Clock className="w-4 h-4 mr-1" />
+                            متأخر
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">لا يوجد طلاب مسجلين في هذه المجموعة</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Group Management Modal - Financial */}
+      {managementView === 'financial' && managementGroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-5xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold flex items-center">
+                    <DollarSign className="w-5 h-5 ml-2 text-purple-600" />
+                    الإدارة المالية - {managementGroup.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {managementGroup.nameAr || managementGroup.subjectName} - {managementGroup.educationLevel}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowNewTransactionModal(true)}
+                    className="border-purple-500 text-purple-600 hover:bg-purple-50"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    معاملة جديدة
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={closeGroupManagement}
+                  >
+                    إغلاق
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {managementGroup.studentsAssigned && managementGroup.studentsAssigned.length > 0 ? (
+                <div className="space-y-6">
+                  {managementGroup.studentsAssigned.map((student: any) => (
+                    <div key={student.id} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="font-medium">{student.name}</h4>
+                          <p className="text-sm text-gray-600">{student.email}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                          <div className="bg-blue-100 rounded p-2">
+                            <p className="text-xs text-blue-600">إجمالي الرسوم</p>
+                            <p className="font-bold text-blue-800">0 د.ج</p>
+                          </div>
+                          <div className="bg-green-100 rounded p-2">
+                            <p className="text-xs text-green-600">المدفوع</p>
+                            <p className="font-bold text-green-800">0 د.ج</p>
+                          </div>
+                          <div className="bg-yellow-100 rounded p-2">
+                            <p className="text-xs text-yellow-600">المعلق</p>
+                            <p className="font-bold text-yellow-800">0 د.ج</p>
+                          </div>
+                          <div className="bg-red-100 rounded p-2">
+                            <p className="text-xs text-red-600">المتأخر</p>
+                            <p className="font-bold text-red-800">0 د.ج</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-700">المعاملات الأخيرة</h5>
+                        <div className="bg-white rounded border p-3">
+                          <p className="text-sm text-gray-500 text-center py-2">لا توجد معاملات مالية</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">لا يوجد طلاب مسجلين في هذه المجموعة</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Transaction Modal */}
+      {showNewTransactionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-md mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold flex items-center">
+                  <CreditCard className="w-5 h-5 ml-2 text-purple-600" />
+                  معاملة مالية جديدة
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowNewTransactionModal(false)}
+                >
+                  إغلاق
+                </Button>
+              </div>
+
+              <form onSubmit={handleCreateTransaction} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الطالب *
+                  </label>
+                  <select
+                    value={newTransaction.studentId}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, studentId: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  >
+                    <option value="">اختر الطالب</option>
+                    {managementGroup?.studentsAssigned?.map((student: any) => (
+                      <option key={student.id} value={student.id}>
+                        {student.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    نوع المعاملة *
+                  </label>
+                  <select
+                    value={newTransaction.transactionType}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, transactionType: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="fee">رسوم</option>
+                    <option value="payment">دفع</option>
+                    <option value="refund">استرداد</option>
+                    <option value="discount">خصم</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    المبلغ (بالدينار الجزائري) *
+                  </label>
+                  <input
+                    type="number"
+                    value={newTransaction.amount}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="0"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الوصف *
+                  </label>
+                  <textarea
+                    value={newTransaction.description}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="وصف المعاملة المالية"
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    تاريخ الاستحقاق
+                  </label>
+                  <input
+                    type="date"
+                    value={newTransaction.dueDate}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, dueDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الحالة
+                  </label>
+                  <select
+                    value={newTransaction.status}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="pending">معلق</option>
+                    <option value="paid">مدفوع</option>
+                    <option value="overdue">متأخر</option>
+                    <option value="cancelled">ملغي</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowNewTransactionModal(false)}
+                  >
+                    إلغاء
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createTransactionMutation.isPending}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  >
+                    {createTransactionMutation.isPending ? 'جاري الإنشاء...' : 'إنشاء المعاملة'}
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

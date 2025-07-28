@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL } from "drizzle-orm";
 
@@ -170,6 +170,19 @@ export interface IStorage {
   getMessagesWithUserInfo(userId: number): Promise<any[]>;
   markMessageAsRead(messageId: number): Promise<void>;
   getConversationBetweenUsers(userId1: number, userId2: number): Promise<any[]>;
+
+  // Group Attendance interface methods
+  getGroupAttendance(groupId: number, date?: string): Promise<GroupAttendance[]>;
+  markAttendance(attendance: InsertGroupAttendance): Promise<GroupAttendance>;
+  updateAttendance(id: number, updates: Partial<InsertGroupAttendance>): Promise<GroupAttendance>;
+  getAttendanceWithStudentDetails(groupId: number, date?: string): Promise<any[]>;
+
+  // Group Financial Transaction interface methods
+  getGroupTransactions(groupId: number, studentId?: number): Promise<GroupTransaction[]>;
+  createTransaction(transaction: InsertGroupTransaction): Promise<GroupTransaction>;
+  updateTransaction(id: number, updates: Partial<InsertGroupTransaction>): Promise<GroupTransaction>;
+  getTransactionsWithDetails(groupId: number): Promise<any[]>;
+  getStudentFinancialSummary(groupId: number, studentId: number): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1364,6 +1377,195 @@ export class DatabaseStorage implements IStorage {
 
   async deleteScheduleCell(id: number): Promise<void> {
     await db.delete(scheduleCells).where(eq(scheduleCells.id, id));
+  }
+
+  // Group Attendance methods
+  async getGroupAttendance(groupId: number, date?: string): Promise<GroupAttendance[]> {
+    const query = db
+      .select()
+      .from(groupAttendance)
+      .where(eq(groupAttendance.groupId, groupId));
+    
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      return await query
+        .where(and(
+          eq(groupAttendance.groupId, groupId),
+          and(
+            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
+            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`
+          )
+        ))
+        .orderBy(desc(groupAttendance.attendanceDate));
+    }
+    
+    return await query.orderBy(desc(groupAttendance.attendanceDate));
+  }
+
+  async markAttendance(attendance: InsertGroupAttendance): Promise<GroupAttendance> {
+    const [result] = await db
+      .insert(groupAttendance)
+      .values(attendance)
+      .returning();
+    return result;
+  }
+
+  async updateAttendance(id: number, updates: Partial<InsertGroupAttendance>): Promise<GroupAttendance> {
+    const [result] = await db
+      .update(groupAttendance)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(groupAttendance.id, id))
+      .returning();
+    return result;
+  }
+
+  async getAttendanceWithStudentDetails(groupId: number, date?: string): Promise<any[]> {
+    const query = db
+      .select({
+        id: groupAttendance.id,
+        attendanceDate: groupAttendance.attendanceDate,
+        status: groupAttendance.status,
+        notes: groupAttendance.notes,
+        student: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+        markedBy: {
+          id: sql`marker.id`,
+          name: sql`marker.name`,
+        },
+        createdAt: groupAttendance.createdAt,
+        updatedAt: groupAttendance.updatedAt,
+      })
+      .from(groupAttendance)
+      .leftJoin(users, eq(groupAttendance.studentId, users.id))
+      .leftJoin(aliasedTable(users, 'marker'), eq(groupAttendance.markedBy, sql`marker.id`))
+      .where(eq(groupAttendance.groupId, groupId));
+
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      return await query
+        .where(and(
+          eq(groupAttendance.groupId, groupId),
+          and(
+            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
+            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`
+          )
+        ))
+        .orderBy(desc(groupAttendance.attendanceDate));
+    }
+    
+    return await query.orderBy(desc(groupAttendance.attendanceDate));
+  }
+
+  // Group Financial Transaction methods
+  async getGroupTransactions(groupId: number, studentId?: number): Promise<GroupTransaction[]> {
+    let query = db
+      .select()
+      .from(groupTransactions)
+      .where(eq(groupTransactions.groupId, groupId));
+    
+    if (studentId) {
+      query = query.where(and(
+        eq(groupTransactions.groupId, groupId),
+        eq(groupTransactions.studentId, studentId)
+      ));
+    }
+    
+    return await query.orderBy(desc(groupTransactions.createdAt));
+  }
+
+  async createTransaction(transaction: InsertGroupTransaction): Promise<GroupTransaction> {
+    const [result] = await db
+      .insert(groupTransactions)
+      .values(transaction)
+      .returning();
+    return result;
+  }
+
+  async updateTransaction(id: number, updates: Partial<InsertGroupTransaction>): Promise<GroupTransaction> {
+    const [result] = await db
+      .update(groupTransactions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(groupTransactions.id, id))
+      .returning();
+    return result;
+  }
+
+  async getTransactionsWithDetails(groupId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: groupTransactions.id,
+        transactionType: groupTransactions.transactionType,
+        amount: groupTransactions.amount,
+        currency: groupTransactions.currency,
+        description: groupTransactions.description,
+        dueDate: groupTransactions.dueDate,
+        paidDate: groupTransactions.paidDate,
+        paymentMethod: groupTransactions.paymentMethod,
+        status: groupTransactions.status,
+        notes: groupTransactions.notes,
+        student: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+        recordedBy: {
+          id: sql`recorder.id`,
+          name: sql`recorder.name`,
+        },
+        createdAt: groupTransactions.createdAt,
+        updatedAt: groupTransactions.updatedAt,
+      })
+      .from(groupTransactions)
+      .leftJoin(users, eq(groupTransactions.studentId, users.id))
+      .leftJoin(aliasedTable(users, 'recorder'), eq(groupTransactions.recordedBy, sql`recorder.id`))
+      .where(eq(groupTransactions.groupId, groupId))
+      .orderBy(desc(groupTransactions.createdAt));
+  }
+
+  async getStudentFinancialSummary(groupId: number, studentId: number): Promise<any> {
+    const transactions = await db
+      .select()
+      .from(groupTransactions)
+      .where(and(
+        eq(groupTransactions.groupId, groupId),
+        eq(groupTransactions.studentId, studentId)
+      ));
+    
+    const totalFees = transactions
+      .filter(t => t.transactionType === 'fee')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const totalPaid = transactions
+      .filter(t => t.transactionType === 'payment' && t.status === 'paid')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const pendingAmount = transactions
+      .filter(t => t.status === 'pending')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const overdueAmount = transactions
+      .filter(t => t.status === 'overdue')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return {
+      totalFees,
+      totalPaid,
+      balance: totalFees - totalPaid,
+      pendingAmount,
+      overdueAmount,
+      transactionCount: transactions.length
+    };
   }
 
   async getScheduleCellsWithDetails(scheduleTableId: number): Promise<any[]> {

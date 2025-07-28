@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema, insertChildSchema, insertStudentDataSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema, insertChildSchema, insertStudentDataSchema, insertGroupAttendanceSchema, insertGroupTransactionSchema } from "@shared/schema";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -2401,6 +2401,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating school keys:', error);
       res.status(500).json({ error: "فشل في تحديث مفاتيح الوصول" });
+    }
+  });
+
+  // Group Attendance Routes
+  app.get("/api/groups/:groupId/attendance", async (req, res) => {
+    try {
+      if (!req.session?.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'teacher')) {
+        return res.status(403).json({ error: "صلاحيات المدير أو المعلم مطلوبة" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const { date } = req.query;
+      
+      const attendance = await storage.getAttendanceWithStudentDetails(groupId, date as string);
+      res.json(attendance);
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+      res.status(500).json({ error: "فشل في جلب بيانات الحضور" });
+    }
+  });
+
+  app.post("/api/groups/:groupId/attendance", async (req, res) => {
+    try {
+      if (!req.session?.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'teacher')) {
+        return res.status(403).json({ error: "صلاحيات المدير أو المعلم مطلوبة" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const attendanceData = {
+        ...req.body,
+        groupId,
+        markedBy: req.session.user.id,
+        schoolId: req.session.user.schoolId
+      };
+      
+      const attendance = await storage.markAttendance(attendanceData);
+      res.json(attendance);
+    } catch (error) {
+      console.error('Error marking attendance:', error);
+      res.status(500).json({ error: "فشل في تسجيل الحضور" });
+    }
+  });
+
+  app.patch("/api/attendance/:id", async (req, res) => {
+    try {
+      if (!req.session?.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'teacher')) {
+        return res.status(403).json({ error: "صلاحيات المدير أو المعلم مطلوبة" });
+      }
+
+      const attendanceId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const attendance = await storage.updateAttendance(attendanceId, updates);
+      res.json(attendance);
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+      res.status(500).json({ error: "فشل في تحديث الحضور" });
+    }
+  });
+
+  // Group Financial Transaction Routes
+  app.get("/api/groups/:groupId/transactions", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const { studentId } = req.query;
+      
+      const transactions = studentId 
+        ? await storage.getGroupTransactions(groupId, parseInt(studentId as string))
+        : await storage.getTransactionsWithDetails(groupId);
+      
+      res.json(transactions);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      res.status(500).json({ error: "فشل في جلب المعاملات المالية" });
+    }
+  });
+
+  app.post("/api/groups/:groupId/transactions", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const transactionData = {
+        ...req.body,
+        groupId,
+        recordedBy: req.session.user.id,
+        schoolId: req.session.user.schoolId
+      };
+      
+      const transaction = await storage.createTransaction(transactionData);
+      res.json(transaction);
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      res.status(500).json({ error: "فشل في إنشاء المعاملة المالية" });
+    }
+  });
+
+  app.patch("/api/transactions/:id", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const transactionId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const transaction = await storage.updateTransaction(transactionId, updates);
+      res.json(transaction);
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      res.status(500).json({ error: "فشل في تحديث المعاملة المالية" });
+    }
+  });
+
+  app.get("/api/groups/:groupId/students/:studentId/financial-summary", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const studentId = parseInt(req.params.studentId);
+      
+      const summary = await storage.getStudentFinancialSummary(groupId, studentId);
+      res.json(summary);
+    } catch (error) {
+      console.error('Error fetching financial summary:', error);
+      res.status(500).json({ error: "فشل في جلب الملخص المالي" });
     }
   });
 

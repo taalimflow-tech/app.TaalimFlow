@@ -176,6 +176,40 @@ export const groupUserAssignments = pgTable("group_user_assignments", {
   assignedBy: integer("assigned_by").references(() => users.id), // Admin who made the assignment
 });
 
+// Group Attendance Table
+export const groupAttendance = pgTable("group_attendance", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  groupId: integer("group_id").references(() => groups.id).notNull(),
+  studentId: integer("student_id").references(() => users.id).notNull(),
+  attendanceDate: timestamp("attendance_date").notNull(),
+  status: text("status", { enum: ["present", "absent", "late", "excused"] }).notNull().default("absent"),
+  notes: text("notes"),
+  markedBy: integer("marked_by").references(() => users.id), // Teacher who marked attendance
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Group Financial Transactions Table
+export const groupTransactions = pgTable("group_transactions", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  groupId: integer("group_id").references(() => groups.id).notNull(),
+  studentId: integer("student_id").references(() => users.id).notNull(),
+  transactionType: text("transaction_type", { enum: ["payment", "fee", "refund", "discount"] }).notNull(),
+  amount: integer("amount").notNull(), // Amount in cents to avoid decimal issues
+  currency: text("currency").notNull().default("DZD"), // Algerian Dinar
+  description: text("description").notNull(),
+  dueDate: timestamp("due_date"),
+  paidDate: timestamp("paid_date"),
+  paymentMethod: text("payment_method", { enum: ["cash", "bank_transfer", "card", "mobile"] }),
+  status: text("status", { enum: ["pending", "paid", "overdue", "cancelled"] }).notNull().default("pending"),
+  notes: text("notes"),
+  recordedBy: integer("recorded_by").references(() => users.id), // Admin/teacher who recorded
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const formationRegistrations = pgTable("formation_registrations", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
@@ -500,10 +534,39 @@ export const insertScheduleCellSchema = createInsertSchema(scheduleCells).pick({
   startTime: true,
   endTime: true,
   educationLevel: true,
+  gender: true,
   subjectId: true,
   teacherId: true,
   schoolId: true,
 });
+
+export const insertGroupAttendanceSchema = createInsertSchema(groupAttendance).pick({
+  groupId: true,
+  studentId: true,
+  attendanceDate: true,
+  status: true,
+  notes: true,
+  markedBy: true,
+  schoolId: true,
+});
+
+export const insertGroupTransactionSchema = createInsertSchema(groupTransactions).pick({
+  groupId: true,
+  studentId: true,
+  transactionType: true,
+  amount: true,
+  currency: true,
+  description: true,
+  dueDate: true,
+  paidDate: true,
+  paymentMethod: true,
+  status: true,
+  notes: true,
+  recordedBy: true,
+  schoolId: true,
+});
+
+
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -546,3 +609,7 @@ export type BlockedUser = typeof blockedUsers.$inferSelect;
 export type InsertBlockedUser = z.infer<typeof insertBlockedUserSchema>;
 export type UserReport = typeof userReports.$inferSelect;
 export type InsertUserReport = z.infer<typeof insertUserReportSchema>;
+export type GroupAttendance = typeof groupAttendance.$inferSelect;
+export type InsertGroupAttendance = z.infer<typeof insertGroupAttendanceSchema>;
+export type GroupTransaction = typeof groupTransactions.$inferSelect;
+export type InsertGroupTransaction = z.infer<typeof insertGroupTransactionSchema>;
