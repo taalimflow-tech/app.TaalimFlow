@@ -176,6 +176,7 @@ export interface IStorage {
   markAttendance(attendance: InsertGroupAttendance): Promise<GroupAttendance>;
   updateAttendance(id: number, updates: Partial<InsertGroupAttendance>): Promise<GroupAttendance>;
   getAttendanceWithStudentDetails(groupId: number, date?: string): Promise<any[]>;
+  getGroupAttendanceHistory(groupId: number, schoolId: number): Promise<any[]>;
 
   // Group Financial Transaction interface methods
   getGroupTransactions(groupId: number, studentId?: number): Promise<GroupTransaction[]>;
@@ -1465,6 +1466,25 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query.orderBy(desc(groupAttendance.attendanceDate));
+  }
+
+  async getGroupAttendanceHistory(groupId: number, schoolId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: groupAttendance.id,
+        studentId: groupAttendance.studentId,
+        studentName: users.name,
+        status: groupAttendance.status,
+        attendanceDate: groupAttendance.attendanceDate,
+        createdAt: groupAttendance.createdAt,
+      })
+      .from(groupAttendance)
+      .leftJoin(users, eq(groupAttendance.studentId, users.id))
+      .where(and(
+        eq(groupAttendance.groupId, groupId),
+        eq(groupAttendance.schoolId, schoolId)
+      ))
+      .orderBy(desc(groupAttendance.attendanceDate), desc(groupAttendance.createdAt));
   }
 
   // Group Financial Transaction methods

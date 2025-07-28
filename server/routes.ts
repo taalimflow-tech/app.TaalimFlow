@@ -2461,6 +2461,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get attendance history for a group
+  app.get("/api/groups/:groupId/attendance-history", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const attendanceHistory = await storage.getGroupAttendanceHistory(groupId, req.session.user.schoolId);
+      res.json(attendanceHistory);
+    } catch (error) {
+      console.error('Error fetching attendance history:', error);
+      res.status(500).json({ error: "فشل في جلب سجل الحضور" });
+    }
+  });
+
   // Group Financial Transaction Routes
   app.get("/api/groups/:groupId/transactions", async (req, res) => {
     try {

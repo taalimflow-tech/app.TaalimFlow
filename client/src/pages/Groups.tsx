@@ -94,6 +94,13 @@ export default function Groups() {
     enabled: !!managementGroup && managementView === 'attendance',
   });
 
+  // Attendance history query for table
+  const { data: attendanceHistory = [] } = useQuery<any[]>({
+    queryKey: ['/api/groups', managementGroup?.id, 'attendance-history'],
+    queryFn: () => managementGroup ? apiRequest('GET', `/api/groups/${managementGroup.id}/attendance-history`) : [],
+    enabled: !!managementGroup && managementView === 'attendance'
+  });
+
   // Financial data queries
   const { data: financialData = [], refetch: refetchFinancial } = useQuery<any[]>({
     queryKey: ['/api/groups', managementGroup?.id, 'transactions'],
@@ -1326,58 +1333,125 @@ export default function Groups() {
 
             <div className="p-6">
               {managementGroup.studentsAssigned && managementGroup.studentsAssigned.length > 0 ? (
-                <div className="space-y-4">
-                  {managementGroup.studentsAssigned.map((student: any) => (
-                    <div key={student.id} className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">{student.name}</h4>
-                          <p className="text-sm text-gray-600">{student.email}</p>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant={markingAttendance[student.id] === 'present' ? 'default' : 'outline'}
-                            className={markingAttendance[student.id] === 'present' ? 'bg-green-600 hover:bg-green-700' : 'border-green-500 text-green-600 hover:bg-green-50'}
-                            onClick={() => {
-                              setMarkingAttendance(prev => ({ ...prev, [student.id]: 'present' }));
-                              handleMarkAttendance(student.id, 'present');
-                            }}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            حاضر
-                          </Button>
+                <div className="space-y-6">
+                  {/* Current Date Attendance Section */}
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-4">تسجيل الحضور لتاريخ {selectedDate}</h4>
+                    <div className="space-y-3">
+                      {managementGroup.studentsAssigned.map((student: any) => (
+                        <div key={student.id} className="bg-white rounded-lg p-3 flex items-center justify-between">
+                          <div>
+                            <h5 className="font-medium">{student.name}</h5>
+                            <p className="text-sm text-gray-600">{student.email}</p>
+                          </div>
                           
-                          <Button
-                            size="sm"
-                            variant={markingAttendance[student.id] === 'absent' ? 'default' : 'outline'}
-                            className={markingAttendance[student.id] === 'absent' ? 'bg-red-600 hover:bg-red-700' : 'border-red-500 text-red-600 hover:bg-red-50'}
-                            onClick={() => {
-                              setMarkingAttendance(prev => ({ ...prev, [student.id]: 'absent' }));
-                              handleMarkAttendance(student.id, 'absent');
-                            }}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            غائب
-                          </Button>
-                          
-                          <Button
-                            size="sm"
-                            variant={markingAttendance[student.id] === 'late' ? 'default' : 'outline'}
-                            className={markingAttendance[student.id] === 'late' ? 'bg-yellow-600 hover:bg-yellow-700' : 'border-yellow-500 text-yellow-600 hover:bg-yellow-50'}
-                            onClick={() => {
-                              setMarkingAttendance(prev => ({ ...prev, [student.id]: 'late' }));
-                              handleMarkAttendance(student.id, 'late');
-                            }}
-                          >
-                            <Clock className="w-4 h-4 mr-1" />
-                            متأخر
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant={markingAttendance[student.id] === 'present' ? 'default' : 'outline'}
+                              className={markingAttendance[student.id] === 'present' ? 'bg-green-600 hover:bg-green-700' : 'border-green-500 text-green-600 hover:bg-green-50'}
+                              onClick={() => {
+                                setMarkingAttendance(prev => ({ ...prev, [student.id]: 'present' }));
+                                handleMarkAttendance(student.id, 'present');
+                              }}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              حاضر
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant={markingAttendance[student.id] === 'absent' ? 'default' : 'outline'}
+                              className={markingAttendance[student.id] === 'absent' ? 'bg-red-600 hover:bg-red-700' : 'border-red-500 text-red-600 hover:bg-red-50'}
+                              onClick={() => {
+                                setMarkingAttendance(prev => ({ ...prev, [student.id]: 'absent' }));
+                                handleMarkAttendance(student.id, 'absent');
+                              }}
+                            >
+                              <XCircle className="w-4 h-4 mr-1" />
+                              غائب
+                            </Button>
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Attendance History Table */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-200">
+                            <th className="border border-gray-300 px-4 py-2 text-right font-medium">الطالب</th>
+                            <th className="border border-gray-300 px-4 py-2 text-center font-medium">التاريخ</th>
+                            <th className="border border-gray-300 px-4 py-2 text-center font-medium">الحالة</th>
+                            <th className="border border-gray-300 px-4 py-2 text-center font-medium">الوقت</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {attendanceHistory && attendanceHistory.length > 0 ? (
+                            attendanceHistory.map((record: any, index: number) => (
+                              <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                <td className="border border-gray-300 px-4 py-2">
+                                  {managementGroup.studentsAssigned.find((s: any) => s.id === record.studentId)?.name || 'طالب غير معروف'}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                  {new Date(record.attendanceDate).toLocaleDateString('ar-SA')}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                  <span className={`px-2 py-1 rounded text-sm ${
+                                    record.status === 'present' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {record.status === 'present' ? 'حاضر' : 'غائب'}
+                                  </span>
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center text-sm text-gray-600">
+                                  {new Date(record.createdAt).toLocaleTimeString('ar-SA', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={4} className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                لا يوجد سجل حضور حتى الآن
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Attendance Statistics */}
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-green-100 rounded-lg p-3 text-center">
+                        <h5 className="font-medium text-green-800">إجمالي الحضور</h5>
+                        <p className="text-2xl font-bold text-green-900">
+                          {attendanceHistory ? attendanceHistory.filter((r: any) => r.status === 'present').length : 0}
+                        </p>
+                      </div>
+                      <div className="bg-red-100 rounded-lg p-3 text-center">
+                        <h5 className="font-medium text-red-800">إجمالي الغياب</h5>
+                        <p className="text-2xl font-bold text-red-900">
+                          {attendanceHistory ? attendanceHistory.filter((r: any) => r.status === 'absent').length : 0}
+                        </p>
+                      </div>
+                      <div className="bg-blue-100 rounded-lg p-3 text-center">
+                        <h5 className="font-medium text-blue-800">نسبة الحضور</h5>
+                        <p className="text-2xl font-bold text-blue-900">
+                          {attendanceHistory && attendanceHistory.length > 0 
+                            ? Math.round((attendanceHistory.filter((r: any) => r.status === 'present').length / attendanceHistory.length) * 100)
+                            : 0}%
+                        </p>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
