@@ -857,22 +857,46 @@ export default function Groups() {
                           </span>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="space-y-2">
                           <Button
                             onClick={() => handleOpenAssignmentModal(group)}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm"
                             size="sm"
                           >
                             إدارة المجموعة
                           </Button>
-                          {group.id && ( // Only show delete button for actual groups (not placeholders)
+                          
+                          {group.id && group.studentsAssigned && group.studentsAssigned.length > 0 && (
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-green-500 text-green-600 hover:bg-green-50"
+                                onClick={() => openGroupManagement(group, 'attendance')}
+                              >
+                                <Calendar className="w-4 h-4 mr-1" />
+                                الحضور
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-purple-500 text-purple-600 hover:bg-purple-50"
+                                onClick={() => openGroupManagement(group, 'financial')}
+                              >
+                                <DollarSign className="w-4 h-4 mr-1" />
+                                المالية
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {group.id && (
                             <Button
                               onClick={() => handleDeleteGroup(group)}
                               variant="outline"
-                              className="px-3 border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                              className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
                               size="sm"
                             >
-                              🗑️
+                              🗑️ حذف المجموعة
                             </Button>
                           )}
                         </div>
