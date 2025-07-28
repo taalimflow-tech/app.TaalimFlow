@@ -1275,7 +1275,7 @@ export default function Groups() {
                     إدارة الحضور - {managementGroup.name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {managementGroup.nameAr || managementGroup.subjectName} - {managementGroup.educationLevel}
+                    {managementGroup.description} - {managementGroup.educationLevel}
                   </p>
                 </div>
                 <Button
@@ -1378,7 +1378,7 @@ export default function Groups() {
                     الإدارة المالية - {managementGroup.name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {managementGroup.nameAr || managementGroup.subjectName} - {managementGroup.educationLevel}
+                    {managementGroup.description} - {managementGroup.educationLevel}
                   </p>
                 </div>
                 <div className="flex gap-2">
