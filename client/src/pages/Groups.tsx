@@ -8,6 +8,119 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, User, Plus, Calendar, DollarSign, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
 
+// AttendanceCalendar component
+function AttendanceCalendar({ students, attendanceHistory }: { students: any[], attendanceHistory: any[] }) {
+  // Generate last 14 days including today
+  const dates = [];
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    dates.push(date);
+  }
+
+  // Create attendance lookup for quick access
+  const attendanceLookup: { [key: string]: string } = {};
+  if (Array.isArray(attendanceHistory)) {
+    attendanceHistory.forEach((record: any) => {
+      const dateKey = new Date(record.attendanceDate).toISOString().split('T')[0];
+      const studentKey = `${record.studentId}-${dateKey}`;
+      attendanceLookup[studentKey] = record.status;
+    });
+  }
+
+  return (
+    <div>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse min-w-[800px]">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border border-gray-300 px-3 py-2 text-right font-medium sticky left-0 bg-gray-200 min-w-[120px]">
+                الطالب
+              </th>
+              {dates.map((date, index) => (
+                <th key={index} className="border border-gray-300 px-2 py-2 text-center font-medium min-w-[80px]">
+                  <div className="text-xs">
+                    {date.toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {students && students.length > 0 ? (
+              students.map((student: any, studentIndex: number) => (
+                <tr key={student.id} className={studentIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  <td className="border border-gray-300 px-3 py-2 font-medium sticky left-0 bg-inherit">
+                    <div className="truncate" title={student.name}>
+                      {student.name}
+                    </div>
+                  </td>
+                  {dates.map((date, dateIndex) => {
+                    const dateKey = date.toISOString().split('T')[0];
+                    const studentKey = `${student.id}-${dateKey}`;
+                    const status = attendanceLookup[studentKey];
+                    const isToday = dateKey === new Date().toISOString().split('T')[0];
+                    
+                    return (
+                      <td key={dateIndex} className={`border border-gray-300 px-2 py-3 text-center ${
+                        isToday ? 'bg-blue-50' : ''
+                      }`}>
+                        {status ? (
+                          <span className={`text-lg font-bold ${
+                            status === 'present' 
+                              ? 'text-green-600' 
+                              : 'text-red-600'
+                          }`}>
+                            {status === 'present' ? '✓' : '✗'}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={dates.length + 1} className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                  لا يوجد طلاب مسجلين في هذه المجموعة
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Legend */}
+      <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-green-600 font-bold text-lg">✓</span>
+          <span>حاضر</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-red-600 font-bold text-lg">✗</span>
+          <span>غائب</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-300 font-bold">—</span>
+          <span>لم يسجل</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
+          <span>اليوم</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Groups() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -1377,79 +1490,36 @@ export default function Groups() {
                     </div>
                   </div>
 
-                  {/* Attendance History Table */}
+                  {/* Attendance Calendar View */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور</h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-gray-200">
-                            <th className="border border-gray-300 px-4 py-2 text-right font-medium">الطالب</th>
-                            <th className="border border-gray-300 px-4 py-2 text-center font-medium">التاريخ</th>
-                            <th className="border border-gray-300 px-4 py-2 text-center font-medium">الحالة</th>
-                            <th className="border border-gray-300 px-4 py-2 text-center font-medium">الوقت</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array.isArray(attendanceHistory) && attendanceHistory.length > 0 ? (
-                            attendanceHistory.map((record: any, index: number) => (
-                              <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                <td className="border border-gray-300 px-4 py-2">
-                                  {managementGroup.studentsAssigned.find((s: any) => s.id === record.studentId)?.name || 'طالب غير معروف'}
-                                </td>
-                                <td className="border border-gray-300 px-4 py-2 text-center">
-                                  {new Date(record.attendanceDate).toLocaleDateString('ar-SA')}
-                                </td>
-                                <td className="border border-gray-300 px-4 py-2 text-center">
-                                  <span className={`px-2 py-1 rounded text-sm ${
-                                    record.status === 'present' 
-                                      ? 'bg-green-100 text-green-800' 
-                                      : 'bg-red-100 text-red-800'
-                                  }`}>
-                                    {record.status === 'present' ? 'حاضر' : 'غائب'}
-                                  </span>
-                                </td>
-                                <td className="border border-gray-300 px-4 py-2 text-center text-sm text-gray-600">
-                                  {new Date(record.createdAt).toLocaleTimeString('ar-SA', { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit' 
-                                  })}
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan={4} className="border border-gray-300 px-4 py-8 text-center text-gray-500">
-                                لا يوجد سجل حضور حتى الآن
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور - عرض التقويم</h4>
+                    <AttendanceCalendar 
+                      students={managementGroup.studentsAssigned || []}
+                      attendanceHistory={attendanceHistory}
+                    />
+                  </div>
 
-                    {/* Attendance Statistics */}
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-green-100 rounded-lg p-3 text-center">
-                        <h5 className="font-medium text-green-800">إجمالي الحضور</h5>
-                        <p className="text-2xl font-bold text-green-900">
-                          {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'present').length : 0}
-                        </p>
-                      </div>
-                      <div className="bg-red-100 rounded-lg p-3 text-center">
-                        <h5 className="font-medium text-red-800">إجمالي الغياب</h5>
-                        <p className="text-2xl font-bold text-red-900">
-                          {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'absent').length : 0}
-                        </p>
-                      </div>
-                      <div className="bg-blue-100 rounded-lg p-3 text-center">
-                        <h5 className="font-medium text-blue-800">نسبة الحضور</h5>
-                        <p className="text-2xl font-bold text-blue-900">
-                          {Array.isArray(attendanceHistory) && attendanceHistory.length > 0 
-                            ? Math.round((attendanceHistory.filter((r: any) => r.status === 'present').length / attendanceHistory.length) * 100)
-                            : 0}%
-                        </p>
-                      </div>
+                  {/* Attendance Statistics */}
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-green-100 rounded-lg p-3 text-center">
+                      <h5 className="font-medium text-green-800">إجمالي الحضور</h5>
+                      <p className="text-2xl font-bold text-green-900">
+                        {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'present').length : 0}
+                      </p>
+                    </div>
+                    <div className="bg-red-100 rounded-lg p-3 text-center">
+                      <h5 className="font-medium text-red-800">إجمالي الغياب</h5>
+                      <p className="text-2xl font-bold text-red-900">
+                        {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'absent').length : 0}
+                      </p>
+                    </div>
+                    <div className="bg-blue-100 rounded-lg p-3 text-center">
+                      <h5 className="font-medium text-blue-800">نسبة الحضور</h5>
+                      <p className="text-2xl font-bold text-blue-900">
+                        {Array.isArray(attendanceHistory) && attendanceHistory.length > 0 
+                          ? Math.round((attendanceHistory.filter((r: any) => r.status === 'present').length / attendanceHistory.length) * 100)
+                          : 0}%
+                      </p>
                     </div>
                   </div>
                 </div>
