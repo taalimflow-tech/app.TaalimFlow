@@ -6,11 +6,12 @@ import { Group } from '@shared/schema';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, User, Plus, Calendar, DollarSign, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
+import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, User, Plus, Calendar, DollarSign, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
 
-// AttendanceCalendar component
-function AttendanceCalendar({ groupId, students, attendanceHistory }: { groupId: number, students: any[], attendanceHistory: any[] }) {
+// Monthly Attendance Carousel component
+function MonthlyAttendanceCarousel({ groupId, students, attendanceHistory }: { groupId: number, students: any[], attendanceHistory: any[] }) {
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(6); // Start with current month
 
   // Fetch scheduled lesson dates for this group
   const { data: scheduledDatesData } = useQuery({
@@ -25,123 +26,229 @@ function AttendanceCalendar({ groupId, students, attendanceHistory }: { groupId:
     }
   }, [scheduledDatesData]);
 
-  // Use scheduled dates or fall back to last 14 days if no schedule is set
-  const dates = scheduledDates.length > 0 
-    ? scheduledDates.slice(0, 14).map(dateStr => new Date(dateStr))
-    : (() => {
-        const fallbackDates = [];
-        for (let i = 13; i >= 0; i--) {
-          const date = new Date();
-          date.setDate(date.getDate() - i);
-          fallbackDates.push(date);
+  // Generate months data with statistics
+  const generateMonthsData = () => {
+    const months = [];
+    const currentDate = new Date();
+    
+    // Generate last 6 months and next 6 months (total 13 months)
+    for (let i = -6; i <= 6; i++) {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+      const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+      
+      // Filter scheduled dates for this month
+      const monthScheduledDates = scheduledDates.filter(dateStr => {
+        const date = new Date(dateStr);
+        return date >= monthStart && date <= monthEnd;
+      });
+      
+      // Filter attendance for this month
+      const monthAttendance = Array.isArray(attendanceHistory) ? attendanceHistory.filter((record: any) => {
+        const recordDate = new Date(record.attendanceDate);
+        return recordDate >= monthStart && recordDate <= monthEnd;
+      }) : [];
+      
+      // Calculate statistics
+      const totalScheduledLessons = monthScheduledDates.length;
+      const totalPresent = monthAttendance.filter((r: any) => r.status === 'present').length;
+      const totalAbsent = monthAttendance.filter((r: any) => r.status === 'absent').length;
+      const totalLate = monthAttendance.filter((r: any) => r.status === 'late').length;
+      const attendanceRate = totalScheduledLessons > 0 && students.length > 0 
+        ? Math.round((totalPresent / (totalScheduledLessons * students.length)) * 100) 
+        : 0;
+      
+      months.push({
+        date: monthDate,
+        monthName: monthDate.toLocaleDateString('ar-DZ', { month: 'long', year: 'numeric' }),
+        monthNameEn: monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        scheduledDates: monthScheduledDates,
+        attendance: monthAttendance,
+        stats: {
+          totalScheduledLessons,
+          totalPresent,
+          totalAbsent,
+          totalLate,
+          attendanceRate
         }
-        return fallbackDates;
-      })();
+      });
+    }
+    
+    return months;
+  };
 
-  // Create attendance lookup for quick access
-  const attendanceLookup: { [key: string]: string } = {};
-  if (Array.isArray(attendanceHistory)) {
-    attendanceHistory.forEach((record: any) => {
-      const dateKey = new Date(record.attendanceDate).toISOString().split('T')[0];
-      const studentKey = `${record.studentId}-${dateKey}`;
-      attendanceLookup[studentKey] = record.status;
-    });
-  }
+  const monthsData = generateMonthsData();
+  const currentMonth = monthsData[currentMonthIndex] || monthsData[6]; // Default to current month
+
+  // Generate mini calendar for current month
+  const generateMiniCalendar = (month: any) => {
+    if (!month) return [];
+    
+    const monthStart = new Date(month.date.getFullYear(), month.date.getMonth(), 1);
+    const monthEnd = new Date(month.date.getFullYear(), month.date.getMonth() + 1, 0);
+    const startDay = monthStart.getDay(); // 0 = Sunday
+    const daysInMonth = monthEnd.getDate();
+    
+    const calendar = [];
+    
+    // Add empty cells for days before month starts
+    for (let i = 0; i < startDay; i++) {
+      calendar.push(null);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayDate = new Date(month.date.getFullYear(), month.date.getMonth(), day);
+      const dayStr = dayDate.toISOString().split('T')[0];
+      
+      const isScheduled = month.scheduledDates.includes(dayStr);
+      const dayAttendance = month.attendance.filter((r: any) => 
+        new Date(r.attendanceDate).toISOString().split('T')[0] === dayStr
+      );
+      
+      let status = 'none';
+      if (isScheduled) {
+        if (dayAttendance.length > 0) {
+          const presentCount = dayAttendance.filter((r: any) => r.status === 'present').length;
+          const absentCount = dayAttendance.filter((r: any) => r.status === 'absent').length;
+          
+          if (presentCount > absentCount) status = 'mostly-present';
+          else if (absentCount > presentCount) status = 'mostly-absent';
+          else status = 'mixed';
+        } else {
+          status = 'scheduled';
+        }
+      }
+      
+      calendar.push({ day, status, isScheduled });
+    }
+    
+    return calendar;
+  };
+
+  const miniCalendar = generateMiniCalendar(currentMonth);
+
+  const nextMonth = () => {
+    setCurrentMonthIndex(prev => Math.min(prev + 1, monthsData.length - 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentMonthIndex(prev => Math.max(prev - 1, 0));
+  };
 
   return (
-    <div>
+    <div className="bg-white rounded-lg border">
       {scheduledDates.length > 0 && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="text-sm text-blue-800">
-            📅 هذه المجموعة مرتبطة بالجدول الدراسي - يتم عرض مواعيد الحصص المجدولة فقط
+            📅 هذه المجموعة مرتبطة بالجدول الدراسي - يتم عرض الإحصائيات حسب مواعيد الحصص المجدولة
           </div>
         </div>
       )}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse min-w-[800px]">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border border-gray-300 px-3 py-2 text-right font-medium sticky left-0 bg-gray-200 min-w-[120px]">
-                الطالب
-              </th>
-              {dates.map((date, index) => (
-                <th key={index} className="border border-gray-300 px-2 py-2 text-center font-medium min-w-[80px]">
-                  <div className="text-xs">
-                    {date.toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {students && students.length > 0 ? (
-              students.map((student: any, studentIndex: number) => (
-                <tr key={student.id} className={studentIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="border border-gray-300 px-3 py-2 font-medium sticky left-0 bg-inherit">
-                    <div className="truncate" title={student.name}>
-                      {student.name}
-                    </div>
-                  </td>
-                  {dates.map((date, dateIndex) => {
-                    const dateKey = date.toISOString().split('T')[0];
-                    const studentKey = `${student.id}-${dateKey}`;
-                    const status = attendanceLookup[studentKey];
-                    const isToday = dateKey === new Date().toISOString().split('T')[0];
-                    
-                    return (
-                      <td key={dateIndex} className={`border border-gray-300 px-2 py-3 text-center ${
-                        isToday ? 'bg-blue-50' : ''
-                      }`}>
-                        {status ? (
-                          <span className={`text-lg font-bold ${
-                            status === 'present' 
-                              ? 'text-green-600' 
-                              : 'text-red-600'
-                          }`}>
-                            {status === 'present' ? '✓' : '✗'}
-                          </span>
-                        ) : (
-                          <span className="text-gray-300">—</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={dates.length + 1} className="border border-gray-300 px-4 py-8 text-center text-gray-500">
-                  لا يوجد طلاب مسجلين في هذه المجموعة
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
       
-      {/* Legend */}
-      <div className="mt-4 flex items-center justify-center gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-green-600 font-bold text-lg">✓</span>
-          <span>حاضر</span>
+      {/* Month Navigation Header */}
+      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+        <button
+          onClick={prevMonth}
+          disabled={currentMonthIndex === 0}
+          className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-800">{currentMonth?.monthNameEn}</h3>
+          <p className="text-sm text-gray-600">{currentMonth?.monthName}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-red-600 font-bold text-lg">✗</span>
-          <span>غائب</span>
+        
+        <button
+          onClick={nextMonth}
+          disabled={currentMonthIndex === monthsData.length - 1}
+          className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Month Statistics */}
+      <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-blue-600">{currentMonth?.stats.totalScheduledLessons || 0}</div>
+            <div className="text-xs text-gray-600">حصص مجدولة</div>
+          </div>
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-green-600">{currentMonth?.stats.totalPresent || 0}</div>
+            <div className="text-xs text-gray-600">حضور</div>
+          </div>
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-red-600">{currentMonth?.stats.totalAbsent || 0}</div>
+            <div className="text-xs text-gray-600">غياب</div>
+          </div>
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-purple-600">{currentMonth?.stats.attendanceRate || 0}%</div>
+            <div className="text-xs text-gray-600">نسبة الحضور</div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-gray-300 font-bold">—</span>
-          <span>لم يسجل</span>
+      </div>
+
+      {/* Mini Calendar */}
+      <div className="p-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-3">التقويم الشهري</h4>
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {/* Day headers (Arabic) */}
+          {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map((day, index) => (
+            <div key={index} className="text-xs font-medium text-gray-500 p-2 truncate">
+              {day.slice(0, 3)}
+            </div>
+          ))}
+          
+          {/* Calendar days */}
+          {miniCalendar.map((day, index) => (
+            <div key={index} className="aspect-square flex items-center justify-center relative">
+              {day ? (
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium relative ${
+                  day.status === 'mostly-present' ? 'bg-green-100 text-green-800' :
+                  day.status === 'mostly-absent' ? 'bg-red-100 text-red-800' :
+                  day.status === 'mixed' ? 'bg-yellow-100 text-yellow-800' :
+                  day.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                  'text-gray-400'
+                }`}>
+                  {day.day}
+                  {day.isScheduled && (
+                    <div className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${
+                      day.status === 'mostly-present' ? 'bg-green-500' :
+                      day.status === 'mostly-absent' ? 'bg-red-500' :
+                      day.status === 'mixed' ? 'bg-yellow-500' :
+                      'bg-blue-500'
+                    }`} />
+                  )}
+                </div>
+              ) : (
+                <div className="w-8 h-8" />
+              )}
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
-          <span>اليوم</span>
+        
+        {/* Legend */}
+        <div className="mt-4 flex flex-wrap gap-3 text-xs justify-center">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span>حضور جيد</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <span>غياب عالي</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <span>مختلط</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <span>مجدول</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1522,10 +1629,10 @@ export default function Groups() {
                     </div>
                   </div>
 
-                  {/* Attendance Calendar View */}
+                  {/* Monthly Attendance Carousel */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور - عرض التقويم</h4>
-                    <AttendanceCalendar 
+                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور - العرض الشهري</h4>
+                    <MonthlyAttendanceCarousel 
                       groupId={managementGroup.id}
                       students={managementGroup.studentsAssigned || []}
                       attendanceHistory={attendanceHistory || []}
