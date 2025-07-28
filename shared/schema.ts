@@ -141,6 +141,8 @@ export const groups = pgTable("groups", {
   teacherId: integer("teacher_id").references(() => users.id), // Assigned teacher
   studentsAssigned: integer("students_assigned").array(), // Array of student user IDs
   isAdminManaged: boolean("is_admin_managed").default(false), // Admin-managed vs public groups
+  scheduleCellId: integer("schedule_cell_id").references(() => scheduleCells.id), // Link to scheduled lesson
+  lessonsPerWeek: integer("lessons_per_week").default(1), // 1 or 2 lessons per week
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -174,6 +176,17 @@ export const groupUserAssignments = pgTable("group_user_assignments", {
   userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
   assignedAt: timestamp("assigned_at").defaultNow().notNull(),
   assignedBy: integer("assigned_by").references(() => users.id), // Admin who made the assignment
+});
+
+// Group Schedule Assignments - Junction table for groups and their scheduled lessons
+export const groupScheduleAssignments = pgTable("group_schedule_assignments", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  groupId: integer("group_id").references(() => groups.id, { onDelete: "cascade" }),
+  scheduleCellId: integer("schedule_cell_id").references(() => scheduleCells.id, { onDelete: "cascade" }),
+  isActive: boolean("is_active").default(true), // Allow temporarily disabling a lesson
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  assignedBy: integer("assigned_by").references(() => users.id), // Admin who assigned
 });
 
 // Group Attendance Table

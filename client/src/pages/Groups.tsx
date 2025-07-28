@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,14 +9,34 @@ import { useToast } from '@/hooks/use-toast';
 import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, User, Plus, Calendar, DollarSign, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
 
 // AttendanceCalendar component
-function AttendanceCalendar({ students, attendanceHistory }: { students: any[], attendanceHistory: any[] }) {
-  // Generate last 14 days including today
-  const dates = [];
-  for (let i = 13; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    dates.push(date);
-  }
+function AttendanceCalendar({ groupId, students, attendanceHistory }: { groupId: number, students: any[], attendanceHistory: any[] }) {
+  const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+
+  // Fetch scheduled lesson dates for this group
+  const { data: scheduledDatesData } = useQuery({
+    queryKey: [`/api/groups/${groupId}/scheduled-dates`],
+    enabled: !!groupId,
+  });
+
+  // Update scheduled dates when data changes
+  React.useEffect(() => {
+    if (scheduledDatesData?.dates) {
+      setScheduledDates(scheduledDatesData.dates);
+    }
+  }, [scheduledDatesData]);
+
+  // Use scheduled dates or fall back to last 14 days if no schedule is set
+  const dates = scheduledDates.length > 0 
+    ? scheduledDates.slice(0, 14).map(dateStr => new Date(dateStr))
+    : (() => {
+        const fallbackDates = [];
+        for (let i = 13; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          fallbackDates.push(date);
+        }
+        return fallbackDates;
+      })();
 
   // Create attendance lookup for quick access
   const attendanceLookup: { [key: string]: string } = {};
@@ -30,6 +50,13 @@ function AttendanceCalendar({ students, attendanceHistory }: { students: any[], 
 
   return (
     <div>
+      {scheduledDates.length > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="text-sm text-blue-800">
+            📅 هذه المجموعة مرتبطة بالجدول الدراسي - يتم عرض مواعيد الحصص المجدولة فقط
+          </div>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse min-w-[800px]">
           <thead>
@@ -210,7 +237,7 @@ export default function Groups() {
   // Attendance history query for table
   const { data: attendanceHistory = [] } = useQuery<any[]>({
     queryKey: ['/api/groups', managementGroup?.id, 'attendance-history'],
-    queryFn: () => managementGroup ? apiRequest('GET', `/api/groups/${managementGroup.id}/attendance-history`) : [],
+    queryFn: () => managementGroup ? apiRequest('GET', `/api/groups/${managementGroup.id}/attendance-history`) : Promise.resolve([]),
     enabled: !!managementGroup && managementView === 'attendance'
   });
 
@@ -768,7 +795,7 @@ export default function Groups() {
                                   إدارة المجموعة
                                 </Button>
                                 
-                                {!group.isPlaceholder && (
+                                {!group.isPlaceholder && user?.role === 'admin' && (
                                   <div className="flex gap-2">
                                     <Button
                                       size="sm"
@@ -788,6 +815,11 @@ export default function Groups() {
                                       <DollarSign className="w-4 h-4 mr-1" />
                                       المالية
                                     </Button>
+                                  </div>
+                                )}
+                                {!group.isPlaceholder && user?.role !== 'admin' && (
+                                  <div className="text-center text-sm text-gray-500 py-2">
+                                    الحضور والإدارة المالية متاحة للمديرين فقط
                                   </div>
                                 )}
                               </div>
@@ -1494,8 +1526,9 @@ export default function Groups() {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور - عرض التقويم</h4>
                     <AttendanceCalendar 
+                      groupId={managementGroup.id}
                       students={managementGroup.studentsAssigned || []}
-                      attendanceHistory={attendanceHistory}
+                      attendanceHistory={attendanceHistory || []}
                     />
                   </div>
 

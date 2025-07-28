@@ -2407,8 +2407,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Group Attendance Routes
   app.get("/api/groups/:groupId/attendance", async (req, res) => {
     try {
-      if (!req.session?.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'teacher')) {
-        return res.status(403).json({ error: "صلاحيات المدير أو المعلم مطلوبة" });
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لعرض الحضور" });
       }
 
       const groupId = parseInt(req.params.groupId);
@@ -2424,8 +2424,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/groups/:groupId/attendance", async (req, res) => {
     try {
-      if (!req.session?.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'teacher')) {
-        return res.status(403).json({ error: "صلاحيات المدير أو المعلم مطلوبة" });
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لتسجيل الحضور" });
       }
 
       const groupId = parseInt(req.params.groupId);
@@ -2447,8 +2447,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/attendance/:id", async (req, res) => {
     try {
-      if (!req.session?.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'teacher')) {
-        return res.status(403).json({ error: "صلاحيات المدير أو المعلم مطلوبة" });
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لتعديل الحضور" });
       }
 
       const attendanceId = parseInt(req.params.id);
@@ -2475,6 +2475,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching attendance history:', error);
       res.status(500).json({ error: "فشل في جلب سجل الحضور" });
+    }
+  });
+
+  // Group Schedule Routes (Admin only)
+  app.get("/api/groups/:groupId/scheduled-dates", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لعرض الجدول" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const schoolId = req.session.user.schoolId;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const scheduledDates = await storage.getGroupScheduledLessonDates(groupId, schoolId);
+      res.json({ dates: scheduledDates });
+    } catch (error) {
+      console.error("Error getting scheduled dates:", error);
+      res.status(500).json({ error: "فشل في جلب مواعيد الحصص" });
+    }
+  });
+
+  app.post("/api/groups/:groupId/assign-schedule", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لتعيين الجدول" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const { scheduleCellId } = req.body;
+      const schoolId = req.session.user.schoolId;
+      const assignedBy = req.session.user.id;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const assignment = await storage.assignGroupToSchedule(groupId, scheduleCellId, schoolId, assignedBy);
+      res.json(assignment);
+    } catch (error) {
+      console.error("Error assigning group to schedule:", error);
+      res.status(500).json({ error: "فشل في تعيين الجدول للمجموعة" });
+    }
+  });
+
+  app.get("/api/groups/:groupId/schedule-assignments", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لعرض التعيينات" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const assignments = await storage.getGroupScheduleAssignments(groupId);
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error getting group schedule assignments:", error);
+      res.status(500).json({ error: "فشل في جلب تعيينات الجدول" });
     }
   });
 

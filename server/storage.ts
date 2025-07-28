@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL } from "drizzle-orm";
 
@@ -184,6 +184,11 @@ export interface IStorage {
   updateTransaction(id: number, updates: Partial<InsertGroupTransaction>): Promise<GroupTransaction>;
   getTransactionsWithDetails(groupId: number): Promise<any[]>;
   getStudentFinancialSummary(groupId: number, studentId: number): Promise<any>;
+  
+  // Group Schedule interface methods
+  getGroupScheduledLessonDates(groupId: number, schoolId: number): Promise<string[]>;
+  assignGroupToSchedule(groupId: number, scheduleCellId: number, schoolId: number, assignedBy: number): Promise<any>;
+  getGroupScheduleAssignments(groupId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1974,6 +1979,99 @@ export class DatabaseStorage implements IStorage {
         teacherKey
       })
       .where(eq(schools.id, schoolId));
+  }
+
+  // Group Schedule methods implementation
+  async getGroupScheduledLessonDates(groupId: number, schoolId: number): Promise<string[]> {
+    try {
+      // Get all schedule assignments for this group
+      const assignments = await db
+        .select({
+          scheduleCellId: groupScheduleAssignments.scheduleCellId,
+          dayOfWeek: scheduleCells.dayOfWeek,
+          startTime: scheduleCells.startTime,
+          endTime: scheduleCells.endTime
+        })
+        .from(groupScheduleAssignments)
+        .leftJoin(scheduleCells, eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id))
+        .where(
+          and(
+            eq(groupScheduleAssignments.groupId, groupId),
+            eq(groupScheduleAssignments.schoolId, schoolId),
+            eq(groupScheduleAssignments.isActive, true)
+          )
+        );
+
+      // Generate dates for the next 12 weeks based on scheduled days
+      const dates: string[] = [];
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
+
+      for (let week = 0; week < 12; week++) {
+        for (const assignment of assignments) {
+          if (assignment.dayOfWeek !== null) {
+            const lessonDate = new Date(startOfWeek);
+            lessonDate.setDate(startOfWeek.getDate() + (week * 7) + assignment.dayOfWeek);
+            
+            // Only include future dates
+            if (lessonDate >= today) {
+              dates.push(lessonDate.toISOString().split('T')[0]);
+            }
+          }
+        }
+      }
+
+      return dates.sort();
+    } catch (error) {
+      console.error('Error getting group scheduled lesson dates:', error);
+      return [];
+    }
+  }
+
+  async assignGroupToSchedule(groupId: number, scheduleCellId: number, schoolId: number, assignedBy: number): Promise<any> {
+    try {
+      const [assignment] = await db
+        .insert(groupScheduleAssignments)
+        .values({
+          groupId,
+          scheduleCellId,
+          schoolId,
+          assignedBy
+        })
+        .returning();
+
+      return assignment;
+    } catch (error) {
+      console.error('Error assigning group to schedule:', error);
+      throw error;
+    }
+  }
+
+  async getGroupScheduleAssignments(groupId: number): Promise<any[]> {
+    try {
+      return await db
+        .select({
+          id: groupScheduleAssignments.id,
+          scheduleCellId: groupScheduleAssignments.scheduleCellId,
+          isActive: groupScheduleAssignments.isActive,
+          createdAt: groupScheduleAssignments.createdAt,
+          dayOfWeek: scheduleCells.dayOfWeek,
+          period: scheduleCells.period,
+          startTime: scheduleCells.startTime,
+          endTime: scheduleCells.endTime,
+          educationLevel: scheduleCells.educationLevel,
+          tableName: scheduleTables.name
+        })
+        .from(groupScheduleAssignments)
+        .leftJoin(scheduleCells, eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id))
+        .leftJoin(scheduleTables, eq(scheduleCells.scheduleTableId, scheduleTables.id))
+        .where(eq(groupScheduleAssignments.groupId, groupId))
+        .orderBy(scheduleCells.dayOfWeek, scheduleCells.period);
+    } catch (error) {
+      console.error('Error getting group schedule assignments:', error);
+      return [];
+    }
   }
 }
 
