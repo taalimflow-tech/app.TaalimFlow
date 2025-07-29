@@ -386,6 +386,7 @@ export default function Schedule() {
       startTime: cellForm.startTime || null,
       endTime: cellForm.endTime || null,
       educationLevel: cellForm.educationLevel,
+      grade: cellForm.grade || null,
       gender: cellForm.gender || null,
       subjectId: parseInt(cellForm.subjectId),
       teacherId: parseInt(cellForm.teacherId),
