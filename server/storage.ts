@@ -2108,8 +2108,7 @@ export class DatabaseStorage implements IStorage {
           eq(groups.schoolId, schoolId),
           eq(groups.subjectId, subjectId),
           eq(groups.teacherId, teacherId),
-          eq(groups.educationLevel, educationLevel),
-          eq(groups.isPlaceholder, false) // Only include actual groups, not placeholders
+          eq(groups.educationLevel, educationLevel)
         ))
         .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
         .orderBy(groups.name);
