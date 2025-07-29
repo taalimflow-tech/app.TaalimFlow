@@ -1430,11 +1430,46 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markAttendance(attendance: InsertGroupAttendance): Promise<GroupAttendance> {
-    const [result] = await db
-      .insert(groupAttendance)
-      .values(attendance)
-      .returning();
-    return result;
+    // Check if attendance record already exists for this student on this date
+    const attendanceDateStart = new Date(attendance.attendanceDate);
+    attendanceDateStart.setHours(0, 0, 0, 0);
+    const attendanceDateEnd = new Date(attendance.attendanceDate);
+    attendanceDateEnd.setHours(23, 59, 59, 999);
+
+    const existing = await db
+      .select()
+      .from(groupAttendance)
+      .where(and(
+        eq(groupAttendance.groupId, attendance.groupId),
+        eq(groupAttendance.studentId, attendance.studentId),
+        and(
+          sql`${groupAttendance.attendanceDate} >= ${attendanceDateStart}`,
+          sql`${groupAttendance.attendanceDate} <= ${attendanceDateEnd}`
+        )
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing record
+      const [result] = await db
+        .update(groupAttendance)
+        .set({ 
+          status: attendance.status,
+          notes: attendance.notes,
+          markedBy: attendance.markedBy,
+          updatedAt: new Date()
+        })
+        .where(eq(groupAttendance.id, existing[0].id))
+        .returning();
+      return result;
+    } else {
+      // Create new record
+      const [result] = await db
+        .insert(groupAttendance)
+        .values(attendance)
+        .returning();
+      return result;
+    }
   }
 
   async updateAttendance(id: number, updates: Partial<InsertGroupAttendance>): Promise<GroupAttendance> {
