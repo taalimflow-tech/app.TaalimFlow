@@ -646,7 +646,10 @@ export default function Schedule() {
                                 <div className="relative space-y-1">
                                   <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${levelColors.badge} shadow-sm`}>
                                     <div className="w-1.5 h-1.5 rounded-full bg-current mr-1"></div>
-                                    <span className="text-xs">{cell.educationLevel}</span>
+                                    <span className="text-xs">
+                                      {cell.educationLevel}
+                                      {cell.grade && ` - ${cell.grade}`}
+                                    </span>
                                   </div>
                                   
                                   {cell.subject && (
@@ -709,8 +712,8 @@ export default function Schedule() {
                                       setEditingCell(cell);
                                       setCellForm({
                                         educationLevel: cell.educationLevel,
-                                        grade: '',
-                                        gender: '',
+                                        grade: cell.grade || '',
+                                        gender: cell.gender || '',
                                         subjectId: cell.subject?.id?.toString() || '',
                                         teacherId: cell.teacher?.id?.toString() || '',
                                         duration: cell.duration,
