@@ -2020,13 +2020,13 @@ export class DatabaseStorage implements IStorage {
           )
         );
 
-      // Generate dates for the next 12 weeks based on scheduled days
+      // Generate dates for the next 2 years based on scheduled days
       const dates: string[] = [];
       const today = new Date();
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
 
-      for (let week = 0; week < 12; week++) {
+      for (let week = 0; week < 104; week++) { // 2 years = 104 weeks
         for (const assignment of assignments) {
           if (assignment.dayOfWeek !== null) {
             const lessonDate = new Date(startOfWeek);

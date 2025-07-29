@@ -1990,6 +1990,44 @@ export default function Groups() {
                               ))}
                             </tbody>
                           </table>
+
+                          {/* Monthly Statistics */}
+                          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-green-100 rounded-lg p-3 text-center">
+                              <h5 className="font-medium text-green-800">حضور الشهر</h5>
+                              <p className="text-xl font-bold text-green-900">
+                                {Array.isArray(attendanceHistory) ? 
+                                  attendanceHistory.filter((r: any) => {
+                                    const recordDate = r.attendanceDate?.split('T')[0];
+                                    return r.status === 'present' && currentMonthDates.includes(recordDate);
+                                  }).length : 0}
+                              </p>
+                            </div>
+                            <div className="bg-red-100 rounded-lg p-3 text-center">
+                              <h5 className="font-medium text-red-800">غياب الشهر</h5>
+                              <p className="text-xl font-bold text-red-900">
+                                {Array.isArray(attendanceHistory) ? 
+                                  attendanceHistory.filter((r: any) => {
+                                    const recordDate = r.attendanceDate?.split('T')[0];
+                                    return r.status === 'absent' && currentMonthDates.includes(recordDate);
+                                  }).length : 0}
+                              </p>
+                            </div>
+                            <div className="bg-blue-100 rounded-lg p-3 text-center">
+                              <h5 className="font-medium text-blue-800">نسبة حضور الشهر</h5>
+                              <p className="text-xl font-bold text-blue-900">
+                                {(() => {
+                                  if (!Array.isArray(attendanceHistory)) return 0;
+                                  const monthRecords = attendanceHistory.filter((r: any) => {
+                                    const recordDate = r.attendanceDate?.split('T')[0];
+                                    return currentMonthDates.includes(recordDate);
+                                  });
+                                  const presentCount = monthRecords.filter((r: any) => r.status === 'present').length;
+                                  return monthRecords.length > 0 ? Math.round((presentCount / monthRecords.length) * 100) : 0;
+                                })()}%
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       ) : (
                         <div className="text-center py-8">
@@ -2005,29 +2043,7 @@ export default function Groups() {
                     )}
                   </div>
 
-                  {/* Attendance Statistics */}
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-green-100 rounded-lg p-3 text-center">
-                      <h5 className="font-medium text-green-800">إجمالي الحضور</h5>
-                      <p className="text-2xl font-bold text-green-900">
-                        {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'present').length : 0}
-                      </p>
-                    </div>
-                    <div className="bg-red-100 rounded-lg p-3 text-center">
-                      <h5 className="font-medium text-red-800">إجمالي الغياب</h5>
-                      <p className="text-2xl font-bold text-red-900">
-                        {Array.isArray(attendanceHistory) ? attendanceHistory.filter((r: any) => r.status === 'absent').length : 0}
-                      </p>
-                    </div>
-                    <div className="bg-blue-100 rounded-lg p-3 text-center">
-                      <h5 className="font-medium text-blue-800">نسبة الحضور</h5>
-                      <p className="text-2xl font-bold text-blue-900">
-                        {Array.isArray(attendanceHistory) && attendanceHistory.length > 0 
-                          ? Math.round((attendanceHistory.filter((r: any) => r.status === 'present').length / attendanceHistory.length) * 100)
-                          : 0}%
-                      </p>
-                    </div>
-                  </div>
+
                 </div>
               ) : (
                 <div className="text-center py-8">
