@@ -206,7 +206,7 @@ export default function Schedule() {
 
   // Fetch schedule cells for selected table
   const { data: cells = [], isLoading: cellsLoading } = useQuery({
-    queryKey: ['/api/schedule-cells', selectedTable],
+    queryKey: [`/api/schedule-cells/${selectedTable}`],
     enabled: selectedTable !== null
   });
 
@@ -291,8 +291,8 @@ export default function Schedule() {
     },
     onSuccess: () => {
       console.log('Cell creation successful, refreshing queries...');
-      queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
-      queryClient.refetchQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
+      queryClient.invalidateQueries({ queryKey: [`/api/schedule-cells/${selectedTable}`] });
+      queryClient.refetchQueries({ queryKey: [`/api/schedule-cells/${selectedTable}`] });
       setShowCellForm(false);
       setSelectedCell(null);
       setCellForm({ educationLevel: '', grade: '', gender: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
@@ -310,7 +310,7 @@ export default function Schedule() {
       return await apiRequest('PUT', `/api/schedule-cells/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
+      queryClient.invalidateQueries({ queryKey: [`/api/schedule-cells/${selectedTable}`] });
       setEditingCell(null);
       setCellForm({ educationLevel: '', grade: '', gender: '', subjectId: '', teacherId: '', duration: 1, day: '', period: '', startTime: '', endTime: '' });
     }
@@ -322,7 +322,7 @@ export default function Schedule() {
       return await apiRequest('DELETE', `/api/schedule-cells/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells', selectedTable] });
+      queryClient.invalidateQueries({ queryKey: [`/api/schedule-cells/${selectedTable}`] });
     }
   });
 
