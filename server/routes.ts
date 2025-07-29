@@ -1414,6 +1414,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Schedule Group Linking routes
+  app.get("/api/groups/compatible", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const { subjectId, teacherId, educationLevel } = req.query;
+      
+      if (!subjectId || !teacherId || !educationLevel) {
+        return res.status(400).json({ error: "معاملات البحث مطلوبة" });
+      }
+
+      const compatibleGroups = await storage.getCompatibleGroups(
+        parseInt(subjectId as string),
+        parseInt(teacherId as string),
+        educationLevel as string,
+        req.session.user.schoolId
+      );
+      
+      res.json(compatibleGroups);
+    } catch (error) {
+      console.error('Error fetching compatible groups:', error);
+      res.status(500).json({ error: "فشل في جلب المجموعات المتوافقة" });
+    }
+  });
+
+  app.get("/api/schedule-cells/linked-groups/:tableId", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const tableId = parseInt(req.params.tableId);
+      const linkedGroups = await storage.getScheduleLinkedGroups(tableId, req.session.user.schoolId);
+      
+      res.json(linkedGroups);
+    } catch (error) {
+      console.error('Error fetching linked groups:', error);
+      res.status(500).json({ error: "فشل في جلب المجموعات المربوطة" });
+    }
+  });
+
+  app.post("/api/schedule-cells/:cellId/link-groups", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const cellId = parseInt(req.params.cellId);
+      const { groupIds } = req.body;
+
+      if (!Array.isArray(groupIds)) {
+        return res.status(400).json({ error: "قائمة المجموعات مطلوبة" });
+      }
+
+      await storage.linkGroupsToScheduleCell(cellId, groupIds, req.session.user.schoolId, req.session.user.id);
+      
+      res.json({ message: "تم ربط المجموعات بالحصة بنجاح" });
+    } catch (error) {
+      console.error('Error linking groups to schedule cell:', error);
+      res.status(500).json({ error: "فشل في ربط المجموعات بالحصة" });
+    }
+  });
+
   // Admin group management routes
   app.get("/api/admin/groups", async (req, res) => {
     try {

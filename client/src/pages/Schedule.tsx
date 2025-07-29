@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Plus, Edit2, Trash2, X, User } from "lucide-react";
+import { Calendar, Clock, Plus, Edit2, Trash2, X, User, Link, Users } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -87,6 +87,11 @@ export default function Schedule() {
   const [editingTable, setEditingTable] = useState<ScheduleTable | null>(null);
   const [editingCell, setEditingCell] = useState<ScheduleCell | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ day: number; period: number } | null>(null);
+  
+  // Group linking state
+  const [showGroupLinkModal, setShowGroupLinkModal] = useState(false);
+  const [linkingCell, setLinkingCell] = useState<ScheduleCell | null>(null);
+  const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   
   // Days of the week (starting with Friday) and time slots (30-minute intervals)
   const daysOfWeek = ['الجمعة', 'السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
@@ -215,6 +220,18 @@ export default function Schedule() {
     queryKey: ['/api/teachers-with-specializations']
   });
 
+  // Fetch compatible groups for linking
+  const { data: compatibleGroups = [] } = useQuery({
+    queryKey: ['/api/groups/compatible', linkingCell?.subject?.id, linkingCell?.teacher?.id, linkingCell?.educationLevel],
+    enabled: !!linkingCell && !!linkingCell.subject?.id && !!linkingCell.teacher?.id,
+  });
+
+  // Fetch linked groups for all cells
+  const { data: linkedGroups = [] } = useQuery({
+    queryKey: ['/api/schedule-cells/linked-groups', selectedTable],
+    enabled: selectedTable !== null,
+  });
+
   // Create schedule table
   const createTableMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -309,6 +326,23 @@ export default function Schedule() {
     }
   });
 
+  // Link groups to schedule cell
+  const linkGroupsMutation = useMutation({
+    mutationFn: async ({ cellId, groupIds }: { cellId: number; groupIds: number[] }) => {
+      return await apiRequest('POST', `/api/schedule-cells/${cellId}/link-groups`, { groupIds });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-cells/linked-groups', selectedTable] });
+      setShowGroupLinkModal(false);
+      setLinkingCell(null);
+      setSelectedGroups([]);
+    },
+    onError: (error) => {
+      console.error('Error linking groups:', error);
+      alert('حدث خطأ في ربط المجموعات');
+    }
+  });
+
   // Handle table form submit
   const handleTableSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -371,6 +405,33 @@ export default function Schedule() {
     } else {
       createCellMutation.mutate(cellData);
     }
+  };
+
+  // Group linking handlers
+  const openGroupLinkModal = (cell: ScheduleCell) => {
+    setLinkingCell(cell);
+    setShowGroupLinkModal(true);
+    // Get currently linked groups for this cell
+    const cellLinkedGroups = linkedGroups.filter((lg: any) => lg.scheduleCellId === cell.id);
+    setSelectedGroups(cellLinkedGroups.map((lg: any) => lg.groupId));
+  };
+
+  const handleGroupToggle = (groupId: number) => {
+    setSelectedGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
+  const handleLinkGroups = () => {
+    if (linkingCell) {
+      linkGroupsMutation.mutate({ cellId: linkingCell.id, groupIds: selectedGroups });
+    }
+  };
+
+  const getCellLinkedGroups = (cellId: number) => {
+    return linkedGroups.filter((lg: any) => lg.scheduleCellId === cellId);
   };
 
   // Get cell at specific day/period
@@ -621,11 +682,32 @@ export default function Schedule() {
                                       </span>
                                     </div>
                                   )}
+
+                                  {/* Linked Groups Display */}
+                                  {getCellLinkedGroups(cell.id).length > 0 && (
+                                    <div className="text-xs text-purple-700 bg-purple-50/80 px-1 py-0.5 rounded shadow-sm border border-purple-200/50">
+                                      <span className="inline-flex items-center">
+                                        <Users className="w-2 h-2 mr-1" />
+                                        <span className="text-xs">
+                                          {getCellLinkedGroups(cell.id).length} مجموعة
+                                        </span>
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               
                               {isAdmin && (
                                 <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 bg-white/80 hover:bg-purple-100 shadow-lg backdrop-blur-sm border border-white/50 rounded-full"
+                                    onClick={() => openGroupLinkModal(cell)}
+                                    title="ربط المجموعات"
+                                  >
+                                    <Link className="w-3 h-3 text-purple-600" />
+                                  </Button>
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -993,6 +1075,98 @@ export default function Schedule() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Group Link Modal - Admin Only */}
+      {isAdmin && showGroupLinkModal && linkingCell && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                ربط المجموعات بالحصة
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowGroupLinkModal(false);
+                  setLinkingCell(null);
+                  setSelectedGroups([]);
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Schedule Cell Info */}
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <h4 className="font-medium text-sm mb-2">معلومات الحصة:</h4>
+                <div className="space-y-1 text-sm text-gray-600">
+                  <div>المادة: {linkingCell.subject?.nameAr}</div>
+                  <div>المعلم: {linkingCell.teacher?.name}</div>
+                  <div>المستوى: {linkingCell.educationLevel}</div>
+                  {linkingCell.startTime && linkingCell.endTime && (
+                    <div>الوقت: {linkingCell.startTime} - {linkingCell.endTime}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Compatible Groups */}
+              <div>
+                <h4 className="font-medium text-sm mb-3">المجموعات المتوافقة:</h4>
+                {compatibleGroups.length > 0 ? (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {compatibleGroups.map((group: any) => (
+                      <div
+                        key={group.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          selectedGroups.includes(group.id)
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleGroupToggle(group.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-sm">{group.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {group.studentsCount || 0} طالب
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                            selectedGroups.includes(group.id)
+                              ? 'border-purple-500 bg-purple-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedGroups.includes(group.id) && (
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500 text-center py-4">
+                    لا توجد مجموعات متوافقة مع هذه الحصة
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-reverse space-x-2 pt-4 border-t">
+                <Button
+                  onClick={handleLinkGroups}
+                  disabled={linkGroupsMutation.isPending}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {linkGroupsMutation.isPending ? 'جاري الربط...' : 'ربط المجموعات'}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}

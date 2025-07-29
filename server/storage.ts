@@ -189,6 +189,9 @@ export interface IStorage {
   getGroupScheduledLessonDates(groupId: number, schoolId: number): Promise<string[]>;
   assignGroupToSchedule(groupId: number, scheduleCellId: number, schoolId: number, assignedBy: number): Promise<any>;
   getGroupScheduleAssignments(groupId: number): Promise<any[]>;
+  getCompatibleGroups(subjectId: number, teacherId: number, educationLevel: string, schoolId: number): Promise<any[]>;
+  getScheduleLinkedGroups(tableId: number, schoolId: number): Promise<any[]>;
+  linkGroupsToScheduleCell(cellId: number, groupIds: number[], schoolId: number, assignedBy: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2085,6 +2088,90 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error getting group schedule assignments:', error);
       return [];
+    }
+  }
+
+  async getCompatibleGroups(subjectId: number, teacherId: number, educationLevel: string, schoolId: number): Promise<any[]> {
+    try {
+      return await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          educationLevel: groups.educationLevel,
+          subjectId: groups.subjectId,
+          teacherId: groups.teacherId,
+          studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`
+        })
+        .from(groups)
+        .leftJoin(groupUserAssignments, eq(groups.id, groupUserAssignments.groupId))
+        .where(and(
+          eq(groups.schoolId, schoolId),
+          eq(groups.subjectId, subjectId),
+          eq(groups.teacherId, teacherId),
+          eq(groups.educationLevel, educationLevel),
+          eq(groups.isPlaceholder, false) // Only include actual groups, not placeholders
+        ))
+        .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
+        .orderBy(groups.name);
+    } catch (error) {
+      console.error('Error getting compatible groups:', error);
+      return [];
+    }
+  }
+
+  async getScheduleLinkedGroups(tableId: number, schoolId: number): Promise<any[]> {
+    try {
+      return await db
+        .select({
+          id: groupScheduleAssignments.id,
+          groupId: groupScheduleAssignments.groupId,
+          scheduleCellId: groupScheduleAssignments.scheduleCellId,
+          groupName: groups.name,
+          isActive: groupScheduleAssignments.isActive,
+          createdAt: groupScheduleAssignments.createdAt
+        })
+        .from(groupScheduleAssignments)
+        .leftJoin(groups, eq(groupScheduleAssignments.groupId, groups.id))
+        .leftJoin(scheduleCells, eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id))
+        .where(and(
+          eq(groupScheduleAssignments.schoolId, schoolId),
+          eq(scheduleCells.scheduleTableId, tableId),
+          eq(groupScheduleAssignments.isActive, true)
+        ))
+        .orderBy(groups.name);
+    } catch (error) {
+      console.error('Error getting schedule linked groups:', error);
+      return [];
+    }
+  }
+
+  async linkGroupsToScheduleCell(cellId: number, groupIds: number[], schoolId: number, assignedBy: number): Promise<void> {
+    try {
+      // First, remove all existing assignments for this cell
+      await db
+        .delete(groupScheduleAssignments)
+        .where(and(
+          eq(groupScheduleAssignments.scheduleCellId, cellId),
+          eq(groupScheduleAssignments.schoolId, schoolId)
+        ));
+
+      // Then, add new assignments if groupIds is not empty
+      if (groupIds.length > 0) {
+        const assignments = groupIds.map(groupId => ({
+          groupId,
+          scheduleCellId: cellId,
+          schoolId,
+          assignedBy,
+          isActive: true
+        }));
+
+        await db
+          .insert(groupScheduleAssignments)
+          .values(assignments);
+      }
+    } catch (error) {
+      console.error('Error linking groups to schedule cell:', error);
+      throw error;
     }
   }
 }
