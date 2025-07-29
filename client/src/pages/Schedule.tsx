@@ -223,6 +223,20 @@ export default function Schedule() {
   // Fetch compatible groups for linking
   const { data: compatibleGroups = [] } = useQuery({
     queryKey: ['/api/groups/compatible', linkingCell?.subject?.id, linkingCell?.teacher?.id, linkingCell?.educationLevel],
+    queryFn: async () => {
+      if (!linkingCell?.subject?.id || !linkingCell?.teacher?.id || !linkingCell?.educationLevel) {
+        return [];
+      }
+      
+      const params = new URLSearchParams({
+        subjectId: linkingCell.subject.id.toString(),
+        teacherId: linkingCell.teacher.id.toString(),
+        educationLevel: linkingCell.educationLevel
+      });
+      
+      const response = await apiRequest('GET', `/api/groups/compatible?${params.toString()}`);
+      return await response.json();
+    },
     enabled: !!linkingCell && !!linkingCell.subject?.id && !!linkingCell.teacher?.id,
   });
 

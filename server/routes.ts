@@ -1423,6 +1423,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { subjectId, teacherId, educationLevel } = req.query;
       
+      console.log('Compatible groups request params:', {
+        subjectId,
+        teacherId,
+        educationLevel,
+        schoolId: req.session.user.schoolId
+      });
+      
       if (!subjectId || !teacherId || !educationLevel) {
         return res.status(400).json({ error: "معاملات البحث مطلوبة" });
       }
@@ -1434,6 +1441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.user.schoolId
       );
       
+      console.log('Found compatible groups:', compatibleGroups);
       res.json(compatibleGroups);
     } catch (error) {
       console.error('Error fetching compatible groups:', error);
