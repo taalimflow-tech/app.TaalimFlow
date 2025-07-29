@@ -8,6 +8,151 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, User, Plus, Calendar, DollarSign, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
 
+// Component for displaying scheduled dates attendance carousel
+function ScheduledDatesCarousel({ 
+  groupId, 
+  students, 
+  scheduledDates, 
+  attendanceHistory, 
+  onAttendanceUpdate 
+}: {
+  groupId: number;
+  students: any[];
+  scheduledDates: string[];
+  attendanceHistory: any[];
+  onAttendanceUpdate: (studentId: number, date: string, currentStatus?: string) => void;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const datesPerPage = 6; // Show 6 dates at a time
+  
+  const totalPages = Math.ceil(scheduledDates.length / datesPerPage);
+  const currentDates = scheduledDates.slice(
+    currentIndex * datesPerPage, 
+    (currentIndex + 1) * datesPerPage
+  );
+
+  const goToPrevious = () => {
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const goToNext = () => {
+    setCurrentIndex(prev => Math.min(totalPages - 1, prev + 1));
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Navigation Header */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={goToPrevious}
+          disabled={currentIndex === 0}
+          className="p-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        
+        <div className="text-center">
+          <h5 className="font-medium text-gray-800">
+            المواعيد المجدولة ({currentIndex * datesPerPage + 1} - {Math.min((currentIndex + 1) * datesPerPage, scheduledDates.length)} من {scheduledDates.length})
+          </h5>
+          <div className="flex gap-1 mt-2 justify-center">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentIndex(i)}
+                className={`w-2 h-2 rounded-full ${i === currentIndex ? 'bg-blue-500' : 'bg-gray-300'}`}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <button
+          onClick={goToNext}
+          disabled={currentIndex === totalPages - 1}
+          className="p-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Dates Grid */}
+      <div className="grid gap-4">
+        {currentDates.map((date) => {
+          const dateObj = new Date(date);
+          const dayAttendance = attendanceHistory.filter(record => 
+            record.attendanceDate?.split('T')[0] === date
+          );
+          
+          const presentCount = dayAttendance.filter(record => record.status === 'present').length;
+          const absentCount = dayAttendance.filter(record => record.status === 'absent').length;
+          const totalStudents = students.length;
+          const attendanceRate = totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
+
+          return (
+            <div key={date} className="border rounded-lg p-4 bg-gray-50">
+              {/* Date Header */}
+              <div className="text-center mb-4 pb-3 border-b border-gray-200">
+                <div className="text-lg font-bold text-gray-800">
+                  {dateObj.toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {dateObj.toLocaleDateString('en-US', { weekday: 'long' })}
+                </div>
+                
+                {/* Date Statistics */}
+                <div className="flex justify-center gap-4 mt-2 text-xs">
+                  <span className="text-green-600 font-medium">حضور: {presentCount}</span>
+                  <span className="text-red-600 font-medium">غياب: {absentCount}</span>
+                  <span className="text-blue-600 font-medium">النسبة: {attendanceRate}%</span>
+                </div>
+              </div>
+
+              {/* Students Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {students.map((student) => {
+                  const attendanceRecord = attendanceHistory.find(record => 
+                    record.studentId === student.id && 
+                    record.attendanceDate?.split('T')[0] === date
+                  );
+
+                  return (
+                    <div key={student.id} className="text-center">
+                      <div className="text-xs font-medium text-gray-700 mb-1 truncate" title={student.name}>
+                        {student.name.split(' ')[0]}
+                      </div>
+                      <button
+                        onClick={() => onAttendanceUpdate(student.id, date, attendanceRecord?.status)}
+                        className={`w-10 h-10 rounded-full text-sm font-bold transition-colors ${
+                          attendanceRecord?.status === 'present' 
+                            ? 'bg-green-500 text-white hover:bg-green-600' 
+                            : attendanceRecord?.status === 'absent'
+                            ? 'bg-red-500 text-white hover:bg-red-600'
+                            : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                        }`}
+                        title={`${student.name} - ${
+                          attendanceRecord?.status === 'present' ? 'حاضر' : 
+                          attendanceRecord?.status === 'absent' ? 'غائب' : 'غير مسجل'
+                        }`}
+                      >
+                        {attendanceRecord?.status === 'present' ? '✓' : 
+                         attendanceRecord?.status === 'absent' ? '✗' : '?'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // Monthly Attendance Carousel component
 function MonthlyAttendanceCarousel({ groupId, students, attendanceHistory }: { groupId: number, students: any[], attendanceHistory: any[] }) {
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
@@ -1676,86 +1821,23 @@ export default function Groups() {
                     </div>
                   </div>
 
-                  {/* Table-Based Attendance View */}
+                  {/* Scheduled Dates Attendance Carousel */}
                   <div className="bg-white rounded-lg border p-4">
-                    <h4 className="font-semibold text-gray-800 mb-4">جدول الحضور - المواعيد المجدولة</h4>
+                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور - المواعيد المجدولة</h4>
                     {scheduledDatesData?.dates && scheduledDatesData.dates.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300" dir="rtl">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
-                              {scheduledDatesData.dates.slice(0, 12).map((date) => (
-                                <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
-                                  <div className="text-xs">
-                                    {new Date(date).toLocaleDateString('ar-SA', { 
-                                      day: 'numeric', 
-                                      month: 'short',
-                                      weekday: 'short' 
-                                    })}
-                                  </div>
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {managementGroup.studentsAssigned.map((student: any) => (
-                              <tr key={student.id} className="hover:bg-gray-50">
-                                <td className="border border-gray-300 p-3 font-medium">
-                                  <div>
-                                    <div className="font-medium">{student.name}</div>
-                                    <div className="text-xs text-gray-600">{student.email}</div>
-                                  </div>
-                                </td>
-                                {scheduledDatesData.dates.slice(0, 12).map((date) => {
-                                  const attendanceRecord = attendanceHistory.find((record: any) => 
-                                    record.studentId === student.id && 
-                                    record.attendanceDate?.split('T')[0] === date
-                                  );
-                                  
-                                  return (
-                                    <td key={date} className="border border-gray-300 p-1 text-center">
-                                      <button
-                                        onClick={() => handleTableAttendanceClick(student.id, date, attendanceRecord?.status)}
-                                        className={`w-8 h-8 rounded text-xs font-bold ${
-                                          attendanceRecord?.status === 'present' 
-                                            ? 'bg-green-500 text-white hover:bg-green-600' 
-                                            : attendanceRecord?.status === 'absent'
-                                            ? 'bg-red-500 text-white hover:bg-red-600'
-                                            : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
-                                        }`}
-                                        title={`${student.name} - ${date} - ${
-                                          attendanceRecord?.status === 'present' ? 'حاضر' : 
-                                          attendanceRecord?.status === 'absent' ? 'غائب' : 'غير مسجل'
-                                        }`}
-                                      >
-                                        {attendanceRecord?.status === 'present' ? '✓' : 
-                                         attendanceRecord?.status === 'absent' ? '✗' : '?'}
-                                      </button>
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                      <ScheduledDatesCarousel 
+                        groupId={managementGroup.id}
+                        students={managementGroup.studentsAssigned || []}
+                        scheduledDates={scheduledDatesData.dates}
+                        attendanceHistory={attendanceHistory || []}
+                        onAttendanceUpdate={handleTableAttendanceClick}
+                      />
                     ) : (
                       <div className="text-center py-8">
                         <p className="text-gray-600">لا توجد حصص مجدولة لهذه المجموعة</p>
                         <p className="text-sm text-gray-500 mt-2">يجب ربط المجموعة بجدول الحصص أولاً</p>
                       </div>
                     )}
-                  </div>
-
-                  {/* Monthly Attendance Carousel */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور - العرض الشهري</h4>
-                    <MonthlyAttendanceCarousel 
-                      groupId={managementGroup.id}
-                      students={managementGroup.studentsAssigned || []}
-                      attendanceHistory={attendanceHistory || []}
-                    />
                   </div>
 
                   {/* Attendance Statistics */}
