@@ -159,13 +159,14 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
-- **January 29, 2025**: SCHEDULE DAY ASSIGNMENT FIX - Resolved lesson day assignment consistency issues
-  - **Database Verification**: Confirmed group 5 lesson correctly assigned to Friday (day_of_week = 5)
-  - **Schedule Cell Management**: Fixed schedule cell ID 6 for الهندسة الميكانيكية lesson
-  - **Day Mapping Clarification**: Established clear day numbering system (0=Sunday, 5=Friday, etc.)
-  - **Attendance Date Generation**: Attendance system properly generates Friday dates for 24-month tracking
-  - **User Workflow Fix**: Resolved issue where creating new lessons defaulted to wrong days
-  - **System Consistency**: Ensured schedule display matches database day assignments
+- **January 29, 2025**: FRIDAY-FIRST SCHEDULE SYSTEM IMPLEMENTATION - Complete restructure to Friday-first week display
+  - **Day Mapping Revolution**: Changed to Friday-first system (Friday=0, Saturday=1, ..., Thursday=6)
+  - **Database Migration**: Updated all existing schedule cells to new Friday-first day mapping
+  - **Date Generation Fix**: Modified getGroupScheduledLessonDates to calculate from Friday-first week start
+  - **UI Consistency**: Schedule display now starts with Friday column matching Arabic week structure
+  - **Attendance Calendar Fix**: 24-month attendance system now generates correct Friday dates
+  - **Cultural Alignment**: System now matches Middle Eastern week structure with Friday as first day
+  - **Schedule Cell Management**: Fixed schedule cell ID 6 for الهندسة الميكانيكية on Friday (day=0)
 - **January 28, 2025**: MONTHLY ATTENDANCE CAROUSEL IMPLEMENTATION - Revolutionary monthly sliding view for attendance tracking
   - **Replaced table-based attendance** with interactive monthly carousel showing 13 months (6 past + current + 6 future)
   - **Monthly Statistics Cards**: Each month displays scheduled lessons, total attendance, absences, and attendance percentage

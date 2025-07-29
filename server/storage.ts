@@ -2024,7 +2024,11 @@ export class DatabaseStorage implements IStorage {
       const dates: string[] = [];
       const today = new Date();
       const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
+      
+      // Adjust for Friday-first week (Friday = 0, Saturday = 1, ..., Thursday = 6)
+      // Find the most recent Friday to start from
+      const daysSinceFriday = (today.getDay() + 2) % 7; // Convert to Friday-first mapping
+      startOfWeek.setDate(today.getDate() - daysSinceFriday);
 
       for (let week = 0; week < 104; week++) { // 2 years = 104 weeks
         for (const assignment of assignments) {
