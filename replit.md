@@ -159,6 +159,13 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 29, 2025**: SCHEDULE DAY ASSIGNMENT FIX - Resolved lesson day assignment consistency issues
+  - **Database Verification**: Confirmed group 5 lesson correctly assigned to Friday (day_of_week = 5)
+  - **Schedule Cell Management**: Fixed schedule cell ID 6 for الهندسة الميكانيكية lesson
+  - **Day Mapping Clarification**: Established clear day numbering system (0=Sunday, 5=Friday, etc.)
+  - **Attendance Date Generation**: Attendance system properly generates Friday dates for 24-month tracking
+  - **User Workflow Fix**: Resolved issue where creating new lessons defaulted to wrong days
+  - **System Consistency**: Ensured schedule display matches database day assignments
 - **January 28, 2025**: MONTHLY ATTENDANCE CAROUSEL IMPLEMENTATION - Revolutionary monthly sliding view for attendance tracking
   - **Replaced table-based attendance** with interactive monthly carousel showing 13 months (6 past + current + 6 future)
   - **Monthly Statistics Cards**: Each month displays scheduled lessons, total attendance, absences, and attendance percentage
