@@ -170,28 +170,6 @@ function MonthlyAttendanceCarousel({ groupId, students, attendanceHistory }: { g
         </button>
       </div>
 
-      {/* Month Statistics */}
-      <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
-            <div className="text-2xl font-bold text-blue-600">{currentMonth?.stats.totalScheduledLessons || 0}</div>
-            <div className="text-xs text-gray-600">حصص مجدولة</div>
-          </div>
-          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
-            <div className="text-2xl font-bold text-green-600">{currentMonth?.stats.totalPresent || 0}</div>
-            <div className="text-xs text-gray-600">حضور</div>
-          </div>
-          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
-            <div className="text-2xl font-bold text-red-600">{currentMonth?.stats.totalAbsent || 0}</div>
-            <div className="text-xs text-gray-600">غياب</div>
-          </div>
-          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
-            <div className="text-2xl font-bold text-purple-600">{currentMonth?.stats.attendanceRate || 0}%</div>
-            <div className="text-xs text-gray-600">نسبة الحضور</div>
-          </div>
-        </div>
-      </div>
-
       {/* Mini Calendar */}
       <div className="p-4">
         <h4 className="text-sm font-medium text-gray-700 mb-3">التقويم الشهري</h4>
@@ -248,6 +226,28 @@ function MonthlyAttendanceCarousel({ groupId, students, attendanceHistory }: { g
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             <span>مجدول</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Month Statistics */}
+      <div className="p-4 border-t bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-blue-600">{currentMonth?.stats.totalScheduledLessons || 0}</div>
+            <div className="text-xs text-gray-600">حصص مجدولة</div>
+          </div>
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-green-600">{currentMonth?.stats.totalPresent || 0}</div>
+            <div className="text-xs text-gray-600">حضور</div>
+          </div>
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-red-600">{currentMonth?.stats.totalAbsent || 0}</div>
+            <div className="text-xs text-gray-600">غياب</div>
+          </div>
+          <div className="text-center bg-white rounded-lg p-3 shadow-sm">
+            <div className="text-2xl font-bold text-purple-600">{currentMonth?.stats.attendanceRate || 0}%</div>
+            <div className="text-xs text-gray-600">نسبة الحضور</div>
           </div>
         </div>
       </div>
