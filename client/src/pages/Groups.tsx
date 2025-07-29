@@ -205,7 +205,7 @@ function MonthlyAttendanceCarousel({ groupId, students, attendanceHistory }: { g
       
       months.push({
         date: monthDate,
-        monthName: monthDate.toLocaleDateString('ar-DZ', { month: 'long', year: 'numeric' }),
+        monthName: monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
         monthNameEn: monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
         scheduledDates: monthScheduledDates,
         attendance: monthAttendance,
@@ -785,7 +785,7 @@ export default function Groups() {
         
         toast({ 
           title: `تم تسجيل ${nextStatus === 'present' ? 'الحضور' : 'الغياب'} بنجاح`,
-          description: `${new Date(date).toLocaleDateString('ar-SA')}`
+          description: `${new Date(date).toLocaleDateString('en-US')}`
         });
       }
     } catch (error) {

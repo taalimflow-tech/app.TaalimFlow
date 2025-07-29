@@ -171,6 +171,7 @@ This unified approach provides better data consistency, easier queries, and impr
   - **Upsert Logic**: Implemented proper update-or-insert logic in markAttendance method
   - **Duplicate Cleanup**: Removed existing duplicate attendance records from database
   - **Toggle Behavior**: Clicking same cell now properly toggles present/absent without creating multiple entries
+  - **Gregorian Date Format**: Updated all date displays to use standard Gregorian calendar (MM/DD/YYYY) format
 - **January 28, 2025**: MONTHLY ATTENDANCE CAROUSEL IMPLEMENTATION - Revolutionary monthly sliding view for attendance tracking
   - **Replaced table-based attendance** with interactive monthly carousel showing 13 months (6 past + current + 6 future)
   - **Monthly Statistics Cards**: Each month displays scheduled lessons, total attendance, absences, and attendance percentage
