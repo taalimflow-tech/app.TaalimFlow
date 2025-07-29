@@ -1821,17 +1821,69 @@ export default function Groups() {
                     </div>
                   </div>
 
-                  {/* Scheduled Dates Attendance Carousel */}
+                  {/* Table-Based Attendance View */}
                   <div className="bg-white rounded-lg border p-4">
-                    <h4 className="font-semibold text-gray-800 mb-4">سجل الحضور - المواعيد المجدولة</h4>
+                    <h4 className="font-semibold text-gray-800 mb-4">جدول الحضور - المواعيد المجدولة</h4>
                     {scheduledDatesData?.dates && scheduledDatesData.dates.length > 0 ? (
-                      <ScheduledDatesCarousel 
-                        groupId={managementGroup.id}
-                        students={managementGroup.studentsAssigned || []}
-                        scheduledDates={scheduledDatesData.dates}
-                        attendanceHistory={attendanceHistory || []}
-                        onAttendanceUpdate={handleTableAttendanceClick}
-                      />
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse border border-gray-300" dir="rtl">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
+                              {scheduledDatesData.dates.slice(0, 12).map((date) => (
+                                <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                                  <div className="text-xs">
+                                    {new Date(date).toLocaleDateString('en-US', { 
+                                      day: 'numeric', 
+                                      month: 'numeric'
+                                    })}
+                                  </div>
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {managementGroup.studentsAssigned.map((student: any) => (
+                              <tr key={student.id} className="hover:bg-gray-50">
+                                <td className="border border-gray-300 p-3 font-medium">
+                                  <div>
+                                    <div className="font-medium">{student.name}</div>
+                                    <div className="text-xs text-gray-600">{student.email}</div>
+                                  </div>
+                                </td>
+                                {scheduledDatesData.dates.slice(0, 12).map((date) => {
+                                  const attendanceRecord = attendanceHistory.find((record: any) => 
+                                    record.studentId === student.id && 
+                                    record.attendanceDate?.split('T')[0] === date
+                                  );
+                                  
+                                  return (
+                                    <td key={date} className="border border-gray-300 p-1 text-center">
+                                      <button
+                                        onClick={() => handleTableAttendanceClick(student.id, date, attendanceRecord?.status)}
+                                        className={`w-8 h-8 rounded text-xs font-bold ${
+                                          attendanceRecord?.status === 'present' 
+                                            ? 'bg-green-500 text-white hover:bg-green-600' 
+                                            : attendanceRecord?.status === 'absent'
+                                            ? 'bg-red-500 text-white hover:bg-red-600'
+                                            : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                                        }`}
+                                        title={`${student.name} - ${date} - ${
+                                          attendanceRecord?.status === 'present' ? 'حاضر' : 
+                                          attendanceRecord?.status === 'absent' ? 'غائب' : 'غير مسجل'
+                                        }`}
+                                      >
+                                        {attendanceRecord?.status === 'present' ? '✓' : 
+                                         attendanceRecord?.status === 'absent' ? '✗' : '?'}
+                                      </button>
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     ) : (
                       <div className="text-center py-8">
                         <p className="text-gray-600">لا توجد حصص مجدولة لهذه المجموعة</p>
