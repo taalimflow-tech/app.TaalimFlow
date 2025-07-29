@@ -499,12 +499,6 @@ export default function Groups() {
     return `${monthNames[date.getMonth()]} ${year}`;
   };
 
-  // Process scheduled dates into monthly groups
-  const monthlyGroups = scheduledDatesData?.dates ? groupDatesByMonth(scheduledDatesData.dates) : {};
-  const monthKeys = Object.keys(monthlyGroups).sort();
-  const currentMonthKey = monthKeys[currentMonthIndex] || '';
-  const currentMonthDates = monthlyGroups[currentMonthKey] || [];
-
   // Navigation functions
   const goToPreviousMonth = () => {
     setCurrentMonthIndex(prev => Math.max(0, prev - 1));
@@ -562,6 +556,12 @@ export default function Groups() {
     },
     enabled: !!managementGroup && managementView === 'attendance'
   });
+
+  // Process scheduled dates into monthly groups
+  const monthlyGroups = scheduledDatesData?.dates ? groupDatesByMonth(scheduledDatesData.dates) : {};
+  const monthKeys = Object.keys(monthlyGroups).sort();
+  const currentMonthKey = monthKeys[currentMonthIndex] || '';
+  const currentMonthDates = monthlyGroups[currentMonthKey] || [];
 
   // Set initial month to current month when data loads
   useEffect(() => {
