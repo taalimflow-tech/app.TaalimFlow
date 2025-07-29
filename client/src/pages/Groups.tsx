@@ -441,11 +441,9 @@ export default function Groups() {
   // Group management state
   const [managementView, setManagementView] = useState<'attendance' | 'financial' | null>(null);
   const [managementGroup, setManagementGroup] = useState<Group | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   
   // Attendance state
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
-  const [markingAttendance, setMarkingAttendance] = useState<{ [key: number]: string }>({});
   
   // Financial state
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -530,8 +528,8 @@ export default function Groups() {
   });
 
   // Attendance data queries
-  const { data: attendanceData = [], refetch: refetchAttendance } = useQuery<any[]>({
-    queryKey: ['/api/groups', managementGroup?.id, 'attendance', selectedDate],
+  const { data: attendanceData = [] } = useQuery<any[]>({
+    queryKey: ['/api/groups', managementGroup?.id, 'attendance'],
     enabled: !!managementGroup && managementView === 'attendance',
   });
 
@@ -677,26 +675,7 @@ export default function Groups() {
     }
   });
 
-  // Attendance mutations
-  const markAttendanceMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest('POST', `/api/groups/${managementGroup?.id}/attendance`, data);
-    },
-    onSuccess: () => {
-      refetchAttendance();
-      toast({
-        title: "تم تسجيل الحضور",
-        description: "تم تسجيل حضور الطالب بنجاح",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في تسجيل الحضور",
-        description: error.response?.data?.error || "فشل في تسجيل الحضور",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   // Financial mutations
   const createTransactionMutation = useMutation({
@@ -784,16 +763,7 @@ export default function Groups() {
     setManagementView(null);
   };
 
-  // Attendance handlers
-  const handleMarkAttendance = (studentId: number, status: string) => {
-    const attendanceData = {
-      studentId,
-      status,
-      attendanceDate: new Date(selectedDate),
-      notes: ''
-    };
-    markAttendanceMutation.mutate(attendanceData);
-  };
+
 
   // Table attendance click handler - toggles between present/absent
   const handleTableAttendanceClick = async (studentId: number, date: string, currentStatus?: string) => {
@@ -1831,66 +1801,11 @@ export default function Groups() {
                   إغلاق
                 </Button>
               </div>
-              
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  تاريخ الحضور
-                </label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
             </div>
 
             <div className="p-6">
               {managementGroup.studentsAssigned && managementGroup.studentsAssigned.length > 0 ? (
                 <div className="space-y-6">
-                  {/* Current Date Attendance Section */}
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-800 mb-4">تسجيل الحضور لتاريخ {selectedDate}</h4>
-                    <div className="space-y-3">
-                      {managementGroup.studentsAssigned.map((student: any) => (
-                        <div key={student.id} className="bg-white rounded-lg p-3 flex items-center justify-between">
-                          <div>
-                            <h5 className="font-medium">{student.name}</h5>
-                            <p className="text-sm text-gray-600">{student.email}</p>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant={markingAttendance[student.id] === 'present' ? 'default' : 'outline'}
-                              className={markingAttendance[student.id] === 'present' ? 'bg-green-600 hover:bg-green-700' : 'border-green-500 text-green-600 hover:bg-green-50'}
-                              onClick={() => {
-                                setMarkingAttendance(prev => ({ ...prev, [student.id]: 'present' }));
-                                handleMarkAttendance(student.id, 'present');
-                              }}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              حاضر
-                            </Button>
-                            
-                            <Button
-                              size="sm"
-                              variant={markingAttendance[student.id] === 'absent' ? 'default' : 'outline'}
-                              className={markingAttendance[student.id] === 'absent' ? 'bg-red-600 hover:bg-red-700' : 'border-red-500 text-red-600 hover:bg-red-50'}
-                              onClick={() => {
-                                setMarkingAttendance(prev => ({ ...prev, [student.id]: 'absent' }));
-                                handleMarkAttendance(student.id, 'absent');
-                              }}
-                            >
-                              <XCircle className="w-4 h-4 mr-1" />
-                              غائب
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Monthly Carousel Attendance View */}
                   <div className="bg-white rounded-lg border p-4">
                     <div className="flex items-center justify-between mb-4">
