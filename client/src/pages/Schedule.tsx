@@ -364,25 +364,18 @@ export default function Schedule() {
       return;
     }
     
-    // Auto-calculate period based on start time if not already set
+    // Auto-calculate period based on start time matching timeSlots array (30-minute intervals)
     let period = parseInt(cellForm.period) || 1;
     if (cellForm.startTime) {
-      const hour = parseInt(cellForm.startTime.split(':')[0]);
-      if (hour >= 8 && hour < 9) period = 1;
-      else if (hour >= 9 && hour < 10) period = 2;
-      else if (hour >= 10 && hour < 11) period = 3;
-      else if (hour >= 11 && hour < 12) period = 4;
-      else if (hour >= 12 && hour < 13) period = 5;
-      else if (hour >= 13 && hour < 14) period = 6;
-      else if (hour >= 14 && hour < 15) period = 7;
-      else if (hour >= 15 && hour < 16) period = 8;
-      else if (hour >= 16 && hour < 17) period = 9;
-      else if (hour >= 17 && hour < 18) period = 10;
-      else if (hour >= 18 && hour < 19) period = 11;
-      else if (hour >= 19 && hour < 20) period = 12;
-      else if (hour >= 20 && hour < 21) period = 13;
-      else if (hour >= 21 && hour < 22) period = 14;
-      else if (hour >= 22 && hour < 23) period = 15;
+      const [hour, minute] = cellForm.startTime.split(':').map(Number);
+      const timeSlot = timeSlots.find(slot => {
+        const [slotHour, slotMin] = slot.time.split(':').map(Number);
+        return slotHour === hour && slotMin === minute;
+      });
+      
+      if (timeSlot) {
+        period = timeSlot.period;
+      }
     }
 
     const cellData = {
