@@ -459,6 +459,61 @@ export default function Groups() {
     status: 'pending'
   });
 
+  // Monthly carousel state
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+
+
+
+  // Helper function to group dates by month
+  const groupDatesByMonth = (dates: string[]) => {
+    const monthGroups: { [key: string]: string[] } = {};
+    
+    dates.forEach(date => {
+      const dateObj = new Date(date);
+      const monthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthGroups[monthKey]) {
+        monthGroups[monthKey] = [];
+      }
+      monthGroups[monthKey].push(date);
+    });
+
+    // Sort dates within each month
+    Object.keys(monthGroups).forEach(monthKey => {
+      monthGroups[monthKey].sort();
+    });
+
+    return monthGroups;
+  };
+
+  // Helper function to get month display name
+  const getMonthDisplayName = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    
+    const monthNames = [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ];
+    
+    return `${monthNames[date.getMonth()]} ${year}`;
+  };
+
+  // Process scheduled dates into monthly groups
+  const monthlyGroups = scheduledDatesData?.dates ? groupDatesByMonth(scheduledDatesData.dates) : {};
+  const monthKeys = Object.keys(monthlyGroups).sort();
+  const currentMonthKey = monthKeys[currentMonthIndex] || '';
+  const currentMonthDates = monthlyGroups[currentMonthKey] || [];
+
+  // Navigation functions
+  const goToPreviousMonth = () => {
+    setCurrentMonthIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentMonthIndex(prev => Math.min(monthKeys.length - 1, prev + 1));
+  };
+
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
     queryKey: ['/api/admin/groups'],
@@ -507,6 +562,21 @@ export default function Groups() {
     },
     enabled: !!managementGroup && managementView === 'attendance'
   });
+
+  // Set initial month to current month when data loads
+  useEffect(() => {
+    if (scheduledDatesData?.dates && scheduledDatesData.dates.length > 0) {
+      const currentDate = new Date();
+      const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const monthlyGroups = groupDatesByMonth(scheduledDatesData.dates);
+      const monthKeys = Object.keys(monthlyGroups).sort();
+      const currentIndex = monthKeys.findIndex(key => key === currentMonthKey);
+      
+      if (currentIndex !== -1) {
+        setCurrentMonthIndex(currentIndex);
+      }
+    }
+  }, [scheduledDatesData]);
 
   // Financial data queries
   const { data: financialData = [], refetch: refetchFinancial } = useQuery<any[]>({
@@ -1821,69 +1891,112 @@ export default function Groups() {
                     </div>
                   </div>
 
-                  {/* Table-Based Attendance View */}
+                  {/* Monthly Carousel Attendance View */}
                   <div className="bg-white rounded-lg border p-4">
-                    <h4 className="font-semibold text-gray-800 mb-4">جدول الحضور - المواعيد المجدولة</h4>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold text-gray-800">جدول الحضور الشهري - المواعيد المجدولة</h4>
+                      
+                      {monthKeys.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={goToPreviousMonth}
+                            disabled={currentMonthIndex === 0}
+                            className="h-8 w-8 p-0"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                          
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-medium px-3 py-1 bg-blue-50 rounded-lg text-blue-700">
+                              {currentMonthKey ? getMonthDisplayName(currentMonthKey) : ''}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {currentMonthIndex + 1} / {monthKeys.length}
+                            </div>
+                          </div>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={goToNextMonth}
+                            disabled={currentMonthIndex === monthKeys.length - 1}
+                            className="h-8 w-8 p-0"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
                     {scheduledDatesData?.dates && scheduledDatesData.dates.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300" dir="rtl">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
-                              {scheduledDatesData.dates.slice(0, 12).map((date) => (
-                                <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
-                                  <div className="text-xs">
-                                    {new Date(date).toLocaleDateString('en-US', { 
-                                      day: 'numeric', 
-                                      month: 'numeric'
-                                    })}
-                                  </div>
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {managementGroup.studentsAssigned.map((student: any) => (
-                              <tr key={student.id} className="hover:bg-gray-50">
-                                <td className="border border-gray-300 p-3 font-medium">
-                                  <div>
-                                    <div className="font-medium">{student.name}</div>
-                                    <div className="text-xs text-gray-600">{student.email}</div>
-                                  </div>
-                                </td>
-                                {scheduledDatesData.dates.slice(0, 12).map((date) => {
-                                  const attendanceRecord = attendanceHistory.find((record: any) => 
-                                    record.studentId === student.id && 
-                                    record.attendanceDate?.split('T')[0] === date
-                                  );
-                                  
-                                  return (
-                                    <td key={date} className="border border-gray-300 p-1 text-center">
-                                      <button
-                                        onClick={() => handleTableAttendanceClick(student.id, date, attendanceRecord?.status)}
-                                        className={`w-8 h-8 rounded text-xs font-bold ${
-                                          attendanceRecord?.status === 'present' 
-                                            ? 'bg-green-500 text-white hover:bg-green-600' 
-                                            : attendanceRecord?.status === 'absent'
-                                            ? 'bg-red-500 text-white hover:bg-red-600'
-                                            : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
-                                        }`}
-                                        title={`${student.name} - ${date} - ${
-                                          attendanceRecord?.status === 'present' ? 'حاضر' : 
-                                          attendanceRecord?.status === 'absent' ? 'غائب' : 'غير مسجل'
-                                        }`}
-                                      >
-                                        {attendanceRecord?.status === 'present' ? '✓' : 
-                                         attendanceRecord?.status === 'absent' ? '✗' : '?'}
-                                      </button>
-                                    </td>
-                                  );
-                                })}
+                      monthKeys.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse border border-gray-300" dir="rtl">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
+                                {currentMonthDates.map((date) => (
+                                  <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                                    <div className="text-xs">
+                                      {new Date(date).toLocaleDateString('en-US', { 
+                                        day: 'numeric', 
+                                        month: 'numeric'
+                                      })}
+                                    </div>
+                                  </th>
+                                ))}
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                            </thead>
+                            <tbody>
+                              {managementGroup.studentsAssigned.map((student: any) => (
+                                <tr key={student.id} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 p-3 font-medium">
+                                    <div>
+                                      <div className="font-medium">{student.name}</div>
+                                      <div className="text-xs text-gray-600">{student.email}</div>
+                                    </div>
+                                  </td>
+                                  {currentMonthDates.map((date) => {
+                                    const attendanceRecord = attendanceHistory.find((record: any) => 
+                                      record.studentId === student.id && 
+                                      record.attendanceDate?.split('T')[0] === date
+                                    );
+                                    
+                                    return (
+                                      <td key={date} className="border border-gray-300 p-1 text-center">
+                                        <button
+                                          onClick={() => handleTableAttendanceClick(student.id, date, attendanceRecord?.status)}
+                                          className={`w-8 h-8 rounded text-xs font-bold ${
+                                            attendanceRecord?.status === 'present' 
+                                              ? 'bg-green-500 text-white hover:bg-green-600' 
+                                              : attendanceRecord?.status === 'absent'
+                                              ? 'bg-red-500 text-white hover:bg-red-600'
+                                              : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                                          }`}
+                                          title={`${student.name} - ${date} - ${
+                                            attendanceRecord?.status === 'present' ? 'حاضر' : 
+                                            attendanceRecord?.status === 'absent' ? 'غائب' : 'غير مسجل'
+                                          }`}
+                                        >
+                                          {attendanceRecord?.status === 'present' ? '✓' : 
+                                           attendanceRecord?.status === 'absent' ? '✗' : '?'}
+                                        </button>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                          <p className="text-gray-600">لا توجد مواعيد مجدولة متاحة</p>
+                        </div>
+                      )
                     ) : (
                       <div className="text-center py-8">
                         <p className="text-gray-600">لا توجد حصص مجدولة لهذه المجموعة</p>
