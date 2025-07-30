@@ -16,6 +16,8 @@ export function BottomNavigation() {
   const schoolCode = sessionStorage.getItem('schoolCode');
   const basePath = schoolCode ? `/school/${schoolCode}` : '';
 
+  console.log('BottomNavigation - schoolCode:', schoolCode, 'basePath:', basePath);
+
   const baseNavItems: NavItem[] = [
     { icon: Home, label: 'الرئيسية', path: `${basePath}/home` || '/' },
     { icon: Calendar, label: 'الجدول', path: `${basePath}/schedule` || '/schedule' },
@@ -32,6 +34,7 @@ export function BottomNavigation() {
     roleSpecificItems = [{ icon: BookOpen, label: 'تخصصاتي', path: `${basePath}/teacher-specializations` || '/teacher-specializations' }];
   } else if (user?.role === 'student' || user?.role === 'parent') {
     roleSpecificItems = [{ icon: FileText, label: 'حضور ومدفوعات', path: `${basePath}/student-status` || '/student-status' }];
+    console.log('Student/Parent role - student-status path:', `${basePath}/student-status`);
   }
 
   const navItems = [...baseNavItems, ...roleSpecificItems];

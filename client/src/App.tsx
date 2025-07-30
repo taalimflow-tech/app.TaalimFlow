@@ -64,6 +64,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 
 function AppRoutes() {
+  const [location] = useLocation();
+  console.log('Current location:', location);
+  
   return (
     <Switch>
       {/* Public Routes */}
@@ -105,7 +108,13 @@ function AppRoutes() {
         <AuthWrapper><Layout><Profile /></Layout></AuthWrapper>
       </Route>
       <Route path="/school/:code/student-status">
-        <AuthWrapper><Layout><StudentStatus /></Layout></AuthWrapper>
+        {(params) => (
+          <AuthWrapper>
+            <Layout>
+              <StudentStatus />
+            </Layout>
+          </AuthWrapper>
+        )}
       </Route>
       <Route path="/school/:code/teacher-specializations">
         <AuthWrapper><Layout><TeacherSpecializations /></Layout></AuthWrapper>
