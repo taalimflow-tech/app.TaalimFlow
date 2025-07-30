@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray } from "drizzle-orm";
 
@@ -81,7 +81,7 @@ export interface IStorage {
   // Admin group management methods
   getAdminGroups(schoolId?: number): Promise<any[]>;
   updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group>;
-  getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number): Promise<any[]>;
+  getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]>;
   
   // Formation methods
   getFormations(): Promise<Formation[]>;
@@ -811,18 +811,54 @@ export class DatabaseStorage implements IStorage {
         } else {
           // Add existing groups with their assigned students
           for (const group of existingGroups) {
-            // Get assigned students for this group
-            const assignedStudents = await db
+            // Get assigned students for this group (both students and children)
+            const mixedAssignments = await db
               .select({
-                id: users.id,
-                name: users.name,
-                educationLevel: students.educationLevel,
-                grade: students.grade
+                studentId: groupMixedAssignments.studentId,
+                studentType: groupMixedAssignments.studentType
               })
-              .from(groupUserAssignments)
-              .leftJoin(users, eq(groupUserAssignments.userId, users.id))
-              .leftJoin(students, eq(users.id, students.userId))
-              .where(eq(groupUserAssignments.groupId, group.id));
+              .from(groupMixedAssignments)
+              .where(eq(groupMixedAssignments.groupId, group.id));
+
+            const assignedStudents = [];
+            for (const assignment of mixedAssignments) {
+              if (assignment.studentType === 'student') {
+                // Get student from users/students tables
+                const studentData = await db
+                  .select({
+                    id: users.id,
+                    name: users.name,
+                    educationLevel: students.educationLevel,
+                    grade: students.grade,
+                    email: users.email
+                  })
+                  .from(users)
+                  .leftJoin(students, eq(users.id, students.userId))
+                  .where(eq(users.id, assignment.studentId))
+                  .limit(1);
+                
+                if (studentData[0]) {
+                  assignedStudents.push(studentData[0]);
+                }
+              } else if (assignment.studentType === 'child') {
+                // Get child from children table
+                const childData = await db
+                  .select({
+                    id: children.id,
+                    name: children.name,
+                    educationLevel: children.educationLevel,
+                    grade: children.grade,
+                    email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
+                  })
+                  .from(children)
+                  .where(eq(children.id, assignment.studentId))
+                  .limit(1);
+                
+                if (childData[0]) {
+                  assignedStudents.push(childData[0]);
+                }
+              }
+            }
 
             allPossibleGroups.push({
               ...group,
@@ -868,18 +904,28 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (actualGroupId) {
-      // Remove existing student assignments
+      // Get all student data to determine types (students vs children)
+      const availableStudents = await this.getAvailableStudentsByLevelAndSubject(groupData?.educationLevel || '', 0, schoolId);
+      
+      // Remove existing assignments (both old and new)
       await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, actualGroupId));
+      await db.delete(groupMixedAssignments).where(eq(groupMixedAssignments.groupId, actualGroupId));
 
-      // Add new student assignments
+      // Add new mixed assignments
       if (studentIds.length > 0) {
-        const assignments = studentIds.map(studentId => ({
-          schoolId: schoolId!,
-          groupId: actualGroupId,
-          userId: studentId,
-          assignedBy: adminId || null // Use actual admin ID
-        }));
-        await db.insert(groupUserAssignments).values(assignments);
+        const mixedAssignments = studentIds.map(studentId => {
+          const studentInfo = availableStudents.find((s: any) => s.id === studentId);
+          const studentType = studentInfo?.type || 'student'; // Default to student if not found
+          
+          return {
+            schoolId: schoolId!,
+            groupId: actualGroupId,
+            studentId: studentId,
+            studentType: studentType as "student" | "child",
+            assignedBy: adminId || null
+          };
+        });
+        await db.insert(groupMixedAssignments).values(mixedAssignments);
       }
 
       // Return the updated group
@@ -890,15 +936,17 @@ export class DatabaseStorage implements IStorage {
     throw new Error('Failed to create or update group');
   }
 
-  async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number): Promise<any[]> {
-    const result = await db
+  async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]> {
+    // Get direct students (users with 'student' role)
+    let directStudentsQuery = db
       .select({
         id: users.id,
         name: users.name,
         email: users.email,
         phone: users.phone,
         educationLevel: students.educationLevel,
-        grade: students.grade
+        grade: students.grade,
+        type: sql<string>`'student'`.as('type')
       })
       .from(users)
       .leftJoin(students, eq(users.id, students.userId))
@@ -907,10 +955,52 @@ export class DatabaseStorage implements IStorage {
           eq(users.role, 'student'),
           eq(students.educationLevel, educationLevel)
         )
-      )
-      .orderBy(users.name);
+      );
 
-    return result;
+    // Apply school filter if provided
+    if (schoolId) {
+      directStudentsQuery = directStudentsQuery.where(
+        and(
+          eq(users.role, 'student'),
+          eq(students.educationLevel, educationLevel),
+          eq(users.schoolId, schoolId)
+        )
+      );
+    }
+
+    const directStudents = await directStudentsQuery;
+
+    // Get children registered by parents
+    let childrenQuery = db
+      .select({
+        id: children.id,
+        name: children.name,
+        email: sql<string>`CONCAT('child_', ${children.id}, '@', 'parent.local')`.as('email'), // Synthetic email for children
+        phone: sql<string>`''`.as('phone'), // Children don't have their own phone
+        educationLevel: children.educationLevel,
+        grade: children.grade,
+        type: sql<string>`'child'`.as('type')
+      })
+      .from(children)
+      .where(eq(children.educationLevel, educationLevel));
+
+    // Apply school filter for children if provided
+    if (schoolId) {
+      childrenQuery = childrenQuery.where(
+        and(
+          eq(children.educationLevel, educationLevel),
+          eq(children.schoolId, schoolId)
+        )
+      );
+    }
+
+    const childrenStudents = await childrenQuery;
+
+    // Combine both results and sort by name
+    const combinedResults = [...directStudents, ...childrenStudents];
+    combinedResults.sort((a, b) => a.name.localeCompare(b.name));
+
+    return combinedResults;
   }
 
   async deleteGroup(groupId: number, schoolId: number): Promise<boolean> {

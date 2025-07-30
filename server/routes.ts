@@ -1543,7 +1543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const educationLevel = req.params.educationLevel;
       const subjectId = parseInt(req.params.subjectId);
       
-      const availableStudents = await storage.getAvailableStudentsByLevelAndSubject(educationLevel, subjectId);
+      const availableStudents = await storage.getAvailableStudentsByLevelAndSubject(educationLevel, subjectId, req.session.user.schoolId);
       res.json(availableStudents);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch available students" });

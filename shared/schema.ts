@@ -178,6 +178,17 @@ export const groupUserAssignments = pgTable("group_user_assignments", {
   assignedBy: integer("assigned_by").references(() => users.id), // Admin who made the assignment
 });
 
+// Mixed assignments to groups (for both students and children)
+export const groupMixedAssignments = pgTable("group_mixed_assignments", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  groupId: integer("group_id").references(() => groups.id, { onDelete: "cascade" }),
+  studentId: integer("student_id"), // ID from either users or children table
+  studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  assignedBy: integer("assigned_by").references(() => users.id), // Admin who made the assignment
+});
+
 // Group Schedule Assignments - Junction table for groups and their scheduled lessons
 export const groupScheduleAssignments = pgTable("group_schedule_assignments", {
   id: serial("id").primaryKey(),
@@ -457,6 +468,13 @@ export const insertGroupUserAssignmentSchema = createInsertSchema(groupUserAssig
   assignedBy: true,
 });
 
+export const insertGroupMixedAssignmentSchema = createInsertSchema(groupMixedAssignments).pick({
+  groupId: true,
+  studentId: true,
+  studentType: true,
+  assignedBy: true,
+});
+
 // School-related schemas
 export const insertSchoolSchema = createInsertSchema(schools).pick({
   name: true,
@@ -632,6 +650,8 @@ export type GroupRegistration = typeof groupRegistrations.$inferSelect;
 export type InsertGroupRegistration = z.infer<typeof insertGroupRegistrationSchema>;
 export type GroupUserAssignment = typeof groupUserAssignments.$inferSelect;
 export type InsertGroupUserAssignment = z.infer<typeof insertGroupUserAssignmentSchema>;
+export type GroupMixedAssignment = typeof groupMixedAssignments.$inferSelect;
+export type InsertGroupMixedAssignment = z.infer<typeof insertGroupMixedAssignmentSchema>;
 export type FormationRegistration = typeof formationRegistrations.$inferSelect;
 export type InsertFormationRegistration = z.infer<typeof insertFormationRegistrationSchema>;
 export type Child = typeof children.$inferSelect;
