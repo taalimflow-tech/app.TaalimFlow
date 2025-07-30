@@ -2813,5 +2813,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Student status endpoints
+  app.get("/api/student/attendance/:userId", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const requestingUser = req.session.user;
+      
+      // Only allow students to view their own data or parents to view their children's data
+      if (requestingUser.role === 'student' && requestingUser.id !== userId) {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
+      }
+      
+      const attendanceRecords = await storage.getStudentAttendanceRecords(userId, requestingUser.schoolId);
+      res.json(attendanceRecords);
+    } catch (error) {
+      console.error('Error fetching student attendance:', error);
+      res.status(500).json({ error: "فشل في جلب سجل الحضور" });
+    }
+  });
+
+  app.get("/api/student/payments/:userId", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const requestingUser = req.session.user;
+      
+      // Only allow students to view their own data or parents to view their children's data
+      if (requestingUser.role === 'student' && requestingUser.id !== userId) {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
+      }
+      
+      const paymentRecords = await storage.getStudentPaymentRecords(userId, requestingUser.schoolId);
+      res.json(paymentRecords);
+    } catch (error) {
+      console.error('Error fetching student payments:', error);
+      res.status(500).json({ error: "فشل في جلب سجل المدفوعات" });
+    }
+  });
+
   return httpServer;
 }

@@ -183,6 +183,10 @@ export interface IStorage {
   // Group Financial Transaction interface methods
   getGroupTransactions(groupId: number, studentId?: number): Promise<GroupTransaction[]>;
   createTransaction(transaction: InsertGroupTransaction): Promise<GroupTransaction>;
+
+  // Student status methods
+  getStudentAttendanceRecords(userId: number, schoolId: number): Promise<any[]>;
+  getStudentPaymentRecords(userId: number, schoolId: number): Promise<any[]>;
   updateTransaction(id: number, updates: Partial<InsertGroupTransaction>): Promise<GroupTransaction>;
   getTransactionsWithDetails(groupId: number): Promise<any[]>;
   getStudentFinancialSummary(groupId: number, studentId: number): Promise<any>;
@@ -2471,6 +2475,69 @@ export class DatabaseStorage implements IStorage {
       await db.insert(studentMonthlyPayments).values(defaultPayments);
     } catch (error) {
       console.error('Error creating default monthly payments:', error);
+      throw error;
+    }
+  }
+
+  async getStudentAttendanceRecords(userId: number, schoolId: number): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: groupAttendance.id,
+          groupId: groupAttendance.groupId,
+          groupName: groups.name,
+          date: groupAttendance.date,
+          status: groupAttendance.status
+        })
+        .from(groupAttendance)
+        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
+        .leftJoin(groupMixedAssignments, and(
+          eq(groupMixedAssignments.groupId, groupAttendance.groupId),
+          eq(groupMixedAssignments.studentId, userId),
+          eq(groupMixedAssignments.studentType, 'student')
+        ))
+        .where(and(
+          eq(groupAttendance.studentId, userId),
+          eq(groups.schoolId, schoolId)
+        ))
+        .orderBy(desc(groupAttendance.date));
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching student attendance records:', error);
+      throw error;
+    }
+  }
+
+  async getStudentPaymentRecords(userId: number, schoolId: number): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: groupTransactions.id,
+          groupId: groupTransactions.groupId,
+          groupName: groups.name,
+          amount: groupTransactions.amount,
+          dueDate: groupTransactions.dueDate,
+          isPaid: groupTransactions.isPaid,
+          paidDate: groupTransactions.paidAt,
+          description: groupTransactions.description
+        })
+        .from(groupTransactions)
+        .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
+        .leftJoin(groupMixedAssignments, and(
+          eq(groupMixedAssignments.groupId, groupTransactions.groupId),
+          eq(groupMixedAssignments.studentId, userId),
+          eq(groupMixedAssignments.studentType, 'student')
+        ))
+        .where(and(
+          eq(groupTransactions.studentId, userId),
+          eq(groups.schoolId, schoolId)
+        ))
+        .orderBy(desc(groupTransactions.createdAt));
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching student payment records:', error);
       throw error;
     }
   }

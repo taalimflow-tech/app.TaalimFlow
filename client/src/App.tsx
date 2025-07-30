@@ -30,6 +30,7 @@ import PublicHome from "@/pages/PublicHome";
 import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
 import TeacherSpecializations from "@/pages/TeacherSpecializations";
+import StudentStatus from "@/pages/StudentStatus";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -93,6 +94,7 @@ function AppRoutes() {
                 <Route path={`/school/${params.code}/formations`} component={Formations} />
                 <Route path={`/school/${params.code}/announcements`} component={Announcements} />
                 <Route path={`/school/${params.code}/profile`} component={Profile} />
+                <Route path={`/school/${params.code}/student-status`} component={StudentStatus} />
                 <Route path={`/school/${params.code}/teacher-specializations`} component={TeacherSpecializations} />
                 <Route path={`/school/${params.code}/admin`} component={AdminPanelTest} />
                 <Route path={`/school/${params.code}/admin/users`} component={AdminUsers} />
@@ -122,6 +124,7 @@ function AppRoutes() {
               <Route path="/formations" component={Formations} />
               <Route path="/announcements" component={Announcements} />
               <Route path="/profile" component={Profile} />
+              <Route path="/student-status" component={StudentStatus} />
               <Route path="/teacher-specializations" component={TeacherSpecializations} />
               <Route path="/admin" component={AdminPanelTest} />
               <Route path="/admin/users" component={AdminUsers} />

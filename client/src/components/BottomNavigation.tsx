@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, Lightbulb, Mail, Shield, BookOpen } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Lightbulb, Mail, Shield, BookOpen, FileText } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -30,8 +30,8 @@ export function BottomNavigation() {
     roleSpecificItems = [{ icon: Shield, label: 'الإدارة', path: `${basePath}/admin` || '/admin' }];
   } else if (user?.role === 'teacher') {
     roleSpecificItems = [{ icon: BookOpen, label: 'تخصصاتي', path: `${basePath}/teacher-specializations` || '/teacher-specializations' }];
-  } else if (user?.role !== 'admin') {
-    roleSpecificItems = [{ icon: Lightbulb, label: 'اقتراحات', path: `${basePath}/suggestions` || '/suggestions' }];
+  } else if (user?.role === 'student' || user?.role === 'parent') {
+    roleSpecificItems = [{ icon: FileText, label: 'حضور ومدفوعات', path: `${basePath}/student-status` || '/student-status' }];
   }
 
   const navItems = [...baseNavItems, ...roleSpecificItems];
