@@ -64,9 +64,6 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 
 function AppRoutes() {
-  const [location] = useLocation();
-  console.log('Current location:', location);
-  
   return (
     <Switch>
       {/* Public Routes */}

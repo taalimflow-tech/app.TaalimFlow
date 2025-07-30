@@ -73,8 +73,8 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
       sessionStorage.setItem('currentSchoolId', school.id.toString());
       sessionStorage.setItem('schoolCode', school.code);
       
-      // Navigate to login page with school context
-      setLocation("/login");
+      // Navigate to school home page - AuthWrapper will handle login if needed
+      setLocation(`/school/${school.code}/home`);
     } catch (err) {
       setError("حدث خطأ في الوصول إلى المدرسة");
     } finally {
