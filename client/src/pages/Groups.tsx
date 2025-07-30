@@ -1353,9 +1353,6 @@ export default function Groups() {
                     };
 
                     const yearLevel = getYearLevel();
-                    const levelDisplay = group.educationLevel === 'الابتدائي' ? 'Primary' : 
-                                       group.educationLevel === 'المتوسط' ? 'Middle' : 
-                                       group.educationLevel === 'الثانوي' ? 'Secondary' : 'Custom';
                     
                     // Get assigned teacher name
                     const getTeacherName = () => {
@@ -1366,17 +1363,29 @@ export default function Groups() {
                       return 'غير محدد';
                     };
 
+                    // Get badge color based on education level
+                    const getBadgeColor = () => {
+                      switch(group.educationLevel) {
+                        case 'الابتدائي': return 'bg-green-100 text-green-800';
+                        case 'المتوسط': return 'bg-blue-100 text-blue-800';
+                        case 'الثانوي': return 'bg-purple-100 text-purple-800';
+                        default: return 'bg-gray-100 text-gray-800';
+                      }
+                    };
+
                     return (
                       <Card key={group.id || group.name} className="border border-gray-200 hover:shadow-md transition-shadow">
                         <CardContent className="p-4">
                           <div className="space-y-3">
+                            {/* Level + Year Badge */}
+                            <div className="flex justify-start">
+                              <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
+                                {yearLevel ? `${group.educationLevel} ${yearLevel}` : group.educationLevel}
+                              </span>
+                            </div>
+                            
                             {/* Title */}
                             <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName}</h3>
-                            
-                            {/* Level + Year */}
-                            <div className="text-sm text-gray-600">
-                              {yearLevel ? `${yearLevel} ${levelDisplay}` : levelDisplay}
-                            </div>
                             
                             {/* Teacher */}
                             <div className="text-sm text-gray-600">
