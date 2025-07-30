@@ -1359,8 +1359,8 @@ export default function Groups() {
                     
                     // Get assigned teacher name
                     const getTeacherName = () => {
-                      if (group.teacherId && teachersData) {
-                        const teacher = teachersData.find((t: any) => t.id === group.teacherId);
+                      if (group.teacherId && teachers) {
+                        const teacher = teachers.find((t: any) => t.id === group.teacherId);
                         return teacher ? teacher.name : 'غير محدد';
                       }
                       return 'غير محدد';
