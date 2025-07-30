@@ -1335,109 +1335,87 @@ export default function Groups() {
                 }
 
                 return filteredGroups.length > 0 ? (
-                  filteredGroups.map((group) => (
-                    <Card key={group.id || group.name} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base text-gray-800">{group.name}</CardTitle>
-                          <div className="flex items-center space-x-2">
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              existingGroupsFilter === 'الابتدائي' ? 'bg-green-100 text-green-800' :
-                              existingGroupsFilter === 'المتوسط' ? 'bg-blue-100 text-blue-800' :
-                              existingGroupsFilter === 'الثانوي' ? 'bg-purple-100 text-purple-800' :
-                              'bg-orange-100 text-orange-800'
-                            }`}>
-                              {existingGroupsFilter === 'custom' ? 'مخصص' : existingGroupsFilter}
-                            </span>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {group.imageUrl && (
-                          <div className="mb-3">
-                            <img 
-                              src={group.imageUrl} 
-                              alt={group.name} 
-                              className="w-full h-32 object-cover rounded-lg"
-                              style={{ aspectRatio: '16/9' }}
-                            />
-                          </div>
-                        )}
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                          {group.description || `مجموعة ${group.nameAr || group.subjectName} - ${group.educationLevel}`}
-                        </p>
-                        
-                        {/* Show assigned students' grade levels if available */}
-                        {group.studentsAssigned && group.studentsAssigned.length > 0 && (
-                          <div className="mb-3">
-                            <div className="flex flex-wrap gap-1">
-                              {[...new Set(group.studentsAssigned.map((student: any) => student.grade).filter(Boolean))].map((grade: string) => {
-                                // Format the grade display correctly
-                                const formatGrade = (gradeStr: string) => {
-                                  if (gradeStr.includes('ثانوي')) return gradeStr; // Already formatted correctly
-                                  if (gradeStr.includes('متوسط')) return gradeStr; // Already formatted correctly
-                                  if (gradeStr.includes('ابتدائي')) return gradeStr; // Already formatted correctly
-                                  return gradeStr; // Return as-is for any other format
-                                };
-                                
-                                return (
-                                  <span key={grade} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                                    {formatGrade(grade)}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                          <div className="flex items-center">
-                            <Users className="h-3 w-3 ml-1" />
-                            <span>الطلاب: {group.studentsAssigned?.length || 0}</span>
-                          </div>
-                          <span className="bg-gray-100 px-2 py-1 rounded">
-                            {group.nameAr || group.subjectName || 'مادة'}
-                          </span>
-                        </div>
+                  filteredGroups.map((group) => {
+                    // Extract year from grade if available
+                    const getYearLevel = () => {
+                      if (group.studentsAssigned && group.studentsAssigned.length > 0) {
+                        const grades = group.studentsAssigned.map((student: any) => student.grade).filter(Boolean);
+                        if (grades.length > 0) {
+                          const grade = grades[0];
+                          if (grade.includes('الأولى')) return '1';
+                          if (grade.includes('الثانية')) return '2';
+                          if (grade.includes('الثالثة')) return '3';
+                          if (grade.includes('الرابعة')) return '4';
+                          if (grade.includes('الخامسة')) return '5';
+                        }
+                      }
+                      return '';
+                    };
 
-                        <div className="space-y-2">
-                          <Button
-                            onClick={() => handleOpenAssignmentModal(group)}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                            size="sm"
-                          >
-                            إدارة المجموعة
-                          </Button>
-                          
-                          {group.id && group.studentsAssigned && group.studentsAssigned.length > 0 && (
-                            <div className="flex gap-2">
+                    const yearLevel = getYearLevel();
+                    const levelDisplay = group.educationLevel === 'الابتدائي' ? 'Primary' : 
+                                       group.educationLevel === 'المتوسط' ? 'Middle' : 
+                                       group.educationLevel === 'الثانوي' ? 'Secondary' : 'Custom';
+                    
+                    // Get assigned teacher name
+                    const getTeacherName = () => {
+                      if (group.teacherId && teachersData) {
+                        const teacher = teachersData.find((t: any) => t.id === group.teacherId);
+                        return teacher ? teacher.name : 'غير محدد';
+                      }
+                      return 'غير محدد';
+                    };
+
+                    return (
+                      <Card key={group.id || group.name} className="border border-gray-200 hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            {/* Title */}
+                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName}</h3>
+                            
+                            {/* Level + Year */}
+                            <div className="text-sm text-gray-600">
+                              {yearLevel ? `${yearLevel} ${levelDisplay}` : levelDisplay}
+                            </div>
+                            
+                            {/* Teacher */}
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">المعلم:</span> {getTeacherName()}
+                            </div>
+                            
+                            {/* Student Count */}
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Users className="h-4 w-4 ml-1" />
+                              <span>{group.studentsAssigned?.length || 0} طالب</span>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="space-y-2 pt-2">
                               <Button
+                                onClick={() => handleOpenAssignmentModal(group)}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                                 size="sm"
-                                variant="outline"
-                                className="flex-1 border-green-500 text-green-600 hover:bg-green-50"
-                                onClick={() => openGroupManagement(group, 'attendance')}
                               >
-                                <Calendar className="w-4 h-4 mr-1" />
-                                الحضور
+                                إدارة المجموعة
                               </Button>
-
+                              
+                              {group.id && group.studentsAssigned && group.studentsAssigned.length > 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full border-green-500 text-green-600 hover:bg-green-50"
+                                  onClick={() => openGroupManagement(group, 'attendance')}
+                                >
+                                  <Calendar className="w-4 h-4 mr-1" />
+                                  الحضور
+                                </Button>
+                              )}
                             </div>
-                          )}
-                          
-                          {group.id && (
-                            <Button
-                              onClick={() => handleDeleteGroup(group)}
-                              variant="outline"
-                              className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
-                              size="sm"
-                            >
-                              🗑️ حذف المجموعة
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
                 ) : (
                   <div className="col-span-full text-center py-8">
                     <div className="text-gray-500">
@@ -1649,22 +1627,36 @@ export default function Groups() {
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowAssignmentModal(false)}
-                  className="mr-2"
-                >
-                  إلغاء
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={updateGroupAssignmentsMutation.isPending || !selectedTeacher}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {updateGroupAssignmentsMutation.isPending ? 'جاري التحديث...' : 'حفظ التعيينات'}
-                </Button>
+              <div className="flex justify-between">
+                <div>
+                  {selectedAdminGroup?.id && (
+                    <Button
+                      type="button"
+                      onClick={() => handleDeleteGroup(selectedAdminGroup)}
+                      variant="outline"
+                      className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                    >
+                      🗑️ حذف المجموعة
+                    </Button>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAssignmentModal(false)}
+                    className="mr-2"
+                  >
+                    إلغاء
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateGroupAssignmentsMutation.isPending || !selectedTeacher}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {updateGroupAssignmentsMutation.isPending ? 'جاري التحديث...' : 'حفظ التعيينات'}
+                  </Button>
+                </div>
               </div>
             </form>
           </div>
