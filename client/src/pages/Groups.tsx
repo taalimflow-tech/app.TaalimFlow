@@ -1925,7 +1925,12 @@ export default function Groups() {
                                     </div>
                                   </td>
                                   <td className="border border-gray-300 p-2 text-center">
-                                    {user?.role === 'admin' ? (
+                                    {student.email?.includes('@parent.local') ? (
+                                      // This is a child - show N/A for payment status
+                                      <span className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-600">
+                                        غير متاح
+                                      </span>
+                                    ) : user?.role === 'admin' ? (
                                       <button
                                         onClick={() => handleTogglePayment(student.id)}
                                         className={`px-3 py-1 rounded text-sm font-medium ${

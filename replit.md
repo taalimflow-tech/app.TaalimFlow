@@ -159,6 +159,15 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 30, 2025**: MIXED GROUP ASSIGNMENT SYSTEM COMPLETE - Enhanced group management to support both student users and children
+  - **Mixed Assignment Architecture**: Created `groupMixedAssignments` table to handle both student types in group assignments
+  - **Dual Student Support**: Groups now include both direct student users and children registered by parents
+  - **Enhanced Student Selection**: Updated `getAvailableStudentsByLevelAndSubject` to fetch both students and children based on education level
+  - **Unified Display System**: Modified `getAdminGroups` to retrieve and display both student types with proper school filtering
+  - **Payment System Integration**: Updated payment system to work only with actual students (not children who lack user accounts)
+  - **Frontend Enhancement**: Children show "غير متاح" (Not Available) for payment status while maintaining full attendance tracking
+  - **Database Migration**: Successfully applied mixed assignment structure with proper foreign key relationships
+  - **Multi-School Isolation**: All mixed assignments respect school context for proper multi-tenant data security
 - **January 29, 2025**: FRIDAY-FIRST SCHEDULE SYSTEM AND ATTENDANCE FIX - Complete system overhaul
   - **Day Mapping Revolution**: Changed to Friday-first system (Friday=0, Saturday=1, ..., Thursday=6)
   - **Database Migration**: Updated all existing schedule cells to new Friday-first day mapping

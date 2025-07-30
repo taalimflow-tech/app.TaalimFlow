@@ -2754,20 +2754,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'المجموعة غير موجودة' });
       }
       
-      // Get students assigned to this group
-      const groupAssignments = await storage.getGroupAssignments(parseInt(groupId), schoolId);
-      const studentIds = groupAssignments.map((assignment: any) => assignment.userId);
+      // Get students assigned to this group (mixed assignments)
+      const groupAssignments = await storage.getGroupAssignments(parseInt(groupId));
+      
+      // Filter only actual students with user accounts (not children) for payment processing
+      const actualStudentIds = groupAssignments
+        .filter((assignment: any) => assignment.type === 'student')
+        .map((assignment: any) => assignment.id);
       
       // Create default unpaid records for students without payment records
-      await storage.createDefaultMonthlyPayments(studentIds, parseInt(year), parseInt(month), schoolId);
+      if (actualStudentIds.length > 0) {
+        await storage.createDefaultMonthlyPayments(actualStudentIds, parseInt(year), parseInt(month), schoolId);
+      }
       
-      // Get payment statuses for all students
-      const paymentStatuses = await storage.getStudentsPaymentStatusForMonth(
-        studentIds,
-        parseInt(year),
-        parseInt(month),
-        schoolId
-      );
+      // Get payment statuses for actual students only (not children)
+      const paymentStatuses = actualStudentIds.length > 0 
+        ? await storage.getStudentsPaymentStatusForMonth(
+            actualStudentIds,
+            parseInt(year),
+            parseInt(month),
+            schoolId
+          )
+        : [];
       
       res.json(paymentStatuses);
     } catch (error) {
