@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL } from "drizzle-orm";
 
@@ -192,6 +192,12 @@ export interface IStorage {
   getCompatibleGroups(subjectId: number, teacherId: number, educationLevel: string, schoolId: number): Promise<any[]>;
   getScheduleLinkedGroups(tableId: number, schoolId: number): Promise<any[]>;
   linkGroupsToScheduleCell(cellId: number, groupIds: number[], schoolId: number, assignedBy: number): Promise<void>;
+
+  // Student Monthly Payment interface methods
+  getStudentPaymentStatus(studentId: number, year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment | undefined>;
+  getStudentsPaymentStatusForMonth(studentIds: number[], year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment[]>;
+  markStudentPayment(studentId: number, year: number, month: number, isPaid: boolean, schoolId: number, paidBy: number, amount?: number, notes?: string): Promise<StudentMonthlyPayment>;
+  createDefaultMonthlyPayments(studentIds: number[], year: number, month: number, schoolId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2210,6 +2216,117 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error('Error linking groups to schedule cell:', error);
+      throw error;
+    }
+  }
+
+  // Student Monthly Payment methods implementation
+  async getStudentPaymentStatus(studentId: number, year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment | undefined> {
+    try {
+      const [payment] = await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(and(
+          eq(studentMonthlyPayments.studentId, studentId),
+          eq(studentMonthlyPayments.year, year),
+          eq(studentMonthlyPayments.month, month),
+          eq(studentMonthlyPayments.schoolId, schoolId)
+        ));
+      return payment || undefined;
+    } catch (error) {
+      console.error('Error getting student payment status:', error);
+      return undefined;
+    }
+  }
+
+  async getStudentsPaymentStatusForMonth(studentIds: number[], year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment[]> {
+    try {
+      if (studentIds.length === 0) return [];
+      
+      return await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(and(
+          sql`${studentMonthlyPayments.studentId} = ANY(${studentIds})`,
+          eq(studentMonthlyPayments.year, year),
+          eq(studentMonthlyPayments.month, month),
+          eq(studentMonthlyPayments.schoolId, schoolId)
+        ));
+    } catch (error) {
+      console.error('Error getting students payment status:', error);
+      return [];
+    }
+  }
+
+  async markStudentPayment(studentId: number, year: number, month: number, isPaid: boolean, schoolId: number, paidBy: number, amount?: number, notes?: string): Promise<StudentMonthlyPayment> {
+    try {
+      // Check if payment record exists
+      const existingPayment = await this.getStudentPaymentStatus(studentId, year, month, schoolId);
+      
+      if (existingPayment) {
+        // Update existing record
+        const [updatedPayment] = await db
+          .update(studentMonthlyPayments)
+          .set({
+            isPaid,
+            amount: amount ? amount.toString() : existingPayment.amount,
+            paidAt: isPaid ? new Date() : null,
+            paidBy: isPaid ? paidBy : null,
+            notes,
+            updatedAt: new Date()
+          })
+          .where(eq(studentMonthlyPayments.id, existingPayment.id))
+          .returning();
+        return updatedPayment;
+      } else {
+        // Create new record
+        const [newPayment] = await db
+          .insert(studentMonthlyPayments)
+          .values({
+            studentId,
+            year,
+            month,
+            isPaid,
+            amount: amount ? amount.toString() : null,
+            paidAt: isPaid ? new Date() : null,
+            paidBy: isPaid ? paidBy : null,
+            notes,
+            schoolId
+          })
+          .returning();
+        return newPayment;
+      }
+    } catch (error) {
+      console.error('Error marking student payment:', error);
+      throw error;
+    }
+  }
+
+  async createDefaultMonthlyPayments(studentIds: number[], year: number, month: number, schoolId: number): Promise<void> {
+    try {
+      if (studentIds.length === 0) return;
+      
+      // Get existing payments to avoid duplicates
+      const existingPayments = await this.getStudentsPaymentStatusForMonth(studentIds, year, month, schoolId);
+      const existingStudentIds = existingPayments.map(p => p.studentId);
+      
+      // Filter out students who already have payment records
+      const newStudentIds = studentIds.filter(id => !existingStudentIds.includes(id));
+      
+      if (newStudentIds.length === 0) return;
+      
+      // Create default unpaid records for new students
+      const defaultPayments = newStudentIds.map(studentId => ({
+        studentId,
+        year,
+        month,
+        isPaid: false,
+        schoolId
+      }));
+      
+      await db.insert(studentMonthlyPayments).values(defaultPayments);
+    } catch (error) {
+      console.error('Error creating default monthly payments:', error);
       throw error;
     }
   }

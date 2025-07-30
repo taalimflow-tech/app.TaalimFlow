@@ -2688,5 +2688,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Student Payment Status Routes
+  app.get('/api/students/:studentId/payment-status/:year/:month', async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { studentId, year, month } = req.params;
+      const schoolId = req.session.user.schoolId;
+      
+      const paymentStatus = await storage.getStudentPaymentStatus(
+        parseInt(studentId),
+        parseInt(year),
+        parseInt(month),
+        schoolId
+      );
+      
+      res.json(paymentStatus || { isPaid: false });
+    } catch (error) {
+      console.error('Error getting payment status:', error);
+      res.status(500).json({ error: 'فشل في جلب حالة الدفع' });
+    }
+  });
+
+  app.get('/api/groups/:groupId/payment-status/:year/:month', async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { groupId, year, month } = req.params;
+      const schoolId = req.session.user.schoolId;
+      
+      // Get group with students
+      const group = await storage.getGroupsAssignedUsers(parseInt(groupId), schoolId);
+      if (!group) {
+        return res.status(404).json({ error: 'المجموعة غير موجودة' });
+      }
+      
+      const studentIds = group.studentsAssigned?.map((s: any) => s.id) || [];
+      
+      // Create default unpaid records for students without payment records
+      await storage.createDefaultMonthlyPayments(studentIds, parseInt(year), parseInt(month), schoolId);
+      
+      // Get payment statuses for all students
+      const paymentStatuses = await storage.getStudentsPaymentStatusForMonth(
+        studentIds,
+        parseInt(year),
+        parseInt(month),
+        schoolId
+      );
+      
+      res.json(paymentStatuses);
+    } catch (error) {
+      console.error('Error getting group payment status:', error);
+      res.status(500).json({ error: 'فشل في جلب حالة دفع المجموعة' });
+    }
+  });
+
+  app.post('/api/students/:studentId/mark-payment', async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: 'غير مسموح لك بتعديل حالة الدفع' });
+      }
+
+      const { studentId } = req.params;
+      const { year, month, isPaid, amount, notes } = req.body;
+      const schoolId = req.session.user.schoolId;
+      const paidBy = req.session.user.id;
+      
+      const paymentRecord = await storage.markStudentPayment(
+        parseInt(studentId),
+        parseInt(year),
+        parseInt(month),
+        isPaid,
+        schoolId,
+        paidBy,
+        amount ? parseFloat(amount) : undefined,
+        notes
+      );
+      
+      res.json(paymentRecord);
+    } catch (error) {
+      console.error('Error marking payment:', error);
+      res.status(500).json({ error: 'فشل في تحديث حالة الدفع' });
+    }
+  });
+
   return httpServer;
 }

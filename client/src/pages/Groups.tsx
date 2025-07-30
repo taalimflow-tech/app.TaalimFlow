@@ -555,6 +555,21 @@ export default function Groups() {
     enabled: !!managementGroup && managementView === 'attendance'
   });
 
+  // Payment status query for current month
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+  
+  const { data: paymentStatuses = [] } = useQuery<any[]>({
+    queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth],
+    queryFn: async () => {
+      if (!managementGroup) return [];
+      const response = await apiRequest('GET', `/api/groups/${managementGroup.id}/payment-status/${currentYear}/${currentMonth}`);
+      return await response.json();
+    },
+    enabled: !!managementGroup && managementView === 'attendance'
+  });
+
   // Process scheduled dates into monthly groups
   const monthlyGroups = scheduledDatesData?.dates ? groupDatesByMonth(scheduledDatesData.dates) : {};
   const monthKeys = Object.keys(monthlyGroups).sort();
@@ -707,6 +722,28 @@ export default function Groups() {
     },
   });
 
+  // Payment status mutation
+  const markPaymentMutation = useMutation({
+    mutationFn: async ({ studentId, isPaid }: { studentId: number, isPaid: boolean }) => {
+      const response = await apiRequest('POST', `/api/students/${studentId}/mark-payment`, {
+        year: currentYear,
+        month: currentMonth,
+        isPaid
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم تحديث حالة الدفع بنجاح' });
+      // Refetch payment statuses
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth] 
+      });
+    },
+    onError: () => {
+      toast({ title: 'خطأ في تحديث حالة الدفع', variant: 'destructive' });
+    }
+  });
+
   const handleJoinGroup = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedGroup) {
@@ -852,6 +889,21 @@ export default function Groups() {
   };
 
   // Helper function to get available grades for each education level
+  // Helper function to get payment status for a student
+  const getStudentPaymentStatus = (studentId: number) => {
+    return paymentStatuses.find((payment: any) => payment.studentId === studentId);
+  };
+
+  // Helper function to toggle payment status
+  const handleTogglePayment = (studentId: number) => {
+    if (user?.role !== 'admin') return;
+    
+    const currentPayment = getStudentPaymentStatus(studentId);
+    const isPaid = !currentPayment?.isPaid;
+    
+    markPaymentMutation.mutate({ studentId, isPaid });
+  };
+
   const getAvailableGrades = (level: string) => {
     switch (level) {
       case 'الابتدائي':
@@ -1852,6 +1904,7 @@ export default function Groups() {
                             <thead>
                               <tr className="bg-gray-100">
                                 <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
+                                <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">حالة الدفع</th>
                                 {currentMonthDates.map((date) => (
                                   <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
                                     <div className="text-xs">
@@ -1872,6 +1925,29 @@ export default function Groups() {
                                       <div className="font-medium">{student.name}</div>
                                       <div className="text-xs text-gray-600">{student.email}</div>
                                     </div>
+                                  </td>
+                                  <td className="border border-gray-300 p-2 text-center">
+                                    {user?.role === 'admin' ? (
+                                      <button
+                                        onClick={() => handleTogglePayment(student.id)}
+                                        className={`px-3 py-1 rounded text-sm font-medium ${
+                                          getStudentPaymentStatus(student.id)?.isPaid
+                                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                            : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                        }`}
+                                        title={`${getStudentPaymentStatus(student.id)?.isPaid ? 'مدفوع' : 'غير مدفوع'} - اضغط للتغيير`}
+                                      >
+                                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
+                                      </button>
+                                    ) : (
+                                      <span className={`px-3 py-1 rounded text-sm font-medium ${
+                                        getStudentPaymentStatus(student.id)?.isPaid
+                                          ? 'bg-green-100 text-green-800'
+                                          : 'bg-red-100 text-red-800'
+                                      }`}>
+                                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
+                                      </span>
+                                    )}
                                   </td>
                                   {currentMonthDates.map((date) => {
                                     const attendanceRecord = attendanceHistory.find((record: any) => 

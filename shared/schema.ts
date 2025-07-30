@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -219,6 +219,22 @@ export const groupTransactions = pgTable("group_transactions", {
   status: text("status", { enum: ["pending", "paid", "overdue", "cancelled"] }).notNull().default("pending"),
   notes: text("notes"),
   recordedBy: integer("recorded_by").references(() => users.id), // Admin/teacher who recorded
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Monthly payment status for students - simple paid/unpaid tracking
+export const studentMonthlyPayments = pgTable("student_monthly_payments", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  studentId: integer("student_id").references(() => users.id).notNull(),
+  year: integer("year").notNull(),
+  month: integer("month").notNull(), // 1-12
+  isPaid: boolean("is_paid").default(false).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }),
+  paidAt: timestamp("paid_at"),
+  paidBy: integer("paid_by").references(() => users.id), // admin who marked as paid
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -581,6 +597,18 @@ export const insertGroupTransactionSchema = createInsertSchema(groupTransactions
   schoolId: true,
 });
 
+export const insertStudentMonthlyPaymentSchema = createInsertSchema(studentMonthlyPayments).pick({
+  studentId: true,
+  year: true,
+  month: true,
+  isPaid: true,
+  amount: true,
+  paidAt: true,
+  paidBy: true,
+  notes: true,
+  schoolId: true,
+});
+
 
 
 // Types
@@ -628,3 +656,5 @@ export type GroupAttendance = typeof groupAttendance.$inferSelect;
 export type InsertGroupAttendance = z.infer<typeof insertGroupAttendanceSchema>;
 export type GroupTransaction = typeof groupTransactions.$inferSelect;
 export type InsertGroupTransaction = z.infer<typeof insertGroupTransactionSchema>;
+export type StudentMonthlyPayment = typeof studentMonthlyPayments.$inferSelect;
+export type InsertStudentMonthlyPayment = z.infer<typeof insertStudentMonthlyPaymentSchema>;
