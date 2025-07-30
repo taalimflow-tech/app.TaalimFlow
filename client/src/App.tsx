@@ -79,34 +79,59 @@ function AppRoutes() {
       </Route>
       
       {/* School-specific authenticated routes */}
-      <Route path="/school/:code/:page*">
-        {(params) => (
-          <AuthWrapper>
-            <Layout>
-              <Switch>
-                <Route path={`/school/${params.code}/home`} component={Home} />
-                <Route path={`/school/${params.code}/schedule`} component={Schedule} />
-                <Route path={`/school/${params.code}/teachers`} component={Teachers} />
-                <Route path={`/school/${params.code}/messages`} component={Messages} />
-                <Route path={`/school/${params.code}/suggestions`} component={Suggestions} />
-                <Route path={`/school/${params.code}/blog`} component={Blog} />
-                <Route path={`/school/${params.code}/groups`} component={Groups} />
-                <Route path={`/school/${params.code}/formations`} component={Formations} />
-                <Route path={`/school/${params.code}/announcements`} component={Announcements} />
-                <Route path={`/school/${params.code}/profile`} component={Profile} />
-                <Route path={`/school/${params.code}/student-status`} component={StudentStatus} />
-                <Route path={`/school/${params.code}/teacher-specializations`} component={TeacherSpecializations} />
-                <Route path={`/school/${params.code}/admin`} component={AdminPanelTest} />
-                <Route path={`/school/${params.code}/admin/users`} component={AdminUsers} />
-                <Route path={`/school/${params.code}/admin/content`} component={AdminContent} />
-                <Route path={`/school/${params.code}/admin/suggestions`} component={AdminSuggestions} />
-                <Route path={`/school/${params.code}/admin/verification`} component={AdminVerification} />
-                <Route path={`/school/${params.code}/admin/reports`} component={AdminReports} />
-                <Route component={NotFound} />
-              </Switch>
-            </Layout>
-          </AuthWrapper>
-        )}
+      <Route path="/school/:code/home">
+        <AuthWrapper><Layout><Home /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/schedule">
+        <AuthWrapper><Layout><Schedule /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/teachers">
+        <AuthWrapper><Layout><Teachers /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/messages">
+        <AuthWrapper><Layout><Messages /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/suggestions">
+        <AuthWrapper><Layout><Suggestions /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/blog">
+        <AuthWrapper><Layout><Blog /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/groups">
+        <AuthWrapper><Layout><Groups /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/formations">
+        <AuthWrapper><Layout><Formations /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/announcements">
+        <AuthWrapper><Layout><Announcements /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/profile">
+        <AuthWrapper><Layout><Profile /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/student-status">
+        <AuthWrapper><Layout><StudentStatus /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/teacher-specializations">
+        <AuthWrapper><Layout><TeacherSpecializations /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/admin">
+        <AuthWrapper><Layout><AdminPanelTest /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/admin/users">
+        <AuthWrapper><Layout><AdminUsers /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/admin/content">
+        <AuthWrapper><Layout><AdminContent /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/admin/suggestions">
+        <AuthWrapper><Layout><AdminSuggestions /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/admin/verification">
+        <AuthWrapper><Layout><AdminVerification /></Layout></AuthWrapper>
+      </Route>
+      <Route path="/school/:code/admin/reports">
+        <AuthWrapper><Layout><AdminReports /></Layout></AuthWrapper>
       </Route>
       
       {/* Regular App Routes (for backward compatibility) */}
