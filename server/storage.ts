@@ -1,6 +1,6 @@
 import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL } from "drizzle-orm";
+import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // School methods (for multi-tenancy)
@@ -2247,7 +2247,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(studentMonthlyPayments)
         .where(and(
-          sql`${studentMonthlyPayments.studentId} = ANY(${studentIds})`,
+          inArray(studentMonthlyPayments.studentId, studentIds),
           eq(studentMonthlyPayments.year, year),
           eq(studentMonthlyPayments.month, month),
           eq(studentMonthlyPayments.schoolId, schoolId)

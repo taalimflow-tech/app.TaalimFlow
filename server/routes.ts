@@ -2722,7 +2722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schoolId = req.session.user.schoolId;
       
       // Get group with students
-      const group = await storage.getGroupsAssignedUsers(parseInt(groupId), schoolId);
+      const group = await storage.getGroupAssignedUsers(parseInt(groupId), schoolId);
       if (!group) {
         return res.status(404).json({ error: 'المجموعة غير موجودة' });
       }
