@@ -81,6 +81,7 @@ export interface IStorage {
   // Admin group management methods
   getAdminGroups(schoolId?: number): Promise<any[]>;
   updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group>;
+  getGroupAssignments(groupId: number): Promise<any[]>;
   getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]>;
   
   // Formation methods
@@ -934,6 +935,53 @@ export class DatabaseStorage implements IStorage {
     }
 
     throw new Error('Failed to create or update group');
+  }
+
+  async getGroupAssignments(groupId: number): Promise<any[]> {
+    const assignments = await db
+      .select({
+        studentId: groupMixedAssignments.studentId,
+        studentType: groupMixedAssignments.studentType
+      })
+      .from(groupMixedAssignments)
+      .where(eq(groupMixedAssignments.groupId, groupId));
+
+    const result = [];
+    for (const assignment of assignments) {
+      if (assignment.studentType === 'student') {
+        const studentData = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            phone: users.phone
+          })
+          .from(users)
+          .where(eq(users.id, assignment.studentId))
+          .limit(1);
+        
+        if (studentData[0]) {
+          result.push({ ...studentData[0], type: 'student' });
+        }
+      } else if (assignment.studentType === 'child') {
+        const childData = await db
+          .select({
+            id: children.id,
+            name: children.name,
+            email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email'),
+            phone: sql<string>`''`.as('phone')
+          })
+          .from(children)
+          .where(eq(children.id, assignment.studentId))
+          .limit(1);
+        
+        if (childData[0]) {
+          result.push({ ...childData[0], type: 'child' });
+        }
+      }
+    }
+
+    return result;
   }
 
   async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]> {
