@@ -182,6 +182,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await Promise.all(childrenPromises);
       }
       
+      // Automatically log in the user after successful registration
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        schoolId: user.schoolId
+      };
+      
       // Remove password from response
       const { password: ___, ...userWithoutPassword } = user;
       res.status(201).json({ user: userWithoutPassword });
@@ -245,6 +254,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         schoolId: currentSchool.id
       };
       const user = await storage.createUser(userWithRole);
+      
+      // Automatically log in the user after successful registration
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        schoolId: user.schoolId
+      };
       
       // Remove password from response
       const { password: __, ...userWithoutPassword } = user;
@@ -320,6 +338,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         schoolId: currentSchool.id
       };
       await storage.createTeacher(teacherData);
+      
+      // Automatically log in the user after successful registration
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        schoolId: user.schoolId
+      };
       
       // Remove password from response
       const { password: __, ...userWithoutPassword } = user;
