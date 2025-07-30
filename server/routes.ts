@@ -2722,12 +2722,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schoolId = req.session.user.schoolId;
       
       // Get group with students
-      const group = await storage.getGroupAssignedUsers(parseInt(groupId), schoolId);
-      if (!group) {
+      const group = await storage.getGroupById(parseInt(groupId));
+      if (!group || group.schoolId !== schoolId) {
         return res.status(404).json({ error: 'المجموعة غير موجودة' });
       }
       
-      const studentIds = group.studentsAssigned?.map((s: any) => s.id) || [];
+      // Get students assigned to this group
+      const groupAssignments = await storage.getGroupAssignments(parseInt(groupId), schoolId);
+      const studentIds = groupAssignments.map((assignment: any) => assignment.userId);
       
       // Create default unpaid records for students without payment records
       await storage.createDefaultMonthlyPayments(studentIds, parseInt(year), parseInt(month), schoolId);
