@@ -732,14 +732,19 @@ export default function Groups() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({ title: 'تم تحديث حالة الدفع بنجاح' });
-      // Refetch payment statuses
+      // Invalidate and refetch payment statuses immediately
       queryClient.invalidateQueries({ 
         queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth] 
       });
+      // Force refetch to update UI immediately
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth] 
+      });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Payment update error:', error);
       toast({ title: 'خطأ في تحديث حالة الدفع', variant: 'destructive' });
     }
   });
