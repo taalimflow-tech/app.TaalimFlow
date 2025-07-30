@@ -73,12 +73,7 @@ function AppRoutes() {
       {/* Hidden Super Admin Access Route */}
       <Route path="/system/super-admin-access" component={SuperAdminSimple} />
       
-      {/* School Selection Route */}
-      <Route path="/school/:code">
-        {(params) => <SchoolSelection schoolCode={params.code} />}
-      </Route>
-      
-      {/* School-specific authenticated routes */}
+      {/* School-specific authenticated routes (must come before general school route) */}
       <Route path="/school/:code/home">
         <AuthWrapper><Layout><Home /></Layout></AuthWrapper>
       </Route>
@@ -132,6 +127,11 @@ function AppRoutes() {
       </Route>
       <Route path="/school/:code/admin/reports">
         <AuthWrapper><Layout><AdminReports /></Layout></AuthWrapper>
+      </Route>
+      
+      {/* School Selection Route (must come after specific routes) */}
+      <Route path="/school/:code">
+        {(params) => <SchoolSelection schoolCode={params.code} />}
       </Route>
       
       {/* Fallback for unmatched routes */}
