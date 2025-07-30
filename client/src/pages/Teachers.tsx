@@ -40,9 +40,9 @@ export default function Teachers() {
 
   const educationLevels = [
     { value: 'all', label: 'جميع المستويات' },
-    { value: 'Primary', label: 'الابتدائي' },
-    { value: 'Middle', label: 'المتوسط' },
-    { value: 'Secondary', label: 'الثانوي' }
+    { value: 'الابتدائي', label: 'الابتدائي' },
+    { value: 'المتوسط', label: 'المتوسط' },
+    { value: 'الثانوي', label: 'الثانوي' }
   ];
 
   const filteredTeachers = selectedLevel === 'all' 
@@ -54,7 +54,6 @@ export default function Teachers() {
   // Color schemes for different education levels
   const getLevelColors = (educationLevel: string) => {
     switch (educationLevel) {
-      case 'Primary':
       case 'الابتدائي':
         return {
           bg: 'bg-green-50',
@@ -62,7 +61,6 @@ export default function Teachers() {
           border: 'border-green-200',
           badge: 'bg-green-100 text-green-800'
         };
-      case 'Middle':
       case 'المتوسط':
         return {
           bg: 'bg-blue-50',
@@ -70,7 +68,6 @@ export default function Teachers() {
           border: 'border-blue-200',
           badge: 'bg-blue-100 text-blue-800'
         };
-      case 'Secondary':
       case 'الثانوي':
         return {
           bg: 'bg-purple-50',
@@ -90,12 +87,8 @@ export default function Teachers() {
 
   // Helper function to get Arabic label for education level
   const getEducationLevelLabel = (level: string) => {
-    const levelMap: { [key: string]: string } = {
-      'Primary': 'الابتدائي',
-      'Middle': 'المتوسط', 
-      'Secondary': 'الثانوي'
-    };
-    return levelMap[level] || level;
+    // Education levels are already in Arabic in the database, so return as-is
+    return level;
   };
 
   const sendMessageMutation = useMutation({
@@ -223,15 +216,15 @@ export default function Teachers() {
                       />
                     ) : (
                       <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                        primaryLevel === 'Primary' ? 'bg-green-100' :
-                        primaryLevel === 'Middle' ? 'bg-blue-100' :
-                        primaryLevel === 'Secondary' ? 'bg-purple-100' :
+                        primaryLevel === 'الابتدائي' ? 'bg-green-100' :
+                        primaryLevel === 'المتوسط' ? 'bg-blue-100' :
+                        primaryLevel === 'الثانوي' ? 'bg-purple-100' :
                         'bg-gray-100'
                       }`}>
                         <User className={`w-8 h-8 ${
-                          primaryLevel === 'Primary' ? 'text-green-600' :
-                          primaryLevel === 'Middle' ? 'text-blue-600' :
-                          primaryLevel === 'Secondary' ? 'text-purple-600' :
+                          primaryLevel === 'الابتدائي' ? 'text-green-600' :
+                          primaryLevel === 'المتوسط' ? 'text-blue-600' :
+                          primaryLevel === 'الثانوي' ? 'text-purple-600' :
                           'text-gray-600'
                         }`} />
                       </div>
