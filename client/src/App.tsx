@@ -67,7 +67,7 @@ function AppRoutes() {
   return (
     <Switch>
       {/* Public Routes */}
-      <Route path="/" exact component={PublicHome} />
+      <Route path="/" component={PublicHome} />
       <Route path="/schools" component={SchoolDirectory} />
       
       {/* Hidden Super Admin Access Route */}

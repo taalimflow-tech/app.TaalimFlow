@@ -28,13 +28,13 @@ export default function StudentStatus() {
 
   // Fetch attendance records for the student
   const { data: attendanceRecords = [], isLoading: attendanceLoading } = useQuery<AttendanceRecord[]>({
-    queryKey: ['/api/student/attendance', user?.id],
+    queryKey: [`/api/student/attendance/${user?.id}`],
     enabled: !!user?.id,
   });
 
   // Fetch payment records for the student
   const { data: paymentRecords = [], isLoading: paymentsLoading } = useQuery<PaymentRecord[]>({
-    queryKey: ['/api/student/payments', user?.id],
+    queryKey: [`/api/student/payments/${user?.id}`],
     enabled: !!user?.id,
   });
 
