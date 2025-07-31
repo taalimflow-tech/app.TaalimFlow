@@ -834,10 +834,13 @@ export default function Groups() {
       return;
     }
     
+    // Determine student type - if email contains @parent.local, it's a child
+    const studentType = student.email?.includes('@parent.local') ? 'child' : 'student';
+    
     try {
       const response = await apiRequest('POST', `/api/groups/${managementGroup?.id}/attendance`, {
         studentId,
-        studentType: student.type, // Include student type
+        studentType: studentType, // Use determined student type
         attendanceDate: date,
         status: nextStatus
       });
