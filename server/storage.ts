@@ -999,6 +999,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]> {
+    console.log(`[DEBUG] getAvailableStudentsByLevelAndSubject called with: educationLevel=${educationLevel}, subjectId=${subjectId}, schoolId=${schoolId}`);
+    
     // Get direct students (users with 'student' role)
     let directStudentsQuery = db
       .select({
@@ -1015,22 +1017,13 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(users.role, 'student'),
-          eq(students.educationLevel, educationLevel)
-        )
-      );
-
-    // Apply school filter if provided
-    if (schoolId) {
-      directStudentsQuery = directStudentsQuery.where(
-        and(
-          eq(users.role, 'student'),
           eq(students.educationLevel, educationLevel),
-          eq(users.schoolId, schoolId)
+          schoolId ? eq(users.schoolId, schoolId) : sql`1=1`
         )
       );
-    }
 
     const directStudents = await directStudentsQuery;
+    console.log(`[DEBUG] Found ${directStudents.length} direct students:`, directStudents);
 
     // Get children registered by parents
     let childrenQuery = db
@@ -1044,23 +1037,20 @@ export class DatabaseStorage implements IStorage {
         type: sql<string>`'child'`.as('type')
       })
       .from(children)
-      .where(eq(children.educationLevel, educationLevel));
-
-    // Apply school filter for children if provided
-    if (schoolId) {
-      childrenQuery = childrenQuery.where(
+      .where(
         and(
           eq(children.educationLevel, educationLevel),
-          eq(children.schoolId, schoolId)
+          schoolId ? eq(children.schoolId, schoolId) : sql`1=1`
         )
       );
-    }
 
     const childrenStudents = await childrenQuery;
+    console.log(`[DEBUG] Found ${childrenStudents.length} children:`, childrenStudents);
 
     // Combine both results and sort by name
     const combinedResults = [...directStudents, ...childrenStudents];
     combinedResults.sort((a, b) => a.name.localeCompare(b.name));
+    console.log(`[DEBUG] Combined results:`, combinedResults);
 
     return combinedResults;
   }
