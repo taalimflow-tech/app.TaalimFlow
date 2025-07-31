@@ -21,14 +21,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
+        console.log('AuthContext: Checking authentication...');
         const response = await fetch('/api/auth/me', {
           credentials: 'include'
         });
         
+        console.log('AuthContext: Auth response status:', response.status);
+        
         if (response.ok) {
           const { user } = await response.json();
+          console.log('AuthContext: User authenticated:', user);
           setUser(user);
         } else {
+          console.log('AuthContext: User not authenticated');
           setUser(null);
         }
       } catch (error) {
@@ -59,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     const { user } = await response.json();
+    console.log('AuthContext: Login successful, user:', user);
     
     // If user exists in database but not in Firebase, try Firebase login (optional)
     if (user.firebase_uid) {
