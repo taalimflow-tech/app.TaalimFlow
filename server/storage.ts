@@ -2496,6 +2496,20 @@ export class DatabaseStorage implements IStorage {
 
   async markStudentPayment(studentId: number, year: number, month: number, isPaid: boolean, schoolId: number, paidBy: number, amount?: number, notes?: string): Promise<StudentMonthlyPayment> {
     try {
+      // Determine student type by checking if the student exists in users table or children table
+      let studentType: 'student' | 'child' = 'student';
+      
+      // First check if it's a user (direct student)
+      const userStudent = await db.select().from(users).where(and(eq(users.id, studentId), eq(users.schoolId, schoolId))).limit(1);
+      
+      if (userStudent.length === 0) {
+        // If not found in users, check children table
+        const childStudent = await db.select().from(children).where(and(eq(children.id, studentId), eq(children.schoolId, schoolId))).limit(1);
+        if (childStudent.length > 0) {
+          studentType = 'child';
+        }
+      }
+      
       // Check if payment record exists
       const existingPayment = await this.getStudentPaymentStatus(studentId, year, month, schoolId);
       
@@ -2520,6 +2534,7 @@ export class DatabaseStorage implements IStorage {
           .insert(studentMonthlyPayments)
           .values({
             studentId,
+            studentType, // Include the determined student type
             year,
             month,
             isPaid,
@@ -2551,13 +2566,30 @@ export class DatabaseStorage implements IStorage {
       
       if (newStudentIds.length === 0) return;
       
-      // Create default unpaid records for new students
-      const defaultPayments = newStudentIds.map(studentId => ({
-        studentId,
-        year,
-        month,
-        isPaid: false,
-        schoolId
+      // Create default unpaid records for new students with proper student type
+      const defaultPayments = await Promise.all(newStudentIds.map(async (studentId) => {
+        // Determine student type
+        let studentType: 'student' | 'child' = 'student';
+        
+        // First check if it's a user (direct student)
+        const userStudent = await db.select().from(users).where(and(eq(users.id, studentId), eq(users.schoolId, schoolId))).limit(1);
+        
+        if (userStudent.length === 0) {
+          // If not found in users, check children table
+          const childStudent = await db.select().from(children).where(and(eq(children.id, studentId), eq(children.schoolId, schoolId))).limit(1);
+          if (childStudent.length > 0) {
+            studentType = 'child';
+          }
+        }
+        
+        return {
+          studentId,
+          studentType,
+          year,
+          month,
+          isPaid: false,
+          schoolId
+        };
       }));
       
       await db.insert(studentMonthlyPayments).values(defaultPayments);
