@@ -400,6 +400,304 @@ function MonthlyAttendanceCarousel({ groupId, students, attendanceHistory }: { g
   );
 }
 
+// AttendanceCarouselView component for better visualization
+interface AttendanceCarouselViewProps {
+  managementGroup: any;
+  attendanceHistory: any[];
+  scheduledDates: string[];
+  user: any;
+  onAttendanceClick: (studentId: number, date: string, currentStatus?: string) => void;
+  onPaymentToggle: (studentId: number) => void;
+  getStudentPaymentStatus: (studentId: number) => any;
+}
+
+function AttendanceCarouselView({
+  managementGroup,
+  attendanceHistory,
+  scheduledDates,
+  user,
+  onAttendanceClick,
+  onPaymentToggle,
+  getStudentPaymentStatus
+}: AttendanceCarouselViewProps) {
+  const [currentMonthIndex, setCurrentMonthIndex] = React.useState(6); // Start with current month
+
+  // Generate months data (6 past + current + 6 future = 13 months)
+  const generateMonthsData = () => {
+    const months = [];
+    const currentDate = new Date();
+    
+    for (let i = -6; i <= 6; i++) {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+      const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+      
+      // Filter scheduled dates for this month
+      const monthScheduledDates = scheduledDates.filter(dateStr => {
+        const date = new Date(dateStr);
+        return date >= monthStart && date <= monthEnd;
+      });
+      
+      // Filter attendance data for this month
+      const monthAttendanceData = attendanceHistory.filter((record: any) => {
+        const recordDate = new Date(record.attendanceDate);
+        return recordDate >= monthStart && recordDate <= monthEnd;
+      });
+
+      const totalScheduledLessons = monthScheduledDates.length;
+      const totalPresent = monthAttendanceData.filter((r: any) => r.status === 'present').length;
+      const totalAbsent = monthAttendanceData.filter((r: any) => r.status === 'absent').length;
+      const attendanceRate = totalScheduledLessons > 0 
+        ? Math.round((totalPresent / (totalPresent + totalAbsent)) * 100) 
+        : 0;
+      
+      months.push({
+        date: monthDate,
+        monthName: monthDate.toLocaleDateString('ar', { 
+          month: 'long', 
+          year: 'numeric',
+          calendar: 'gregory'
+        }),
+        scheduledDates: monthScheduledDates,
+        attendanceData: monthAttendanceData,
+        stats: {
+          totalScheduledLessons,
+          totalPresent,
+          totalAbsent,
+          attendanceRate
+        }
+      });
+    }
+    
+    return months;
+  };
+
+  const monthsData = generateMonthsData();
+  const currentMonth = monthsData[currentMonthIndex] || monthsData[6];
+
+  // Generate mini calendar for current month
+  const generateMiniCalendar = (month: any) => {
+    if (!month) return [];
+    
+    const monthStart = new Date(month.date.getFullYear(), month.date.getMonth(), 1);
+    const monthEnd = new Date(month.date.getFullYear(), month.date.getMonth() + 1, 0);
+    const daysInMonth = monthEnd.getDate();
+    
+    const calendar = [];
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayDate = new Date(month.date.getFullYear(), month.date.getMonth(), day);
+      const dayStr = dayDate.toISOString().split('T')[0];
+      
+      // Check if this day is a scheduled date
+      const isScheduled = month.scheduledDates.includes(dayStr);
+      
+      // Check attendance for this day
+      const dayAttendance = month.attendanceData.filter((r: any) => 
+        new Date(r.attendanceDate).toISOString().split('T')[0] === dayStr
+      );
+      
+      let status = 'none';
+      if (isScheduled) {
+        if (dayAttendance.length === 0) {
+          status = 'scheduled'; // Scheduled but no attendance recorded
+        } else {
+          const presentCount = dayAttendance.filter((r: any) => r.status === 'present').length;
+          const absentCount = dayAttendance.filter((r: any) => r.status === 'absent').length;
+          
+          if (presentCount > 0 && absentCount === 0) status = 'all-present';
+          else if (absentCount > 0 && presentCount === 0) status = 'all-absent';
+          else status = 'mixed';
+        }
+      }
+      
+      calendar.push({ day, status, isScheduled, attendanceCount: dayAttendance.length });
+    }
+    
+    return calendar;
+  };
+
+  const miniCalendar = generateMiniCalendar(currentMonth);
+
+  const nextMonth = () => {
+    setCurrentMonthIndex(prev => Math.min(prev + 1, monthsData.length - 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentMonthIndex(prev => Math.max(prev - 1, 0));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Monthly Navigation */}
+      <div className="flex items-center justify-between">
+        <div className="text-lg font-semibold text-gray-800">
+          {currentMonth?.monthName}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={prevMonth}
+            disabled={currentMonthIndex === 0}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+          
+          <div className="text-xs text-gray-500">
+            {currentMonthIndex + 1} / {monthsData.length}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={nextMonth}
+            disabled={currentMonthIndex === monthsData.length - 1}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Monthly Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{currentMonth?.stats.totalScheduledLessons || 0}</div>
+            <p className="text-sm text-gray-600">الحصص المجدولة</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{currentMonth?.stats.totalPresent || 0}</div>
+            <p className="text-sm text-gray-600">مجموع الحضور</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-red-600">{currentMonth?.stats.totalAbsent || 0}</div>
+            <p className="text-sm text-gray-600">مجموع الغياب</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">{currentMonth?.stats.attendanceRate || 0}%</div>
+            <p className="text-sm text-gray-600">نسبة الحضور</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Mini Calendar */}
+      <Card>
+        <CardContent className="p-4">
+          <h4 className="font-medium text-gray-800 mb-3">تقويم الحضور</h4>
+          <div className="grid grid-cols-7 gap-1 text-center text-xs">
+            {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
+              <div key={day} className="p-2 font-medium text-gray-600">{day}</div>
+            ))}
+            {miniCalendar.map((dayInfo, index) => (
+              <div key={index} className="p-2 h-8 flex items-center justify-center">
+                {dayInfo ? (
+                  <div className="relative w-6 h-6 rounded-full flex items-center justify-center text-xs">
+                    <span className="relative z-10">{dayInfo.day}</span>
+                    {dayInfo.isScheduled && (
+                      <div className={`absolute inset-0 rounded-full ${
+                        dayInfo.status === 'all-present' ? 'bg-green-200' :
+                        dayInfo.status === 'all-absent' ? 'bg-red-200' :
+                        dayInfo.status === 'mixed' ? 'bg-yellow-200' :
+                        'bg-blue-200' // scheduled but no attendance
+                      }`} />
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-6 h-6" />
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {/* Legend */}
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-green-200"></div>
+              <span>حضور جيد</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-red-200"></div>
+              <span>غياب</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-yellow-200"></div>
+              <span>مختلط</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-blue-200"></div>
+              <span>مجدول</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Students List with Attendance */}
+      <Card>
+        <CardContent className="p-4">
+          <h4 className="font-medium text-gray-800 mb-4">طلاب المجموعة</h4>
+          <div className="space-y-3">
+            {managementGroup.studentsAssigned.map((student: any) => (
+              <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <div className="font-medium">{student.name}</div>
+                    <div className="text-xs text-gray-600">{student.email}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Payment Status */}
+                  <div className="text-xs">
+                    {student.email?.includes('@parent.local') ? (
+                      <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600">
+                        غير متاح
+                      </span>
+                    ) : user?.role === 'admin' ? (
+                      <button
+                        onClick={() => onPaymentToggle(student.id)}
+                        className={`px-2 py-1 rounded text-xs ${
+                          getStudentPaymentStatus(student.id)?.isPaid
+                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                            : 'bg-red-100 text-red-800 hover:bg-red-200'
+                        }`}
+                      >
+                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
+                      </button>
+                    ) : (
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        getStudentPaymentStatus(student.id)?.isPaid
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Attendance count for current month */}
+                  <div className="text-xs text-gray-500">
+                    {currentMonth?.attendanceData.filter((r: any) => r.studentId === student.id && r.status === 'present').length || 0} حضور
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Groups() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -1897,132 +2195,15 @@ export default function Groups() {
 
                     {scheduledDatesData?.dates && scheduledDatesData.dates.length > 0 ? (
                       monthKeys.length > 0 ? (
-                        <div className="overflow-x-auto">
-                          <table className="w-full border-collapse border border-gray-300" dir="rtl">
-                            <thead>
-                              <tr className="bg-gray-100">
-                                <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
-                                <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">حالة الدفع</th>
-                                {currentMonthDates.map((date) => (
-                                  <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
-                                    <div className="text-xs">
-                                      {new Date(date).toLocaleDateString('en-US', { 
-                                        day: 'numeric', 
-                                        month: 'numeric'
-                                      })}
-                                    </div>
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {managementGroup.studentsAssigned.map((student: any) => (
-                                <tr key={student.id} className="hover:bg-gray-50">
-                                  <td className="border border-gray-300 p-3 font-medium">
-                                    <div>
-                                      <div className="font-medium">{student.name}</div>
-                                      <div className="text-xs text-gray-600">{student.email}</div>
-                                    </div>
-                                  </td>
-                                  <td className="border border-gray-300 p-2 text-center">
-                                    {student.email?.includes('@parent.local') ? (
-                                      // This is a child - show N/A for payment status
-                                      <span className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-600">
-                                        غير متاح
-                                      </span>
-                                    ) : user?.role === 'admin' ? (
-                                      <button
-                                        onClick={() => handleTogglePayment(student.id)}
-                                        className={`px-3 py-1 rounded text-sm font-medium ${
-                                          getStudentPaymentStatus(student.id)?.isPaid
-                                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                            : 'bg-red-100 text-red-800 hover:bg-red-200'
-                                        }`}
-                                        title={`${getStudentPaymentStatus(student.id)?.isPaid ? 'مدفوع' : 'غير مدفوع'} - اضغط للتغيير`}
-                                      >
-                                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
-                                      </button>
-                                    ) : (
-                                      <span className={`px-3 py-1 rounded text-sm font-medium ${
-                                        getStudentPaymentStatus(student.id)?.isPaid
-                                          ? 'bg-green-100 text-green-800'
-                                          : 'bg-red-100 text-red-800'
-                                      }`}>
-                                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
-                                      </span>
-                                    )}
-                                  </td>
-                                  {currentMonthDates.map((date) => {
-                                    const attendanceRecord = attendanceHistory.find((record: any) => 
-                                      record.studentId === student.id && 
-                                      record.attendanceDate?.split('T')[0] === date
-                                    );
-                                    
-                                    return (
-                                      <td key={date} className="border border-gray-300 p-1 text-center">
-                                        <button
-                                          onClick={() => handleTableAttendanceClick(student.id, date, attendanceRecord?.status)}
-                                          className={`w-8 h-8 rounded text-xs font-bold ${
-                                            attendanceRecord?.status === 'present' 
-                                              ? 'bg-green-500 text-white hover:bg-green-600' 
-                                              : attendanceRecord?.status === 'absent'
-                                              ? 'bg-red-500 text-white hover:bg-red-600'
-                                              : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
-                                          }`}
-                                          title={`${student.name} - ${date} - ${
-                                            attendanceRecord?.status === 'present' ? 'حاضر' : 
-                                            attendanceRecord?.status === 'absent' ? 'غائب' : 'غير مسجل'
-                                          }`}
-                                        >
-                                          {attendanceRecord?.status === 'present' ? '✓' : 
-                                           attendanceRecord?.status === 'absent' ? '✗' : '?'}
-                                        </button>
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-
-                          {/* Monthly Statistics */}
-                          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-green-100 rounded-lg p-3 text-center">
-                              <h5 className="font-medium text-green-800">حضور الشهر</h5>
-                              <p className="text-xl font-bold text-green-900">
-                                {Array.isArray(attendanceHistory) ? 
-                                  attendanceHistory.filter((r: any) => {
-                                    const recordDate = r.attendanceDate?.split('T')[0];
-                                    return r.status === 'present' && currentMonthDates.includes(recordDate);
-                                  }).length : 0}
-                              </p>
-                            </div>
-                            <div className="bg-red-100 rounded-lg p-3 text-center">
-                              <h5 className="font-medium text-red-800">غياب الشهر</h5>
-                              <p className="text-xl font-bold text-red-900">
-                                {Array.isArray(attendanceHistory) ? 
-                                  attendanceHistory.filter((r: any) => {
-                                    const recordDate = r.attendanceDate?.split('T')[0];
-                                    return r.status === 'absent' && currentMonthDates.includes(recordDate);
-                                  }).length : 0}
-                              </p>
-                            </div>
-                            <div className="bg-blue-100 rounded-lg p-3 text-center">
-                              <h5 className="font-medium text-blue-800">نسبة حضور الشهر</h5>
-                              <p className="text-xl font-bold text-blue-900">
-                                {(() => {
-                                  if (!Array.isArray(attendanceHistory)) return 0;
-                                  const monthRecords = attendanceHistory.filter((r: any) => {
-                                    const recordDate = r.attendanceDate?.split('T')[0];
-                                    return currentMonthDates.includes(recordDate);
-                                  });
-                                  const presentCount = monthRecords.filter((r: any) => r.status === 'present').length;
-                                  return monthRecords.length > 0 ? Math.round((presentCount / monthRecords.length) * 100) : 0;
-                                })()}%
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                        <AttendanceCarouselView 
+                          managementGroup={managementGroup}
+                          attendanceHistory={attendanceHistory}
+                          scheduledDates={scheduledDatesData.dates}
+                          user={user}
+                          onAttendanceClick={handleTableAttendanceClick}
+                          onPaymentToggle={handleTogglePayment}
+                          getStudentPaymentStatus={getStudentPaymentStatus}
+                        />
                       ) : (
                         <div className="text-center py-8">
                           <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
