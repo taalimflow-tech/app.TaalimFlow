@@ -2870,7 +2870,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const requestingUser = req.session.user;
       
-      // Only allow students to view their own data or parents to view their children's data
+      // Handle parent accessing child data
+      if (requestingUser.role === 'parent') {
+        // Verify the child belongs to this parent
+        const child = await storage.getChildById(userId);
+        if (!child || child.parentId !== requestingUser.id) {
+          return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
+        }
+        // Use child-specific attendance records
+        const attendanceRecords = await storage.getChildAttendanceRecords(userId, requestingUser.schoolId);
+        return res.json(attendanceRecords);
+      }
+      
+      // Only allow students to view their own data
       if (requestingUser.role === 'student' && requestingUser.id !== userId) {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
       }
@@ -2888,7 +2900,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const requestingUser = req.session.user;
       
-      // Only allow students to view their own data or parents to view their children's data
+      // Handle parent accessing child data
+      if (requestingUser.role === 'parent') {
+        // Verify the child belongs to this parent
+        const child = await storage.getChildById(userId);
+        if (!child || child.parentId !== requestingUser.id) {
+          return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
+        }
+        // Use child-specific payment records
+        const paymentRecords = await storage.getChildPaymentRecords(userId, requestingUser.schoolId);
+        return res.json(paymentRecords);
+      }
+      
+      // Only allow students to view their own data
       if (requestingUser.role === 'student' && requestingUser.id !== userId) {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
       }
@@ -2906,7 +2930,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const requestingUser = req.session.user;
       
-      // Only allow students to view their own data or parents to view their children's data
+      // Handle parent accessing child data
+      if (requestingUser.role === 'parent') {
+        // Verify the child belongs to this parent
+        const child = await storage.getChildById(userId);
+        if (!child || child.parentId !== requestingUser.id) {
+          return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
+        }
+        // Use child-specific group enrollments
+        const enrolledGroups = await storage.getChildEnrolledGroups(userId, requestingUser.schoolId);
+        return res.json(enrolledGroups);
+      }
+      
+      // Only allow students to view their own data
       if (requestingUser.role === 'student' && requestingUser.id !== userId) {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
       }

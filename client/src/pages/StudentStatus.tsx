@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, CreditCard, User, Clock, CheckCircle, XCircle, DollarSign, Users, BookOpen } from 'lucide-react';
+import { Calendar, CreditCard, User, Clock, CheckCircle, XCircle, DollarSign, Users, BookOpen, ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { GroupDetailsModal } from '@/components/GroupDetailsModal';
 
@@ -38,27 +39,48 @@ interface EnrolledGroup {
   description?: string;
 }
 
+interface Child {
+  id: number;
+  name: string;
+  schoolId: number;
+  parentId: number;
+  educationLevel?: string;
+  birthDate?: string;
+  gender?: string;
+}
+
 export default function StudentStatus() {
   const { user } = useAuth();
   const [selectedGroup, setSelectedGroup] = useState<EnrolledGroup | null>(null);
   const [showGroupDetails, setShowGroupDetails] = useState(false);
+  const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
 
-  // Fetch attendance records for the student
+  // For parent accounts, fetch children first
+  const { data: children = [], isLoading: childrenLoading } = useQuery<Child[]>({
+    queryKey: ['/api/children'],
+    enabled: user?.role === 'parent',
+  });
+
+  // Determine which ID to use for fetching data (user ID for students, selected child ID for parents)
+  const targetUserId = user?.role === 'parent' ? selectedChildId : user?.id;
+  const targetUserType = user?.role === 'parent' ? 'child' : 'student';
+
+  // Fetch attendance records for the target user (student or selected child)
   const { data: attendanceRecords = [], isLoading: attendanceLoading } = useQuery<AttendanceRecord[]>({
-    queryKey: [`/api/student/attendance/${user?.id}`],
-    enabled: !!user?.id,
+    queryKey: [`/api/student/attendance/${targetUserId}`],
+    enabled: !!targetUserId,
   });
 
-  // Fetch payment records for the student
+  // Fetch payment records for the target user (student or selected child)
   const { data: paymentRecords = [], isLoading: paymentsLoading } = useQuery<PaymentRecord[]>({
-    queryKey: [`/api/student/payments/${user?.id}`],
-    enabled: !!user?.id,
+    queryKey: [`/api/student/payments/${targetUserId}`],
+    enabled: !!targetUserId,
   });
 
-  // Fetch enrolled groups for the student
+  // Fetch enrolled groups for the target user (student or selected child)
   const { data: enrolledGroups = [], isLoading: groupsLoading } = useQuery<EnrolledGroup[]>({
-    queryKey: [`/api/student/groups/${user?.id}`],
-    enabled: !!user?.id,
+    queryKey: [`/api/student/groups/${targetUserId}`],
+    enabled: !!targetUserId,
   });
 
   // Calculate attendance statistics
@@ -103,7 +125,17 @@ export default function StudentStatus() {
     }
   };
 
-  if (attendanceLoading || paymentsLoading || groupsLoading) {
+  // Set default child selection for parents
+  const handleChildSelection = (childId: string) => {
+    setSelectedChildId(parseInt(childId));
+  };
+
+  // Auto-select first child for parents if none selected
+  if (user?.role === 'parent' && children.length > 0 && !selectedChildId) {
+    setSelectedChildId(children[0].id);
+  }
+
+  if (attendanceLoading || paymentsLoading || groupsLoading || (user?.role === 'parent' && childrenLoading)) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -114,13 +146,63 @@ export default function StudentStatus() {
     );
   }
 
+  // For parents with no children
+  if (user?.role === 'parent' && children.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <User className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h2 className="text-xl font-bold text-gray-800 mb-2">لا توجد أطفال مسجلين</h2>
+            <p className="text-gray-600">يجب تسجيل الأطفال أولاً لعرض حضورهم ومدفوعاتهم</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const selectedChild = children.find(child => child.id === selectedChildId);
+  const displayName = user?.role === 'parent' && selectedChild ? selectedChild.name : user?.name;
+
   return (
     <div className="max-w-6xl mx-auto p-6 pb-20 space-y-6" dir="rtl">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">حضور ومدفوعات الطالب</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {user?.role === 'parent' ? 'حضور ومدفوعات الأطفال' : 'حضور ومدفوعات الطالب'}
+        </h1>
         <p className="text-gray-600">متابعة حالة الحضور والمدفوعات المالية</p>
       </div>
+
+      {/* Child Selection for Parents */}
+      {user?.role === 'parent' && children.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <User className="w-5 h-5 ml-2 text-blue-600" />
+            اختيار الطفل لعرض بياناته
+          </h3>
+          <Select value={selectedChildId?.toString()} onValueChange={handleChildSelection}>
+            <SelectTrigger className="w-full max-w-md">
+              <SelectValue placeholder="اختر الطفل" />
+            </SelectTrigger>
+            <SelectContent>
+              {children.map((child) => (
+                <SelectItem key={child.id} value={child.id.toString()}>
+                  {child.name} {child.educationLevel && `- ${child.educationLevel}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedChild && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-medium text-blue-900">البيانات المعروضة للطفل: {selectedChild.name}</h4>
+              {selectedChild.educationLevel && (
+                <p className="text-sm text-blue-700 mt-1">المستوى التعليمي: {selectedChild.educationLevel}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Enrolled Groups Section */}
       {enrolledGroups.length > 0 && (

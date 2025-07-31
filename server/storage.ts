@@ -210,6 +210,12 @@ export interface IStorage {
   getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]>;
   getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]>;
   getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]>;
+  
+  // Child-specific queries for parent access
+  getChildById(childId: number): Promise<Child | undefined>;
+  getChildAttendanceRecords(childId: number, schoolId: number): Promise<any[]>;
+  getChildPaymentRecords(childId: number, schoolId: number): Promise<any[]>;
+  getChildEnrolledGroups(childId: number, schoolId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2804,13 +2810,197 @@ export class DatabaseStorage implements IStorage {
         .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
         .where(and(
           eq(groupTransactions.studentId, studentId),
-          eq(groupTransactions.schoolId, schoolId)
+          eq(groupTransactions.schoolId, schoolId),
+          eq(groupTransactions.studentType, 'student')
         ))
         .orderBy(desc(groupTransactions.createdAt));
       
       return result;
     } catch (error) {
       console.error('Error fetching student payment records:', error);
+      return [];
+    }
+  }
+
+  // Child-specific methods for parent access
+  async getChildById(childId: number): Promise<Child | undefined> {
+    try {
+      const [child] = await db
+        .select()
+        .from(children)
+        .where(eq(children.id, childId))
+        .limit(1);
+      
+      return child;
+    } catch (error) {
+      console.error('Error fetching child by ID:', error);
+      return undefined;
+    }
+  }
+
+  async getChildAttendanceRecords(childId: number, schoolId: number): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: groupAttendance.id,
+          groupId: groupAttendance.groupId,
+          groupName: groups.name,
+          date: groupAttendance.attendanceDate,
+          status: groupAttendance.status
+        })
+        .from(groupAttendance)
+        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
+        .where(and(
+          eq(groupAttendance.studentId, childId),
+          eq(groupAttendance.schoolId, schoolId),
+          eq(groupAttendance.studentType, 'child')
+        ))
+        .orderBy(desc(groupAttendance.attendanceDate));
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching child attendance records:', error);
+      return [];
+    }
+  }
+
+  async getChildPaymentRecords(childId: number, schoolId: number): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: groupTransactions.id,
+          groupId: groupTransactions.groupId,
+          groupName: groups.name,
+          amount: groupTransactions.amount,
+          dueDate: groupTransactions.dueDate,
+          isPaid: sql<boolean>`CASE WHEN ${groupTransactions.status} = 'paid' THEN true ELSE false END`.as('isPaid'),
+          paidDate: groupTransactions.paidDate,
+          description: groupTransactions.description
+        })
+        .from(groupTransactions)
+        .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
+        .where(and(
+          eq(groupTransactions.studentId, childId),
+          eq(groupTransactions.schoolId, schoolId),
+          eq(groupTransactions.studentType, 'child')
+        ))
+        .orderBy(desc(groupTransactions.createdAt));
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching child payment records:', error);
+      return [];
+    }
+  }
+
+  async getChildEnrolledGroups(childId: number, schoolId: number): Promise<any[]> {
+    try {
+      // Get groups where this child is assigned
+      const mixedAssignments = await db
+        .select({
+          groupId: groupMixedAssignments.groupId,
+        })
+        .from(groupMixedAssignments)
+        .where(and(
+          eq(groupMixedAssignments.studentId, childId),
+          eq(groupMixedAssignments.studentType, 'child'),
+          eq(groupMixedAssignments.schoolId, schoolId)
+        ));
+
+      if (mixedAssignments.length === 0) {
+        return [];
+      }
+
+      const groupIds = mixedAssignments.map(assignment => assignment.groupId);
+      
+      // Get group details
+      const groupsData = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          educationLevel: groups.educationLevel,
+          description: groups.description,
+          teacherId: groups.teacherId,
+          subjectName: teachingModules.name,
+          teacherName: users.name
+        })
+        .from(groups)
+        .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+        .leftJoin(users, eq(groups.teacherId, users.id))
+        .where(and(
+          inArray(groups.id, groupIds),
+          eq(groups.schoolId, schoolId)
+        ));
+
+      // For each group, populate the studentsAssigned array
+      const result = [];
+      for (const group of groupsData) {
+        const mixedAssignments = await db
+          .select({
+            studentId: groupMixedAssignments.studentId,
+            studentType: groupMixedAssignments.studentType,
+          })
+          .from(groupMixedAssignments)
+          .where(and(
+            eq(groupMixedAssignments.groupId, group.id),
+            eq(groupMixedAssignments.schoolId, schoolId)
+          ));
+
+        const assignedStudents = [];
+        for (const assignment of mixedAssignments) {
+          if (assignment.studentType === 'student') {
+            // Get student from users/students tables
+            const studentData = await db
+              .select({
+                id: users.id,
+                name: users.name,
+                educationLevel: students.educationLevel,
+                grade: students.grade,
+                email: users.email
+              })
+              .from(users)
+              .leftJoin(students, eq(users.id, students.userId))
+              .where(eq(users.id, assignment.studentId))
+              .limit(1);
+            
+            if (studentData[0]) {
+              assignedStudents.push({
+                ...studentData[0],
+                type: 'student'
+              });
+            }
+          } else if (assignment.studentType === 'child') {
+            // Get child from children table
+            const childData = await db
+              .select({
+                id: children.id,
+                name: children.name,
+                educationLevel: children.educationLevel,
+                grade: children.grade,
+                email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
+              })
+              .from(children)
+              .where(eq(children.id, assignment.studentId))
+              .limit(1);
+            
+            if (childData[0]) {
+              assignedStudents.push({
+                ...childData[0],
+                type: 'child'
+              });
+            }
+          }
+        }
+
+        result.push({
+          ...group,
+          studentsAssigned: assignedStudents
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching child enrolled groups:', error);
       return [];
     }
   }
