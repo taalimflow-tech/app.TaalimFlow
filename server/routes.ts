@@ -1514,6 +1514,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Group attendance history endpoint for read-only access
+  app.get("/api/groups/:id/attendance-history", requireAuth, async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const schoolId = req.session.user!.schoolId!;
+      
+      if (!groupId) {
+        return res.status(400).json({ error: "معرف المجموعة مطلوب" });
+      }
+      
+      const attendanceHistory = await storage.getGroupAttendanceHistory(groupId, schoolId);
+      res.json(attendanceHistory);
+    } catch (error) {
+      console.error('Error fetching group attendance history:', error);
+      res.status(500).json({ error: "فشل في جلب سجل الحضور" });
+    }
+  });
+
+  // Group scheduled dates endpoint for read-only access
+  app.get("/api/groups/:id/scheduled-dates", requireAuth, async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const schoolId = req.session.user!.schoolId!;
+      
+      if (!groupId) {
+        return res.status(400).json({ error: "معرف المجموعة مطلوب" });
+      }
+      
+      const scheduledDates = await storage.getGroupScheduledLessonDates(groupId, schoolId);
+      res.json({ dates: scheduledDates });
+    } catch (error) {
+      console.error('Error fetching group scheduled dates:', error);
+      res.status(500).json({ error: "فشل في جلب مواعيد الحصص" });
+    }
+  });
+
   // Admin group management routes
   app.get("/api/admin/groups", async (req, res) => {
     try {

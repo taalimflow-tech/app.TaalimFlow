@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FirebaseEmailVerification } from '@/lib/firebase-email';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar } from 'lucide-react';
+import { GroupDetailsModal } from '@/components/GroupDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -52,6 +53,9 @@ export default function Profile() {
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<EnrolledGroup | null>(null);
+  const [showGroupDetails, setShowGroupDetails] = useState(false);
+  const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
   const [newChild, setNewChild] = useState({
     name: '',
     gender: '',
@@ -585,9 +589,14 @@ export default function Profile() {
                                         size="sm"
                                         variant="outline"
                                         className="w-full border-blue-500 text-blue-600 hover:bg-blue-50"
+                                        onClick={() => {
+                                          setSelectedGroup(group);
+                                          setSelectedChildId(childGroup.childId);
+                                          setShowGroupDetails(true);
+                                        }}
                                       >
                                         <Calendar className="w-4 h-4 mr-1" />
-                                        عرض تفاصيل المجموعة
+                                        عرض الحضور والمدفوعات
                                       </Button>
                                     </div>
                                   </div>
@@ -817,6 +826,19 @@ export default function Profile() {
           setIsEmailVerified(true);
           setShowEmailVerification(false);
         }}
+      />
+
+      {/* Group Details Modal for Children */}
+      <GroupDetailsModal
+        group={selectedGroup}
+        isOpen={showGroupDetails}
+        onClose={() => {
+          setShowGroupDetails(false);
+          setSelectedGroup(null);
+          setSelectedChildId(null);
+        }}
+        currentUserId={selectedChildId || 0}
+        userRole="child"
       />
     </div>
   );

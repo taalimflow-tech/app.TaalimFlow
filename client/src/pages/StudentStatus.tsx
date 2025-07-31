@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, CreditCard, User, Clock, CheckCircle, XCircle, DollarSign, Users, BookOpen } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { GroupDetailsModal } from '@/components/GroupDetailsModal';
 
 interface AttendanceRecord {
   id: number;
@@ -38,6 +40,8 @@ interface EnrolledGroup {
 
 export default function StudentStatus() {
   const { user } = useAuth();
+  const [selectedGroup, setSelectedGroup] = useState<EnrolledGroup | null>(null);
+  const [showGroupDetails, setShowGroupDetails] = useState(false);
 
   // Fetch attendance records for the student
   const { data: attendanceRecords = [], isLoading: attendanceLoading } = useQuery<AttendanceRecord[]>({
@@ -188,9 +192,13 @@ export default function StudentStatus() {
                           size="sm"
                           variant="outline"
                           className="w-full border-blue-500 text-blue-600 hover:bg-blue-50"
+                          onClick={() => {
+                            setSelectedGroup(group);
+                            setShowGroupDetails(true);
+                          }}
                         >
                           <Calendar className="w-4 h-4 mr-1" />
-                          عرض تفاصيل المجموعة
+                          عرض الحضور والمدفوعات
                         </Button>
                       </div>
                     </div>
@@ -363,6 +371,18 @@ export default function StudentStatus() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Group Details Modal */}
+      <GroupDetailsModal
+        group={selectedGroup}
+        isOpen={showGroupDetails}
+        onClose={() => {
+          setShowGroupDetails(false);
+          setSelectedGroup(null);
+        }}
+        currentUserId={user?.id || 0}
+        userRole={user?.role || 'student'}
+      />
     </div>
   );
 }
