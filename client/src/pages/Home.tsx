@@ -18,15 +18,19 @@ export default function Home() {
   // Get the latest 3 announcements
   const announcements = allAnnouncements.slice(0, 3);
 
+  // Get school context for school-specific routes
+  const schoolCode = sessionStorage.getItem('schoolCode');
+  const basePath = schoolCode ? `/school/${schoolCode}` : '';
+
   const baseQuickActions = [
-    { label: 'المدونة', path: '/blog', icon: '📚' },
-    { label: 'المجموعات', path: '/groups', icon: '👥' },
-    { label: 'التكوينات', path: '/formations', icon: '🎓' },
+    { label: 'المدونة', path: `${basePath}/blog`, icon: '📚' },
+    { label: 'المجموعات', path: `${basePath}/groups`, icon: '👥' },
+    { label: 'التكوينات', path: `${basePath}/formations`, icon: '🎓' },
   ];
 
   // Add suggestions for non-admin users only
   const quickActions = user?.role !== 'admin' 
-    ? [...baseQuickActions, { label: 'الاقتراحات', path: '/suggestions', icon: '💡' }]
+    ? [...baseQuickActions, { label: 'الاقتراحات', path: `${basePath}/suggestions`, icon: '💡' }]
     : baseQuickActions;
 
   return (

@@ -41,6 +41,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     // redirect to the home page within that school
     if (user && location.match(/^\/school\/[^/]+$/)) {
       const schoolCode = location.split('/')[2];
+
       navigate(`/school/${schoolCode}/home`);
     }
   }, [user, location, navigate]);

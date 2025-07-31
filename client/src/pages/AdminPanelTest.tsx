@@ -8,40 +8,44 @@ export default function AdminPanelTest() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 
+  // Get school context for school-specific routes
+  const schoolCode = sessionStorage.getItem('schoolCode');
+  const basePath = schoolCode ? `/school/${schoolCode}` : '';
+
   const adminSections = [
     {
       title: 'إدارة المستخدمين',
       description: 'عرض وإدارة جميع المستخدمين المسجلين',
       icon: <Users className="w-6 h-6" />,
-      path: '/admin/users',
+      path: `${basePath}/admin/users`,
       color: 'bg-blue-500'
     },
     {
       title: 'إدارة المحتوى',
       description: 'إنشاء وتحرير المقالات والمجموعات والتكوينات',
       icon: <FileText className="w-6 h-6" />,
-      path: '/admin/content',
+      path: `${basePath}/admin/content`,
       color: 'bg-green-500'
     },
     {
       title: 'الاقتراحات',
       description: 'مراجعة الاقتراحات المقدمة من المستخدمين',
       icon: <Lightbulb className="w-6 h-6" />,
-      path: '/admin/suggestions',
+      path: `${basePath}/admin/suggestions`,
       color: 'bg-yellow-500'
     },
     {
       title: 'التحقق من المستخدمين',
       description: 'التحقق من هوية المستخدمين والطلاب والأطفال',
       icon: <CheckCircle className="w-6 h-6" />,
-      path: '/admin/verification',
+      path: `${basePath}/admin/verification`,
       color: 'bg-purple-500'
     },
     {
       title: 'إدارة الإبلاغات',
       description: 'مراجعة الإبلاغات وإدارة المستخدمين المحظورين',
       icon: <BarChart3 className="w-6 h-6" />,
-      path: '/admin/reports',
+      path: `${basePath}/admin/reports`,
       color: 'bg-red-500'
     }
   ];
