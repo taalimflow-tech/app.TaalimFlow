@@ -933,7 +933,7 @@ export default function Groups() {
   const handleTogglePayment = (studentId: number) => {
     if (user?.role !== 'admin') return;
     
-    // Find student to check if it's a child
+    // Find student to check if it exists
     const assignedStudents = managementGroup?.studentsAssigned || [];
     const student = assignedStudents.find((s: any) => s.id === studentId);
     
@@ -942,16 +942,7 @@ export default function Groups() {
       return;
     }
     
-    // Don't allow payment updates for children - they don't have user accounts
-    if (student && typeof student === 'object' && 'email' in student && typeof (student as any).email === 'string' && (student as any).email.includes('@parent.local')) {
-      toast({ 
-        title: 'غير متاح للأطفال', 
-        description: 'الدفع متاح فقط للطلاب المسجلين مباشرة',
-        variant: 'destructive' 
-      });
-      return;
-    }
-    
+    // Allow payment updates for all students (both regular students and children)
     const currentPayment = getStudentPaymentStatus(studentId);
     const isPaid = !currentPayment?.isPaid;
     
@@ -1971,12 +1962,7 @@ export default function Groups() {
                                     <div className="font-medium">{student.name}</div>
                                   </td>
                                   <td className="border border-gray-300 p-2 text-center">
-                                    {student.email?.includes('@parent.local') ? (
-                                      // This is a child - show N/A for payment status
-                                      <span className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-600">
-                                        غير متاح
-                                      </span>
-                                    ) : user?.role === 'admin' ? (
+                                    {user?.role === 'admin' ? (
                                       <button
                                         onClick={() => handleTogglePayment(student.id)}
                                         className={`px-3 py-1 rounded text-sm font-medium ${
