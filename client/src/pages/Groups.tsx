@@ -929,6 +929,25 @@ export default function Groups() {
   const handleTogglePayment = (studentId: number) => {
     if (user?.role !== 'admin') return;
     
+    // Find student to check if it's a child
+    const assignedStudents = managementGroup?.studentsAssigned || [];
+    const student = assignedStudents.find((s: any) => s.id === studentId);
+    
+    if (!student) {
+      toast({ title: 'لم يتم العثور على الطالب', variant: 'destructive' });
+      return;
+    }
+    
+    // Don't allow payment updates for children - they don't have user accounts
+    if (student.email?.includes('@parent.local')) {
+      toast({ 
+        title: 'غير متاح للأطفال', 
+        description: 'الدفع متاح فقط للطلاب المسجلين مباشرة',
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
     const currentPayment = getStudentPaymentStatus(studentId);
     const isPaid = !currentPayment?.isPaid;
     
