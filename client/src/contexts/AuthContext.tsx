@@ -111,8 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    const currentUserRole = user?.role;
-    
     try {
       // Logout from Firebase
       await signOut(auth);
@@ -124,12 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(null);
       
-      // Redirect based on user role
-      if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
-        window.location.href = '/admin-login';
-      } else {
-        window.location.href = '/';
-      }
+      // Redirect all users to the home page (unified login system)
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
       // Always clear user state even if logout fails
