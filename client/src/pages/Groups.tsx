@@ -166,8 +166,10 @@ function MonthlyAttendanceCarousel({ groupId, students, attendanceHistory }: { g
 
   // Update scheduled dates when data changes
   React.useEffect(() => {
-    if (scheduledDatesData?.dates) {
-      setScheduledDates(scheduledDatesData.dates);
+    if (scheduledDatesData && Array.isArray(scheduledDatesData)) {
+      setScheduledDates(scheduledDatesData);
+    } else if (scheduledDatesData && typeof scheduledDatesData === 'object' && 'dates' in scheduledDatesData && Array.isArray((scheduledDatesData as any).dates)) {
+      setScheduledDates((scheduledDatesData as any).dates);
     }
   }, [scheduledDatesData]);
 
@@ -639,11 +641,11 @@ export default function Groups() {
       const timestamp = Date.now();
       queryClient.refetchQueries({ 
         queryKey: ['/api/admin/groups'], 
-        refetchType: 'all' 
+        type: 'all' 
       });
       queryClient.refetchQueries({ 
         queryKey: ['/api/groups'], 
-        refetchType: 'all' 
+        type: 'all' 
       });
     },
     onError: () => {
@@ -835,7 +837,7 @@ export default function Groups() {
     }
     
     // Determine student type - if email contains @parent.local, it's a child
-    const studentType = student.email?.includes('@parent.local') ? 'child' : 'student';
+    const studentType = (student && typeof student === 'object' && 'email' in student && typeof (student as any).email === 'string' && (student as any).email.includes('@parent.local')) ? 'child' : 'student';
     
     try {
       const response = await apiRequest('POST', `/api/groups/${managementGroup?.id}/attendance`, {
@@ -941,7 +943,7 @@ export default function Groups() {
     }
     
     // Don't allow payment updates for children - they don't have user accounts
-    if (student.email?.includes('@parent.local')) {
+    if (student && typeof student === 'object' && 'email' in student && typeof (student as any).email === 'string' && (student as any).email.includes('@parent.local')) {
       toast({ 
         title: 'غير متاح للأطفال', 
         description: 'الدفع متاح فقط للطلاب المسجلين مباشرة',
@@ -1007,8 +1009,8 @@ export default function Groups() {
     if (selectedLevel === 'جميع المستويات') {
       // For universal view, show subjects that exist across all education levels
       // Group by subject name and show only subjects that appear in all three levels
-      const subjectCounts = {};
-      const universalSubjects = [];
+      const subjectCounts: { [key: string]: { count: number; group: any; levels: string[] } } = {};
+      const universalSubjects: any[] = [];
       
       // Count how many education levels each subject appears in
       adminGroups.forEach(group => {
