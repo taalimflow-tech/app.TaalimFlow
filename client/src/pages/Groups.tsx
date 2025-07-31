@@ -631,7 +631,14 @@ export default function Groups() {
       setSelectedAdminGroup(null);
       setSelectedStudents([]);
       setSelectedTeacher(null);
+      
+      // Invalidate and refetch all related queries to force UI update
       queryClient.invalidateQueries({ queryKey: ['/api/admin/groups'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+      
+      // Force immediate refetch to update UI
+      queryClient.refetchQueries({ queryKey: ['/api/admin/groups'] });
+      queryClient.refetchQueries({ queryKey: ['/api/groups'] });
     },
     onError: () => {
       toast({ title: 'خطأ في تحديث تعيينات المجموعة', variant: 'destructive' });
