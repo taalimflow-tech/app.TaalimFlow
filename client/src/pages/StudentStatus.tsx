@@ -9,7 +9,7 @@ export default function StudentStatus() {
   const [currentMonthIndex, setCurrentMonthIndex] = useState(6); // Start with current month
 
   // Fetch student's groups to get attendance data
-  const { data: studentGroups = [], isLoading } = useQuery({
+  const { data: studentGroups = [], isLoading } = useQuery<any[]>({
     queryKey: [`/api/student/${user?.id}/groups`],
     enabled: !!user?.id,
   });
@@ -31,7 +31,7 @@ export default function StudentStatus() {
       let totalLate = 0;
       const monthAttendance: any[] = [];
       
-      studentGroups.forEach((group: any) => {
+      (studentGroups as any[]).forEach((group: any) => {
         if (group.attendance && Array.isArray(group.attendance)) {
           const groupMonthAttendance = group.attendance.filter((record: any) => {
             const recordDate = new Date(record.attendanceDate);
@@ -62,8 +62,16 @@ export default function StudentStatus() {
       
       months.push({
         date: monthDate,
-        monthName: monthDate.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' }),
-        monthNameEn: monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        monthName: monthDate.toLocaleDateString('ar', { 
+          month: 'long', 
+          year: 'numeric',
+          calendar: 'gregory'
+        }),
+        monthNameEn: monthDate.toLocaleDateString('ar', { 
+          month: 'long', 
+          year: 'numeric',
+          calendar: 'gregory'
+        }),
         attendance: monthAttendance,
         stats: {
           totalScheduledLessons,
@@ -183,8 +191,7 @@ export default function StudentStatus() {
           </button>
           
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-800">{currentMonth?.monthNameEn}</h3>
-            <p className="text-sm text-gray-600">{currentMonth?.monthName}</p>
+            <h3 className="text-lg font-semibold text-gray-800">{currentMonth?.monthName}</h3>
           </div>
           
           <button
