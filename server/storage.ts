@@ -918,19 +918,29 @@ export class DatabaseStorage implements IStorage {
 
       // Add new mixed assignments
       if (studentIds.length > 0) {
-        const mixedAssignments = studentIds.map(studentId => {
-          const studentInfo = availableStudents.find((s: any) => s.id === studentId);
-          const studentType = studentInfo?.type || 'student'; // Default to student if not found
-          
-          return {
-            schoolId: schoolId!,
-            groupId: actualGroupId,
-            studentId: studentId,
-            studentType: studentType as "student" | "child",
-            assignedBy: adminId || null
-          };
-        });
-        await db.insert(groupMixedAssignments).values(mixedAssignments);
+        const mixedAssignments = studentIds
+          .map(studentId => {
+            const studentInfo = availableStudents.find((s: any) => s.id === studentId);
+            
+            // Only create assignment if student is found to prevent orphaned records
+            if (!studentInfo) {
+              console.warn(`Student with ID ${studentId} not found in available students, skipping assignment`);
+              return null;
+            }
+            
+            return {
+              schoolId: schoolId!,
+              groupId: actualGroupId,
+              studentId: studentId,
+              studentType: studentInfo.type as "student" | "child",
+              assignedBy: adminId || null
+            };
+          })
+          .filter(assignment => assignment !== null); // Remove null assignments
+        
+        if (mixedAssignments.length > 0) {
+          await db.insert(groupMixedAssignments).values(mixedAssignments);
+        }
       }
 
       // Return the updated group
