@@ -159,6 +159,10 @@ This unified approach provides better data consistency, easier queries, and impr
 **Multi-tenant data isolation is working perfectly** - each school admin only sees their school's users.
 
 ## Recent Changes
+- **January 30, 2025**: LOGOUT REDIRECT FIX COMPLETE - Fixed 404 error after logout by redirecting to proper school/public routes
+  - **Logout Route Fix**: Updated logout function to redirect to `/school/{code}` instead of non-existent `/admin-login`
+  - **School Context Preservation**: Logout maintains school context and redirects to school selection page for re-login
+  - **Unified Login System**: All users now use same login flow regardless of role after logout
 - **January 30, 2025**: CRITICAL ROUTING FIX COMPLETE - Fixed 404 errors preventing school access and student status navigation
   - **School Selection Fix**: Fixed SchoolSelection component redirecting to non-existent `/login` route instead of proper school context
   - **Authentication Flow Fix**: Updated redirect to `/school/{code}/home` where AuthWrapper properly handles login display

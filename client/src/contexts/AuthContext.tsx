@@ -111,8 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    const currentUserRole = user?.role;
-    
     try {
       // Logout from Firebase
       await signOut(auth);
@@ -124,9 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(null);
       
-      // Redirect based on user role
-      if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
-        window.location.href = '/admin-login';
+      // Get current school context
+      const schoolCode = sessionStorage.getItem('schoolCode');
+      
+      // Redirect to school selection page if we have school context, otherwise to public home
+      if (schoolCode) {
+        window.location.href = `/school/${schoolCode}`;
       } else {
         window.location.href = '/';
       }
@@ -134,7 +135,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout error:', error);
       // Always clear user state even if logout fails
       setUser(null);
-      window.location.href = '/';
+      
+      // Fallback redirect
+      const schoolCode = sessionStorage.getItem('schoolCode');
+      if (schoolCode) {
+        window.location.href = `/school/${schoolCode}`;
+      } else {
+        window.location.href = '/';
+      }
     }
   };
 
