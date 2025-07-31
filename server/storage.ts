@@ -204,6 +204,12 @@ export interface IStorage {
   getStudentsPaymentStatusForMonth(studentIds: number[], year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment[]>;
   markStudentPayment(studentId: number, year: number, month: number, isPaid: boolean, schoolId: number, paidBy: number, amount?: number, notes?: string): Promise<StudentMonthlyPayment>;
   createDefaultMonthlyPayments(studentIds: number[], year: number, month: number, schoolId: number): Promise<void>;
+  
+  // Student Status interface methods
+  getStudentEnrolledGroups(studentId: number, schoolId: number): Promise<any[]>;
+  getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]>;
+  getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]>;
+  getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2596,6 +2602,234 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error creating default monthly payments:', error);
       throw error;
+    }
+  }
+
+  // Student Status methods
+  async getStudentEnrolledGroups(studentId: number, schoolId: number): Promise<any[]> {
+    try {
+      // Check both regular group assignments (from users table) and mixed assignments (from users and children tables)
+      const groupAssignments = await db
+        .select({
+          groupId: groupUserAssignments.groupId
+        })
+        .from(groupUserAssignments)
+        .where(and(
+          eq(groupUserAssignments.userId, studentId),
+          eq(groupUserAssignments.schoolId, schoolId)
+        ));
+
+      // Also check mixed group assignments for children
+      const mixedAssignments = await db
+        .select({
+          groupId: groupMixedAssignments.groupId
+        })
+        .from(groupMixedAssignments)
+        .where(and(
+          eq(groupMixedAssignments.studentId, studentId),
+          eq(groupMixedAssignments.schoolId, schoolId)
+        ));
+
+      // Combine all group IDs
+      const allGroupIds = [
+        ...groupAssignments.map(a => a.groupId),
+        ...mixedAssignments.map(a => a.groupId)
+      ];
+
+      if (allGroupIds.length === 0) {
+        return [];
+      }
+
+      // Fetch group details with teacher information
+      const groupsData = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          educationLevel: groups.educationLevel,
+          subjectId: groups.subjectId,
+          teacherId: groups.teacherId,
+          description: groups.description
+        })
+        .from(groups)
+        .where(and(
+          inArray(groups.id, allGroupIds),
+          eq(groups.schoolId, schoolId)
+        ));
+
+      // Get teacher names and subject names
+      const enrichedGroups = await Promise.all(groupsData.map(async (group) => {
+        let teacherName = null;
+        let subjectName = null;
+        let nameAr = null;
+
+        // Get teacher name
+        if (group.teacherId) {
+          const teacher = await db
+            .select({ name: users.name })
+            .from(users)
+            .where(eq(users.id, group.teacherId))
+            .limit(1);
+          if (teacher.length > 0) {
+            teacherName = teacher[0].name;
+          }
+        }
+
+        // Get subject name
+        if (group.subjectId) {
+          const subject = await db
+            .select({ name: teachingModules.name, nameAr: teachingModules.nameAr })
+            .from(teachingModules)
+            .where(eq(teachingModules.id, group.subjectId))
+            .limit(1);
+          if (subject.length > 0) {
+            subjectName = subject[0].name;
+            nameAr = subject[0].nameAr;
+          }
+        }
+
+        return {
+          ...group,
+          teacherName,
+          subjectName,
+          nameAr
+        };
+      }));
+
+      return enrichedGroups;
+    } catch (error) {
+      console.error('Error getting student enrolled groups:', error);
+      return [];
+    }
+  }
+
+  async getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]> {
+    try {
+      // This is a placeholder - implement based on your attendance tracking system
+      return [];
+    } catch (error) {
+      console.error('Error getting student attendance records:', error);
+      return [];
+    }
+  }
+
+  async getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]> {
+    try {
+      // This is a placeholder - implement based on your payment tracking system
+      return [];
+    } catch (error) {
+      console.error('Error getting student payment records:', error);
+      return [];
+    }
+  }
+
+  async getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]> {
+    try {
+      // First, get all children for this parent
+      const childrenList = await db
+        .select({
+          id: children.id,
+          name: children.name
+        })
+        .from(children)
+        .where(and(
+          eq(children.parentId, parentId),
+          eq(children.schoolId, schoolId)
+        ));
+
+      if (childrenList.length === 0) {
+        return [];
+      }
+
+      // Get group assignments for all children
+      const childrenGroups = await Promise.all(childrenList.map(async (child) => {
+        // Check mixed group assignments for this child
+        const mixedAssignments = await db
+          .select({
+            groupId: groupMixedAssignments.groupId
+          })
+          .from(groupMixedAssignments)
+          .where(and(
+            eq(groupMixedAssignments.studentId, child.id),
+            eq(groupMixedAssignments.schoolId, schoolId)
+          ));
+
+        if (mixedAssignments.length === 0) {
+          return {
+            childId: child.id,
+            childName: child.name,
+            groups: []
+          };
+        }
+
+        const groupIds = mixedAssignments.map(a => a.groupId);
+
+        // Fetch group details with teacher information
+        const groupsData = await db
+          .select({
+            id: groups.id,
+            name: groups.name,
+            educationLevel: groups.educationLevel,
+            subjectId: groups.subjectId,
+            teacherId: groups.teacherId,
+            description: groups.description
+          })
+          .from(groups)
+          .where(and(
+            inArray(groups.id, groupIds),
+            eq(groups.schoolId, schoolId)
+          ));
+
+        // Enrich groups with teacher and subject information
+        const enrichedGroups = await Promise.all(groupsData.map(async (group) => {
+          let teacherName = null;
+          let subjectName = null;
+          let nameAr = null;
+
+          // Get teacher name
+          if (group.teacherId) {
+            const teacher = await db
+              .select({ name: users.name })
+              .from(users)
+              .where(eq(users.id, group.teacherId))
+              .limit(1);
+            if (teacher.length > 0) {
+              teacherName = teacher[0].name;
+            }
+          }
+
+          // Get subject name
+          if (group.subjectId) {
+            const subject = await db
+              .select({ name: teachingModules.name, nameAr: teachingModules.nameAr })
+              .from(teachingModules)
+              .where(eq(teachingModules.id, group.subjectId))
+              .limit(1);
+            if (subject.length > 0) {
+              subjectName = subject[0].name;
+              nameAr = subject[0].nameAr;
+            }
+          }
+
+          return {
+            ...group,
+            teacherName,
+            subjectName,
+            nameAr
+          };
+        }));
+
+        return {
+          childId: child.id,
+          childName: child.name,
+          groups: enrichedGroups
+        };
+      }));
+
+      // Filter out children with no groups
+      return childrenGroups.filter(childGroup => childGroup.groups.length > 0);
+    } catch (error) {
+      console.error('Error getting children enrolled groups:', error);
+      return [];
     }
   }
 

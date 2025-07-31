@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirebaseEmailVerification } from '@/lib/firebase-email';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle } from 'lucide-react';
+import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,24 @@ interface Child {
   grade: string;
   parentId: number;
   createdAt: string;
+}
+
+interface ChildGroup {
+  childId: number;
+  childName: string;
+  groups: EnrolledGroup[];
+}
+
+interface EnrolledGroup {
+  id: number;
+  name: string;
+  nameAr?: string;
+  subjectName?: string;
+  educationLevel: string;
+  teacherId?: number;
+  teacherName?: string;
+  studentsAssigned?: any[];
+  description?: string;
 }
 
 export default function Profile() {
@@ -96,6 +114,12 @@ export default function Profile() {
   const { data: children = [], isLoading: childrenLoading } = useQuery<Child[]>({
     queryKey: ['/api/children'],
     enabled: !!user && user.role !== 'student',
+  });
+
+  // Fetch children's group enrollments
+  const { data: childrenGroups = [], isLoading: childrenGroupsLoading } = useQuery<ChildGroup[]>({
+    queryKey: ['/api/children/groups'],
+    enabled: !!user && user.role !== 'student' && children.length > 0,
   });
 
   // Add child mutation
@@ -478,6 +502,108 @@ export default function Profile() {
         
         {user.role !== 'student' && (
           <TabsContent value="children" className="space-y-4">
+            {/* Children's Groups Section */}
+            {childrenGroups.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    مجموعات الأطفال
+                  </CardTitle>
+                  <CardDescription>
+                    عرض المجموعات المسجل بها أطفالك
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {childrenGroups.map((childGroup) => (
+                      <div key={childGroup.childId}>
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                          <GraduationCap className="w-4 h-4 ml-2" />
+                          {childGroup.childName}
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {childGroup.groups.map((group) => {
+                            // Extract year level from group name or description
+                            const yearLevel = (() => {
+                              const groupText = group.name + ' ' + (group.description || '');
+                              if (groupText.includes('الأولى')) return '1';
+                              if (groupText.includes('الثانية')) return '2';
+                              if (groupText.includes('الثالثة')) return '3';
+                              if (groupText.includes('الرابعة')) return '4';
+                              if (groupText.includes('الخامسة')) return '5';
+                              return null;
+                            })();
+
+                            const getBadgeColor = () => {
+                              switch (group.educationLevel) {
+                                case 'الابتدائي': return 'bg-green-100 text-green-800';
+                                case 'المتوسط': return 'bg-blue-100 text-blue-800';
+                                case 'الثانوي': return 'bg-purple-100 text-purple-800';
+                                default: return 'bg-gray-100 text-gray-800';
+                              }
+                            };
+
+                            const getTeacherName = () => {
+                              if (group.teacherName) {
+                                const [firstName, ...rest] = group.teacherName.split(' ');
+                                const isFemaleName = firstName.endsWith('ة');
+                                const title = isFemaleName ? 'الأستاذة' : 'الأستاذ';
+                                return `${title} ${group.teacherName}`;
+                              }
+                              return 'غير محدد';
+                            };
+
+                            return (
+                              <Card key={group.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                                <CardContent className="p-4">
+                                  <div className="space-y-3">
+                                    {/* Level + Year Badge */}
+                                    <div className="flex justify-start">
+                                      <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
+                                        {yearLevel ? `${group.educationLevel} ${yearLevel}` : group.educationLevel}
+                                      </span>
+                                    </div>
+                                    
+                                    {/* Title */}
+                                    <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || group.name}</h3>
+                                    
+                                    {/* Teacher */}
+                                    <div className="text-sm text-gray-600">
+                                      <span className="font-medium">المعلم:</span> {getTeacherName()}
+                                    </div>
+                                    
+                                    {/* Student Count */}
+                                    <div className="flex items-center text-sm text-gray-600">
+                                      <Users className="h-4 w-4 ml-1" />
+                                      <span>{group.studentsAssigned?.length || 0} طالب</span>
+                                    </div>
+                                    
+                                    {/* View Details Button */}
+                                    <div className="pt-2">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full border-blue-500 text-blue-600 hover:bg-blue-50"
+                                      >
+                                        <Calendar className="w-4 h-4 mr-1" />
+                                        عرض تفاصيل المجموعة
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Children Management Section */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">

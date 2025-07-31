@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, CreditCard, User, Clock, CheckCircle, XCircle, DollarSign } from 'lucide-react';
+import { Calendar, CreditCard, User, Clock, CheckCircle, XCircle, DollarSign, Users, BookOpen } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface AttendanceRecord {
@@ -23,6 +24,18 @@ interface PaymentRecord {
   description: string;
 }
 
+interface EnrolledGroup {
+  id: number;
+  name: string;
+  nameAr?: string;
+  subjectName?: string;
+  educationLevel: string;
+  teacherId?: number;
+  teacherName?: string;
+  studentsAssigned?: any[];
+  description?: string;
+}
+
 export default function StudentStatus() {
   const { user } = useAuth();
 
@@ -35,6 +48,12 @@ export default function StudentStatus() {
   // Fetch payment records for the student
   const { data: paymentRecords = [], isLoading: paymentsLoading } = useQuery<PaymentRecord[]>({
     queryKey: [`/api/student/payments/${user?.id}`],
+    enabled: !!user?.id,
+  });
+
+  // Fetch enrolled groups for the student
+  const { data: enrolledGroups = [], isLoading: groupsLoading } = useQuery<EnrolledGroup[]>({
+    queryKey: [`/api/student/groups/${user?.id}`],
     enabled: !!user?.id,
   });
 
@@ -80,7 +99,7 @@ export default function StudentStatus() {
     }
   };
 
-  if (attendanceLoading || paymentsLoading) {
+  if (attendanceLoading || paymentsLoading || groupsLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -98,6 +117,90 @@ export default function StudentStatus() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">حضور ومدفوعات الطالب</h1>
         <p className="text-gray-600">متابعة حالة الحضور والمدفوعات المالية</p>
       </div>
+
+      {/* Enrolled Groups Section */}
+      {enrolledGroups.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+            <BookOpen className="w-6 h-6 ml-2 text-blue-600" />
+            المجموعات المسجل بها
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {enrolledGroups.map((group) => {
+              // Extract year level from group name or description
+              const yearLevel = (() => {
+                const groupText = group.name + ' ' + (group.description || '');
+                if (groupText.includes('الأولى')) return '1';
+                if (groupText.includes('الثانية')) return '2';
+                if (groupText.includes('الثالثة')) return '3';
+                if (groupText.includes('الرابعة')) return '4';
+                if (groupText.includes('الخامسة')) return '5';
+                return null;
+              })();
+
+              const getBadgeColor = () => {
+                switch (group.educationLevel) {
+                  case 'الابتدائي': return 'bg-green-100 text-green-800';
+                  case 'المتوسط': return 'bg-blue-100 text-blue-800';
+                  case 'الثانوي': return 'bg-purple-100 text-purple-800';
+                  default: return 'bg-gray-100 text-gray-800';
+                }
+              };
+
+              const getTeacherName = () => {
+                if (group.teacherName) {
+                  const [firstName, ...rest] = group.teacherName.split(' ');
+                  const isFemaleName = firstName.endsWith('ة');
+                  const title = isFemaleName ? 'الأستاذة' : 'الأستاذ';
+                  return `${title} ${group.teacherName}`;
+                }
+                return 'غير محدد';
+              };
+
+              return (
+                <Card key={group.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      {/* Level + Year Badge */}
+                      <div className="flex justify-start">
+                        <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
+                          {yearLevel ? `${group.educationLevel} ${yearLevel}` : group.educationLevel}
+                        </span>
+                      </div>
+                      
+                      {/* Title */}
+                      <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || group.name}</h3>
+                      
+                      {/* Teacher */}
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">المعلم:</span> {getTeacherName()}
+                      </div>
+                      
+                      {/* Student Count */}
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Users className="h-4 w-4 ml-1" />
+                        <span>{group.studentsAssigned?.length || 0} طالب</span>
+                      </div>
+                      
+                      {/* View Details Button */}
+                      <div className="pt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full border-blue-500 text-blue-600 hover:bg-blue-50"
+                        >
+                          <Calendar className="w-4 h-4 mr-1" />
+                          عرض تفاصيل المجموعة
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

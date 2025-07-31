@@ -2865,5 +2865,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/student/groups/:userId", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const requestingUser = req.session.user;
+      
+      // Only allow students to view their own data or parents to view their children's data
+      if (requestingUser.role === 'student' && requestingUser.id !== userId) {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
+      }
+      
+      const enrolledGroups = await storage.getStudentEnrolledGroups(userId, requestingUser.schoolId);
+      res.json(enrolledGroups);
+    } catch (error) {
+      console.error('Error fetching student enrolled groups:', error);
+      res.status(500).json({ error: "فشل في جلب المجموعات المسجل بها الطالب" });
+    }
+  });
+
+  app.get("/api/children/groups", requireAuth, async (req, res) => {
+    try {
+      const requestingUser = req.session.user;
+      
+      // Only allow parents to view their children's groups
+      if (requestingUser.role === 'student') {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه البيانات" });
+      }
+      
+      const childrenGroups = await storage.getChildrenEnrolledGroups(requestingUser.id, requestingUser.schoolId);
+      res.json(childrenGroups);
+    } catch (error) {
+      console.error('Error fetching children enrolled groups:', error);
+      res.status(500).json({ error: "فشل في جلب مجموعات الأطفال" });
+    }
+  });
+
   return httpServer;
 }
