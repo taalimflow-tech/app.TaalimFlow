@@ -2656,7 +2656,7 @@ export class DatabaseStorage implements IStorage {
           eq(groups.schoolId, schoolId)
         ));
 
-      // Get teacher names and subject names
+      // Get teacher names, subject names, and assigned students for each group
       const enrichedGroups = await Promise.all(groupsData.map(async (group) => {
         let teacherName = null;
         let subjectName = null;
@@ -2687,11 +2687,70 @@ export class DatabaseStorage implements IStorage {
           }
         }
 
+        // Get assigned students for this group (both students and children)
+        const mixedAssignments = await db
+          .select({
+            studentId: groupMixedAssignments.studentId,
+            studentType: groupMixedAssignments.studentType
+          })
+          .from(groupMixedAssignments)
+          .where(and(
+            eq(groupMixedAssignments.groupId, group.id),
+            eq(groupMixedAssignments.schoolId, schoolId)
+          ));
+
+        const assignedStudents = [];
+        for (const assignment of mixedAssignments) {
+          if (assignment.studentType === 'student') {
+            // Get student from users/students tables
+            const studentData = await db
+              .select({
+                id: users.id,
+                name: users.name,
+                educationLevel: students.educationLevel,
+                grade: students.grade,
+                email: users.email
+              })
+              .from(users)
+              .leftJoin(students, eq(users.id, students.userId))
+              .where(eq(users.id, assignment.studentId))
+              .limit(1);
+            
+            if (studentData[0]) {
+              assignedStudents.push({
+                ...studentData[0],
+                type: 'student'
+              });
+            }
+          } else if (assignment.studentType === 'child') {
+            // Get child from children table
+            const childData = await db
+              .select({
+                id: children.id,
+                name: children.name,
+                educationLevel: children.educationLevel,
+                grade: children.grade,
+                email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
+              })
+              .from(children)
+              .where(eq(children.id, assignment.studentId))
+              .limit(1);
+            
+            if (childData[0]) {
+              assignedStudents.push({
+                ...childData[0],
+                type: 'child'
+              });
+            }
+          }
+        }
+
         return {
           ...group,
           teacherName,
           subjectName,
-          nameAr
+          nameAr,
+          studentsAssigned: assignedStudents
         };
       }));
 
@@ -2704,20 +2763,54 @@ export class DatabaseStorage implements IStorage {
 
   async getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]> {
     try {
-      // This is a placeholder - implement based on your attendance tracking system
-      return [];
+      const result = await db
+        .select({
+          id: groupAttendance.id,
+          groupId: groupAttendance.groupId,
+          groupName: groups.name,
+          date: groupAttendance.attendanceDate,
+          status: groupAttendance.status
+        })
+        .from(groupAttendance)
+        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
+        .where(and(
+          eq(groupAttendance.studentId, studentId),
+          eq(groupAttendance.schoolId, schoolId)
+        ))
+        .orderBy(desc(groupAttendance.attendanceDate));
+      
+      return result;
     } catch (error) {
-      console.error('Error getting student attendance records:', error);
+      console.error('Error fetching student attendance records:', error);
       return [];
     }
   }
 
   async getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]> {
     try {
-      // This is a placeholder - implement based on your payment tracking system
-      return [];
+      // Get payment status from groupTransactions table - check if payment exists for the student
+      const result = await db
+        .select({
+          id: groupTransactions.id,
+          groupId: groupTransactions.groupId,
+          groupName: groups.name,
+          amount: groupTransactions.amount,
+          dueDate: groupTransactions.dueDate,
+          isPaid: sql<boolean>`CASE WHEN ${groupTransactions.status} = 'paid' THEN true ELSE false END`.as('isPaid'),
+          paidDate: groupTransactions.paidDate,
+          description: groupTransactions.description
+        })
+        .from(groupTransactions)
+        .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
+        .where(and(
+          eq(groupTransactions.studentId, studentId),
+          eq(groupTransactions.schoolId, schoolId)
+        ))
+        .orderBy(desc(groupTransactions.createdAt));
+      
+      return result;
     } catch (error) {
-      console.error('Error getting student payment records:', error);
+      console.error('Error fetching student payment records:', error);
       return [];
     }
   }

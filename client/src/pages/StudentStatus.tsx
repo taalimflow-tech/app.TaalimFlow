@@ -180,12 +180,6 @@ export default function StudentStatus() {
                         <span className="font-medium">المعلم:</span> {getTeacherName()}
                       </div>
                       
-                      {/* Student Count */}
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users className="h-4 w-4 ml-1" />
-                        <span>{group.studentsAssigned?.length || 0} طالب</span>
-                      </div>
-                      
                       {/* View Details Button */}
                       <div className="pt-2">
                         <Button
