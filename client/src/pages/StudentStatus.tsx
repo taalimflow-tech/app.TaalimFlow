@@ -171,132 +171,139 @@ export default function StudentStatus() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 pb-20 space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">سجل الحضور الشخصي</h1>
-        <p className="text-gray-600">متابعة حضورك عبر الأشهر</p>
-      </div>
-
-      {/* Monthly Attendance Carousel */}
-      <Card className="border">
-        {/* Month Navigation Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-          <button
+    <div className="p-4 space-y-6">
+      {/* Monthly Navigation */}
+      <div className="flex items-center justify-between">
+        <div className="text-lg font-semibold text-gray-800">
+          {currentMonth?.monthName}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={prevMonth}
             disabled={currentMonthIndex === 0}
-            className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-8 w-8 p-0"
           >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
           
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-800">{currentMonth?.monthName}</h3>
+          <div className="text-xs text-gray-500">
+            {currentMonthIndex + 1} / {monthsData.length}
           </div>
           
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={nextMonth}
             disabled={currentMonthIndex === monthsData.length - 1}
-            className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-8 w-8 p-0"
           >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
         </div>
+      </div>
 
-        {/* Statistics Section */}
-        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-blue-600">{currentMonth?.stats.totalScheduledLessons || 0}</div>
-              <div className="text-sm text-gray-600">حصص مجدولة</div>
-            </div>
-            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-green-600">{currentMonth?.stats.totalPresent || 0}</div>
-              <div className="text-sm text-gray-600">حضور</div>
-            </div>
-            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-red-600">{currentMonth?.stats.totalAbsent || 0}</div>
-              <div className="text-sm text-gray-600">غياب</div>
-            </div>
-            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-blue-600">{currentMonth?.stats.attendanceRate || 0}%</div>
-              <div className="text-sm text-gray-600">معدل الحضور</div>
-            </div>
-          </div>
-        </div>
+      {/* Monthly Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{currentMonth?.stats.totalScheduledLessons || 0}</div>
+            <p className="text-sm text-gray-600">الحصص المجدولة</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{currentMonth?.stats.totalPresent || 0}</div>
+            <p className="text-sm text-gray-600">مجموع الحضور</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-red-600">{currentMonth?.stats.totalAbsent || 0}</div>
+            <p className="text-sm text-gray-600">مجموع الغياب</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">{currentMonth?.stats.attendanceRate || 0}%</div>
+            <p className="text-sm text-gray-600">نسبة الحضور</p>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Mini Calendar */}
-        <div className="p-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">التقويم الشهري</h4>
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {/* Day headers (Arabic) */}
-            {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map((day, index) => (
-              <div key={index} className="text-xs font-medium text-gray-500 p-2 truncate">
-                {day.slice(0, 3)}
-              </div>
+      {/* Mini Calendar */}
+      <Card>
+        <CardContent className="p-4">
+          <h4 className="font-medium text-gray-800 mb-3">تقويم الحضور</h4>
+          <div className="grid grid-cols-7 gap-1 text-center text-xs">
+            {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
+              <div key={day} className="p-2 font-medium text-gray-600">{day}</div>
             ))}
-            
-            {/* Calendar days */}
-            {miniCalendar.map((cell, index) => (
-              <div key={index} className="aspect-square p-1">
-                {cell ? (
-                  <div className="relative w-full h-full flex items-center justify-center text-xs font-medium">
-                    <span className="relative z-10">{cell.day}</span>
-                    {cell.attendanceCount > 0 && (
-                      <div className={`absolute inset-0 w-full h-full rounded-full ${getStatusColor(cell.status)} opacity-70`}></div>
+            {miniCalendar.map((dayInfo, index) => (
+              <div key={index} className="p-2 h-8 flex items-center justify-center">
+                {dayInfo ? (
+                  <div className="relative w-6 h-6 rounded-full flex items-center justify-center text-xs">
+                    <span className="relative z-10">{dayInfo.day}</span>
+                    {dayInfo.attendanceCount > 0 && (
+                      <div className={`absolute inset-0 rounded-full ${
+                        dayInfo.status === 'all-present' ? 'bg-green-200' :
+                        dayInfo.status === 'all-absent' ? 'bg-red-200' :
+                        dayInfo.status === 'has-late' ? 'bg-yellow-200' :
+                        'bg-blue-200' // mixed
+                      }`} />
                     )}
                   </div>
                 ) : (
-                  <div className="w-full h-full"></div>
+                  <div className="w-6 h-6" />
                 )}
               </div>
             ))}
           </div>
-
+          
           {/* Legend */}
-          <div className="mt-4 flex flex-wrap gap-4 text-xs">
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span>حضور كامل</span>
+              <div className="w-3 h-3 rounded-full bg-green-200"></div>
+              <span>حضور جيد</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-red-200"></div>
               <span>غياب</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-200"></div>
               <span>تأخير</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <div className="w-3 h-3 rounded-full bg-blue-200"></div>
               <span>مختلط</span>
             </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
 
       {/* Groups Summary */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            مجموعاتي
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-4">
+          <h4 className="font-medium text-gray-800 mb-4">مجموعاتي</h4>
           {studentGroups.length === 0 ? (
             <p className="text-center text-gray-500 py-8">لم يتم تسجيلك في أي مجموعة بعد</p>
           ) : (
-            <div className="grid gap-3">
+            <div className="space-y-3">
               {studentGroups.map((group: any) => (
-                <div key={group.id} className="p-3 border rounded-lg">
-                  <div className="flex justify-between items-center">
+                <div key={group.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
                     <div>
-                      <h3 className="font-medium">{group.name}</h3>
-                      <p className="text-sm text-gray-600">{group.subject} - {group.educationLevel}</p>
+                      <div className="font-medium">{group.name}</div>
+                      <div className="text-xs text-gray-600">{group.subject} - {group.educationLevel}</div>
                     </div>
-                    <div className="text-right text-sm">
-                      <div className="text-gray-600">إجمالي الحضور: {group.totalAttendance || 0}</div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* Monthly attendance count */}
+                    <div className="text-xs text-gray-500">
+                      {currentMonth?.attendance.filter((r: any) => r.status === 'present').length || 0} حضور
                     </div>
                   </div>
                 </div>
