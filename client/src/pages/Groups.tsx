@@ -825,9 +825,19 @@ export default function Groups() {
     // Toggle: unrecorded -> present -> absent -> present
     const nextStatus = currentStatus === 'present' ? 'absent' : 'present';
     
+    // Find student to get their type
+    const assignedStudents = managementGroup?.studentsAssigned || [];
+    const student = assignedStudents.find((s: any) => s.id === studentId);
+    
+    if (!student) {
+      toast({ title: 'لم يتم العثور على الطالب', variant: 'destructive' });
+      return;
+    }
+    
     try {
       const response = await apiRequest('POST', `/api/groups/${managementGroup?.id}/attendance`, {
         studentId,
+        studentType: student.type, // Include student type
         attendanceDate: date,
         status: nextStatus
       });

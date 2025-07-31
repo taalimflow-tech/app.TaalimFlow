@@ -1604,6 +1604,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(groupAttendance.groupId, attendance.groupId),
         eq(groupAttendance.studentId, attendance.studentId),
+        eq(groupAttendance.studentType, attendance.studentType),
         and(
           sql`${groupAttendance.attendanceDate} >= ${attendanceDateStart}`,
           sql`${groupAttendance.attendanceDate} <= ${attendanceDateEnd}`
@@ -1644,27 +1645,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAttendanceWithStudentDetails(groupId: number, date?: string): Promise<any[]> {
-    const query = db
+    // Get attendance records with mixed student types
+    let attendanceQuery = db
       .select({
         id: groupAttendance.id,
         attendanceDate: groupAttendance.attendanceDate,
         status: groupAttendance.status,
         notes: groupAttendance.notes,
-        student: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-        },
-        markedBy: {
-          id: sql`marker.id`,
-          name: sql`marker.name`,
-        },
+        studentId: groupAttendance.studentId,
+        studentType: groupAttendance.studentType,
+        markedBy: groupAttendance.markedBy,
         createdAt: groupAttendance.createdAt,
         updatedAt: groupAttendance.updatedAt,
       })
       .from(groupAttendance)
-      .leftJoin(users, eq(groupAttendance.studentId, users.id))
-      .leftJoin(aliasedTable(users, 'marker'), eq(groupAttendance.markedBy, sql`marker.id`))
       .where(eq(groupAttendance.groupId, groupId));
 
     if (date) {
@@ -1673,37 +1667,117 @@ export class DatabaseStorage implements IStorage {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
       
-      return await query
-        .where(and(
-          eq(groupAttendance.groupId, groupId),
-          and(
-            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
-            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`
-          )
-        ))
-        .orderBy(desc(groupAttendance.attendanceDate));
+      attendanceQuery = attendanceQuery.where(and(
+        eq(groupAttendance.groupId, groupId),
+        and(
+          sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
+          sql`${groupAttendance.attendanceDate} <= ${endOfDay}`
+        )
+      ));
     }
     
-    return await query.orderBy(desc(groupAttendance.attendanceDate));
+    const attendanceRecords = await attendanceQuery.orderBy(desc(groupAttendance.attendanceDate));
+    
+    // Populate student details for each record
+    const result = [];
+    for (const record of attendanceRecords) {
+      let studentInfo;
+      
+      if (record.studentType === 'student') {
+        // Get user details
+        const [userInfo] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+          })
+          .from(users)
+          .where(eq(users.id, record.studentId))
+          .limit(1);
+        studentInfo = userInfo;
+      } else {
+        // Get child details
+        const [childInfo] = await db
+          .select({
+            id: children.id,
+            name: children.name,
+            email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email'),
+          })
+          .from(children)
+          .where(eq(children.id, record.studentId))
+          .limit(1);
+        studentInfo = childInfo;
+      }
+      
+      // Get marker details
+      let markerInfo = null;
+      if (record.markedBy) {
+        const [marker] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+          })
+          .from(users)
+          .where(eq(users.id, record.markedBy))
+          .limit(1);
+        markerInfo = marker;
+      }
+      
+      result.push({
+        ...record,
+        student: studentInfo,
+        markedBy: markerInfo,
+      });
+    }
+    
+    return result;
   }
 
   async getGroupAttendanceHistory(groupId: number, schoolId: number): Promise<any[]> {
-    return await db
+    const attendanceRecords = await db
       .select({
         id: groupAttendance.id,
         studentId: groupAttendance.studentId,
-        studentName: users.name,
+        studentType: groupAttendance.studentType,
         status: groupAttendance.status,
         attendanceDate: groupAttendance.attendanceDate,
         createdAt: groupAttendance.createdAt,
       })
       .from(groupAttendance)
-      .leftJoin(users, eq(groupAttendance.studentId, users.id))
       .where(and(
         eq(groupAttendance.groupId, groupId),
         eq(groupAttendance.schoolId, schoolId)
       ))
       .orderBy(desc(groupAttendance.attendanceDate), desc(groupAttendance.createdAt));
+
+    // Populate student names for mixed assignments
+    const result = [];
+    for (const record of attendanceRecords) {
+      let studentName = 'غير معروف';
+      
+      if (record.studentType === 'student') {
+        const [userInfo] = await db
+          .select({ name: users.name })
+          .from(users)
+          .where(eq(users.id, record.studentId))
+          .limit(1);
+        studentName = userInfo?.name || 'طالب غير موجود';
+      } else {
+        const [childInfo] = await db
+          .select({ name: children.name })
+          .from(children)
+          .where(eq(children.id, record.studentId))
+          .limit(1);
+        studentName = childInfo?.name || 'طفل غير موجود';
+      }
+      
+      result.push({
+        ...record,
+        studentName,
+      });
+    }
+    
+    return result;
   }
 
   // Group Financial Transaction methods

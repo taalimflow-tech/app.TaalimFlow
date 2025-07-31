@@ -2535,10 +2535,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const groupId = parseInt(req.params.groupId);
+      const { studentId, studentType, attendanceDate, status, notes } = req.body;
+      
+      if (!studentType || !['student', 'child'].includes(studentType)) {
+        return res.status(400).json({ error: "نوع الطالب مطلوب ويجب أن يكون student أو child" });
+      }
+      
       const attendanceData = {
-        ...req.body,
         groupId,
-        attendanceDate: new Date(req.body.attendanceDate),
+        studentId,
+        studentType: studentType as "student" | "child",
+        attendanceDate: new Date(attendanceDate),
+        status,
+        notes,
         markedBy: req.session.user.id,
         schoolId: req.session.user.schoolId
       };

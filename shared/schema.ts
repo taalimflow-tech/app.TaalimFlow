@@ -200,12 +200,13 @@ export const groupScheduleAssignments = pgTable("group_schedule_assignments", {
   assignedBy: integer("assigned_by").references(() => users.id), // Admin who assigned
 });
 
-// Group Attendance Table
+// Group Attendance Table - Updated to support mixed assignments (students and children)
 export const groupAttendance = pgTable("group_attendance", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id).notNull(),
-  studentId: integer("student_id").references(() => users.id).notNull(),
+  studentId: integer("student_id").notNull(), // ID from either users or children table
+  studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   attendanceDate: timestamp("attendance_date").notNull(),
   status: text("status", { enum: ["present", "absent", "late", "excused"] }).notNull().default("absent"),
   notes: text("notes"),
@@ -214,12 +215,13 @@ export const groupAttendance = pgTable("group_attendance", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Group Financial Transactions Table
+// Group Financial Transactions Table - Updated to support mixed assignments (students and children)
 export const groupTransactions = pgTable("group_transactions", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id).notNull(),
-  studentId: integer("student_id").references(() => users.id).notNull(),
+  studentId: integer("student_id").notNull(), // ID from either users or children table
+  studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   transactionType: text("transaction_type", { enum: ["payment", "fee", "refund", "discount"] }).notNull(),
   amount: integer("amount").notNull(), // Amount in cents to avoid decimal issues
   currency: text("currency").notNull().default("DZD"), // Algerian Dinar
@@ -234,11 +236,12 @@ export const groupTransactions = pgTable("group_transactions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Monthly payment status for students - simple paid/unpaid tracking
+// Monthly payment status for students - simple paid/unpaid tracking - Updated for mixed assignments
 export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
-  studentId: integer("student_id").references(() => users.id).notNull(),
+  studentId: integer("student_id").notNull(), // ID from either users or children table
+  studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   year: integer("year").notNull(),
   month: integer("month").notNull(), // 1-12
   isPaid: boolean("is_paid").default(false).notNull(),
