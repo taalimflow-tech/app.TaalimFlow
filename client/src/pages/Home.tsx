@@ -8,7 +8,7 @@ import { Megaphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
   const { user } = useAuth();
   
   const { data: allAnnouncements = [], isLoading: loading } = useQuery<Announcement[]>({
@@ -18,18 +18,15 @@ export default function Home() {
   // Get the latest 3 announcements
   const announcements = allAnnouncements.slice(0, 3);
 
-  // Extract school code from current URL path
-  const schoolCode = location.split('/')[2]; // /school/[code]/home -> [code]
-
   const baseQuickActions = [
-    { label: 'المدونة', path: `/school/${schoolCode}/blog`, icon: '📚' },
-    { label: 'المجموعات', path: `/school/${schoolCode}/groups`, icon: '👥' },
-    { label: 'التكوينات', path: `/school/${schoolCode}/formations`, icon: '🎓' },
+    { label: 'المدونة', path: '/blog', icon: '📚' },
+    { label: 'المجموعات', path: '/groups', icon: '👥' },
+    { label: 'التكوينات', path: '/formations', icon: '🎓' },
   ];
 
   // Add suggestions for non-admin users only
   const quickActions = user?.role !== 'admin' 
-    ? [...baseQuickActions, { label: 'الاقتراحات', path: `/school/${schoolCode}/suggestions`, icon: '💡' }]
+    ? [...baseQuickActions, { label: 'الاقتراحات', path: '/suggestions', icon: '💡' }]
     : baseQuickActions;
 
   return (
@@ -62,7 +59,7 @@ export default function Home() {
                 <p className="text-gray-500 text-sm mb-6">سيتم عرض الإعلانات الجديدة هنا عند توفرها</p>
                 <Button 
                   className="bg-primary hover:bg-primary/90 text-white rounded-lg px-6 py-2"
-                  onClick={() => navigate(`/school/${schoolCode}/announcements`)}
+                  onClick={() => navigate('/announcements')}
                 >
                   عرض جميع الإعلانات
                 </Button>

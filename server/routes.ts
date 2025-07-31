@@ -859,33 +859,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get student's groups with attendance data
-  app.get("/api/student/:userId/groups", async (req, res) => {
-    try {
-      if (!req.session?.user) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
-      }
-
-      const userId = parseInt(req.params.userId);
-      const currentUser = req.session.user;
-
-      // Students can only access their own data, admins can access any student's data
-      if (currentUser.role !== 'admin' && currentUser.id !== userId) {
-        return res.status(403).json({ error: "غير مسموح بالوصول إلى هذه البيانات" });
-      }
-
-      if (!currentUser.schoolId) {
-        return res.status(400).json({ error: "مستخدم غير مرتبط بمدرسة محددة" });
-      }
-
-      const studentGroups = await storage.getStudentGroups(userId, currentUser.schoolId);
-      res.json(studentGroups);
-    } catch (error) {
-      console.error('Error fetching student groups:', error);
-      res.status(500).json({ error: "فشل في جلب بيانات المجموعات" });
-    }
-  });
-
   // Announcement routes
   app.get("/api/announcements", requireAuth, async (req, res) => {
     try {
