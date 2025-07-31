@@ -632,14 +632,13 @@ export default function Groups() {
       setSelectedStudents([]);
       setSelectedTeacher(null);
       
-      // Force complete cache refresh with refetchType: 'all'
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/groups'], refetchType: 'all' });
-      queryClient.invalidateQueries({ queryKey: ['/api/groups'], refetchType: 'all' });
+      // Force complete cache refresh - remove all cached data
+      queryClient.removeQueries({ queryKey: ['/api/admin/groups'] });
+      queryClient.removeQueries({ queryKey: ['/api/groups'] });
       
-      // Additional force refetch to ensure UI updates immediately
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/admin/groups'] });
-      }, 100);
+      // Force immediate refetch to get fresh data
+      queryClient.refetchQueries({ queryKey: ['/api/admin/groups'], type: 'active' });
+      queryClient.refetchQueries({ queryKey: ['/api/groups'], type: 'active' });
     },
     onError: () => {
       toast({ title: 'خطأ في تحديث تعيينات المجموعة', variant: 'destructive' });

@@ -1536,7 +1536,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/groups/students/:educationLevel/:subjectId", async (req, res) => {
     try {
-      if (!req.session.user || req.session.user.role !== 'admin') {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      if (req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
