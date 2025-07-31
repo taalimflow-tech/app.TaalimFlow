@@ -843,7 +843,10 @@ export class DatabaseStorage implements IStorage {
                   .limit(1);
                 
                 if (studentData[0]) {
-                  assignedStudents.push(studentData[0]);
+                  assignedStudents.push({
+                    ...studentData[0],
+                    type: 'student'  // Explicitly set type
+                  });
                 }
               } else if (assignment.studentType === 'child') {
                 // Get child from children table
@@ -860,7 +863,10 @@ export class DatabaseStorage implements IStorage {
                   .limit(1);
                 
                 if (childData[0]) {
-                  assignedStudents.push(childData[0]);
+                  assignedStudents.push({
+                    ...childData[0],
+                    type: 'child'  // Explicitly set type
+                  });
                 }
               }
             }
