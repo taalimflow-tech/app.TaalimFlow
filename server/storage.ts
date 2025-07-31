@@ -909,8 +909,16 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (actualGroupId) {
+      // Get group information to determine education level and subject
+      const [groupInfo] = await db.select().from(groups).where(eq(groups.id, actualGroupId));
+      
       // Get all student data to determine types (students vs children)
-      const availableStudents = await this.getAvailableStudentsByLevelAndSubject(groupData?.educationLevel || '', 0, schoolId);
+      // Use actual group's education level and subject ID instead of empty defaults
+      const educationLevel = groupData?.educationLevel || groupInfo?.educationLevel || '';
+      const subjectId = groupData?.subjectId || groupInfo?.subjectId || 0;
+      
+      console.log(`[DEBUG] Assignment validation using: educationLevel=${educationLevel}, subjectId=${subjectId}`);
+      const availableStudents = await this.getAvailableStudentsByLevelAndSubject(educationLevel, subjectId, schoolId);
       
       // Remove existing assignments (both old and new)
       await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, actualGroupId));
