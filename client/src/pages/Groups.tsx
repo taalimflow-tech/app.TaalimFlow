@@ -922,7 +922,9 @@ export default function Groups() {
   // Helper function to get available grades for each education level
   // Helper function to get payment status for a student
   const getStudentPaymentStatus = (studentId: number) => {
-    return paymentStatuses.find((payment: any) => payment.studentId === studentId);
+    const paymentRecord = paymentStatuses.find((payment: any) => payment.studentId === studentId);
+    // Default to unpaid if no record exists
+    return paymentRecord || { studentId, isPaid: false };
   };
 
   // Helper function to toggle payment status
