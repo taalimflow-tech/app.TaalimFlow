@@ -1919,10 +1919,7 @@ export default function Groups() {
                               {managementGroup.studentsAssigned.map((student: any) => (
                                 <tr key={student.id} className="hover:bg-gray-50">
                                   <td className="border border-gray-300 p-3 font-medium">
-                                    <div>
-                                      <div className="font-medium">{student.name}</div>
-                                      <div className="text-xs text-gray-600">{student.email}</div>
-                                    </div>
+                                    <div className="font-medium">{student.name}</div>
                                   </td>
                                   <td className="border border-gray-300 p-2 text-center">
                                     {student.email?.includes('@parent.local') ? (
