@@ -66,84 +66,88 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <Switch>
-      {/* Public Routes */}
-      <Route path="/" component={PublicHome} />
-      <Route path="/school-access" component={SchoolCodeEntry} />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <Switch>
+          {/* Public Routes */}
+          <Route path="/" component={PublicHome} />
+          <Route path="/school-access" component={SchoolCodeEntry} />
+          
+          {/* Hidden Super Admin Access Route */}
+          <Route path="/system/super-admin-access" component={SuperAdminSimple} />
+          
+          {/* School-specific authenticated routes (must come before general school route) */}
+          <Route path="/school/:code/home">
+            <AuthWrapper><Layout><Home /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/schedule">
+            <AuthWrapper><Layout><Schedule /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/teachers">
+            <AuthWrapper><Layout><Teachers /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/messages">
+            <AuthWrapper><Layout><Messages /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/suggestions">
+            <AuthWrapper><Layout><Suggestions /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/blog">
+            <AuthWrapper><Layout><Blog /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/groups">
+            <AuthWrapper><Layout><Groups /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/formations">
+            <AuthWrapper><Layout><Formations /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/announcements">
+            <AuthWrapper><Layout><Announcements /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/profile">
+            <AuthWrapper><Layout><Profile /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/student-status">
+            {(params) => (
+              <AuthWrapper>
+                <Layout>
+                  <StudentStatus />
+                </Layout>
+              </AuthWrapper>
+            )}
+          </Route>
+          <Route path="/school/:code/teacher-specializations">
+            <AuthWrapper><Layout><TeacherSpecializations /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin">
+            <AuthWrapper><Layout><AdminPanelTest /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin/users">
+            <AuthWrapper><Layout><AdminUsers /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin/content">
+            <AuthWrapper><Layout><AdminContent /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin/suggestions">
+            <AuthWrapper><Layout><AdminSuggestions /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin/verification">
+            <AuthWrapper><Layout><AdminVerification /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin/reports">
+            <AuthWrapper><Layout><AdminReports /></Layout></AuthWrapper>
+          </Route>
+          
+          {/* School Selection Route (must come after specific routes) */}
+          <Route path="/school/:code">
+            {(params) => <SchoolSelection schoolCode={params.code} />}
+          </Route>
       
-      {/* Hidden Super Admin Access Route */}
-      <Route path="/system/super-admin-access" component={SuperAdminSimple} />
-      
-      {/* School-specific authenticated routes (must come before general school route) */}
-      <Route path="/school/:code/home">
-        <AuthWrapper><Layout><Home /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/schedule">
-        <AuthWrapper><Layout><Schedule /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/teachers">
-        <AuthWrapper><Layout><Teachers /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/messages">
-        <AuthWrapper><Layout><Messages /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/suggestions">
-        <AuthWrapper><Layout><Suggestions /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/blog">
-        <AuthWrapper><Layout><Blog /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/groups">
-        <AuthWrapper><Layout><Groups /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/formations">
-        <AuthWrapper><Layout><Formations /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/announcements">
-        <AuthWrapper><Layout><Announcements /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/profile">
-        <AuthWrapper><Layout><Profile /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/student-status">
-        {(params) => (
-          <AuthWrapper>
-            <Layout>
-              <StudentStatus />
-            </Layout>
-          </AuthWrapper>
-        )}
-      </Route>
-      <Route path="/school/:code/teacher-specializations">
-        <AuthWrapper><Layout><TeacherSpecializations /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/admin">
-        <AuthWrapper><Layout><AdminPanelTest /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/admin/users">
-        <AuthWrapper><Layout><AdminUsers /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/admin/content">
-        <AuthWrapper><Layout><AdminContent /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/admin/suggestions">
-        <AuthWrapper><Layout><AdminSuggestions /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/admin/verification">
-        <AuthWrapper><Layout><AdminVerification /></Layout></AuthWrapper>
-      </Route>
-      <Route path="/school/:code/admin/reports">
-        <AuthWrapper><Layout><AdminReports /></Layout></AuthWrapper>
-      </Route>
-      
-      {/* School Selection Route (must come after specific routes) */}
-      <Route path="/school/:code">
-        {(params) => <SchoolSelection schoolCode={params.code} />}
-      </Route>
-      
-      {/* Fallback for unmatched routes */}
-      <Route component={NotFound} />
-    </Switch>
+          {/* Fallback for unmatched routes */}
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+    </div>
   );
 }
 
@@ -157,12 +161,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
-          <div className="max-w-md mx-auto bg-white min-h-screen">
-            <Router />
-          </div>
-          <Toaster />
-        </div>
+        <Router />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
