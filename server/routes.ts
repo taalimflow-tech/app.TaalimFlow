@@ -2861,20 +2861,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get students assigned to this group (mixed assignments)
       const groupAssignments = await storage.getGroupAssignments(parseInt(groupId));
       
-      // Filter only actual students with user accounts (not children) for payment processing
-      const actualStudentIds = groupAssignments
-        .filter((assignment: any) => assignment.type === 'student')
-        .map((assignment: any) => assignment.id);
+      // Get all student IDs (both actual students and children) for payment processing
+      const allStudentIds = groupAssignments.map((assignment: any) => assignment.id);
       
-      // Create default unpaid records for students without payment records
-      if (actualStudentIds.length > 0) {
-        await storage.createDefaultMonthlyPayments(actualStudentIds, parseInt(year), parseInt(month), schoolId);
+      // Create default unpaid records for all students without payment records
+      if (allStudentIds.length > 0) {
+        await storage.createDefaultMonthlyPayments(allStudentIds, parseInt(year), parseInt(month), schoolId);
       }
       
-      // Get payment statuses for actual students only (not children)
-      const paymentStatuses = actualStudentIds.length > 0 
+      // Get payment statuses for all students (both regular students and children)
+      const paymentStatuses = allStudentIds.length > 0 
         ? await storage.getStudentsPaymentStatusForMonth(
-            actualStudentIds,
+            allStudentIds,
             parseInt(year),
             parseInt(month),
             schoolId

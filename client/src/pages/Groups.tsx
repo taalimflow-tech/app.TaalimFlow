@@ -766,7 +766,6 @@ export default function Groups() {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log('Payment update success, received data:', data);
       toast({ title: 'تم تحديث حالة الدفع بنجاح' });
       
       // Clear all payment status queries to force a fresh fetch
@@ -952,18 +951,9 @@ export default function Groups() {
   // Helper function to get available grades for each education level
   // Helper function to get payment status for a student
   const getStudentPaymentStatus = (studentId: number) => {
-    // Log for debugging
-    console.log('Getting payment status for student:', studentId);
-    console.log('Available payment statuses:', paymentStatuses);
-    console.log('Current viewing year/month:', currentViewingYear, currentViewingMonth);
-    
     const paymentRecord = paymentStatuses.find((payment: any) => payment.studentId === studentId);
-    console.log('Found payment record:', paymentRecord);
-    
     // Default to unpaid if no record exists
-    const result = paymentRecord || { studentId, isPaid: false };
-    console.log('Returning payment status:', result);
-    return result;
+    return paymentRecord || { studentId, isPaid: false };
   };
 
   // Helper function to toggle payment status
