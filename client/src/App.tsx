@@ -64,10 +64,6 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 
 function AppRoutes() {
-  const [location] = useLocation();
-  
-  // Debug log
-  console.log('Current location:', location);
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -75,8 +71,7 @@ function AppRoutes() {
         <Switch>
           {/* Public Routes */}
           <Route path="/" component={PublicHome} />
-          {/* Temporarily comment out to test */}
-          {/* <Route path="/school-access" component={SchoolCodeEntry} /> */}
+          <Route path="/school-access" component={SchoolCodeEntry} />
           
           {/* Hidden Super Admin Access Route */}
           <Route path="/system/super-admin-access" component={SuperAdminSimple} />
@@ -148,16 +143,6 @@ function AppRoutes() {
             {(params) => <SchoolSelection schoolCode={params.code} />}
           </Route>
       
-          {/* Debug route - remove later */}
-          <Route path="/debug">
-            <div>Debug route works! Current path: {location}</div>
-          </Route>
-          
-          {/* Test school-access route */}
-          <Route path="/school-access">
-            <div>School access route works! Current path: {location}</div>
-          </Route>
-          
           {/* Fallback for unmatched routes */}
           <Route component={NotFound} />
         </Switch>
