@@ -255,7 +255,7 @@ export default function StudentStatus() {
                       </div>
                       
                       {/* Title */}
-                      <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || group.name}</h3>
+                      <h3 className="font-semibold text-gray-800">{group.nameAr || group.name}</h3>
                       
                       {/* Teacher */}
                       <div className="text-sm text-gray-600">
