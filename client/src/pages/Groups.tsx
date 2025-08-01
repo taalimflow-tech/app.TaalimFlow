@@ -557,16 +557,24 @@ export default function Groups() {
     enabled: !!managementGroup && managementView === 'attendance'
   });
 
-  // Payment status query for current month
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1;
+  // Get current viewing month details instead of actual current month
+  const getCurrentViewingMonth = () => {
+    if (currentMonthKey) {
+      const [year, month] = currentMonthKey.split('-');
+      return { year: parseInt(year), month: parseInt(month) };
+    }
+    // Fallback to current month if no viewing month is set
+    const currentDate = new Date();
+    return { year: currentDate.getFullYear(), month: currentDate.getMonth() + 1 };
+  };
+  
+  const { year: currentViewingYear, month: currentViewingMonth } = getCurrentViewingMonth();
   
   const { data: paymentStatuses = [] } = useQuery<any[]>({
-    queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth],
+    queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth],
     queryFn: async () => {
       if (!managementGroup) return [];
-      const response = await apiRequest('GET', `/api/groups/${managementGroup.id}/payment-status/${currentYear}/${currentMonth}`);
+      const response = await apiRequest('GET', `/api/groups/${managementGroup.id}/payment-status/${currentViewingYear}/${currentViewingMonth}`);
       return await response.json();
     },
     enabled: !!managementGroup && managementView === 'attendance'
@@ -592,6 +600,16 @@ export default function Groups() {
       }
     }
   }, [scheduledDatesData]);
+
+  // Refresh payment data when viewing month changes
+  useEffect(() => {
+    if (managementGroup && managementView === 'attendance' && currentMonthKey) {
+      const { year: viewingYear, month: viewingMonth } = getCurrentViewingMonth();
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/groups', managementGroup.id, 'payment-status', viewingYear, viewingMonth] 
+      });
+    }
+  }, [currentMonthKey, managementGroup, managementView, queryClient]);
 
   // Financial data queries
   const { data: financialData = [], refetch: refetchFinancial } = useQuery<any[]>({
@@ -741,8 +759,8 @@ export default function Groups() {
   const markPaymentMutation = useMutation({
     mutationFn: async ({ studentId, isPaid }: { studentId: number, isPaid: boolean }) => {
       const response = await apiRequest('POST', `/api/students/${studentId}/mark-payment`, {
-        year: currentYear,
-        month: currentMonth,
+        year: currentViewingYear,
+        month: currentViewingMonth,
         isPaid
       });
       return response.json();
@@ -751,11 +769,11 @@ export default function Groups() {
       toast({ title: 'تم تحديث حالة الدفع بنجاح' });
       // Invalidate and refetch payment statuses immediately
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth] 
+        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth] 
       });
       // Force refetch to update UI immediately
       queryClient.refetchQueries({ 
-        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth] 
+        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth] 
       });
     },
     onError: (error: any) => {
