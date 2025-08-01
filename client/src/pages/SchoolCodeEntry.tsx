@@ -91,7 +91,7 @@ export default function SchoolCodeEntry() {
                     value={schoolCode}
                     onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
                     className="text-center text-lg font-mono tracking-wider"
-                    maxLength={10}
+                    maxLength={50}
                     required
                     disabled={loading}
                   />
