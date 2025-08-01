@@ -2253,7 +2253,7 @@ export class DatabaseStorage implements IStorage {
           case 'student':
             stats.students = count;
             break;
-          case 'user':
+          case 'parent':
             stats.parents = count;
             break;
         }
