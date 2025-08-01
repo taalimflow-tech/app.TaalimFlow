@@ -26,7 +26,7 @@ export default function SchoolCodeEntry() {
       const response = await fetch("/api/school/verify-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schoolCode: schoolCode.trim().toUpperCase() }),
+        body: JSON.stringify({ schoolCode: schoolCode.trim() }),
       });
 
       const result = await response.json();
@@ -36,7 +36,7 @@ export default function SchoolCodeEntry() {
       }
 
       // Navigate to school selection with the verified code
-      setLocation(`/school/${schoolCode.trim().toUpperCase()}`);
+      setLocation(`/school/${schoolCode.trim()}`);
     } catch (err: any) {
       setError(err.message || "فشل في التحقق من رمز المدرسة");
     } finally {
@@ -89,7 +89,7 @@ export default function SchoolCodeEntry() {
                     type="text"
                     placeholder="مثال: TST1"
                     value={schoolCode}
-                    onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
+                    onChange={(e) => setSchoolCode(e.target.value)}
                     className="text-center text-lg font-mono tracking-wider"
                     maxLength={50}
                     required
