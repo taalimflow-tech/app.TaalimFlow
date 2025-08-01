@@ -75,7 +75,8 @@ function AppRoutes() {
         <Switch>
           {/* Public Routes */}
           <Route path="/" component={PublicHome} />
-          <Route path="/school-access" component={SchoolCodeEntry} />
+          {/* Temporarily comment out to test */}
+          {/* <Route path="/school-access" component={SchoolCodeEntry} /> */}
           
           {/* Hidden Super Admin Access Route */}
           <Route path="/system/super-admin-access" component={SuperAdminSimple} />
@@ -150,6 +151,11 @@ function AppRoutes() {
           {/* Debug route - remove later */}
           <Route path="/debug">
             <div>Debug route works! Current path: {location}</div>
+          </Route>
+          
+          {/* Test school-access route */}
+          <Route path="/school-access">
+            <div>School access route works! Current path: {location}</div>
           </Route>
           
           {/* Fallback for unmatched routes */}
