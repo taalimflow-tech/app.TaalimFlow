@@ -2069,6 +2069,7 @@ export class DatabaseStorage implements IStorage {
         senderName: users.name,
         senderProfilePicture: users.profilePicture,
         senderEmail: users.email,
+        senderRole: users.role,
       })
       .from(messages)
       .leftJoin(users, eq(messages.senderId, users.id))
@@ -2080,7 +2081,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(messages.createdAt));
 
-    // Get additional user info for receivers
+    // Get additional user info for receivers including their roles
     const messagesWithCompleteInfo = await Promise.all(
       result.map(async (message) => {
         const receiver = await this.getUser(message.receiverId);
@@ -2088,6 +2089,7 @@ export class DatabaseStorage implements IStorage {
           ...message,
           receiverName: receiver?.name,
           receiverProfilePicture: receiver?.profilePicture,
+          receiverRole: receiver?.role,
         };
       })
     );

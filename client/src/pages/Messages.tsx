@@ -408,7 +408,25 @@ export default function Messages() {
             const otherUserId = isMyMessage ? message.receiverId : message.senderId;
             const otherUserName = isMyMessage ? message.receiverName : message.senderName;
             const otherUserProfilePicture = isMyMessage ? message.receiverProfilePicture : message.senderProfilePicture;
+            const otherUserRole = isMyMessage ? message.receiverRole : message.senderRole;
             const blocked = isUserBlocked(otherUserId);
+            
+            // Permission check: students and parents cannot block/report teachers or admins
+            const canBlockOrReport = () => {
+              if (!user?.role || !otherUserRole) return false;
+              
+              // Admins can block/report anyone
+              if (user.role === 'admin') return true;
+              
+              // Teachers can block/report students and parents
+              if (user.role === 'teacher' && (otherUserRole === 'user' || otherUserRole === 'parent')) return true;
+              
+              // Students and parents can only block/report other students and parents
+              if ((user.role === 'user' || user.role === 'parent') && 
+                  (otherUserRole === 'user' || otherUserRole === 'parent')) return true;
+              
+              return false;
+            };
             
             return (
               <Card key={message.id} className={`transition-all duration-200 cursor-pointer hover:shadow-md ${
@@ -484,45 +502,49 @@ export default function Messages() {
                     </div>
                     
                     <div className="flex items-center gap-1">
-                      {blocked ? (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleUnblockUser(otherUserId);
-                          }}
-                          className="text-xs"
-                        >
-                          <ShieldOff className="w-3 h-3 mr-1" />
-                          إلغاء الحظر
-                        </Button>
-                      ) : (
+                      {canBlockOrReport() && (
                         <>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleBlockUser(otherUserId);
-                            }}
-                            className="text-xs"
-                          >
-                            <Shield className="w-3 h-3 mr-1" />
-                            حظر
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReportUser(otherUserId, otherUserName);
-                            }}
-                            className="text-xs"
-                          >
-                            <AlertTriangle className="w-3 h-3 mr-1" />
-                            إبلاغ
-                          </Button>
+                          {blocked ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUnblockUser(otherUserId);
+                              }}
+                              className="text-xs"
+                            >
+                              <ShieldOff className="w-3 h-3 mr-1" />
+                              إلغاء الحظر
+                            </Button>
+                          ) : (
+                            <>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBlockUser(otherUserId);
+                                }}
+                                className="text-xs"
+                              >
+                                <Shield className="w-3 h-3 mr-1" />
+                                حظر
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReportUser(otherUserId, otherUserName);
+                                }}
+                                className="text-xs"
+                              >
+                                <AlertTriangle className="w-3 h-3 mr-1" />
+                                إبلاغ
+                              </Button>
+                            </>
+                          )}
                         </>
                       )}
                     </div>
