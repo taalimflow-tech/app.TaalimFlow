@@ -766,15 +766,25 @@ export default function Groups() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('Payment update success, received data:', data);
       toast({ title: 'تم تحديث حالة الدفع بنجاح' });
-      // Invalidate and refetch payment statuses immediately
+      
+      // Clear all payment status queries to force a fresh fetch
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/groups', managementGroup?.id, 'payment-status']
+      });
+      
+      // Specifically invalidate current month
       queryClient.invalidateQueries({ 
         queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth] 
       });
-      // Force refetch to update UI immediately
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth] 
-      });
+      
+      // Force immediate refetch
+      setTimeout(() => {
+        queryClient.refetchQueries({ 
+          queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth] 
+        });
+      }, 100);
     },
     onError: (error: any) => {
       console.error('Payment update error:', error);
@@ -942,9 +952,18 @@ export default function Groups() {
   // Helper function to get available grades for each education level
   // Helper function to get payment status for a student
   const getStudentPaymentStatus = (studentId: number) => {
+    // Log for debugging
+    console.log('Getting payment status for student:', studentId);
+    console.log('Available payment statuses:', paymentStatuses);
+    console.log('Current viewing year/month:', currentViewingYear, currentViewingMonth);
+    
     const paymentRecord = paymentStatuses.find((payment: any) => payment.studentId === studentId);
+    console.log('Found payment record:', paymentRecord);
+    
     // Default to unpaid if no record exists
-    return paymentRecord || { studentId, isPaid: false };
+    const result = paymentRecord || { studentId, isPaid: false };
+    console.log('Returning payment status:', result);
+    return result;
   };
 
   // Helper function to toggle payment status
