@@ -355,6 +355,33 @@ export const scheduleCells = pgTable("schedule_cells", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Push subscriptions table for web push notifications
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsed: timestamp("last_used").defaultNow().notNull(),
+});
+
+// Notification logs table to track sent notifications
+export const notificationLogs = pgTable("notification_logs", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  userId: integer("user_id").references(() => users.id), // null for broadcast
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  data: jsonb("data"), // Additional notification data
+  type: text("type").notNull(), // message, announcement, group, attendance, etc.
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  success: boolean("success").default(true),
+  error: text("error"), // Error message if sending failed
+});
+
 // Insert schemas
 export const insertUserSchema = z.object({
   email: z.string().email("بريد إلكتروني غير صحيح"),
@@ -630,6 +657,18 @@ export const insertStudentMonthlyPaymentSchema = createInsertSchema(studentMonth
   schoolId: true,
 });
 
+// Push notification schemas
+export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  lastUsed: true,
+});
+
+export const insertNotificationLogSchema = createInsertSchema(notificationLogs).omit({
+  id: true,
+  sentAt: true,
+});
+
 
 
 // Types
@@ -681,3 +720,7 @@ export type GroupTransaction = typeof groupTransactions.$inferSelect;
 export type InsertGroupTransaction = z.infer<typeof insertGroupTransactionSchema>;
 export type StudentMonthlyPayment = typeof studentMonthlyPayments.$inferSelect;
 export type InsertStudentMonthlyPayment = z.infer<typeof insertStudentMonthlyPaymentSchema>;
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
+export type NotificationLog = typeof notificationLogs.$inferSelect;
+export type InsertNotificationLog = z.infer<typeof insertNotificationLogSchema>;

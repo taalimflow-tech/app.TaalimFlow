@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirebaseEmailVerification } from '@/lib/firebase-email';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar } from 'lucide-react';
+import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar, Bell } from 'lucide-react';
 import { GroupDetailsModal } from '@/components/GroupDetailsModal';
+import NotificationSettings from '@/components/NotificationSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -325,10 +326,14 @@ export default function Profile() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className={`grid w-full ${user.role === 'student' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        <TabsList className={`grid w-full ${user.role === 'student' ? 'grid-cols-2' : 'grid-cols-3'}`}>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             الملف الشخصي
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="w-4 h-4" />
+            الإشعارات
           </TabsTrigger>
           {user.role !== 'student' && (
             <TabsTrigger value="children" className="flex items-center gap-2">
@@ -774,6 +779,10 @@ export default function Profile() {
             )}
           </TabsContent>
         )}
+        
+        <TabsContent value="notifications" className="space-y-4">
+          <NotificationSettings />
+        </TabsContent>
       </Tabs>
       
       {/* Logout Section */}

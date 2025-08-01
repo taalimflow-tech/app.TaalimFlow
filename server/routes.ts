@@ -23,6 +23,8 @@ declare module 'express-session' {
 }
 import { SMSService } from "./sms-service";
 import { EmailService } from "./email-service";
+import PushNotificationService from './push-service';
+import { insertPushSubscriptionSchema } from '../shared/schema';
 
 // Remove global currentUser variable to prevent session bleeding between users
 // We'll use req.session.user instead for proper session management
@@ -902,6 +904,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
+      // Send push notification to all users in school
+      const notificationPayload = PushNotificationService.createAnnouncementNotification(
+        announcement.title,
+        announcement.content
+      );
+      
+      // Fire and forget - don't wait for push notifications
+      PushNotificationService.broadcastToSchool(
+        req.session.user.schoolId,
+        notificationPayload,
+        [req.session.user.id] // Exclude the admin who created it
+      ).catch(error => {
+        console.error('Failed to send announcement push notification:', error);
+      });
+      
       res.status(201).json(announcement);
     } catch (error) {
       console.error('Announcement creation error:', error);
@@ -1336,6 +1353,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: `رسالة جديدة من ${sender?.name}: "${message.subject}"`,
         relatedId: message.id
       });
+      
+      // Send push notification to message receiver
+      if (sender) {
+        const notificationPayload = PushNotificationService.createMessageNotification(
+          sender.name,
+          message.content
+        );
+        
+        // Fire and forget - don't wait for push notifications
+        PushNotificationService.sendToUser(
+          req.session.user.schoolId!,
+          message.receiverId!,
+          notificationPayload
+        ).catch(error => {
+          console.error('Failed to send message push notification:', error);
+        });
+      }
       
       res.status(201).json(message);
     } catch (error) {
@@ -2988,6 +3022,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching children enrolled groups:', error);
       res.status(500).json({ error: "فشل في جلب مجموعات الأطفال" });
+    }
+  });
+
+  // Push Notification Routes
+  app.get("/api/push/vapid-public-key", (req, res) => {
+    try {
+      const publicKey = PushNotificationService.getVapidPublicKey();
+      res.json({ publicKey });
+    } catch (error) {
+      console.error('Error getting VAPID public key:', error);
+      res.status(500).json({ error: "فشل في الحصول على مفتاح الإشعارات" });
+    }
+  });
+
+  app.post("/api/push/subscribe", async (req, res) => {
+    try {
+      if (!req.session?.user || !req.session?.schoolId) {
+        return res.status(401).json({ error: "المصادقة مطلوبة" });
+      }
+
+      const subscriptionData = insertPushSubscriptionSchema.parse({
+        ...req.body,
+        userId: req.session.user.id,
+        schoolId: req.session.schoolId
+      });
+
+      const subscription = await storage.createPushSubscription(subscriptionData);
+      res.json({ success: true, subscription });
+    } catch (error) {
+      console.error('Error subscribing to push notifications:', error);
+      res.status(400).json({ error: "فشل في تفعيل الإشعارات" });
+    }
+  });
+
+  app.post("/api/push/unsubscribe", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المصادقة مطلوبة" });
+      }
+
+      const { endpoint } = req.body;
+      if (!endpoint) {
+        return res.status(400).json({ error: "عنوان الاشتراك مطلوب" });
+      }
+
+      // Find and delete subscription by endpoint and user
+      const subscriptions = await storage.getUserPushSubscriptions(req.session.user.id);
+      const targetSubscription = subscriptions.find(sub => sub.endpoint === endpoint);
+      
+      if (targetSubscription) {
+        await storage.deletePushSubscription(targetSubscription.id);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error unsubscribing from push notifications:', error);
+      res.status(400).json({ error: "فشل في إلغاء تفعيل الإشعارات" });
+    }
+  });
+
+  app.post("/api/push/test", async (req, res) => {
+    try {
+      if (!req.session?.user || !req.session?.schoolId) {
+        return res.status(401).json({ error: "المصادقة مطلوبة" });
+      }
+
+      const payload = PushNotificationService.createMessageNotification(
+        "النظام",
+        "هذا إشعار تجريبي للتأكد من عمل نظام الإشعارات"
+      );
+
+      const success = await PushNotificationService.sendToUser(
+        req.session.schoolId,
+        req.session.user.id,
+        payload
+      );
+
+      if (success) {
+        res.json({ success: true, message: "تم إرسال الإشعار التجريبي بنجاح" });
+      } else {
+        res.status(400).json({ error: "فشل في إرسال الإشعار التجريبي" });
+      }
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      res.status(500).json({ error: "فشل في إرسال الإشعار التجريبي" });
+    }
+  });
+
+  app.get("/api/push/status", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المصادقة مطلوبة" });
+      }
+
+      const subscriptions = await storage.getUserPushSubscriptions(req.session.user.id);
+      const isSubscribed = subscriptions.length > 0;
+      
+      res.json({ 
+        isSubscribed,
+        subscriptionCount: subscriptions.length,
+        lastUsed: subscriptions[0]?.lastUsed || null
+      });
+    } catch (error) {
+      console.error('Error checking push notification status:', error);
+      res.status(500).json({ error: "فشل في فحص حالة الإشعارات" });
+    }
+  });
+
+  // Admin: Send notification to specific users
+  app.post("/api/admin/push/send", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const { userIds, title, body, type, url } = req.body;
+      
+      if (!userIds || !Array.isArray(userIds) || !title || !body) {
+        return res.status(400).json({ error: "بيانات الإشعار غير كاملة" });
+      }
+
+      const payload = {
+        title,
+        body,
+        type: type || 'admin',
+        data: { url: url || '/' }
+      };
+
+      const result = await PushNotificationService.sendToUsers(
+        req.session.schoolId!,
+        userIds,
+        payload
+      );
+
+      res.json({ 
+        success: true, 
+        sent: result.success, 
+        failed: result.failed,
+        message: `تم إرسال ${result.success} إشعار، فشل ${result.failed}` 
+      });
+    } catch (error) {
+      console.error('Error sending admin notification:', error);
+      res.status(500).json({ error: "فشل في إرسال الإشعار" });
+    }
+  });
+
+  // Admin: Broadcast to all users in school
+  app.post("/api/admin/push/broadcast", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const { title, body, type, url, excludeRoles } = req.body;
+      
+      if (!title || !body) {
+        return res.status(400).json({ error: "عنوان ومحتوى الإشعار مطلوبان" });
+      }
+
+      const payload = {
+        title,
+        body,
+        type: type || 'broadcast',
+        data: { url: url || '/' }
+      };
+
+      // Get users to exclude based on roles
+      let excludeUserIds: number[] = [];
+      if (excludeRoles && excludeRoles.length > 0) {
+        const excludeUsers = await storage.getUsersByRoles(req.session.schoolId!, excludeRoles);
+        excludeUserIds = excludeUsers.map(user => user.id);
+      }
+
+      const result = await PushNotificationService.broadcastToSchool(
+        req.session.schoolId!,
+        payload,
+        excludeUserIds
+      );
+
+      res.json({ 
+        success: true, 
+        sent: result.success, 
+        failed: result.failed,
+        message: `تم إرسال ${result.success} إشعار، فشل ${result.failed}` 
+      });
+    } catch (error) {
+      console.error('Error broadcasting notification:', error);
+      res.status(500).json({ error: "فشل في إرسال الإشعار العام" });
     }
   });
 

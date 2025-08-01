@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray } from "drizzle-orm";
 
@@ -2140,6 +2140,124 @@ export class DatabaseStorage implements IStorage {
       .orderBy(messages.createdAt); // Chronological order for chat history
 
     return result;
+  }
+
+  // Push subscription methods
+  async createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription> {
+    // Check if subscription already exists for this user and endpoint
+    const existing = await db
+      .select()
+      .from(pushSubscriptions)
+      .where(
+        and(
+          eq(pushSubscriptions.userId, subscription.userId),
+          eq(pushSubscriptions.endpoint, subscription.endpoint)
+        )
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing subscription
+      const [updated] = await db
+        .update(pushSubscriptions)
+        .set({
+          p256dh: subscription.p256dh,
+          auth: subscription.auth,
+          userAgent: subscription.userAgent,
+          lastUsed: new Date()
+        })
+        .where(eq(pushSubscriptions.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+
+    // Create new subscription
+    const [newSubscription] = await db
+      .insert(pushSubscriptions)
+      .values(subscription)
+      .returning();
+    return newSubscription;
+  }
+
+  async getUserPushSubscriptions(userId: number): Promise<PushSubscription[]> {
+    return await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, userId))
+      .orderBy(desc(pushSubscriptions.lastUsed));
+  }
+
+  async getUsersWithPushSubscriptions(schoolId: number): Promise<User[]> {
+    const result = await db
+      .selectDistinct({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role
+      })
+      .from(users)
+      .innerJoin(pushSubscriptions, eq(users.id, pushSubscriptions.userId))
+      .where(eq(users.schoolId, schoolId));
+    
+    return result;
+  }
+
+  async getUsersByRoles(schoolId: number, roles: string[]): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.schoolId, schoolId),
+          inArray(users.role, roles)
+        )
+      );
+  }
+
+  async updatePushSubscriptionLastUsed(subscriptionId: number): Promise<void> {
+    await db
+      .update(pushSubscriptions)
+      .set({ lastUsed: new Date() })
+      .where(eq(pushSubscriptions.id, subscriptionId));
+  }
+
+  async deletePushSubscription(subscriptionId: number): Promise<void> {
+    await db
+      .delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.id, subscriptionId));
+  }
+
+  async deleteUserPushSubscriptions(userId: number): Promise<void> {
+    await db
+      .delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, userId));
+  }
+
+  // Notification log methods
+  async createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog> {
+    const [newLog] = await db
+      .insert(notificationLogs)
+      .values(log)
+      .returning();
+    return newLog;
+  }
+
+  async getNotificationLogs(schoolId: number, limit: number = 100): Promise<NotificationLog[]> {
+    return await db
+      .select()
+      .from(notificationLogs)
+      .where(eq(notificationLogs.schoolId, schoolId))
+      .orderBy(desc(notificationLogs.sentAt))
+      .limit(limit);
+  }
+
+  async getNotificationLogsByUser(userId: number, limit: number = 50): Promise<NotificationLog[]> {
+    return await db
+      .select()
+      .from(notificationLogs)
+      .where(eq(notificationLogs.userId, userId))
+      .orderBy(desc(notificationLogs.sentAt))
+      .limit(limit);
   }
 
   // Teaching modules/custom subjects methods
