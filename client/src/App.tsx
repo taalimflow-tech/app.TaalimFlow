@@ -1,6 +1,5 @@
 import React from "react";
-import { useLocation } from "wouter";
-import { Switch, Route } from "wouter";
+import { useLocation, Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -65,6 +64,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 
 function AppRoutes() {
+  const [location] = useLocation();
+  
+  // Debug log
+  console.log('Current location:', location);
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -143,6 +147,11 @@ function AppRoutes() {
             {(params) => <SchoolSelection schoolCode={params.code} />}
           </Route>
       
+          {/* Debug route - remove later */}
+          <Route path="/debug">
+            <div>Debug route works! Current path: {location}</div>
+          </Route>
+          
           {/* Fallback for unmatched routes */}
           <Route component={NotFound} />
         </Switch>
