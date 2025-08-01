@@ -22,10 +22,10 @@ export default function PublicHome() {
           </p>
           <Button 
             size="lg" 
-            onClick={() => setLocation("/schools")}
+            onClick={() => setLocation("/school-access")}
             className="text-lg px-8 py-3"
           >
-            تصفح المدارس المتاحة
+            الدخول إلى مدرستك
             <ArrowRight className="mr-2 h-5 w-5" />
           </Button>
         </div>
@@ -79,8 +79,8 @@ export default function PublicHome() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
-                <h3 className="font-semibold mb-2">اختر مدرستك</h3>
-                <p className="text-sm text-gray-600">تصفح قائمة المدارس المتاحة واختر مدرستك</p>
+                <h3 className="font-semibold mb-2">أدخل رمز مدرستك</h3>
+                <p className="text-sm text-gray-600">استخدم الرمز الذي حصلت عليه من إدارة مدرستك</p>
               </div>
               
               <div className="text-center">
@@ -115,10 +115,10 @@ export default function PublicHome() {
               <Button 
                 size="lg" 
                 variant="secondary"
-                onClick={() => setLocation("/schools")}
+                onClick={() => setLocation("/school-access")}
                 className="text-blue-600"
               >
-                عرض المدارس المتاحة
+                الدخول إلى مدرستك
                 <ArrowRight className="mr-2 h-5 w-5" />
               </Button>
             </CardContent>

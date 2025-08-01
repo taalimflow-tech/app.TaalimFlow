@@ -25,7 +25,7 @@ import AdminReports from "@/pages/AdminReports";
 import Announcements from "@/pages/Announcements";
 import SuperAdminSimple from "@/pages/SuperAdminSimple";
 import SchoolSelection from "@/pages/SchoolSelection";
-import SchoolDirectory from "@/pages/SchoolDirectory";
+import SchoolCodeEntry from "@/pages/SchoolCodeEntry";
 import PublicHome from "@/pages/PublicHome";
 import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
@@ -69,7 +69,7 @@ function AppRoutes() {
     <Switch>
       {/* Public Routes */}
       <Route path="/" component={PublicHome} />
-      <Route path="/schools" component={SchoolDirectory} />
+      <Route path="/school-access" component={SchoolCodeEntry} />
       
       {/* Hidden Super Admin Access Route */}
       <Route path="/system/super-admin-access" component={SuperAdminSimple} />

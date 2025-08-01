@@ -978,13 +978,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Public school directory endpoint
-  app.get("/api/schools/directory", async (req, res) => {
+  // School code verification endpoint
+  app.post("/api/school/verify-code", async (req, res) => {
     try {
-      const schools = await storage.getAllActiveSchools();
-      res.json({ schools });
+      const { schoolCode } = req.body;
+      
+      if (!schoolCode) {
+        return res.status(400).json({ error: "رمز المدرسة مطلوب" });
+      }
+      
+      const school = await storage.getSchoolByCode(schoolCode);
+      
+      if (!school) {
+        return res.status(404).json({ error: "رمز المدرسة غير صحيح" });
+      }
+      
+      res.json({ 
+        success: true, 
+        school: { 
+          id: school.id, 
+          name: school.name, 
+          code: school.code 
+        } 
+      });
     } catch (error) {
-      console.error('Error fetching school directory:', error);
-      res.status(500).json({ error: "فشل في جلب قائمة المدارس" });
+      console.error('Error verifying school code:', error);
+      res.status(500).json({ error: "فشل في التحقق من رمز المدرسة" });
     }
   });
 

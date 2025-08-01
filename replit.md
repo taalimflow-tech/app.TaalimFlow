@@ -5,6 +5,7 @@ This Progressive Web App (PWA) is a React-based mobile portal for private school
 
 ## User Preferences
 Preferred communication style: Simple, everyday language in English. User prefers English communication over other languages.
+Security preference: Code-based school access instead of public school directory for enhanced privacy and security.
 
 ## System Architecture
 
@@ -24,7 +25,7 @@ Preferred communication style: Simple, everyday language in English. User prefer
 
 ### Key Features and Implementations
 - **Authentication System**: Firebase Authentication, role-based access control (admin, teacher, user), and session-based security for multi-tenancy. Includes comprehensive password reset and email/SMS verification.
-- **Multi-Tenancy**: Complete data isolation per school via `schoolId` across all database tables. Super admin manages school creation and access keys.
+- **Multi-Tenancy**: Complete data isolation per school via `schoolId` across all database tables. Super admin manages school creation and access keys. Users access schools via secure school codes instead of public directory listing.
 - **Core Features**: Home dashboard, blog system, teacher communication, suggestions/feedback, learning groups/formations management, and a comprehensive admin panel for content and user management.
 - **PWA Functionality**: Installable app with manifest, service worker for offline use, and push notifications.
 - **Data Flow**: TanStack Query for client-side caching, Express routes with Drizzle ORM for server-side data, Firebase Storage for files.
