@@ -557,6 +557,12 @@ export default function Groups() {
     enabled: !!managementGroup && managementView === 'attendance'
   });
 
+  // Process scheduled dates into monthly groups first
+  const monthlyGroups = scheduledDatesData?.dates ? groupDatesByMonth(scheduledDatesData.dates) : {};
+  const monthKeys = Object.keys(monthlyGroups).sort();
+  const currentMonthKey = monthKeys[currentMonthIndex] || '';
+  const currentMonthDates = monthlyGroups[currentMonthKey] || [];
+
   // Get current viewing month details instead of actual current month
   const getCurrentViewingMonth = () => {
     if (currentMonthKey) {
@@ -579,12 +585,6 @@ export default function Groups() {
     },
     enabled: !!managementGroup && managementView === 'attendance'
   });
-
-  // Process scheduled dates into monthly groups
-  const monthlyGroups = scheduledDatesData?.dates ? groupDatesByMonth(scheduledDatesData.dates) : {};
-  const monthKeys = Object.keys(monthlyGroups).sort();
-  const currentMonthKey = monthKeys[currentMonthIndex] || '';
-  const currentMonthDates = monthlyGroups[currentMonthKey] || [];
 
   // Set initial month to current month when data loads
   useEffect(() => {
