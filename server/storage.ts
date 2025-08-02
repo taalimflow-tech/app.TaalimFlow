@@ -104,6 +104,7 @@ export interface IStorage {
   getStudentByUserId(userId: number): Promise<Student | undefined>;
   getStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string } | null>;
   regenerateStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string }>;
+  generateQRCodeForVerifiedUser(userId: number): Promise<void>;
   
   // Notification methods
   getNotifications(userId: number): Promise<Notification[]>;
@@ -515,31 +516,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChild(insertChild: InsertChild): Promise<Child> {
-    // Import QR service
-    const { generateStudentQRCode } = await import('./qr-service');
-    
     // First create the child without QR code
     const [child] = await db
       .insert(children)
       .values(insertChild)
       .returning();
     
-    // Generate QR code with the child's ID
-    const { qrCode, qrCodeData } = await generateStudentQRCode(
-      child.id,
-      'child',
-      child.schoolId,
-      child.name
-    );
+    // Only generate QR code if parent is verified
+    const [parentInfo] = await db
+      .select({ verified: users.verified })
+      .from(users)
+      .where(eq(users.id, insertChild.parentId))
+      .limit(1);
     
-    // Update child with QR code data
-    const [updatedChild] = await db
-      .update(children)
-      .set({ qrCode, qrCodeData })
-      .where(eq(children.id, child.id))
-      .returning();
+    if (parentInfo?.verified) {
+      // Import QR service
+      const { generateStudentQRCode } = await import('./qr-service');
+      
+      // Generate QR code with the child's ID
+      const { qrCode, qrCodeData } = await generateStudentQRCode(
+        child.id,
+        'child',
+        child.schoolId,
+        child.name
+      );
+      
+      // Update child with QR code data
+      const [updatedChild] = await db
+        .update(children)
+        .set({ qrCode, qrCodeData })
+        .where(eq(children.id, child.id))
+        .returning();
+      
+      return updatedChild;
+    }
     
-    return updatedChild;
+    return child;
   }
 
   async getChildrenByParentId(parentId: number): Promise<Child[]> {
@@ -551,37 +563,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStudent(insertStudent: InsertStudent): Promise<Student> {
-    // Import QR service
-    const { generateStudentQRCode } = await import('./qr-service');
-    
     // First create the student without QR code
     const [student] = await db.insert(students).values(insertStudent).returning();
     
-    // Get the student's name from the user table
+    // Only generate QR code if user is verified
     const [userInfo] = await db
-      .select({ name: users.name })
+      .select({ name: users.name, verified: users.verified })
       .from(users)
       .where(eq(users.id, student.userId!))
       .limit(1);
     
-    const studentName = userInfo?.name || 'طالب غير معروف';
+    if (userInfo?.verified) {
+      // Import QR service
+      const { generateStudentQRCode } = await import('./qr-service');
+      
+      const studentName = userInfo?.name || 'طالب غير معروف';
+      
+      // Generate QR code with the student's ID
+      const { qrCode, qrCodeData } = await generateStudentQRCode(
+        student.id,
+        'student',
+        student.schoolId,
+        studentName
+      );
+      
+      // Update student with QR code data
+      const [updatedStudent] = await db
+        .update(students)
+        .set({ qrCode, qrCodeData })
+        .where(eq(students.id, student.id))
+        .returning();
+      
+      return updatedStudent;
+    }
     
-    // Generate QR code with the student's ID
-    const { qrCode, qrCodeData } = await generateStudentQRCode(
-      student.id,
-      'student',
-      student.schoolId,
-      studentName
-    );
-    
-    // Update student with QR code data
-    const [updatedStudent] = await db
-      .update(students)
-      .set({ qrCode, qrCodeData })
-      .where(eq(students.id, student.id))
-      .returning();
-    
-    return updatedStudent;
+    return student;
   }
 
   async getStudentByUserId(userId: number): Promise<Student | undefined> {
@@ -664,6 +680,64 @@ export class DatabaseStorage implements IStorage {
         .where(eq(children.id, studentId));
       
       return { qrCode, qrCodeData };
+    }
+  }
+
+  async generateQRCodeForVerifiedUser(userId: number): Promise<void> {
+    const { generateStudentQRCode } = await import('./qr-service');
+    
+    // Check if user is verified
+    const [userInfo] = await db
+      .select({ verified: users.verified, name: users.name })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    
+    if (!userInfo?.verified) {
+      return; // User not verified, skip QR generation
+    }
+    
+    // Generate QR for student if exists
+    const [student] = await db
+      .select()
+      .from(students)
+      .where(eq(students.userId, userId))
+      .limit(1);
+    
+    if (student && !student.qrCode) {
+      const { qrCode, qrCodeData } = await generateStudentQRCode(
+        student.id,
+        'student',
+        student.schoolId,
+        userInfo.name
+      );
+      
+      await db
+        .update(students)
+        .set({ qrCode, qrCodeData })
+        .where(eq(students.id, student.id));
+    }
+    
+    // Generate QR for children if parent is verified
+    const childrenList = await db
+      .select()
+      .from(children)
+      .where(eq(children.parentId, userId));
+    
+    for (const child of childrenList) {
+      if (!child.qrCode) {
+        const { qrCode, qrCodeData } = await generateStudentQRCode(
+          child.id,
+          'child',
+          child.schoolId,
+          child.name
+        );
+        
+        await db
+          .update(children)
+          .set({ qrCode, qrCodeData })
+          .where(eq(children.id, child.id));
+      }
     }
   }
 

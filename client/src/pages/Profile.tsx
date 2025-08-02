@@ -515,14 +515,38 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* QR Code Section for Students */}
-          {user.role === 'student' && currentStudent && (
+          {/* QR Code Section for Students - Only for verified students */}
+          {user.role === 'student' && currentStudent && user.verified && (
             <QRCodeDisplay
               studentId={currentStudent.id}
               type="student"
               studentName={user.name}
               isAdmin={false}
             />
+          )}
+
+          {/* Message for unverified students */}
+          {user.role === 'student' && currentStudent && !user.verified && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-yellow-600" />
+                  رمز الاستجابة السريعة
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <Shield className="w-16 h-16 mx-auto text-yellow-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">التحقق مطلوب</h3>
+                  <p className="text-gray-600 mb-4">
+                    يجب التحقق من هويتك أولاً للحصول على رمز الاستجابة السريعة الخاص بك
+                  </p>
+                  <p className="text-sm text-yellow-600">
+                    يرجى زيارة المدرسة لتأكيد هويتك وتفعيل الرمز
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
         
@@ -697,13 +721,26 @@ export default function Profile() {
                           </Button>
                         </div>
                         
-                        {/* QR Code Display for Child */}
-                        <QRCodeDisplay
-                          studentId={child.id}
-                          type="child"
-                          studentName={child.name}
-                          isAdmin={user?.role === 'admin'}
-                        />
+                        {/* QR Code Display for Child - Only if parent is verified */}
+                        {user?.verified ? (
+                          <QRCodeDisplay
+                            studentId={child.id}
+                            type="child"
+                            studentName={child.name}
+                            isAdmin={user?.role === 'admin'}
+                          />
+                        ) : (
+                          <Card className="mt-4">
+                            <CardContent className="p-4">
+                              <div className="text-center">
+                                <Shield className="w-8 h-8 mx-auto text-yellow-400 mb-2" />
+                                <p className="text-sm text-gray-600">
+                                  رمز الاستجابة السريعة متاح بعد التحقق من هويتك
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -25,6 +25,7 @@ Security preference: Code-based school access instead of public school directory
 
 ### Key Features and Implementations
 - **Authentication System**: Firebase Authentication, role-based access control (admin, teacher, user), and session-based security for multi-tenancy. Includes comprehensive password reset and email/SMS verification.
+- **QR Code System**: Unique QR code generation for verified students and children with role-based access control. QR codes are only generated after user verification by admins.
 - **Multi-Tenancy**: Complete data isolation per school via `schoolId` across all database tables. Super admin manages school creation and access keys. Users access schools via secure school codes instead of public directory listing.
 - **Core Features**: Home dashboard, blog system, teacher communication, suggestions/feedback, learning groups/formations management, and a comprehensive admin panel for content and user management.
 - **PWA Functionality**: Installable app with manifest, service worker for offline use, and push notifications.

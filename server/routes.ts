@@ -1936,9 +1936,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'نوع غير صحيح' });
       }
 
-      // Check access permissions
+      // Check access permissions and verification status
       if (req.session.user.role === 'parent') {
-        // Parents can only access QR codes of their children
+        // Parents can only access QR codes of their children AND must be verified
+        if (!req.session.user.verified) {
+          return res.status(403).json({ error: 'يجب التحقق من هويتك أولاً للوصول للرموز' });
+        }
+        
         if (type === 'child') {
           const children = await storage.getChildrenByParentId(req.session.user.id);
           const hasAccess = children.some(child => child.id === studentId);
@@ -1949,7 +1953,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ error: 'غير مسموح لك بالوصول لرموز الطلاب' });
         }
       } else if (req.session.user.role === 'student') {
-        // Students can only access their own QR code
+        // Students can only access their own QR code AND must be verified
+        if (!req.session.user.verified) {
+          return res.status(403).json({ error: 'يجب التحقق من هويتك أولاً للحصول على الرمز' });
+        }
+        
         if (type !== 'student') {
           return res.status(403).json({ error: 'غير مسموح لك بالوصول لهذا الرمز' });
         }
@@ -1958,7 +1966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ error: 'غير مسموح لك بالوصول لهذا الرمز' });
         }
       }
-      // Admins and teachers can access all QR codes
+      // Admins and teachers can access all QR codes without verification requirement
 
       const qrData = await storage.getStudentQRCode(studentId, type as 'student' | 'child');
       
@@ -2123,6 +2131,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const verifiedChild = await storage.verifyChild(childId, req.session.user.id, notes, educationLevel, selectedSubjects);
       
+      // Generate QR code for verified child's parent
+      await storage.generateQRCodeForVerifiedUser(verifiedChild.parentId!);
+      
       // Create notification for the parent
       await storage.createNotification({
         schoolId: req.session.user.schoolId!,
@@ -2156,6 +2167,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user associated with student
       const user = await storage.getUser(verifiedStudent.userId!);
       if (user) {
+        // Generate QR code for verified user
+        await storage.generateQRCodeForVerifiedUser(user.id);
         console.log('Creating notification for user:', user.id);
         // Create notification for the student
         await storage.createNotification({
