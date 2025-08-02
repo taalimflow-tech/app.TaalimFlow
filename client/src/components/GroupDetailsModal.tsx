@@ -93,19 +93,23 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
     }
   };
 
-  // Payment status query for current month
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1;
+  // Extract year and month from the currently viewed month in attendance table
+  const getViewingYearMonth = () => {
+    if (!currentMonthKey) return { year: new Date().getFullYear(), month: new Date().getMonth() + 1 };
+    const [year, month] = currentMonthKey.split('-').map(Number);
+    return { year, month };
+  };
+  
+  const { year: viewingYear, month: viewingMonth } = getViewingYearMonth();
   
   const { data: paymentStatuses = [] } = useQuery<any[]>({
-    queryKey: ['/api/groups', group?.id, 'payment-status', currentYear, currentMonth],
+    queryKey: ['/api/groups', group?.id, 'payment-status', viewingYear, viewingMonth],
     queryFn: async () => {
       if (!group) return [];
-      const response = await apiRequest('GET', `/api/groups/${group.id}/payment-status/${currentYear}/${currentMonth}`);
+      const response = await apiRequest('GET', `/api/groups/${group.id}/payment-status/${viewingYear}/${viewingMonth}`);
       return await response.json();
     },
-    enabled: !!group && isOpen
+    enabled: !!group && isOpen && !!currentMonthKey
   });
 
   // Get payment status for student (default to unpaid if no record exists)
@@ -189,7 +193,12 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
-                            <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">حالة الدفع</th>
+                            <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                              <div>حالة الدفع</div>
+                              <div className="text-xs text-gray-500 font-normal">
+                                {getMonthDisplayName(currentMonthKey)}
+                              </div>
+                            </th>
                             {currentMonthDates.map((date) => (
                               <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
                                 <div className="text-xs">
