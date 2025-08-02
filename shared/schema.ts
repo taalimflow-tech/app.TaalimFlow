@@ -272,6 +272,8 @@ export const children = pgTable("children", {
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
   selectedSubjects: text("selected_subjects").array(), // Array of subject IDs they want to study
+  qrCode: text("qr_code").unique(), // Unique QR code for identification
+  qrCodeData: text("qr_code_data"), // JSON data encoded in QR code
   verified: boolean("verified").default(false), // Manual verification by admin
   verificationNotes: text("verification_notes"), // Admin notes about verification
   verifiedAt: timestamp("verified_at"),
@@ -287,6 +289,8 @@ export const students = pgTable("students", {
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
   selectedSubjects: text("selected_subjects").array(), // Array of subject IDs they want to study
+  qrCode: text("qr_code").unique(), // Unique QR code for identification
+  qrCodeData: text("qr_code_data"), // JSON data encoded in QR code
   verified: boolean("verified").default(false), // Manual verification by admin
   verificationNotes: text("verification_notes"), // Admin notes about verification
   verifiedAt: timestamp("verified_at"),

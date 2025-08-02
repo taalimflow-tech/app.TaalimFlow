@@ -102,6 +102,8 @@ export interface IStorage {
   // Student methods
   createStudent(student: InsertStudent): Promise<Student>;
   getStudentByUserId(userId: number): Promise<Student | undefined>;
+  getStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string } | null>;
+  regenerateStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string }>;
   
   // Notification methods
   getNotifications(userId: number): Promise<Notification[]>;
@@ -513,11 +515,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChild(insertChild: InsertChild): Promise<Child> {
+    // Import QR service
+    const { generateStudentQRCode } = await import('./qr-service');
+    
+    // First create the child without QR code
     const [child] = await db
       .insert(children)
       .values(insertChild)
       .returning();
-    return child;
+    
+    // Generate QR code with the child's ID
+    const { qrCode, qrCodeData } = await generateStudentQRCode(
+      child.id,
+      'child',
+      child.schoolId,
+      child.name
+    );
+    
+    // Update child with QR code data
+    const [updatedChild] = await db
+      .update(children)
+      .set({ qrCode, qrCodeData })
+      .where(eq(children.id, child.id))
+      .returning();
+    
+    return updatedChild;
   }
 
   async getChildrenByParentId(parentId: number): Promise<Child[]> {
@@ -529,13 +551,120 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStudent(insertStudent: InsertStudent): Promise<Student> {
+    // Import QR service
+    const { generateStudentQRCode } = await import('./qr-service');
+    
+    // First create the student without QR code
     const [student] = await db.insert(students).values(insertStudent).returning();
-    return student;
+    
+    // Get the student's name from the user table
+    const [userInfo] = await db
+      .select({ name: users.name })
+      .from(users)
+      .where(eq(users.id, student.userId!))
+      .limit(1);
+    
+    const studentName = userInfo?.name || 'طالب غير معروف';
+    
+    // Generate QR code with the student's ID
+    const { qrCode, qrCodeData } = await generateStudentQRCode(
+      student.id,
+      'student',
+      student.schoolId,
+      studentName
+    );
+    
+    // Update student with QR code data
+    const [updatedStudent] = await db
+      .update(students)
+      .set({ qrCode, qrCodeData })
+      .where(eq(students.id, student.id))
+      .returning();
+    
+    return updatedStudent;
   }
 
   async getStudentByUserId(userId: number): Promise<Student | undefined> {
     const [student] = await db.select().from(students).where(eq(students.userId, userId));
     return student || undefined;
+  }
+
+  async getStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string } | null> {
+    if (type === 'student') {
+      const [student] = await db
+        .select({ qrCode: students.qrCode, qrCodeData: students.qrCodeData })
+        .from(students)
+        .where(eq(students.id, studentId));
+      return student?.qrCode ? { qrCode: student.qrCode, qrCodeData: student.qrCodeData! } : null;
+    } else {
+      const [child] = await db
+        .select({ qrCode: children.qrCode, qrCodeData: children.qrCodeData })
+        .from(children)
+        .where(eq(children.id, studentId));
+      return child?.qrCode ? { qrCode: child.qrCode, qrCodeData: child.qrCodeData! } : null;
+    }
+  }
+
+  async regenerateStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string }> {
+    const { generateStudentQRCode } = await import('./qr-service');
+    
+    if (type === 'student') {
+      // Get student info
+      const [student] = await db
+        .select({ schoolId: students.schoolId, userId: students.userId })
+        .from(students)
+        .where(eq(students.id, studentId));
+      
+      if (!student) throw new Error('Student not found');
+      
+      // Get student name
+      const [userInfo] = await db
+        .select({ name: users.name })
+        .from(users)
+        .where(eq(users.id, student.userId!));
+      
+      const studentName = userInfo?.name || 'طالب غير معروف';
+      
+      // Generate new QR code
+      const { qrCode, qrCodeData } = await generateStudentQRCode(
+        studentId,
+        'student',
+        student.schoolId,
+        studentName
+      );
+      
+      // Update student
+      await db
+        .update(students)
+        .set({ qrCode, qrCodeData })
+        .where(eq(students.id, studentId));
+      
+      return { qrCode, qrCodeData };
+    } else {
+      // Get child info
+      const [child] = await db
+        .select({ schoolId: children.schoolId, name: children.name })
+        .from(children)
+        .where(eq(children.id, studentId));
+      
+      if (!child) throw new Error('Child not found');
+      
+      // Generate new QR code
+      const { qrCode, qrCodeData } = await generateStudentQRCode(
+        studentId,
+        'child',
+        child.schoolId,
+        child.name
+      );
+      
+      // Update child
+      await db
+        .update(children)
+        .set({ qrCode, qrCodeData })
+        .where(eq(children.id, studentId));
+      
+      return { qrCode, qrCodeData };
+    }
   }
 
   async getAnnouncements(): Promise<Announcement[]> {

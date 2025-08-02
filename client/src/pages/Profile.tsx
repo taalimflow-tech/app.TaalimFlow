@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ProfilePicture } from '@/components/ProfilePicture';
 import { PhoneVerificationModal } from '@/components/PhoneVerificationModal';
 import { EmailVerificationModal } from '@/components/EmailVerificationModal';
+import QRCodeDisplay from '@/components/QRCodeDisplay';
 
 interface Child {
   id: number;
@@ -125,6 +126,12 @@ export default function Profile() {
   const { data: childrenGroups = [], isLoading: childrenGroupsLoading } = useQuery<ChildGroup[]>({
     queryKey: ['/api/children/groups'],
     enabled: !!user && user.role !== 'student' && children.length > 0,
+  });
+
+  // Fetch student data for current user if they are a student
+  const { data: currentStudent } = useQuery({
+    queryKey: ['/api/students/me'],
+    enabled: !!user && user.role === 'student',
   });
 
   // Add child mutation
@@ -507,6 +514,16 @@ export default function Profile() {
               </div>
             </CardContent>
           </Card>
+
+          {/* QR Code Section for Students */}
+          {user.role === 'student' && currentStudent && (
+            <QRCodeDisplay
+              studentId={currentStudent.id}
+              type="student"
+              studentName={user.name}
+              isAdmin={false}
+            />
+          )}
         </TabsContent>
         
         {user.role !== 'student' && (
@@ -655,28 +672,38 @@ export default function Profile() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {children.map((child: Child) => (
-                      <div key={child.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
-                            <Baby className="w-5 h-5 text-white" />
+                      <div key={child.id} className="border border-gray-200 rounded-lg p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                              <Baby className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-800">{child.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                {child.gender === 'male' ? 'ذكر' : child.gender === 'female' ? 'أنثى' : ''} • {child.educationLevel} - {child.grade}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-800">{child.name}</h4>
-                            <p className="text-sm text-gray-600">
-                              {child.gender === 'male' ? 'ذكر' : child.gender === 'female' ? 'أنثى' : ''} • {child.educationLevel} - {child.grade}
-                            </p>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteChild(child.id)}
+                            className="text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteChild(child.id)}
-                          className="text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        
+                        {/* QR Code Display for Child */}
+                        <QRCodeDisplay
+                          studentId={child.id}
+                          type="child"
+                          studentName={child.name}
+                          isAdmin={user?.role === 'admin'}
+                        />
                       </div>
                     ))}
                   </div>

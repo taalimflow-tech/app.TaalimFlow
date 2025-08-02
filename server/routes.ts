@@ -1917,6 +1917,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // QR Code Routes
+  app.get('/api/qrcode/:type/:id', async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const { type, id } = req.params;
+      const studentId = parseInt(id);
+      const schoolId = req.session.school?.id;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: 'لم يتم اختيار مدرسة' });
+      }
+
+      if (type !== 'student' && type !== 'child') {
+        return res.status(400).json({ error: 'نوع غير صحيح' });
+      }
+
+      // Check access permissions
+      if (req.session.user.role === 'parent') {
+        // Parents can only access QR codes of their children
+        if (type === 'child') {
+          const children = await storage.getChildrenByParentId(req.session.user.id);
+          const hasAccess = children.some(child => child.id === studentId);
+          if (!hasAccess) {
+            return res.status(403).json({ error: 'غير مسموح لك بالوصول لهذا الرمز' });
+          }
+        } else {
+          return res.status(403).json({ error: 'غير مسموح لك بالوصول لرموز الطلاب' });
+        }
+      } else if (req.session.user.role === 'student') {
+        // Students can only access their own QR code
+        if (type !== 'student') {
+          return res.status(403).json({ error: 'غير مسموح لك بالوصول لهذا الرمز' });
+        }
+        const student = await storage.getStudentByUserId(req.session.user.id);
+        if (!student || student.id !== studentId) {
+          return res.status(403).json({ error: 'غير مسموح لك بالوصول لهذا الرمز' });
+        }
+      }
+      // Admins and teachers can access all QR codes
+
+      const qrData = await storage.getStudentQRCode(studentId, type as 'student' | 'child');
+      
+      if (!qrData) {
+        return res.status(404).json({ error: 'لم يتم العثور على الرمز' });
+      }
+
+      res.json(qrData);
+    } catch (error) {
+      console.error('Error getting QR code:', error);
+      res.status(500).json({ error: 'فشل في جلب الرمز' });
+    }
+  });
+
+  app.post('/api/qrcode/:type/:id/regenerate', async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const { type, id } = req.params;
+      const studentId = parseInt(id);
+      const schoolId = req.session.school?.id;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: 'لم يتم اختيار مدرسة' });
+      }
+
+      if (type !== 'student' && type !== 'child') {
+        return res.status(400).json({ error: 'نوع غير صحيح' });
+      }
+
+      // Only admins can regenerate QR codes
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: 'غير مسموح لك بإعادة توليد الرموز' });
+      }
+
+      const qrData = await storage.regenerateStudentQRCode(studentId, type as 'student' | 'child');
+      
+      res.json(qrData);
+    } catch (error) {
+      console.error('Error regenerating QR code:', error);
+      res.status(500).json({ error: 'فشل في إعادة توليد الرمز' });
+    }
+  });
+
+  // Get current student data for logged-in student user
+  app.get('/api/students/me', async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      if (req.session.user.role !== 'student') {
+        return res.status(403).json({ error: 'غير مسموح لك بالوصول لهذه البيانات' });
+      }
+
+      const student = await storage.getStudentByUserId(req.session.user.id);
+      
+      if (!student) {
+        return res.status(404).json({ error: 'لم يتم العثور على بيانات الطالب' });
+      }
+
+      res.json(student);
+    } catch (error) {
+      console.error('Error getting student data:', error);
+      res.status(500).json({ error: 'فشل في جلب بيانات الطالب' });
+    }
+  });
+
   app.post("/api/notifications/:id/read", async (req, res) => {
     try {
       if (!req.session?.user) {
