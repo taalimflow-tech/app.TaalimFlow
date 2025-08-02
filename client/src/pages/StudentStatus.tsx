@@ -286,60 +286,7 @@ export default function StudentStatus() {
         </div>
       )}
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* Attendance Rate */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Calendar className="w-8 h-8 text-blue-600" />
-              <div className="mr-4">
-                <p className="text-2xl font-bold text-gray-900">{attendanceRate}%</p>
-                <p className="text-gray-600">معدل الحضور</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Total Sessions */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <User className="w-8 h-8 text-green-600" />
-              <div className="mr-4">
-                <p className="text-2xl font-bold text-gray-900">{totalSessions}</p>
-                <p className="text-gray-600">إجمالي الجلسات</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pending Payments */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <CreditCard className="w-8 h-8 text-orange-600" />
-              <div className="mr-4">
-                <p className="text-2xl font-bold text-gray-900">{pendingAmount}</p>
-                <p className="text-gray-600">مدفوعات معلقة</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Overdue Payments */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <DollarSign className="w-8 h-8 text-red-600" />
-              <div className="mr-4">
-                <p className="text-2xl font-bold text-gray-900">{overduePayments}</p>
-                <p className="text-gray-600">مدفوعات متأخرة</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
