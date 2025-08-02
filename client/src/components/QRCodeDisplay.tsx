@@ -46,11 +46,11 @@ export default function QRCodeDisplay({ studentId, type, studentName, isAdmin = 
   });
 
   const handleDownload = () => {
-    if (!qrData?.qrCode) return;
+    if (!qrData?.qrCodeData) return;
     
     // Create download link
     const link = document.createElement('a');
-    link.href = qrData.qrCode;
+    link.href = qrData.qrCodeData;
     link.download = `QR_${studentName}_${studentId}.png`;
     document.body.appendChild(link);
     link.click();
@@ -103,7 +103,7 @@ export default function QRCodeDisplay({ studentId, type, studentName, isAdmin = 
                 <div className="flex justify-center">
                   <div className="p-4 bg-white border rounded-lg shadow-sm">
                     <img 
-                      src={qrData.qrCode} 
+                      src={qrData.qrCodeData} 
                       alt={`QR Code for ${studentName}`}
                       className="w-48 h-48"
                     />
