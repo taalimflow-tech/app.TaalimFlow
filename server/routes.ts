@@ -1926,7 +1926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { type, id } = req.params;
       const studentId = parseInt(id);
-      const schoolId = req.session.school?.id;
+      const schoolId = req.session.user.schoolId;
 
       if (!schoolId) {
         return res.status(400).json({ error: 'لم يتم اختيار مدرسة' });
@@ -1989,7 +1989,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { type, id } = req.params;
       const studentId = parseInt(id);
-      const schoolId = req.session.school?.id;
+      const schoolId = req.session.user.schoolId;
 
       if (!schoolId) {
         return res.status(400).json({ error: 'لم يتم اختيار مدرسة' });
