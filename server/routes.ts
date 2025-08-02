@@ -2922,22 +2922,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Apply smart payment logic
         if (hasAttendanceThisMonth || previousMonthEnded) {
           paymentRequired = true;
-          paymentNote = hasAttendanceThisMonth ? "Must pay" : "Must pay";
+          // Don't set paymentNote here - we'll set it based on payment status
         } else {
           // Future month with no attendance yet
-          paymentNote = "Nothing to pay";
+          paymentNote = "لا يوجد دفع مطلوب"; // Nothing to pay (Arabic)
         }
         
-        // If payment already exists, preserve the paid status and admin notes
-        if (existingPayment) {
-          paymentStatuses.push({
-            ...existingPayment,
-            paymentNote,
-            mustPay: paymentRequired
-          });
-        } else {
-          // Create new record only if payment is required
-          if (paymentRequired) {
+        // Set appropriate payment note based on payment status and requirement
+        if (paymentRequired) {
+          // If payment already exists, check if it's paid or not
+          if (existingPayment) {
+            if (existingPayment.isPaid) {
+              paymentNote = "مدفوع"; // Paid (Arabic)
+            } else {
+              paymentNote = "يجب الدفع"; // Must pay (Arabic)
+            }
+            
+            paymentStatuses.push({
+              ...existingPayment,
+              paymentNote,
+              mustPay: paymentRequired
+            });
+          } else {
+            // Create new unpaid record
+            paymentNote = "يجب الدفع"; // Must pay (Arabic)
+            
             const newPaymentRecord = await storage.markStudentPayment(
               studentId,
               targetYear,
@@ -2946,7 +2955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               schoolId,
               req.session.user.id, // Auto-created by system
               undefined, // No amount
-              `Auto-created: ${paymentNote}`
+              `تم الإنشاء تلقائياً: ${paymentNote}` // Auto-created (Arabic)
             );
             
             paymentStatuses.push({
@@ -2954,18 +2963,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               paymentNote,
               mustPay: paymentRequired
             });
-          } else {
-            // Return virtual record for display purposes
-            paymentStatuses.push({
-              studentId,
-              year: targetYear,
-              month: targetMonth,
-              isPaid: false,
-              paymentNote,
-              mustPay: paymentRequired,
-              isVirtual: true // Not stored in database
-            });
           }
+        } else {
+          // Return virtual record for display purposes
+          paymentStatuses.push({
+            studentId,
+            year: targetYear,
+            month: targetMonth,
+            isPaid: false,
+            paymentNote,
+            mustPay: paymentRequired,
+            isVirtual: true // Not stored in database
+          });
         }
       }
       
@@ -2987,6 +2996,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schoolId = req.session.user.schoolId;
       const paidBy = req.session.user.id;
       
+      // Set appropriate payment note based on status
+      const paymentNote = isPaid ? "مدفوع" : "يجب الدفع"; // Paid or Must pay in Arabic
+      
       const paymentRecord = await storage.markStudentPayment(
         parseInt(studentId),
         parseInt(year),
@@ -2995,7 +3007,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         schoolId,
         paidBy,
         amount ? parseFloat(amount) : undefined,
-        notes
+        notes || paymentNote
       );
       
       res.json(paymentRecord);
