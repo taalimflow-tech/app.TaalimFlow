@@ -65,22 +65,65 @@ export default function StudentStatus() {
   const targetUserId = user?.role === 'parent' ? selectedChildId : user?.id;
   const targetUserType = user?.role === 'parent' ? 'child' : 'student';
 
+  // Fetch enrolled groups for the target user (student or selected child)
+  const { data: enrolledGroups = [], isLoading: groupsLoading } = useQuery<EnrolledGroup[]>({
+    queryKey: [`/api/student/groups/${targetUserId}`],
+    enabled: !!targetUserId,
+  });
+
   // Fetch attendance records for the target user (student or selected child)
   const { data: attendanceRecords = [], isLoading: attendanceLoading } = useQuery<AttendanceRecord[]>({
     queryKey: [`/api/student/attendance/${targetUserId}`],
     enabled: !!targetUserId,
   });
 
-  // Fetch payment records for the target user (student or selected child)
-  const { data: paymentRecords = [], isLoading: paymentsLoading } = useQuery<PaymentRecord[]>({
-    queryKey: [`/api/student/payments/${targetUserId}`],
-    enabled: !!targetUserId,
-  });
-
-  // Fetch enrolled groups for the target user (student or selected child)
-  const { data: enrolledGroups = [], isLoading: groupsLoading } = useQuery<EnrolledGroup[]>({
-    queryKey: [`/api/student/groups/${targetUserId}`],
-    enabled: !!targetUserId,
+  // Fetch payment records by getting payment status for each enrolled group
+  const { data: allPaymentRecords = [], isLoading: paymentsLoading } = useQuery<any[]>({
+    queryKey: [`/api/student/all-payments/${targetUserId}`, enrolledGroups.length],
+    queryFn: async () => {
+      if (!enrolledGroups.length || !targetUserId) return [];
+      
+      const currentDate = new Date();
+      const allPayments = [];
+      
+      // Fetch payment data for the last 6 months across all groups
+      for (let i = 0; i < 6; i++) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        
+        for (const group of enrolledGroups) {
+          try {
+            const response = await fetch(`/api/groups/${group.id}/payment-status/${year}/${month}`);
+            if (response.ok) {
+              const groupPayments = await response.json();
+              const userPayment = groupPayments.find((p: any) => p.studentId === targetUserId);
+              
+              if (userPayment && !userPayment.isVirtual) {
+                allPayments.push({
+                  id: userPayment.id,
+                  groupId: group.id,
+                  groupName: group.name,
+                  amount: userPayment.amount || 0,
+                  year,
+                  month,
+                  isPaid: userPayment.isPaid,
+                  paymentNote: userPayment.paymentNote,
+                  dueDate: `${year}-${month.toString().padStart(2, '0')}-01`,
+                  paidDate: userPayment.paidDate,
+                  description: `رسوم شهر ${month}/${year}`
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching payments for group ${group.id}:`, error);
+          }
+        }
+      }
+      
+      return allPayments.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+    },
+    enabled: !!targetUserId && enrolledGroups.length > 0,
   });
 
   // Calculate attendance statistics
@@ -90,9 +133,10 @@ export default function StudentStatus() {
   const absentSessions = attendanceRecords.filter(record => record.status === 'absent').length;
   const attendanceRate = totalSessions > 0 ? Math.round((presentSessions / totalSessions) * 100) : 0;
 
-  // Calculate payment statistics
-  const totalAmount = paymentRecords.reduce((sum, record) => sum + record.amount, 0);
-  const paidAmount = paymentRecords.filter(record => record.isPaid).reduce((sum, record) => sum + record.amount, 0);
+  // Calculate payment statistics from real data
+  const paymentRecords = allPaymentRecords || [];
+  const totalAmount = paymentRecords.reduce((sum, record) => sum + (record.amount || 0), 0);
+  const paidAmount = paymentRecords.filter(record => record.isPaid).reduce((sum, record) => sum + (record.amount || 0), 0);
   const pendingAmount = totalAmount - paidAmount;
   const overduePayments = paymentRecords.filter(record => 
     !record.isPaid && new Date(record.dueDate) < new Date()
@@ -371,13 +415,18 @@ export default function StudentStatus() {
                       <div>
                         <p className="font-medium">{record.groupName}</p>
                         <p className="text-sm text-gray-600">{record.description}</p>
+                        {record.paymentNote && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            {record.paymentNote}
+                          </p>
+                        )}
                       </div>
                       <Badge className={record.isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
                         {record.isPaid ? 'مدفوع' : 'غير مدفوع'}
                       </Badge>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>المبلغ: {record.amount} دج</span>
+                      <span>المبلغ: {record.amount || 'غير محدد'} دج</span>
                       <span>
                         الاستحقاق: {new Date(record.dueDate).toLocaleDateString('ar-DZ')}
                       </span>
