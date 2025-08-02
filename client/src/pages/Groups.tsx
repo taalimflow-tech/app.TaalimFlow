@@ -773,15 +773,26 @@ export default function Groups() {
         queryKey: ['/api/groups', managementGroup?.id, 'payment-status']
       });
       
-      // Specifically invalidate current month
+      // Specifically invalidate current month for both admin view and modal view
       queryClient.invalidateQueries({ 
         queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth] 
       });
       
-      // Force immediate refetch
+      // Also invalidate the current calendar month for modal view
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth] 
+      });
+      
+      // Force immediate refetch for both views
       setTimeout(() => {
         queryClient.refetchQueries({ 
           queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentViewingYear, currentViewingMonth] 
+        });
+        queryClient.refetchQueries({ 
+          queryKey: ['/api/groups', managementGroup?.id, 'payment-status', currentYear, currentMonth] 
         });
       }, 100);
     },

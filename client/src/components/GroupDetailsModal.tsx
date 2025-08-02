@@ -93,9 +93,25 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
     }
   };
 
+  // Payment status query for current month
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+  
+  const { data: paymentStatuses = [] } = useQuery<any[]>({
+    queryKey: ['/api/groups', group?.id, 'payment-status', currentYear, currentMonth],
+    queryFn: async () => {
+      if (!group) return [];
+      const response = await apiRequest('GET', `/api/groups/${group.id}/payment-status/${currentYear}/${currentMonth}`);
+      return await response.json();
+    },
+    enabled: !!group && isOpen
+  });
+
   // Get payment status for student (default to unpaid if no record exists)
   const getStudentPaymentStatus = (studentId: number) => {
-    return { isPaid: false }; // Default placeholder - can be enhanced with actual payment data
+    const paymentRecord = paymentStatuses.find((payment: any) => payment.studentId === studentId);
+    return paymentRecord || { studentId, isPaid: false };
   };
 
   if (!isOpen || !group) return null;
