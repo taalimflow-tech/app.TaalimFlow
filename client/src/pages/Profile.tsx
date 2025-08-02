@@ -353,7 +353,7 @@ export default function Profile() {
         <TabsContent value="profile" className="space-y-4">
           {/* Profile Picture Section */}
           <ProfilePicture 
-            currentPicture={user?.profilePicture}
+            currentPicture={user?.profilePicture || undefined}
             userName={user?.name || ''}
             onUpdate={handleProfilePictureUpdate}
           />
@@ -516,7 +516,7 @@ export default function Profile() {
           </Card>
 
           {/* QR Code Section for Students - Only for verified students */}
-          {user.role === 'student' && currentStudent && user.verified && (
+          {user.role === 'student' && currentStudent && 'id' in currentStudent && user.verified && (
             <QRCodeDisplay
               studentId={currentStudent.id}
               type="student"
