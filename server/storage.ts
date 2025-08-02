@@ -179,6 +179,7 @@ export interface IStorage {
   updateAttendance(id: number, updates: Partial<InsertGroupAttendance>): Promise<GroupAttendance>;
   getAttendanceWithStudentDetails(groupId: number, date?: string): Promise<any[]>;
   getGroupAttendanceHistory(groupId: number, schoolId: number): Promise<any[]>;
+  getGroupAttendanceForMonth(groupId: number, year: number, month: number): Promise<GroupAttendance[]>;
 
   // Group Financial Transaction interface methods
   getGroupTransactions(groupId: number, studentId?: number): Promise<GroupTransaction[]>;
@@ -1796,6 +1797,21 @@ export class DatabaseStorage implements IStorage {
     }
     
     return result;
+  }
+
+  async getGroupAttendanceForMonth(groupId: number, year: number, month: number): Promise<GroupAttendance[]> {
+    const startDate = new Date(year, month - 1, 1); // month - 1 because JS months are 0-indexed
+    const endDate = new Date(year, month, 0); // Last day of the month
+    
+    return await db
+      .select()
+      .from(groupAttendance)
+      .where(and(
+        eq(groupAttendance.groupId, groupId),
+        sql`${groupAttendance.attendanceDate} >= ${startDate.toISOString().split('T')[0]}`,
+        sql`${groupAttendance.attendanceDate} <= ${endDate.toISOString().split('T')[0]}`
+      ))
+      .orderBy(groupAttendance.attendanceDate);
   }
 
   // Group Financial Transaction methods

@@ -980,10 +980,15 @@ export default function Groups() {
       return;
     }
     
-    // Allow payment updates for all students (both regular students and children)
     const currentPayment = getStudentPaymentStatus(studentId);
-    const isPaid = !currentPayment?.isPaid;
     
+    // Only allow payment changes if payment is required (not virtual records)
+    if (currentPayment?.isVirtual && !currentPayment?.mustPay) {
+      toast({ title: 'لا يوجد دفع مطلوب لهذا الشهر حتى الآن', variant: 'destructive' });
+      return;
+    }
+    
+    const isPaid = !currentPayment?.isPaid;
     markPaymentMutation.mutate({ studentId, isPaid });
   };
 
@@ -2000,27 +2005,61 @@ export default function Groups() {
                                     <div className="font-medium">{student.name}</div>
                                   </td>
                                   <td className="border border-gray-300 p-2 text-center">
-                                    {user?.role === 'admin' ? (
-                                      <button
-                                        onClick={() => handleTogglePayment(student.id)}
-                                        className={`px-3 py-1 rounded text-sm font-medium ${
-                                          getStudentPaymentStatus(student.id)?.isPaid
-                                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                            : 'bg-red-100 text-red-800 hover:bg-red-200'
-                                        }`}
-                                        title={`${getStudentPaymentStatus(student.id)?.isPaid ? 'مدفوع' : 'غير مدفوع'} - اضغط للتغيير`}
-                                      >
-                                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
-                                      </button>
-                                    ) : (
-                                      <span className={`px-3 py-1 rounded text-sm font-medium ${
-                                        getStudentPaymentStatus(student.id)?.isPaid
-                                          ? 'bg-green-100 text-green-800'
-                                          : 'bg-red-100 text-red-800'
-                                      }`}>
-                                        {getStudentPaymentStatus(student.id)?.isPaid ? '✅' : '❌'}
-                                      </span>
-                                    )}
+                                    {(() => {
+                                      const paymentStatus = getStudentPaymentStatus(student.id);
+                                      
+                                      // If it's a virtual record with no payment requirement
+                                      if (paymentStatus?.isVirtual && !paymentStatus?.mustPay) {
+                                        return (
+                                          <div className="flex flex-col items-center space-y-1">
+                                            <span className="px-2 py-1 rounded text-xs text-gray-500 bg-gray-50">
+                                              {paymentStatus?.paymentNote || 'Nothing to pay'}
+                                            </span>
+                                          </div>
+                                        );
+                                      }
+                                      
+                                      // Show payment status for actual payment records
+                                      if (user?.role === 'admin') {
+                                        return (
+                                          <div className="flex flex-col items-center space-y-1">
+                                            <button
+                                              onClick={() => handleTogglePayment(student.id)}
+                                              className={`px-3 py-1 rounded text-sm font-medium ${
+                                                paymentStatus?.isPaid
+                                                  ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                  : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                              }`}
+                                              title={`${paymentStatus?.isPaid ? 'مدفوع' : 'غير مدفوع'} - اضغط للتغيير`}
+                                            >
+                                              {paymentStatus?.isPaid ? '✅' : '❌'}
+                                            </button>
+                                            {paymentStatus?.paymentNote && (
+                                              <span className="text-xs text-gray-600">
+                                                {paymentStatus.paymentNote}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      } else {
+                                        return (
+                                          <div className="flex flex-col items-center space-y-1">
+                                            <span className={`px-3 py-1 rounded text-sm font-medium ${
+                                              paymentStatus?.isPaid
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-red-100 text-red-800'
+                                            }`}>
+                                              {paymentStatus?.isPaid ? '✅' : '❌'}
+                                            </span>
+                                            {paymentStatus?.paymentNote && (
+                                              <span className="text-xs text-gray-600">
+                                                {paymentStatus.paymentNote}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      }
+                                    })()}
                                   </td>
                                   {currentMonthDates.map((date) => {
                                     const attendanceRecord = attendanceHistory.find((record: any) => 

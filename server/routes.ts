@@ -2851,6 +2851,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { groupId, year, month } = req.params;
       const schoolId = req.session.user.schoolId;
+      const targetYear = parseInt(year);
+      const targetMonth = parseInt(month);
       
       // Get group with students
       const group = await storage.getGroupById(parseInt(groupId));
@@ -2864,20 +2866,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all student IDs (both actual students and children) for payment processing
       const allStudentIds = groupAssignments.map((assignment: any) => assignment.id);
       
-      // Create default unpaid records for all students without payment records
-      if (allStudentIds.length > 0) {
-        await storage.createDefaultMonthlyPayments(allStudentIds, parseInt(year), parseInt(month), schoolId);
+      if (allStudentIds.length === 0) {
+        return res.json([]);
+      }
+
+      // Get current date for comparison
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      
+      // Calculate previous month
+      let prevYear = targetYear;
+      let prevMonth = targetMonth - 1;
+      if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear = targetYear - 1;
       }
       
-      // Get payment statuses for all students (both regular students and children)
-      const paymentStatuses = allStudentIds.length > 0 
-        ? await storage.getStudentsPaymentStatusForMonth(
-            allStudentIds,
-            parseInt(year),
-            parseInt(month),
-            schoolId
-          )
-        : [];
+      // Check if previous month has ended
+      const previousMonthEnded = (targetYear < currentYear) || 
+                                (targetYear === currentYear && targetMonth <= currentMonth);
+      
+      // Get attendance data for target month to check if students attended
+      const attendanceData = await storage.getGroupAttendanceForMonth(
+        parseInt(groupId), 
+        targetYear, 
+        targetMonth
+      );
+      
+      // Get existing payment records
+      const existingPayments = await storage.getStudentsPaymentStatusForMonth(
+        allStudentIds,
+        targetYear,
+        targetMonth,
+        schoolId
+      );
+      
+      // Process each student to determine payment requirement
+      const paymentStatuses = [];
+      
+      for (const studentId of allStudentIds) {
+        // Check if student has attendance in target month
+        const hasAttendanceThisMonth = attendanceData.some(
+          (record: any) => record.studentId === studentId
+        );
+        
+        // Find existing payment record
+        const existingPayment = existingPayments.find(
+          (payment: any) => payment.studentId === studentId
+        );
+        
+        let paymentRequired = false;
+        let paymentNote = "";
+        
+        // Apply smart payment logic
+        if (hasAttendanceThisMonth || previousMonthEnded) {
+          paymentRequired = true;
+          paymentNote = hasAttendanceThisMonth ? "Must pay" : "Must pay";
+        } else {
+          // Future month with no attendance yet
+          paymentNote = "Nothing to pay";
+        }
+        
+        // If payment already exists, preserve the paid status and admin notes
+        if (existingPayment) {
+          paymentStatuses.push({
+            ...existingPayment,
+            paymentNote,
+            mustPay: paymentRequired
+          });
+        } else {
+          // Create new record only if payment is required
+          if (paymentRequired) {
+            const newPaymentRecord = await storage.markStudentPayment(
+              studentId,
+              targetYear,
+              targetMonth,
+              false, // Default to unpaid
+              schoolId,
+              req.session.user.id, // Auto-created by system
+              undefined, // No amount
+              `Auto-created: ${paymentNote}`
+            );
+            
+            paymentStatuses.push({
+              ...newPaymentRecord,
+              paymentNote,
+              mustPay: paymentRequired
+            });
+          } else {
+            // Return virtual record for display purposes
+            paymentStatuses.push({
+              studentId,
+              year: targetYear,
+              month: targetMonth,
+              isPaid: false,
+              paymentNote,
+              mustPay: paymentRequired,
+              isVirtual: true // Not stored in database
+            });
+          }
+        }
+      }
       
       res.json(paymentStatuses);
     } catch (error) {
