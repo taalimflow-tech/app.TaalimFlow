@@ -32,7 +32,6 @@ export default function Login() {
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { login, register } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
@@ -122,15 +121,25 @@ export default function Login() {
     }
     
     try {
-      await login(email, password);
+      // Direct login API call
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      }
+      
       setErrorMessage(''); // Clear error on success
       
-      // Navigate to home after successful login
-      if (validSchool && validSchool.code) {
-        navigate(`/school/${validSchool.code}/home`);
-      } else {
-        navigate('/');
-      }
+      // Reload the page to trigger AuthContext refresh
+      window.location.reload();
     } catch (error) {
       // Enhanced error handling with specific Arabic messages
       let errorMsg = 'خطأ غير متوقع';
@@ -203,15 +212,32 @@ export default function Login() {
     }
     
     try {
-      await register(email, password, name, phone, validChildren);
+      // Direct register API call
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name, 
+          phone, 
+          role: 'user',
+          children: validChildren 
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'خطأ في إنشاء الحساب');
+      }
+      
       toast({ title: 'تم إنشاء الحساب بنجاح' });
       
-      // Navigate to home after successful registration
-      if (validSchool && validSchool.code) {
-        navigate(`/school/${validSchool.code}/home`);
-      } else {
-        navigate('/');
-      }
+      // Reload the page to trigger AuthContext refresh
+      window.location.reload();
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
@@ -238,19 +264,34 @@ export default function Login() {
     }
     
     try {
-      await register(email, password, name, phone, undefined, 'student', {
-        gender: studentGender,
-        educationLevel: studentEducationLevel,
-        grade: studentGrade
+      // Direct register API call for student
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name, 
+          phone, 
+          role: 'student',
+          gender: studentGender,
+          educationLevel: studentEducationLevel,
+          grade: studentGrade
+        }),
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'خطأ في إنشاء الحساب');
+      }
+      
       toast({ title: 'تم إنشاء الحساب بنجاح' });
       
-      // Navigate to home after successful registration
-      if (validSchool && validSchool.code) {
-        navigate(`/school/${validSchool.code}/home`);
-      } else {
-        navigate('/');
-      }
+      // Reload the page to trigger AuthContext refresh
+      window.location.reload();
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
@@ -296,12 +337,8 @@ export default function Login() {
       
       toast({ title: 'تم إنشاء حساب المدير بنجاح' });
       
-      // Navigate to home after successful admin registration
-      if (validSchool && validSchool.code) {
-        navigate(`/school/${validSchool.code}/home`);
-      } else {
-        navigate('/');
-      }
+      // Reload the page to trigger AuthContext refresh
+      window.location.reload();
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
@@ -358,12 +395,8 @@ export default function Login() {
       
       toast({ title: 'تم إنشاء حساب المعلم بنجاح' });
       
-      // Navigate to home after successful teacher registration
-      if (validSchool && validSchool.code) {
-        navigate(`/school/${validSchool.code}/home`);
-      } else {
-        navigate('/');
-      }
+      // Reload the page to trigger AuthContext refresh
+      window.location.reload();
     } catch (error) {
       toast({ 
         title: 'خطأ في إنشاء الحساب', 
