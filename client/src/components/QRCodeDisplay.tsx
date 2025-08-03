@@ -103,7 +103,7 @@ export default function QRCodeDisplay({ studentId, type, studentName, isAdmin = 
                 <div className="flex justify-center">
                   <div className="p-4 bg-white border rounded-lg shadow-sm">
                     <img 
-                      src={qrData.qrCodeData} 
+                      src={qrData.qrCode} 
                       alt={`QR Code for ${studentName}`}
                       className="w-48 h-48"
                     />
