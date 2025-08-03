@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, ReactNode, useContext } from 'react';
 import { User } from '@shared/schema';
-import { auth } from '@/lib/firebase';
+import { ensureFirebaseInitialized } from '@/lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 interface AuthContextType {
@@ -61,9 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user } = await response.json();
     
     // If user exists in database and Firebase is available, try Firebase login (optional)
-    if (user.firebase_uid && auth) {
+    if (user.firebase_uid) {
       try {
-        await signInWithEmailAndPassword(auth, email, password);
+        const { auth } = await ensureFirebaseInitialized();
+        if (auth) {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
       } catch (firebaseError) {
         // If Firebase login fails but database login worked, continue with database user
         console.log('Firebase login failed, but database login succeeded');
@@ -99,15 +102,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     // Only create Firebase user after database registration succeeds (if Firebase is available)
-    if (auth) {
-      try {
+    try {
+      const { auth } = await ensureFirebaseInitialized();
+      if (auth) {
         await createUserWithEmailAndPassword(auth, email, password);
-      } catch (firebaseError: any) {
-        // If Firebase user already exists, that's okay - we'll use it
-        if (firebaseError.code !== 'auth/email-already-in-use') {
-          console.warn('Firebase registration failed:', firebaseError);
-          // Don't throw here - database registration succeeded
-        }
+      }
+    } catch (firebaseError: any) {
+      // If Firebase user already exists, that's okay - we'll use it
+      if (firebaseError.code !== 'auth/email-already-in-use') {
+        console.warn('Firebase registration failed:', firebaseError);
+        // Don't throw here - database registration succeeded
       }
     }
     
@@ -118,8 +122,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       // Logout from Firebase (if available)
-      if (auth) {
-        await signOut(auth);
+      try {
+        const { auth } = await ensureFirebaseInitialized();
+        if (auth) {
+          await signOut(auth);
+        }
+      } catch (firebaseError) {
+        console.log('Firebase logout failed:', firebaseError);
       }
       
       await fetch('/api/auth/logout', {
