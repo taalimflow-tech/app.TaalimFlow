@@ -307,42 +307,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string, schoolId?: number): Promise<User | undefined> {
-    let query = db.select().from(users);
-    
     if (schoolId) {
-      query = query.where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+      const users_found = await db.select().from(users)
+        .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+      return users_found[0] || undefined;
     } else {
-      query = query.where(eq(users.email, email));
+      const users_found = await db.select().from(users)
+        .where(eq(users.email, email));
+      return users_found[0] || undefined;
     }
-    
-    const users_found = await query;
-    return users_found[0] || undefined;
   }
 
   async getUserByPhone(phone: string, schoolId?: number): Promise<User | undefined> {
-    let query = db.select().from(users);
-    
     if (schoolId) {
-      query = query.where(and(eq(users.phone, phone), eq(users.schoolId, schoolId)));
+      const users_found = await db.select().from(users)
+        .where(and(eq(users.phone, phone), eq(users.schoolId, schoolId)))
+        .orderBy(desc(users.id));
+      return users_found[0] || undefined;
     } else {
-      query = query.where(eq(users.phone, phone));
+      const users_found = await db.select().from(users)
+        .where(eq(users.phone, phone))
+        .orderBy(desc(users.id));
+      return users_found[0] || undefined;
     }
-    
-    const users_found = await query.orderBy(desc(users.id));
-    return users_found[0] || undefined;
   }
 
   async authenticateUser(email: string, password: string, schoolId?: number): Promise<User | null> {
     const bcrypt = await import('bcrypt');
     
-    let query = db.select().from(users);
+    let users_found;
     if (schoolId) {
-      query = query.where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+      users_found = await db.select().from(users)
+        .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
     } else {
-      query = query.where(eq(users.email, email));
+      users_found = await db.select().from(users)
+        .where(eq(users.email, email));
     }
     
-    const users_found = await query;
     let user = users_found[0];
     
     if (user) {
@@ -754,7 +755,7 @@ export class DatabaseStorage implements IStorage {
   async createAnnouncement(insertAnnouncement: InsertAnnouncement): Promise<Announcement> {
     const [announcement] = await db
       .insert(announcements)
-      .values([insertAnnouncement])
+      .values(insertAnnouncement)
       .returning();
     return announcement;
   }
@@ -772,7 +773,7 @@ export class DatabaseStorage implements IStorage {
   async createBlogPost(insertBlogPost: InsertBlogPost): Promise<BlogPost> {
     const [blogPost] = await db
       .insert(blogPosts)
-      .values([insertBlogPost])
+      .values(insertBlogPost)
       .returning();
     return blogPost;
   }
@@ -794,7 +795,7 @@ export class DatabaseStorage implements IStorage {
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
     const [teacher] = await db
       .insert(teachers)
-      .values([insertTeacher])
+      .values(insertTeacher)
       .returning();
     return teacher;
   }
@@ -863,7 +864,7 @@ export class DatabaseStorage implements IStorage {
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const [message] = await db
       .insert(messages)
-      .values([insertMessage])
+      .values(insertMessage)
       .returning();
     return message;
   }
@@ -878,6 +879,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]> {
+    // This method needs schoolId context but isn't provided in the interface
+    // For now, we'll get it from the first sender's school
+    const firstSender = await db.select().from(users).where(eq(users.id, senderIds[0])).limit(1);
+    const schoolId = firstSender.length > 0 ? firstSender[0].schoolId : 1;
+    
     const messagesToInsert = [];
     
     // Get the first available teacher ID for admin messages
@@ -887,6 +893,7 @@ export class DatabaseStorage implements IStorage {
     for (const senderId of senderIds) {
       for (const receiverId of receiverIds) {
         messagesToInsert.push({
+          schoolId,
           senderId,
           receiverId,
           teacherId, // Use existing teacher ID
@@ -929,7 +936,7 @@ export class DatabaseStorage implements IStorage {
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
     const [suggestion] = await db
       .insert(suggestions)
-      .values([insertSuggestion])
+      .values(insertSuggestion)
       .returning();
     return suggestion;
   }
@@ -952,7 +959,7 @@ export class DatabaseStorage implements IStorage {
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
     const [group] = await db
       .insert(groups)
-      .values([insertGroup])
+      .values(insertGroup)
       .returning();
     return group;
   }
