@@ -106,6 +106,11 @@ export default function QRCodeDisplay({ studentId, type, studentName, isAdmin = 
                       src={qrData.qrCode} 
                       alt={`QR Code for ${studentName}`}
                       className="w-48 h-48"
+                      onError={(e) => {
+                        console.error('QR Code image failed to load');
+                        console.log('Image src length:', qrData.qrCode?.length);
+                      }}
+                      onLoad={() => console.log('QR Code loaded successfully')}
                     />
                   </div>
                 </div>
