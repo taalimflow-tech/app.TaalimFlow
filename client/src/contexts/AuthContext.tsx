@@ -1,5 +1,7 @@
 import { useState, useEffect, createContext, ReactNode, useContext } from 'react';
 import { User } from '@shared/schema';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -58,7 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const { user } = await response.json();
     
-    // Database-only authentication - no Firebase needed
+    // If user exists in database and Firebase is available, try Firebase login (optional)
+    if (user.firebase_uid && auth) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (firebaseError) {
+        // If Firebase login fails but database login worked, continue with database user
+        console.log('Firebase login failed, but database login succeeded');
+      }
+    }
     
     setUser(user);
   };
@@ -88,7 +98,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(error.error || 'خطأ في إنشاء الحساب');
     }
     
-    // Database-only registration - no Firebase needed
+    // Only create Firebase user after database registration succeeds (if Firebase is available)
+    if (auth) {
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch (firebaseError: any) {
+        // If Firebase user already exists, that's okay - we'll use it
+        if (firebaseError.code !== 'auth/email-already-in-use') {
+          console.warn('Firebase registration failed:', firebaseError);
+          // Don't throw here - database registration succeeded
+        }
+      }
+    }
     
     const { user } = await response.json();
     setUser(user);
@@ -96,7 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      // Database-only logout - no Firebase needed
+      // Logout from Firebase (if available)
+      if (auth) {
+        await signOut(auth);
+      }
       
       await fetch('/api/auth/logout', {
         method: 'POST',
