@@ -60,8 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const { user } = await response.json();
     
-    // If user exists in database but not in Firebase, try Firebase login (optional)
-    if (user.firebase_uid) {
+    // If user exists in database and Firebase is available, try Firebase login (optional)
+    if (user.firebase_uid && auth) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
       } catch (firebaseError) {
@@ -98,14 +98,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(error.error || 'خطأ في إنشاء الحساب');
     }
     
-    // Only create Firebase user after database registration succeeds
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (firebaseError: any) {
-      // If Firebase user already exists, that's okay - we'll use it
-      if (firebaseError.code !== 'auth/email-already-in-use') {
-        console.warn('Firebase registration failed:', firebaseError);
-        // Don't throw here - database registration succeeded
+    // Only create Firebase user after database registration succeeds (if Firebase is available)
+    if (auth) {
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch (firebaseError: any) {
+        // If Firebase user already exists, that's okay - we'll use it
+        if (firebaseError.code !== 'auth/email-already-in-use') {
+          console.warn('Firebase registration failed:', firebaseError);
+          // Don't throw here - database registration succeeded
+        }
       }
     }
     
@@ -115,8 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      // Logout from Firebase
-      await signOut(auth);
+      // Logout from Firebase (if available)
+      if (auth) {
+        await signOut(auth);
+      }
       
       await fetch('/api/auth/logout', {
         method: 'POST',
