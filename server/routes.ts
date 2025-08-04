@@ -382,6 +382,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Student account claiming endpoint
+  app.post("/api/auth/claim-student-account", async (req, res) => {
+    try {
+      const { studentId, email, password, name, phone, gender } = req.body;
+      
+      // Get school from session
+      const schoolId = req.session?.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة. يرجى اختيار مدرسة أولاً" });
+      }
+      
+      // Validate required fields
+      if (!studentId || !email || !password || !name || !phone) {
+        return res.status(400).json({ error: "جميع البيانات مطلوبة" });
+      }
+      
+      // Check if student record exists and is unclaimed
+      const unclaimedStudent = await storage.getUnclaimedStudent(parseInt(studentId), schoolId);
+      if (!unclaimedStudent) {
+        return res.status(404).json({ 
+          error: "رقم الطالب غير موجود أو تم ربطه بحساب مسبقاً" 
+        });
+      }
+      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(email, schoolId);
+      if (existingUser) {
+        return res.status(400).json({ error: "البريد الإلكتروني مستخدم بالفعل" });
+      }
+      
+      // Check if phone already exists
+      const existingPhone = await storage.getUserByPhone(phone, schoolId);
+      if (existingPhone) {
+        return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
+      }
+      
+      // Create user account
+      const userData = {
+        email,
+        password,
+        name,
+        phone,
+        role: 'student',
+        gender,
+        schoolId
+      };
+      const user = await storage.createUser(userData);
+      
+      // Link student record to user account
+      await storage.claimStudentAccount(unclaimedStudent.id, user.id);
+      
+      // Auto-login the user
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        schoolId: user.schoolId
+      };
+      
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ 
+        user: userWithoutPassword,
+        student: unclaimedStudent,
+        message: "تم ربط الحساب بنجاح" 
+      });
+    } catch (error) {
+      console.error('Student claim error:', error);
+      res.status(500).json({ error: "حدث خطأ في ربط الحساب" });
+    }
+  });
+
+  // Check if student ID exists and is available for claiming
+  app.post("/api/auth/check-student-id", async (req, res) => {
+    try {
+      const { studentId } = req.body;
+      
+      const schoolId = req.session?.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة" });
+      }
+      
+      if (!studentId) {
+        return res.status(400).json({ error: "رقم الطالب مطلوب" });
+      }
+      
+      const student = await storage.getUnclaimedStudent(parseInt(studentId), schoolId);
+      if (student) {
+        res.json({ 
+          available: true, 
+          studentName: student.name,
+          educationLevel: student.educationLevel,
+          grade: student.grade
+        });
+      } else {
+        res.json({ available: false });
+      }
+    } catch (error) {
+      console.error('Check student ID error:', error);
+      res.status(500).json({ error: "حدث خطأ في التحقق من رقم الطالب" });
+    }
+  });
+
   // Middleware to check authentication and school access
   const requireAuth = (req: any, res: any, next: any) => {
     const currentUser = req.session.user;
@@ -3454,6 +3557,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error broadcasting notification:', error);
       res.status(500).json({ error: "فشل في إرسال الإشعار العام" });
+    }
+  });
+
+  // Admin endpoints for student claim system
+  app.post("/api/admin/preregister-student", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const { name, gender, educationLevel, grade } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+      }
+      
+      if (!name || !gender || !educationLevel || !grade) {
+        return res.status(400).json({ error: "جميع البيانات مطلوبة" });
+      }
+      
+      const student = await storage.preRegisterStudent({
+        name,
+        gender,
+        educationLevel,
+        grade,
+        schoolId,
+        verified: false
+      });
+      
+      res.status(201).json({ 
+        message: "تم تسجيل الطالب مسبقاً بنجاح", 
+        student,
+        studentId: student.id
+      });
+    } catch (error) {
+      console.error('Error pre-registering student:', error);
+      res.status(500).json({ error: "فشل في تسجيل الطالب مسبقاً" });
+    }
+  });
+
+  app.get("/api/admin/unclaimed-students", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+      }
+      
+      const students = await storage.getUnclaimedStudents(schoolId);
+      res.json(students);
+    } catch (error) {
+      console.error('Error fetching unclaimed students:', error);
+      res.status(500).json({ error: "فشل في جلب الطلاب غير المربوطين" });
     }
   });
 

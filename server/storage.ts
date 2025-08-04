@@ -106,6 +106,12 @@ export interface IStorage {
   regenerateStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string }>;
   generateQRCodeForVerifiedUser(userId: number): Promise<void>;
   
+  // Student claim system methods
+  getUnclaimedStudent(studentId: number, schoolId: number): Promise<Student | undefined>;
+  claimStudentAccount(studentId: number, userId: number): Promise<void>;
+  preRegisterStudent(student: Omit<InsertStudent, 'userId'>): Promise<Student>;
+  getUnclaimedStudents(schoolId: number): Promise<Student[]>;
+  
   // Notification methods
   getNotifications(userId: number): Promise<Notification[]>;
   createNotification(notification: InsertNotification): Promise<Notification>;
@@ -740,6 +746,45 @@ export class DatabaseStorage implements IStorage {
           .where(eq(children.id, child.id));
       }
     }
+  }
+
+  // Student claim system methods
+  async getUnclaimedStudent(studentId: number, schoolId: number): Promise<Student | undefined> {
+    const [student] = await db
+      .select()
+      .from(students)
+      .where(and(
+        eq(students.id, studentId),
+        eq(students.schoolId, schoolId),
+        eq(students.userId, null)
+      ));
+    return student || undefined;
+  }
+
+  async claimStudentAccount(studentId: number, userId: number): Promise<void> {
+    await db
+      .update(students)
+      .set({ userId })
+      .where(eq(students.id, studentId));
+  }
+
+  async preRegisterStudent(student: Omit<InsertStudent, 'userId'>): Promise<Student> {
+    const [newStudent] = await db
+      .insert(students)
+      .values({ ...student, userId: null })
+      .returning();
+    return newStudent;
+  }
+
+  async getUnclaimedStudents(schoolId: number): Promise<Student[]> {
+    return await db
+      .select()
+      .from(students)
+      .where(and(
+        eq(students.schoolId, schoolId),
+        eq(students.userId, null)
+      ))
+      .orderBy(desc(students.id));
   }
 
   async getAnnouncements(): Promise<Announcement[]> {
