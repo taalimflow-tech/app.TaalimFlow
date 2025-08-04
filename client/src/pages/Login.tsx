@@ -11,6 +11,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { useLocation, Link } from 'wouter';
 import { Plus, Trash2 } from 'lucide-react';
 import PasswordResetModal from '@/components/PasswordResetModal';
+import { StudentClaimForm } from '@/components/StudentClaimForm';
 
 interface Child {
   name: string;
@@ -492,6 +493,16 @@ export default function Login() {
                   className="w-full py-6 text-lg"
                 >
                   إنشاء حساب جديد
+                </Button>
+                
+                <Button 
+                  onClick={() => {
+                    setSelectedAction('student-claim');
+                    setCurrentStep('form');
+                  }}
+                  className="w-full py-6 text-lg bg-green-600 hover:bg-green-700 text-white"
+                >
+                  ربط حساب طالب موجود
                 </Button>
               </div>
               
@@ -1147,11 +1158,24 @@ export default function Login() {
                 </div>
               )}
 
+              {/* Student Claim Form */}
+              {selectedAction === 'student-claim' && (
+                <StudentClaimForm
+                  onSuccess={() => {
+                    // Refresh auth state or redirect
+                    window.location.reload();
+                  }}
+                  onCancel={() => {
+                    setCurrentStep('action');
+                  }}
+                />
+              )}
+
               {/* Back Button */}
               <div className="text-center">
                 <Button 
                   onClick={() => {
-                    if (selectedAction === 'login') {
+                    if (selectedAction === 'login' || selectedAction === 'student-claim') {
                       setCurrentStep('action');
                     } else if (selectedAction === 'register') {
                       setCurrentStep('userType');

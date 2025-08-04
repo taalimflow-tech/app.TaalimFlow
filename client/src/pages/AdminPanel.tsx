@@ -41,6 +41,16 @@ export default function AdminPanel() {
             </Card>
           </Link>
           
+          <Link href="/admin/student-management">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Users className="w-12 h-12 text-green-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">تسجيل الطلاب المسبق</h3>
+                <p className="text-sm text-gray-600">تسجيل الطلاب مسبقاً وإدارة ربط الحسابات</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <MessageSquare className="w-12 h-12 text-blue-600 mx-auto mb-3" />
