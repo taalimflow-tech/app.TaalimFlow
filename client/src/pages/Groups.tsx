@@ -1672,76 +1672,69 @@ export default function Groups() {
                       <div className="space-y-2">
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
-                          .map(student => {
-                            // Check if student's grade matches the group's education level and subject requirements
-                            const isGradeCompatible = (() => {
-                              if (!student.grade) return true; // Allow if no grade specified
+                          .filter(student => {
+                            // Filter out students who don't match grade requirements completely
+                            if (!student.grade) return true; // Allow if no grade specified
+                            
+                            const groupLevel = selectedAdminGroup.educationLevel;
+                            const studentGrade = student.grade;
+                            const subjectGrade = selectedAdminGroup.subjectGrade; // Subject-specific grade requirements
+                            
+                            console.log(`[DEBUG] Filtering student:`, {
+                              studentName: student.name,
+                              studentGrade,
+                              groupLevel,
+                              subjectGrade,
+                              subjectName: selectedAdminGroup.nameAr
+                            });
+                            
+                            // Basic education level check
+                            let basicLevelMatch = false;
+                            if (groupLevel === 'الابتدائي') basicLevelMatch = studentGrade.includes('ابتدائي');
+                            else if (groupLevel === 'المتوسط') basicLevelMatch = studentGrade.includes('متوسط');
+                            else if (groupLevel === 'الثانوي') basicLevelMatch = studentGrade.includes('ثانوي');
+                            else basicLevelMatch = true; // Custom groups
+                            
+                            if (!basicLevelMatch) return false;
+                            
+                            // For secondary education, apply strict grade matching
+                            if (groupLevel === 'الثانوي' && subjectGrade) {
+                              // If subject is for all levels, allow all secondary students
+                              if (subjectGrade === 'جميع المستويات') return true;
                               
-                              const groupLevel = selectedAdminGroup.educationLevel;
-                              const studentGrade = student.grade;
-                              const subjectGrade = selectedAdminGroup.subjectGrade; // Subject-specific grade requirements
+                              // 1st year students can only take "جميع المستويات" subjects
+                              if (studentGrade.includes('الأولى ثانوي')) {
+                                console.log(`[DEBUG] 1st year student ${student.name} rejected for non-general subject`);
+                                return false; // 1st year can only take general subjects
+                              }
                               
-                              console.log(`[DEBUG] Grade compatibility check:`, {
-                                studentName: student.name,
-                                studentGrade,
-                                groupLevel,
-                                subjectGrade,
-                                subjectName: selectedAdminGroup.nameAr
-                              });
-                              
-                              // Basic education level check
-                              let basicLevelMatch = false;
-                              if (groupLevel === 'الابتدائي') basicLevelMatch = studentGrade.includes('ابتدائي');
-                              else if (groupLevel === 'المتوسط') basicLevelMatch = studentGrade.includes('متوسط');
-                              else if (groupLevel === 'الثانوي') basicLevelMatch = studentGrade.includes('ثانوي');
-                              else basicLevelMatch = true; // Custom groups
-                              
-                              if (!basicLevelMatch) return false;
-                              
-                              // For secondary education, apply more specific grade matching
-                              if (groupLevel === 'الثانوي' && subjectGrade) {
-                                // If subject is for all levels, allow all secondary students
-                                if (subjectGrade === 'جميع المستويات') return true;
+                              // 2nd and 3rd year students need track compatibility
+                              if (studentGrade.includes('الثانية ثانوي') || studentGrade.includes('الثالثة ثانوي')) {
+                                // Map student specializations to subject requirements
+                                const studentTrack = (() => {
+                                  if (studentGrade.includes('علوم تجريبية') || studentGrade.includes('رياضيات')) return 'علمي';
+                                  if (studentGrade.includes('آداب وفلسفة') || studentGrade.includes('لغات أجنبية')) return 'أدبي';
+                                  if (studentGrade.includes('تسيير واقتصاد')) return 'تسيير واقتصاد';
+                                  if (studentGrade.includes('تقني رياضي')) return 'تقني رياضي';
+                                  return null; // No track specified - only for general subjects
+                                })();
                                 
-                                // 1st year students can only take "جميع المستويات" subjects
-                                if (studentGrade.includes('الأولى ثانوي')) {
+                                console.log(`[DEBUG] Student ${student.name} track: ${studentTrack}, required: ${subjectGrade}`);
+                                
+                                // If student has no track specified, only allow general subjects
+                                if (!studentTrack) {
                                   return subjectGrade === 'جميع المستويات';
                                 }
                                 
-                                // 2nd and 3rd year students need track compatibility
-                                if (studentGrade.includes('الثانية ثانوي') || studentGrade.includes('الثالثة ثانوي')) {
-                                  // Map student specializations to subject requirements
-                                  const studentTrack = (() => {
-                                    if (studentGrade.includes('علوم تجريبية') || studentGrade.includes('رياضيات')) return 'علمي';
-                                    if (studentGrade.includes('آداب وفلسفة') || studentGrade.includes('لغات أجنبية')) return 'أدبي';
-                                    if (studentGrade.includes('تسيير واقتصاد')) return 'تسيير واقتصاد';
-                                    if (studentGrade.includes('تقني رياضي')) return 'تقني رياضي';
-                                    return 'جميع المستويات'; // Default for general students
-                                  })();
-                                  
-                                  return subjectGrade === studentTrack || subjectGrade === 'جميع المستويات';
-                                }
+                                return subjectGrade === studentTrack || subjectGrade === 'جميع المستويات';
                               }
-                              
-                              // For middle school, apply year-specific matching
-                              if (groupLevel === 'المتوسط' && subjectGrade && subjectGrade !== 'جميع المستويات') {
-                                if (studentGrade.includes('الأولى متوسط') && !subjectGrade.includes('الأولى متوسط')) return false;
-                                if (studentGrade.includes('الثانية متوسط') && !subjectGrade.includes('الثانية متوسط')) return false;
-                                if (studentGrade.includes('الثالثة متوسط') && !subjectGrade.includes('الثالثة متوسط')) return false;
-                                if (studentGrade.includes('الرابعة متوسط') && !subjectGrade.includes('الرابعة متوسط')) return false;
-                              }
-                              
-                              // For primary school, apply year-specific matching
-                              if (groupLevel === 'الابتدائي' && subjectGrade && subjectGrade !== 'جميع المستويات') {
-                                if (studentGrade.includes('الأولى ابتدائي') && !subjectGrade.includes('الأولى ابتدائي')) return false;
-                                if (studentGrade.includes('الثانية ابتدائي') && !subjectGrade.includes('الثانية ابتدائي')) return false;
-                                if (studentGrade.includes('الثالثة ابتدائي') && !subjectGrade.includes('الثالثة ابتدائي')) return false;
-                                if (studentGrade.includes('الرابعة ابتدائي') && !subjectGrade.includes('الرابعة ابتدائي')) return false;
-                                if (studentGrade.includes('الخامسة ابتدائي') && !subjectGrade.includes('الخامسة ابتدائي')) return false;
-                              }
-                              
-                              return true; // Default to compatible
-                            })();
+                            }
+                            
+                            return true; // Default to compatible for other cases
+                          })
+                          .map(student => {
+                            // Since students are now pre-filtered, all remaining students are compatible
+                            const isGradeCompatible = true;
                             
                             return (
                               <div key={student.id} className={`flex items-center space-x-2 p-2 bg-white rounded border hover:bg-blue-50 ${
@@ -1757,18 +1750,13 @@ export default function Groups() {
                                   <p className="font-medium">{student.name}</p>
                                   <p className="text-sm text-gray-600">المستوى: {student.educationLevel}</p>
                                   {student.grade && (
-                                    <p className={`text-xs ${isGradeCompatible ? 'text-gray-500' : 'text-yellow-700'}`}>
+                                    <p className="text-xs text-gray-500">
                                       الصف: {student.grade}
                                     </p>
                                   )}
-                                  {!isGradeCompatible && (
-                                    <p className="text-xs text-yellow-700 font-medium">⚠️ الصف لا يتطابق مع مستوى المجموعة</p>
-                                  )}
                                 </div>
-                                <span className={`text-xs px-2 py-1 rounded ${
-                                  isGradeCompatible ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                  {isGradeCompatible ? 'متاح' : 'تحذير'}
+                                <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">
+                                  متاح
                                 </span>
                               </div>
                             );
