@@ -319,7 +319,7 @@ export default function AdminStudentManagement() {
                   <Label htmlFor="educationLevel">المرحلة التعليمية *</Label>
                   <Select 
                     value={formData.educationLevel} 
-                    onValueChange={(value) => setFormData({ ...formData, educationLevel: value, grade: '' })}
+                    onValueChange={(value) => setFormData({ ...formData, educationLevel: value, grade: '', selectedSubjects: [] })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="اختر المرحلة التعليمية" />
@@ -355,47 +355,49 @@ export default function AdminStudentManagement() {
                 </div>
 
                 {/* Subject Selection */}
-                <div>
-                  <Label>المواد الدراسية (اختياري)</Label>
-                  <div className="mt-2 p-4 border rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
-                    {teachingModules.length > 0 ? (
-                      <div className="grid grid-cols-1 gap-3">
-                        {teachingModules.map((module) => (
-                          <div key={module.id} className="flex items-center space-x-2 space-x-reverse">
-                            <Checkbox
-                              id={`subject-${module.id}`}
-                              checked={formData.selectedSubjects.includes(module.id.toString())}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setFormData({
-                                    ...formData,
-                                    selectedSubjects: [...formData.selectedSubjects, module.id.toString()]
-                                  });
-                                } else {
-                                  setFormData({
-                                    ...formData,
-                                    selectedSubjects: formData.selectedSubjects.filter(id => id !== module.id.toString())
-                                  });
-                                }
-                              }}
-                            />
-                            <Label 
-                              htmlFor={`subject-${module.id}`}
-                              className="text-sm font-normal cursor-pointer"
-                            >
-                              {module.name}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">لا توجد مواد متاحة</p>
-                    )}
+                {formData.educationLevel && (
+                  <div>
+                    <Label>المواد الدراسية (اختياري)</Label>
+                    <div className="mt-2 p-4 border rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
+                      {getAvailableSubjects(formData.educationLevel).length > 0 ? (
+                        <div className="grid grid-cols-1 gap-3">
+                          {getAvailableSubjects(formData.educationLevel).map((module) => (
+                            <div key={module.id} className="flex items-center space-x-2 space-x-reverse">
+                              <Checkbox
+                                id={`subject-${module.id}`}
+                                checked={formData.selectedSubjects.includes(module.id.toString())}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setFormData({
+                                      ...formData,
+                                      selectedSubjects: [...formData.selectedSubjects, module.id.toString()]
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      selectedSubjects: formData.selectedSubjects.filter(id => id !== module.id.toString())
+                                    });
+                                  }
+                                }}
+                              />
+                              <Label 
+                                htmlFor={`subject-${module.id}`}
+                                className="text-sm font-normal cursor-pointer"
+                              >
+                                {module.name}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">لا توجد مواد متاحة لهذه المرحلة التعليمية</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      يمكن للطالب تعديل اختيار المواد لاحقاً من حسابه
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    يمكن للطالب تعديل اختيار المواد لاحقاً من حسابه
-                  </p>
-                </div>
+                )}
 
                 <Button 
                   type="submit" 
