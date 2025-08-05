@@ -298,7 +298,7 @@ export default function AdminStudentManagement() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="أدخل رقم الهاتف (اختياري)"
+                    placeholder="أدخل رقم الهاتف"
                   />
                 </div>
 
@@ -543,7 +543,7 @@ export default function AdminStudentManagement() {
                 type="tel"
                 value={editFormData.phone}
                 onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                placeholder="أدخل رقم الهاتف (اختياري)"
+                placeholder="أدخل رقم الهاتف"
               />
             </div>
 
