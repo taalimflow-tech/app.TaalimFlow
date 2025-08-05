@@ -1672,51 +1672,53 @@ export default function Groups() {
                       <div className="space-y-2">
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
-                          .map(student => {
-                            // Check if student's grade matches the group's education level
-                            const isGradeCompatible = (() => {
-                              if (!student.grade) return true; // Allow if no grade specified
-                              
-                              const groupLevel = selectedAdminGroup.educationLevel;
-                              const studentGrade = student.grade;
-                              
-                              if (groupLevel === 'الابتدائي') return studentGrade.includes('ابتدائي');
-                              if (groupLevel === 'المتوسط') return studentGrade.includes('متوسط');
-                              if (groupLevel === 'الثانوي') return studentGrade.includes('ثانوي');
-                              
-                              return true; // Default to compatible for custom groups
-                            })();
+                          .filter(student => {
+                            // Enhanced grade compatibility filtering - completely exclude incompatible students
+                            if (!student.grade) return true; // Allow if no grade specified
                             
-                            return (
-                              <div key={student.id} className={`flex items-center space-x-2 p-2 bg-white rounded border hover:bg-blue-50 ${
-                                isGradeCompatible ? 'border-blue-200' : 'border-yellow-300 bg-yellow-50'
-                              }`}>
-                                <input
-                                  type="checkbox"
-                                  checked={false}
-                                  onChange={() => toggleStudentSelection(student.id)}
-                                  className="mr-2 text-blue-600"
-                                />
-                                <div className="flex-1">
-                                  <p className="font-medium">{student.name}</p>
-                                  <p className="text-sm text-gray-600">المستوى: {student.educationLevel}</p>
-                                  {student.grade && (
-                                    <p className={`text-xs ${isGradeCompatible ? 'text-gray-500' : 'text-yellow-700'}`}>
-                                      الصف: {student.grade}
-                                    </p>
-                                  )}
-                                  {!isGradeCompatible && (
-                                    <p className="text-xs text-yellow-700 font-medium">⚠️ الصف لا يتطابق مع مستوى المجموعة</p>
-                                  )}
-                                </div>
-                                <span className={`text-xs px-2 py-1 rounded ${
-                                  isGradeCompatible ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                  {isGradeCompatible ? 'متاح' : 'تحذير'}
-                                </span>
-                              </div>
-                            );
+                            const groupLevel = selectedAdminGroup.educationLevel;
+                            const studentGrade = student.grade;
+                            
+                            // For secondary education, be more specific about years
+                            if (groupLevel === 'الثانوي') {
+                              // If group is for a specific year and student is different year, exclude them
+                              if (selectedAdminGroup.description.includes('الثالثة')) {
+                                return studentGrade.includes('الثالثة');
+                              }
+                              if (selectedAdminGroup.description.includes('الثانية')) {
+                                return studentGrade.includes('الثانية');
+                              }
+                              if (selectedAdminGroup.description.includes('الأولى')) {
+                                return studentGrade.includes('الأولى');
+                              }
+                              // If no specific year mentioned, allow all secondary students
+                              return studentGrade.includes('ثانوي');
+                            }
+                            
+                            // For primary and middle school, check basic compatibility
+                            if (groupLevel === 'الابتدائي') return studentGrade.includes('ابتدائي');
+                            if (groupLevel === 'المتوسط') return studentGrade.includes('متوسط');
+                            
+                            return true; // Default to compatible for custom groups
                           })
+                          .map(student => (
+                            <div key={student.id} className="flex items-center space-x-2 p-2 bg-white rounded border hover:bg-blue-50 border-blue-200">
+                              <input
+                                type="checkbox"
+                                checked={false}
+                                onChange={() => toggleStudentSelection(student.id)}
+                                className="mr-2 text-blue-600"
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium">{student.name}</p>
+                                <p className="text-sm text-gray-600">المستوى: {student.educationLevel}</p>
+                                {student.grade && (
+                                  <p className="text-xs text-gray-500">الصف: {student.grade}</p>
+                                )}
+                              </div>
+                              <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">متاح</span>
+                            </div>
+                          ))
                         }
                       </div>
                     )}
