@@ -81,7 +81,7 @@ export default function AdminUsers() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
@@ -379,7 +379,11 @@ export default function AdminUsers() {
             
             <div className="flex items-center gap-3">
               <Button
-                onClick={() => navigate('admin/student-management')}
+                onClick={() => {
+                  // Extract school code from current path and navigate to student management
+                  const schoolCode = location.split('/')[2]; // /school/CODE/admin/users -> CODE
+                  navigate(`/school/${schoolCode}/admin/student-management`);
+                }}
                 className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm"
               >
                 <Plus className="w-4 h-4 mr-1" />
