@@ -1598,6 +1598,9 @@ export default function Groups() {
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
                 <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
+                {selectedAdminGroup.grade && (
+                  <p><strong>السنة/التخصص:</strong> {selectedAdminGroup.grade}</p>
+                )}
               </div>
             </div>
 
@@ -1670,16 +1673,40 @@ export default function Groups() {
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
                           .filter(student => {
-                            // Simple year-based filtering - only show students if there's an explicit year match
+                            // Smart year-based filtering with specialization mapping
                             if (!student.grade) return true; // Allow if no grade specified
                             
                             const groupLevel = selectedAdminGroup.educationLevel;
                             const studentGrade = student.grade;
                             const groupText = `${selectedAdminGroup.name} ${selectedAdminGroup.description}`;
+                            const groupGrade = selectedAdminGroup.grade; // From teaching module
                             
-                            // Only allow students if group explicitly mentions their year OR group is for "جميع المستويات"
+                            // Function to map specializations to year levels (Algerian system)
+                            const getYearFromSpecialization = (specialization: string): string[] => {
+                              const spec = specialization?.toLowerCase();
+                              
+                              // Secondary specializations (3rd year)
+                              if (spec?.includes('تسيير واقتصاد') || spec?.includes('تسيير') || spec?.includes('اقتصاد')) {
+                                return ['الثالثة ثانوي', 'السنة الثالثة ثانوي'];
+                              }
+                              if (spec?.includes('علوم تجريبية') || spec?.includes('تجريبية')) {
+                                return ['الثالثة ثانوي', 'السنة الثالثة ثانوي'];
+                              }
+                              if (spec?.includes('رياضيات') || spec?.includes('تقني رياضي')) {
+                                return ['الثالثة ثانوي', 'السنة الثالثة ثانوي'];
+                              }
+                              if (spec?.includes('آداب وفلسفة') || spec?.includes('آداب') || spec?.includes('فلسفة')) {
+                                return ['الثالثة ثانوي', 'السنة الثالثة ثانوي'];
+                              }
+                              if (spec?.includes('لغات أجنبية') || spec?.includes('لغات')) {
+                                return ['الثالثة ثانوي', 'السنة الثالثة ثانوي'];
+                              }
+                              
+                              // If no specialization match, return empty array
+                              return [];
+                            };
                             
-                            // Check for explicit year mentions first
+                            // Check explicit year mentions in group text first
                             if (groupText.includes('الثالثة ثانوي') || (groupText.includes('الثالثة') && groupLevel === 'الثانوي')) {
                               return studentGrade.includes('الثالثة ثانوي');
                             }
@@ -1690,6 +1717,7 @@ export default function Groups() {
                               return studentGrade.includes('الأولى ثانوي');
                             }
                             
+                            // Middle school years
                             if (groupText.includes('الرابعة متوسط') || (groupText.includes('الرابعة') && groupLevel === 'المتوسط')) {
                               return studentGrade.includes('الرابعة متوسط');
                             }
@@ -1703,6 +1731,7 @@ export default function Groups() {
                               return studentGrade.includes('الأولى متوسط');
                             }
                             
+                            // Primary school years
                             if (groupText.includes('الخامسة ابتدائي') || (groupText.includes('الخامسة') && groupLevel === 'الابتدائي')) {
                               return studentGrade.includes('الخامسة ابتدائي');
                             }
@@ -1719,12 +1748,24 @@ export default function Groups() {
                               return studentGrade.includes('الأولى ابتدائي');
                             }
                             
+                            // Check specialization mapping
+                            if (groupGrade && groupLevel === 'الثانوي') {
+                              const requiredYears = getYearFromSpecialization(groupGrade);
+                              if (requiredYears.length > 0) {
+                                return requiredYears.some(year => studentGrade.includes(year));
+                              }
+                            }
+                            
                             // Allow if group is explicitly for "جميع المستويات" or contains "جميع السنوات"
                             if (groupLevel === 'جميع المستويات' || groupText.includes('جميع السنوات') || groupText.includes('جميع المستويات')) {
                               return true;
                             }
                             
-                            // For groups without explicit year mention, don't show any students (strict filtering)
+                            // For groups without explicit year or specialization, show basic level match
+                            if (groupLevel === 'الابتدائي') return studentGrade.includes('ابتدائي');
+                            if (groupLevel === 'المتوسط') return studentGrade.includes('متوسط');
+                            if (groupLevel === 'الثانوي') return studentGrade.includes('ثانوي');
+                            
                             return false;
                           })
                           .map(student => (
