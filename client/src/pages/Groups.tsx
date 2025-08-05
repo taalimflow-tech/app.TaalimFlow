@@ -1099,9 +1099,6 @@ export default function Groups() {
                 <div className="flex items-center gap-2">
                   <Settings className="w-5 h-5 text-blue-600" />
                   <h3 className="text-lg font-semibold text-blue-800">إدارة المجموعات الموجودة</h3>
-                  <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-                    للإدارة فقط
-                  </span>
                 </div>
                 <Button
                   variant="outline"
