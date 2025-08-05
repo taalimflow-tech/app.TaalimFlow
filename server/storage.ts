@@ -1608,11 +1608,18 @@ export class DatabaseStorage implements IStorage {
         verifiedBy: students.verifiedBy,
         verificationNotes: students.verificationNotes,
         selectedSubjects: students.selectedSubjects,
-        name: users.name
+        name: sql<string>`COALESCE(${users.name}, ${students.name})`.as('name')
       })
       .from(students)
       .leftJoin(users, eq(students.userId, users.id))
-      .where(and(eq(students.verified, true), eq(users.role, 'student'), eq(students.schoolId, schoolId)))
+      .where(and(
+        eq(students.verified, true), 
+        eq(students.schoolId, schoolId),
+        or(
+          isNull(students.userId), // Pre-registered students (no userId yet)
+          eq(users.role, 'student') // Claimed students with role = 'student'
+        )
+      ))
       .orderBy(desc(students.verifiedAt));
   }
 
