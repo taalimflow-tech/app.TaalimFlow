@@ -169,6 +169,26 @@ export default function AdminStudentManagement() {
     });
   };
 
+  // Function to get grades for each education level
+  const getGradesForLevel = (educationLevel: string): string[] => {
+    switch (educationLevel) {
+      case 'الابتدائي':
+        return ['السنة الأولى ابتدائي', 'السنة الثانية ابتدائي', 'السنة الثالثة ابتدائي', 'السنة الرابعة ابتدائي', 'السنة الخامسة ابتدائي'];
+      case 'المتوسط':
+        return ['السنة الأولى متوسط', 'السنة الثانية متوسط', 'السنة الثالثة متوسط', 'السنة الرابعة متوسط'];
+      case 'الثانوي':
+        return ['السنة الأولى ثانوي', 'السنة الثانية ثانوي', 'السنة الثالثة ثانوي'];
+      default:
+        return [];
+    }
+  };
+
+  // Function to get available subjects for education level
+  const getAvailableSubjects = (educationLevel: string) => {
+    if (!teachingModules) return [];
+    return teachingModules.filter(module => module.educationLevel === educationLevel);
+  };
+
   // Function to get subject names from IDs
   const getSubjectNames = (subjectIds: string[] | null) => {
     if (!subjectIds || subjectIds.length === 0) return 'لم يتم اختيار مواد';
