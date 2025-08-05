@@ -181,6 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userData.role === 'student' && educationLevel && grade) {
         await storage.createStudent({
           userId: user.id,
+          name: userData.name,
+          phone: userData.phone,
           gender: userData.gender,
           educationLevel,
           grade,

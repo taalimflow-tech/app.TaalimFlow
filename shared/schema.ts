@@ -562,9 +562,12 @@ export const insertChildSchema = createInsertSchema(children).pick({
 
 export const insertStudentDataSchema = createInsertSchema(students).pick({
   userId: true,
+  name: true,
+  phone: true,
   gender: true,
   educationLevel: true,
   grade: true,
+  selectedSubjects: true,
   schoolId: true,
 });
 
