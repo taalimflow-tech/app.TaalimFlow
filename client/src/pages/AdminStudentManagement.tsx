@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { RoleProtection } from '@/components/RoleProtection';
 import { UserPlus, Users, Copy, CheckCircle } from 'lucide-react';
@@ -16,9 +17,16 @@ interface Student {
   gender: string;
   educationLevel: string;
   grade: string;
+  selectedSubjects: string[] | null;
   verified: boolean;
   userId: number | null;
   createdAt: string;
+}
+
+interface TeachingModule {
+  id: number;
+  name: string;
+  description?: string;
 }
 
 export default function AdminStudentManagement() {
@@ -30,12 +38,19 @@ export default function AdminStudentManagement() {
     name: '',
     gender: '',
     educationLevel: '',
-    grade: ''
+    grade: '',
+    selectedSubjects: [] as string[]
   });
 
   // Fetch unclaimed students
   const { data: unclaimedStudents, isLoading, refetch } = useQuery<Student[]>({
     queryKey: ['/api/admin/unclaimed-students'],
+    enabled: !!user && user.role === 'admin'
+  });
+
+  // Fetch teaching modules for subject selection
+  const { data: teachingModules = [] } = useQuery<TeachingModule[]>({
+    queryKey: ['/api/teaching-modules'],
     enabled: !!user && user.role === 'admin'
   });
 
@@ -55,7 +70,7 @@ export default function AdminStudentManagement() {
         title: '✅ تم التسجيل بنجاح',
         description: `تم تسجيل الطالب ${data.student.name} برقم ${data.student.id}`
       });
-      setFormData({ name: '', gender: '', educationLevel: '', grade: '' });
+      setFormData({ name: '', gender: '', educationLevel: '', grade: '', selectedSubjects: [] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/unclaimed-students'] });
     },
     onError: (error: any) => {
@@ -86,6 +101,17 @@ export default function AdminStudentManagement() {
       title: '📋 تم النسخ',
       description: `تم نسخ رقم الطالب ${studentName}: ${studentId}`
     });
+  };
+
+  // Function to get subject names from IDs
+  const getSubjectNames = (subjectIds: string[] | null) => {
+    if (!subjectIds || subjectIds.length === 0) return 'لم يتم اختيار مواد';
+    
+    const names = subjectIds
+      .map(id => teachingModules.find(module => module.id.toString() === id)?.name)
+      .filter(Boolean);
+    
+    return names.length > 0 ? names.join(', ') : 'مواد غير محددة';
   };
 
   const educationLevels = [
@@ -189,6 +215,49 @@ export default function AdminStudentManagement() {
                   </Select>
                 </div>
 
+                {/* Subject Selection */}
+                <div>
+                  <Label>المواد الدراسية (اختياري)</Label>
+                  <div className="mt-2 p-4 border rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
+                    {teachingModules.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-3">
+                        {teachingModules.map((module) => (
+                          <div key={module.id} className="flex items-center space-x-2 space-x-reverse">
+                            <Checkbox
+                              id={`subject-${module.id}`}
+                              checked={formData.selectedSubjects.includes(module.id.toString())}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setFormData({
+                                    ...formData,
+                                    selectedSubjects: [...formData.selectedSubjects, module.id.toString()]
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    selectedSubjects: formData.selectedSubjects.filter(id => id !== module.id.toString())
+                                  });
+                                }
+                              }}
+                            />
+                            <Label 
+                              htmlFor={`subject-${module.id}`}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {module.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">لا توجد مواد متاحة</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    يمكن للطالب تعديل اختيار المواد لاحقاً من حسابه
+                  </p>
+                </div>
+
                 <Button 
                   type="submit" 
                   className="w-full" 
@@ -233,6 +302,9 @@ export default function AdminStudentManagement() {
                           </p>
                           <p className="text-sm text-gray-600">
                             {student.gender}
+                          </p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            <strong>المواد:</strong> {getSubjectNames(student.selectedSubjects)}
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
