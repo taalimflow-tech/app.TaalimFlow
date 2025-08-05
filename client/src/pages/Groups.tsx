@@ -1681,6 +1681,14 @@ export default function Groups() {
                               const studentGrade = student.grade;
                               const subjectGrade = selectedAdminGroup.subjectGrade; // Subject-specific grade requirements
                               
+                              console.log(`[DEBUG] Grade compatibility check:`, {
+                                studentName: student.name,
+                                studentGrade,
+                                groupLevel,
+                                subjectGrade,
+                                subjectName: selectedAdminGroup.nameAr
+                              });
+                              
                               // Basic education level check
                               let basicLevelMatch = false;
                               if (groupLevel === 'الابتدائي') basicLevelMatch = studentGrade.includes('ابتدائي');
