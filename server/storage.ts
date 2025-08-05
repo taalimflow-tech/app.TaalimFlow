@@ -1330,6 +1330,30 @@ export class DatabaseStorage implements IStorage {
     const directStudents = await directStudentsQuery;
     console.log(`[DEBUG] Found ${directStudents.length} direct students:`, directStudents);
 
+    // Get pre-registered students (verified but userId is null)
+    let preRegisteredQuery = db
+      .select({
+        id: students.id,
+        name: students.name,
+        email: sql<string>`CONCAT('preregistered_', ${students.id}, '@', 'school.local')`.as('email'), // Synthetic email for pre-registered
+        phone: sql<string>`''`.as('phone'), // Pre-registered students don't have phone yet
+        educationLevel: students.educationLevel,
+        grade: students.grade,
+        type: sql<string>`'preregistered'`.as('type')
+      })
+      .from(students)
+      .where(
+        and(
+          eq(students.educationLevel, educationLevel),
+          eq(students.verified, true),
+          isNull(students.userId), // Pre-registered students have no userId yet
+          schoolId ? eq(students.schoolId, schoolId) : sql`1=1`
+        )
+      );
+
+    const preRegisteredStudents = await preRegisteredQuery;
+    console.log(`[DEBUG] Found ${preRegisteredStudents.length} pre-registered students:`, preRegisteredStudents);
+
     // Get children registered by parents
     let childrenQuery = db
       .select({
@@ -1352,8 +1376,8 @@ export class DatabaseStorage implements IStorage {
     const childrenStudents = await childrenQuery;
     console.log(`[DEBUG] Found ${childrenStudents.length} children:`, childrenStudents);
 
-    // Combine both results and sort by name
-    const combinedResults = [...directStudents, ...childrenStudents];
+    // Combine all results and sort by name
+    const combinedResults = [...directStudents, ...preRegisteredStudents, ...childrenStudents];
     combinedResults.sort((a, b) => a.name.localeCompare(b.name));
     console.log(`[DEBUG] Combined results:`, combinedResults);
 
