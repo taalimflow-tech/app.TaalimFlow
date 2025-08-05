@@ -1,6 +1,6 @@
 import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray } from "drizzle-orm";
+import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // School methods (for multi-tenancy)
@@ -756,7 +756,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(students.id, studentId),
         eq(students.schoolId, schoolId),
-        eq(students.userId, null)
+        isNull(students.userId)
       ));
     return student || undefined;
   }
@@ -782,7 +782,7 @@ export class DatabaseStorage implements IStorage {
       .from(students)
       .where(and(
         eq(students.schoolId, schoolId),
-        eq(students.userId, null)
+        isNull(students.userId)
       ))
       .orderBy(desc(students.id));
   }
