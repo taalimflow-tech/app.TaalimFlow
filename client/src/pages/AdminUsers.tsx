@@ -379,6 +379,13 @@ export default function AdminUsers() {
             
             <div className="flex items-center gap-3">
               <Button
+                onClick={() => navigate('admin/student-management')}
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                تسجيل الطلاب المسبق
+              </Button>
+              <Button
                 onClick={() => navigate('admin/content')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm"
               >
