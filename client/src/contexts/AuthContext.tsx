@@ -1,4 +1,5 @@
-import React, { useState, useEffect, createContext, ReactNode, useContext } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 import { User } from '@shared/schema';
 import { ensureFirebaseInitialized } from '@/lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
