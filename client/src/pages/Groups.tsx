@@ -1673,25 +1673,58 @@ export default function Groups() {
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
                           .filter(student => {
-                            // Simple year-based filtering
+                            // Simple year-based filtering for all education levels
                             if (!student.grade) return true; // Allow if no grade specified
                             
                             const groupLevel = selectedAdminGroup.educationLevel;
                             const studentGrade = student.grade;
                             const groupText = `${selectedAdminGroup.name} ${selectedAdminGroup.description}`;
                             
-                            // Check if group mentions specific year and enforce exact matching
-                            if (groupText.includes('الثالثة')) {
-                              return studentGrade.includes('الثالثة');
+                            // Check if group mentions specific year and enforce exact matching for all levels
+                            
+                            // Secondary school years
+                            if (groupText.includes('الثالثة ثانوي') || groupText.includes('الثالثة') && groupLevel === 'الثانوي') {
+                              return studentGrade.includes('الثالثة ثانوي');
                             }
-                            if (groupText.includes('الثانية')) {
-                              return studentGrade.includes('الثانية');
+                            if (groupText.includes('الثانية ثانوي') || groupText.includes('الثانية') && groupLevel === 'الثانوي') {
+                              return studentGrade.includes('الثانية ثانوي');
                             }
-                            if (groupText.includes('الأولى')) {
-                              return studentGrade.includes('الأولى');
+                            if (groupText.includes('الأولى ثانوي') || groupText.includes('الأولى') && groupLevel === 'الثانوي') {
+                              return studentGrade.includes('الأولى ثانوي');
                             }
                             
-                            // Basic education level compatibility
+                            // Middle school years
+                            if (groupText.includes('الرابعة متوسط') || groupText.includes('الرابعة') && groupLevel === 'المتوسط') {
+                              return studentGrade.includes('الرابعة متوسط');
+                            }
+                            if (groupText.includes('الثالثة متوسط') || groupText.includes('الثالثة') && groupLevel === 'المتوسط') {
+                              return studentGrade.includes('الثالثة متوسط');
+                            }
+                            if (groupText.includes('الثانية متوسط') || groupText.includes('الثانية') && groupLevel === 'المتوسط') {
+                              return studentGrade.includes('الثانية متوسط');
+                            }
+                            if (groupText.includes('الأولى متوسط') || groupText.includes('الأولى') && groupLevel === 'المتوسط') {
+                              return studentGrade.includes('الأولى متوسط');
+                            }
+                            
+                            // Primary school years
+                            if (groupText.includes('الخامسة ابتدائي') || groupText.includes('الخامسة') && groupLevel === 'الابتدائي') {
+                              return studentGrade.includes('الخامسة ابتدائي');
+                            }
+                            if (groupText.includes('الرابعة ابتدائي') || groupText.includes('الرابعة') && groupLevel === 'الابتدائي') {
+                              return studentGrade.includes('الرابعة ابتدائي');
+                            }
+                            if (groupText.includes('الثالثة ابتدائي') || groupText.includes('الثالثة') && groupLevel === 'الابتدائي') {
+                              return studentGrade.includes('الثالثة ابتدائي');
+                            }
+                            if (groupText.includes('الثانية ابتدائي') || groupText.includes('الثانية') && groupLevel === 'الابتدائي') {
+                              return studentGrade.includes('الثانية ابتدائي');
+                            }
+                            if (groupText.includes('الأولى ابتدائي') || groupText.includes('الأولى') && groupLevel === 'الابتدائي') {
+                              return studentGrade.includes('الأولى ابتدائي');
+                            }
+                            
+                            // Basic education level compatibility if no specific year mentioned
                             if (groupLevel === 'الابتدائي') return studentGrade.includes('ابتدائي');
                             if (groupLevel === 'المتوسط') return studentGrade.includes('متوسط');
                             if (groupLevel === 'الثانوي') return studentGrade.includes('ثانوي');
