@@ -3567,7 +3567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      const { name, gender, educationLevel, grade } = req.body;
+      const { name, gender, educationLevel, grade, selectedSubjects } = req.body;
       const schoolId = req.session.user.schoolId;
       
       if (!schoolId) {
@@ -3584,7 +3584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         educationLevel,
         grade,
         schoolId,
-        verified: false
+        selectedSubjects
       });
       
       res.status(201).json({ 

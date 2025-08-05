@@ -80,7 +80,7 @@ export default function AdminStudentManagement() {
     onSuccess: (data) => {
       toast({
         title: '✅ تم التسجيل بنجاح',
-        description: `تم تسجيل الطالب ${data.student.name} برقم ${data.student.id}`
+        description: `تم تسجيل الطالب ${data.student.name} برقم ${data.student.id} وتم التحقق منه تلقائياً`
       });
       setFormData({ name: '', gender: '', educationLevel: '', grade: '', selectedSubjects: [] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/unclaimed-students'] });
@@ -395,9 +395,10 @@ export default function AdminStudentManagement() {
                 <h3 className="font-semibold text-blue-800 mb-2">كيفية عمل النظام:</h3>
                 <ol className="text-sm text-blue-700 space-y-1">
                   <li>1. قم بتسجيل الطالب هنا مع بياناته الأساسية</li>
-                  <li>2. سيحصل الطالب على رقم طلابي فريد</li>
-                  <li>3. أعطي الرقم للطالب ليسجل حسابه</li>
-                  <li>4. يستخدم الطالب الرقم لربط حسابه</li>
+                  <li>2. سيحصل الطالب على رقم طلابي فريد ويتم التحقق منه تلقائياً</li>
+                  <li>3. يمكن إضافة الطلاب المسجلين مسبقاً للمجموعات مباشرةً</li>
+                  <li>4. أعطي الرقم للطالب ليسجل حسابه</li>
+                  <li>5. يستخدم الطالب الرقم لربط حسابه</li>
                 </ol>
               </div>
             </CardContent>

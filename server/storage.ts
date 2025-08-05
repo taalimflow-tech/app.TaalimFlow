@@ -773,7 +773,13 @@ export class DatabaseStorage implements IStorage {
   async preRegisterStudent(student: Omit<InsertStudent, 'userId'>): Promise<Student> {
     const [newStudent] = await db
       .insert(students)
-      .values({ ...student, userId: null })
+      .values({ 
+        ...student, 
+        userId: null, 
+        verified: true,  // Auto-verify pre-registered students
+        verifiedAt: new Date(),
+        verificationNotes: 'تم التحقق تلقائياً عند التسجيل المسبق'
+      })
       .returning();
     return newStudent;
   }
