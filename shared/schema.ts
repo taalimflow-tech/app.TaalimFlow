@@ -285,7 +285,8 @@ export const students = pgTable("students", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").references(() => users.id),
-  gender: text("gender", { enum: ["male", "female"] }), // Gender field for students
+  name: text("name").notNull(), // Student name
+  gender: text("gender").notNull(), // Gender field for students  
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
   selectedSubjects: text("selected_subjects").array(), // Array of subject IDs they want to study

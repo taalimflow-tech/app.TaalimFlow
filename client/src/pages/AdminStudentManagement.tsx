@@ -34,7 +34,7 @@ export default function AdminStudentManagement() {
   });
 
   // Fetch unclaimed students
-  const { data: unclaimedStudents, isLoading } = useQuery<Student[]>({
+  const { data: unclaimedStudents, isLoading, refetch } = useQuery<Student[]>({
     queryKey: ['/api/admin/unclaimed-students'],
     enabled: !!user && user.role === 'admin'
   });
