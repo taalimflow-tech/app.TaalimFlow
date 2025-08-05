@@ -1673,18 +1673,66 @@ export default function Groups() {
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
                           .map(student => {
-                            // Check if student's grade matches the group's education level
+                            // Check if student's grade matches the group's education level and subject requirements
                             const isGradeCompatible = (() => {
                               if (!student.grade) return true; // Allow if no grade specified
                               
                               const groupLevel = selectedAdminGroup.educationLevel;
                               const studentGrade = student.grade;
+                              const subjectGrade = selectedAdminGroup.subjectGrade; // Subject-specific grade requirements
                               
-                              if (groupLevel === 'الابتدائي') return studentGrade.includes('ابتدائي');
-                              if (groupLevel === 'المتوسط') return studentGrade.includes('متوسط');
-                              if (groupLevel === 'الثانوي') return studentGrade.includes('ثانوي');
+                              // Basic education level check
+                              let basicLevelMatch = false;
+                              if (groupLevel === 'الابتدائي') basicLevelMatch = studentGrade.includes('ابتدائي');
+                              else if (groupLevel === 'المتوسط') basicLevelMatch = studentGrade.includes('متوسط');
+                              else if (groupLevel === 'الثانوي') basicLevelMatch = studentGrade.includes('ثانوي');
+                              else basicLevelMatch = true; // Custom groups
                               
-                              return true; // Default to compatible for custom groups
+                              if (!basicLevelMatch) return false;
+                              
+                              // For secondary education, apply more specific grade matching
+                              if (groupLevel === 'الثانوي' && subjectGrade) {
+                                // If subject is for all levels, allow all secondary students
+                                if (subjectGrade === 'جميع المستويات') return true;
+                                
+                                // 1st year students can only take "جميع المستويات" subjects
+                                if (studentGrade.includes('الأولى ثانوي')) {
+                                  return subjectGrade === 'جميع المستويات';
+                                }
+                                
+                                // 2nd and 3rd year students need track compatibility
+                                if (studentGrade.includes('الثانية ثانوي') || studentGrade.includes('الثالثة ثانوي')) {
+                                  // Map student specializations to subject requirements
+                                  const studentTrack = (() => {
+                                    if (studentGrade.includes('علوم تجريبية') || studentGrade.includes('رياضيات')) return 'علمي';
+                                    if (studentGrade.includes('آداب وفلسفة') || studentGrade.includes('لغات أجنبية')) return 'أدبي';
+                                    if (studentGrade.includes('تسيير واقتصاد')) return 'تسيير واقتصاد';
+                                    if (studentGrade.includes('تقني رياضي')) return 'تقني رياضي';
+                                    return 'جميع المستويات'; // Default for general students
+                                  })();
+                                  
+                                  return subjectGrade === studentTrack || subjectGrade === 'جميع المستويات';
+                                }
+                              }
+                              
+                              // For middle school, apply year-specific matching
+                              if (groupLevel === 'المتوسط' && subjectGrade && subjectGrade !== 'جميع المستويات') {
+                                if (studentGrade.includes('الأولى متوسط') && !subjectGrade.includes('الأولى متوسط')) return false;
+                                if (studentGrade.includes('الثانية متوسط') && !subjectGrade.includes('الثانية متوسط')) return false;
+                                if (studentGrade.includes('الثالثة متوسط') && !subjectGrade.includes('الثالثة متوسط')) return false;
+                                if (studentGrade.includes('الرابعة متوسط') && !subjectGrade.includes('الرابعة متوسط')) return false;
+                              }
+                              
+                              // For primary school, apply year-specific matching
+                              if (groupLevel === 'الابتدائي' && subjectGrade && subjectGrade !== 'جميع المستويات') {
+                                if (studentGrade.includes('الأولى ابتدائي') && !subjectGrade.includes('الأولى ابتدائي')) return false;
+                                if (studentGrade.includes('الثانية ابتدائي') && !subjectGrade.includes('الثانية ابتدائي')) return false;
+                                if (studentGrade.includes('الثالثة ابتدائي') && !subjectGrade.includes('الثالثة ابتدائي')) return false;
+                                if (studentGrade.includes('الرابعة ابتدائي') && !subjectGrade.includes('الرابعة ابتدائي')) return false;
+                                if (studentGrade.includes('الخامسة ابتدائي') && !subjectGrade.includes('الخامسة ابتدائي')) return false;
+                              }
+                              
+                              return true; // Default to compatible
                             })();
                             
                             return (

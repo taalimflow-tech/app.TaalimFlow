@@ -1065,6 +1065,7 @@ export class DatabaseStorage implements IStorage {
             teacherId: groups.teacherId,
             subjectName: teachingModules.name,
             nameAr: teachingModules.nameAr,
+            subjectGrade: teachingModules.grade,
             teacherName: users.name,
             createdAt: groups.createdAt
           })
@@ -1099,6 +1100,7 @@ export class DatabaseStorage implements IStorage {
             teacherId: null,
             subjectName: module.name,
             nameAr: module.nameAr,
+            subjectGrade: module.grade,
             teacherName: null,
             createdAt: null,
             studentsAssigned: [],
