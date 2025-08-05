@@ -1673,52 +1673,30 @@ export default function Groups() {
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
                           .filter(student => {
-                            // Enhanced grade compatibility filtering - completely exclude incompatible students
+                            // Simple year-based filtering
                             if (!student.grade) return true; // Allow if no grade specified
                             
                             const groupLevel = selectedAdminGroup.educationLevel;
                             const studentGrade = student.grade;
+                            const groupText = `${selectedAdminGroup.name} ${selectedAdminGroup.description}`;
                             
-                            // For secondary education, we need stricter year-based filtering
-                            if (groupLevel === 'الثانوي') {
-                              // Check if group name or description mentions specific year
-                              const groupText = `${selectedAdminGroup.name} ${selectedAdminGroup.description}`.toLowerCase();
-                              
-                              // If group mentions specific years, enforce strict year matching
-                              if (groupText.includes('الثالثة') || groupText.includes('3')) {
-                                return studentGrade.includes('الثالثة');
-                              }
-                              if (groupText.includes('الثانية') || groupText.includes('2')) {
-                                return studentGrade.includes('الثانية');
-                              }
-                              if (groupText.includes('الأولى') || groupText.includes('1')) {
-                                return studentGrade.includes('الأولى');
-                              }
-                              
-                              // For track-specific subjects (علمي، أدبي، etc.), we still need year compatibility
-                              // Default behavior: exclude students that are more than 1 year apart
-                              // This prevents 1st years from appearing in advanced groups
-                              const studentYear = studentGrade.includes('الأولى') ? 1 : 
-                                                 studentGrade.includes('الثانية') ? 2 : 
-                                                 studentGrade.includes('الثالثة') ? 3 : 0;
-                              
-                              // For now, let's be more restrictive - allow same level students only
-                              // If it's a scientific subject group, we can assume it's for 2nd/3rd year
-                              // since 1st year doesn't usually have specialized tracks
-                              if (selectedAdminGroup.name.includes('العلوم الطبيعية') || 
-                                  selectedAdminGroup.name.includes('الفيزياء') ||
-                                  selectedAdminGroup.name.includes('الكيمياء')) {
-                                return studentYear >= 2; // Only 2nd and 3rd year for sciences
-                              }
-                              
-                              return studentGrade.includes('ثانوي');
+                            // Check if group mentions specific year and enforce exact matching
+                            if (groupText.includes('الثالثة')) {
+                              return studentGrade.includes('الثالثة');
+                            }
+                            if (groupText.includes('الثانية')) {
+                              return studentGrade.includes('الثانية');
+                            }
+                            if (groupText.includes('الأولى')) {
+                              return studentGrade.includes('الأولى');
                             }
                             
-                            // For primary and middle school, check basic compatibility
+                            // Basic education level compatibility
                             if (groupLevel === 'الابتدائي') return studentGrade.includes('ابتدائي');
                             if (groupLevel === 'المتوسط') return studentGrade.includes('متوسط');
+                            if (groupLevel === 'الثانوي') return studentGrade.includes('ثانوي');
                             
-                            return true; // Default to compatible for custom groups
+                            return true; // Default to compatible
                           })
                           .map(student => (
                             <div key={student.id} className="flex items-center space-x-2 p-2 bg-white rounded border hover:bg-blue-50 border-blue-200">
