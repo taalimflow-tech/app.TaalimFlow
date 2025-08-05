@@ -35,7 +35,7 @@ Security preference: Code-based school access instead of public school directory
 - **Group & Formation Management**: Creation and management of learning groups and training courses, including student assignment, attendance tracking, and financial management per group. Supports mixed assignment of direct students and children.
 - **Scheduling System**: Comprehensive schedule management with independent grids per classroom, 30-minute intervals, precise time control, and color-coded displays.
 - **Reporting**: Admin interface for managing user reports and banning users.
-- **Subject Management**: Dynamic teaching module system reflecting Algerian education structure, including custom subject creation.
+- **Subject Management**: Complete Algerian education curriculum with proper Arabic subject names organized by education level (الابتدائي, المتوسط, الثانوي), totaling 28 specialized teaching modules covering all standard subjects from primary through secondary education including engineering specializations.
 
 ## External Dependencies
 
