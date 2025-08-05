@@ -1679,19 +1679,38 @@ export default function Groups() {
                             const groupLevel = selectedAdminGroup.educationLevel;
                             const studentGrade = student.grade;
                             
-                            // For secondary education, be more specific about years
+                            // For secondary education, we need stricter year-based filtering
                             if (groupLevel === 'الثانوي') {
-                              // If group is for a specific year and student is different year, exclude them
-                              if (selectedAdminGroup.description.includes('الثالثة')) {
+                              // Check if group name or description mentions specific year
+                              const groupText = `${selectedAdminGroup.name} ${selectedAdminGroup.description}`.toLowerCase();
+                              
+                              // If group mentions specific years, enforce strict year matching
+                              if (groupText.includes('الثالثة') || groupText.includes('3')) {
                                 return studentGrade.includes('الثالثة');
                               }
-                              if (selectedAdminGroup.description.includes('الثانية')) {
+                              if (groupText.includes('الثانية') || groupText.includes('2')) {
                                 return studentGrade.includes('الثانية');
                               }
-                              if (selectedAdminGroup.description.includes('الأولى')) {
+                              if (groupText.includes('الأولى') || groupText.includes('1')) {
                                 return studentGrade.includes('الأولى');
                               }
-                              // If no specific year mentioned, allow all secondary students
+                              
+                              // For track-specific subjects (علمي، أدبي، etc.), we still need year compatibility
+                              // Default behavior: exclude students that are more than 1 year apart
+                              // This prevents 1st years from appearing in advanced groups
+                              const studentYear = studentGrade.includes('الأولى') ? 1 : 
+                                                 studentGrade.includes('الثانية') ? 2 : 
+                                                 studentGrade.includes('الثالثة') ? 3 : 0;
+                              
+                              // For now, let's be more restrictive - allow same level students only
+                              // If it's a scientific subject group, we can assume it's for 2nd/3rd year
+                              // since 1st year doesn't usually have specialized tracks
+                              if (selectedAdminGroup.name.includes('العلوم الطبيعية') || 
+                                  selectedAdminGroup.name.includes('الفيزياء') ||
+                                  selectedAdminGroup.name.includes('الكيمياء')) {
+                                return studentYear >= 2; // Only 2nd and 3rd year for sciences
+                              }
+                              
                               return studentGrade.includes('ثانوي');
                             }
                             
