@@ -111,6 +111,8 @@ export interface IStorage {
   claimStudentAccount(studentId: number, userId: number): Promise<void>;
   preRegisterStudent(student: Omit<InsertStudent, 'userId'>): Promise<Student>;
   getUnclaimedStudents(schoolId: number): Promise<Student[]>;
+  updateStudent(studentId: number, updates: Partial<InsertStudent>): Promise<Student>;
+  deleteStudent(studentId: number): Promise<void>;
   
   // Notification methods
   getNotifications(userId: number): Promise<Notification[]>;
@@ -785,6 +787,21 @@ export class DatabaseStorage implements IStorage {
         isNull(students.userId)
       ))
       .orderBy(desc(students.id));
+  }
+
+  async updateStudent(studentId: number, updates: Partial<InsertStudent>): Promise<Student> {
+    const [updatedStudent] = await db
+      .update(students)
+      .set(updates)
+      .where(eq(students.id, studentId))
+      .returning();
+    return updatedStudent;
+  }
+
+  async deleteStudent(studentId: number): Promise<void> {
+    await db
+      .delete(students)
+      .where(eq(students.id, studentId));
   }
 
   async getAnnouncements(): Promise<Announcement[]> {

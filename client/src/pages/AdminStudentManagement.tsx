@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { RoleProtection } from '@/components/RoleProtection';
-import { UserPlus, Users, Copy, CheckCircle } from 'lucide-react';
+import { UserPlus, Users, Copy, CheckCircle, Edit, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface Student {
   id: number;
@@ -35,6 +37,16 @@ export default function AdminStudentManagement() {
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
+    name: '',
+    gender: '',
+    educationLevel: '',
+    grade: '',
+    selectedSubjects: [] as string[]
+  });
+
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
     name: '',
     gender: '',
     educationLevel: '',
@@ -82,6 +94,60 @@ export default function AdminStudentManagement() {
     }
   });
 
+  // Update student mutation
+  const updateStudentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: typeof editFormData }) => {
+      const response = await fetch(`/api/admin/students/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update student');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: '✅ تم التحديث بنجاح',
+        description: `تم تحديث بيانات الطالب ${data.student.name}`
+      });
+      setIsEditDialogOpen(false);
+      setEditingStudent(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/unclaimed-students'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: '❌ خطأ في التحديث',
+        description: error.message || 'فشل في تحديث بيانات الطالب',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Delete student mutation
+  const deleteStudentMutation = useMutation({
+    mutationFn: async (studentId: number) => {
+      const response = await fetch(`/api/admin/students/${studentId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete student');
+      return response.json();
+    },
+    onSuccess: (data, studentId) => {
+      toast({
+        title: '✅ تم الحذف بنجاح',
+        description: 'تم حذف الطالب من النظام'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/unclaimed-students'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: '❌ خطأ في الحذف',
+        description: error.message || 'فشل في حذف الطالب',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.gender || !formData.educationLevel || !formData.grade) {
@@ -112,6 +178,44 @@ export default function AdminStudentManagement() {
       .filter(Boolean);
     
     return names.length > 0 ? names.join(', ') : 'مواد غير محددة';
+  };
+
+  // Open edit dialog
+  const openEditDialog = (student: Student) => {
+    setEditingStudent(student);
+    setEditFormData({
+      name: student.name,
+      gender: student.gender,
+      educationLevel: student.educationLevel,
+      grade: student.grade,
+      selectedSubjects: student.selectedSubjects || []
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Handle edit form submission
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    
+    if (!editFormData.name || !editFormData.gender || !editFormData.educationLevel || !editFormData.grade) {
+      toast({
+        title: '⚠️ بيانات ناقصة',
+        description: 'يرجى ملء جميع الحقول المطلوبة',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    updateStudentMutation.mutate({ 
+      id: editingStudent.id, 
+      data: editFormData 
+    });
+  };
+
+  // Handle delete student
+  const handleDeleteStudent = (studentId: number) => {
+    deleteStudentMutation.mutate(studentId);
   };
 
   const educationLevels = [
@@ -295,19 +399,19 @@ export default function AdminStudentManagement() {
                   {unclaimedStudents.map((student: Student) => (
                     <div key={student.id} className="p-3 border rounded-lg bg-gray-50">
                       <div className="flex justify-between items-start">
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-gray-800">{student.name}</h4>
                           <p className="text-sm text-gray-600">
                             {student.educationLevel} - {student.grade}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {student.gender}
+                            {student.gender === 'male' ? 'ذكر' : 'أنثى'}
                           </p>
                           <p className="text-xs text-blue-600 mt-1">
                             <strong>المواد:</strong> {getSubjectNames(student.selectedSubjects)}
                           </p>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
                           <span className="text-lg font-bold text-primary">
                             #{student.id}
                           </span>
@@ -320,6 +424,40 @@ export default function AdminStudentManagement() {
                             <Copy className="w-3 h-3 ml-1" />
                             نسخ الرقم
                           </Button>
+                          <button
+                            onClick={() => openEditDialog(student)}
+                            className="text-blue-600 hover:text-blue-800 p-2 rounded-md border border-blue-200 hover:bg-blue-50"
+                            title="تعديل بيانات الطالب"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button
+                                className="text-red-600 hover:text-red-800 p-2 rounded-md border border-red-200 hover:bg-red-50"
+                                title="حذف الطالب"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  هل أنت متأكد من حذف الطالب "{student.name}"؟ لا يمكن التراجع عن هذا الإجراء.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeleteStudent(student.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  حذف
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
@@ -340,6 +478,150 @@ export default function AdminStudentManagement() {
           </Card>
         </div>
       </div>
+
+      {/* Edit Student Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات الطالب</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            {/* Name Field */}
+            <div>
+              <Label htmlFor="edit-name">اسم الطالب *</Label>
+              <Input
+                id="edit-name"
+                type="text"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                required
+                placeholder="أدخل اسم الطالب الكامل"
+              />
+            </div>
+
+            {/* Gender Field */}
+            <div>
+              <Label htmlFor="edit-gender">الجنس *</Label>
+              <Select 
+                value={editFormData.gender} 
+                onValueChange={(value) => setEditFormData({ ...editFormData, gender: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر الجنس" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">ذكر</SelectItem>
+                  <SelectItem value="female">أنثى</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Education Level Field */}
+            <div>
+              <Label htmlFor="edit-education-level">المرحلة التعليمية *</Label>
+              <Select 
+                value={editFormData.educationLevel} 
+                onValueChange={(value) => {
+                  setEditFormData({ 
+                    ...editFormData, 
+                    educationLevel: value,
+                    grade: '',
+                    selectedSubjects: [] 
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر المرحلة التعليمية" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="الابتدائي">الابتدائي</SelectItem>
+                  <SelectItem value="المتوسط">المتوسط</SelectItem>
+                  <SelectItem value="الثانوي">الثانوي</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Grade Field */}
+            {editFormData.educationLevel && (
+              <div>
+                <Label htmlFor="edit-grade">الصف *</Label>
+                <Select 
+                  value={editFormData.grade} 
+                  onValueChange={(value) => setEditFormData({ ...editFormData, grade: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الصف" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getGradesForLevel(editFormData.educationLevel).map((grade) => (
+                      <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Subject Selection */}
+            {editFormData.educationLevel && (
+              <div>
+                <Label>اختيار المواد الدراسية</Label>
+                <p className="text-sm text-gray-600 mb-2">
+                  اختر المواد التي يدرسها الطالب (اختياري)
+                </p>
+                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto border rounded-md p-3">
+                  {getAvailableSubjects(editFormData.educationLevel).map((subject) => (
+                    <div key={subject.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-subject-${subject.id}`}
+                        checked={editFormData.selectedSubjects.includes(subject.id.toString())}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setEditFormData({
+                              ...editFormData,
+                              selectedSubjects: [...editFormData.selectedSubjects, subject.id.toString()]
+                            });
+                          } else {
+                            setEditFormData({
+                              ...editFormData,
+                              selectedSubjects: editFormData.selectedSubjects.filter(id => id !== subject.id.toString())
+                            });
+                          }
+                        }}
+                      />
+                      <Label 
+                        htmlFor={`edit-subject-${subject.id}`} 
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {subject.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  تم اختيار {editFormData.selectedSubjects.length} مادة
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                إلغاء
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={updateStudentMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {updateStudentMutation.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </RoleProtection>
   );
 }

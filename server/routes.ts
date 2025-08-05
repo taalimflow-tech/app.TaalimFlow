@@ -3617,5 +3617,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update unclaimed student
+  app.put("/api/admin/students/:id", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const studentId = parseInt(req.params.id);
+      const { name, gender, educationLevel, grade, selectedSubjects } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+      }
+      
+      // Verify the student belongs to this school and is unclaimed
+      const existingStudent = await storage.getUnclaimedStudent(studentId, schoolId);
+      if (!existingStudent) {
+        return res.status(404).json({ error: "الطالب غير موجود أو مربوط بحساب بالفعل" });
+      }
+      
+      if (!name || !gender || !educationLevel || !grade) {
+        return res.status(400).json({ error: "جميع البيانات مطلوبة" });
+      }
+      
+      const updatedStudent = await storage.updateStudent(studentId, {
+        name,
+        gender,
+        educationLevel,
+        grade,
+        selectedSubjects
+      });
+      
+      res.json({ 
+        message: "تم تحديث بيانات الطالب بنجاح", 
+        student: updatedStudent
+      });
+    } catch (error) {
+      console.error('Error updating student:', error);
+      res.status(500).json({ error: "فشل في تحديث بيانات الطالب" });
+    }
+  });
+
+  // Delete unclaimed student
+  app.delete("/api/admin/students/:id", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const studentId = parseInt(req.params.id);
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+      }
+      
+      // Verify the student belongs to this school and is unclaimed
+      const existingStudent = await storage.getUnclaimedStudent(studentId, schoolId);
+      if (!existingStudent) {
+        return res.status(404).json({ error: "الطالب غير موجود أو مربوط بحساب بالفعل" });
+      }
+      
+      await storage.deleteStudent(studentId);
+      
+      res.json({ message: "تم حذف الطالب بنجاح" });
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      res.status(500).json({ error: "فشل في حذف الطالب" });
+    }
+  });
+
   return httpServer;
 }
