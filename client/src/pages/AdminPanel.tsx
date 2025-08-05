@@ -31,7 +31,7 @@ export default function AdminPanel() {
 
         {/* Admin Navigation */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          <Link href="/admin/users">
+          <Link href="admin/users">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6 text-center">
                 <Users className="w-12 h-12 text-purple-600 mx-auto mb-3" />
@@ -41,7 +41,7 @@ export default function AdminPanel() {
             </Card>
           </Link>
           
-          <Link href="/admin/student-management">
+          <Link href="admin/student-management">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6 text-center">
                 <Users className="w-12 h-12 text-green-600 mx-auto mb-3" />
@@ -51,21 +51,45 @@ export default function AdminPanel() {
             </Card>
           </Link>
           
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <MessageSquare className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة الرسائل</h3>
-              <p className="text-sm text-gray-600">عرض وإدارة جميع الرسائل</p>
-            </CardContent>
-          </Card>
+          <Link href="admin/content">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <FileText className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة المحتوى</h3>
+                <p className="text-sm text-gray-600">إدارة الإعلانات والمقالات</p>
+              </CardContent>
+            </Card>
+          </Link>
           
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <Settings className="w-12 h-12 text-green-600 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">إعدادات النظام</h3>
-              <p className="text-sm text-gray-600">تكوين إعدادات التطبيق</p>
-            </CardContent>
-          </Card>
+          <Link href="admin/verification">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Shield className="w-12 h-12 text-orange-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">التحقق من المستخدمين</h3>
+                <p className="text-sm text-gray-600">التحقق من وثائق الطلاب والمعلمين</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link href="admin/suggestions">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Lightbulb className="w-12 h-12 text-yellow-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة الاقتراحات</h3>
+                <p className="text-sm text-gray-600">عرض وإدارة اقتراحات المستخدمين</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link href="admin/reports">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <MessageSquare className="w-12 h-12 text-red-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة البلاغات</h3>
+                <p className="text-sm text-gray-600">عرض وإدارة بلاغات المستخدمين</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       
       <Tabs defaultValue="announcements" className="w-full">
