@@ -16,6 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface Student {
   id: number;
   name: string;
+  phone?: string;
   gender: string;
   educationLevel: string;
   grade: string;
@@ -38,6 +39,7 @@ export default function AdminStudentManagement() {
   
   const [formData, setFormData] = useState({
     name: '',
+    phone: '',
     gender: '',
     educationLevel: '',
     grade: '',
@@ -48,6 +50,7 @@ export default function AdminStudentManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: '',
+    phone: '',
     gender: '',
     educationLevel: '',
     grade: '',
@@ -82,7 +85,7 @@ export default function AdminStudentManagement() {
         title: '✅ تم التسجيل بنجاح',
         description: `تم تسجيل الطالب ${data.student.name} برقم ${data.student.id} وتم التحقق منه تلقائياً`
       });
-      setFormData({ name: '', gender: '', educationLevel: '', grade: '', selectedSubjects: [] });
+      setFormData({ name: '', phone: '', gender: '', educationLevel: '', grade: '', selectedSubjects: [] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/unclaimed-students'] });
     },
     onError: (error: any) => {
@@ -205,6 +208,7 @@ export default function AdminStudentManagement() {
     setEditingStudent(student);
     setEditFormData({
       name: student.name,
+      phone: student.phone || '',
       gender: student.gender,
       educationLevel: student.educationLevel,
       grade: student.grade,
@@ -284,6 +288,17 @@ export default function AdminStudentManagement() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="أدخل اسم الطالب الكامل"
                     required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="phone">رقم الهاتف</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="أدخل رقم الهاتف (اختياري)"
                   />
                 </div>
 
@@ -517,6 +532,18 @@ export default function AdminStudentManagement() {
                 onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                 required
                 placeholder="أدخل اسم الطالب الكامل"
+              />
+            </div>
+
+            {/* Phone Field */}
+            <div>
+              <Label htmlFor="edit-phone">رقم الهاتف</Label>
+              <Input
+                id="edit-phone"
+                type="tel"
+                value={editFormData.phone}
+                onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                placeholder="أدخل رقم الهاتف (اختياري)"
               />
             </div>
 

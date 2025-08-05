@@ -286,6 +286,7 @@ export const students = pgTable("students", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").references(() => users.id),
   name: text("name").notNull(), // Student name
+  phone: text("phone"), // Phone number (optional for pre-registered students)
   gender: text("gender").notNull(), // Gender field for students  
   educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي
   grade: text("grade").notNull(), // specific grade within level
