@@ -1618,7 +1618,13 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
+                <p><strong>المستوى:</strong> {(() => {
+                  const result = getSimpleLevelFormat(selectedAdminGroup);
+                  console.log('DEBUG - Group:', selectedAdminGroup.name);
+                  console.log('DEBUG - Description:', selectedAdminGroup.description);
+                  console.log('DEBUG - Level format result:', result);
+                  return result;
+                })()}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
