@@ -1046,7 +1046,7 @@ export class DatabaseStorage implements IStorage {
       
       // Get teaching modules - filter by school if provided
       const allModules = await db.select().from(teachingModules)
-        .where(or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)))
+        .where(or(eq(teachingModules.schoolId, schoolId), isNull(teachingModules.schoolId)))
         .orderBy(teachingModules.educationLevel, teachingModules.name);
       
       // Generate all possible groups based on education levels and subjects
