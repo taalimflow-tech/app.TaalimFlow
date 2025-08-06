@@ -951,6 +951,31 @@ export default function Groups() {
     }
   };
 
+  // Extract year information from group description or name
+  const extractYearFromGroup = (group: any): string | null => {
+    const text = `${group.name} ${group.description}`.toLowerCase();
+    
+    // Secondary school years
+    if (text.includes('الثالثة ثانوي') || text.includes('السنة الثالثة ثانوي')) return 'الثالثة ثانوي';
+    if (text.includes('الثانية ثانوي') || text.includes('السنة الثانية ثانوي')) return 'الثانية ثانوي';
+    if (text.includes('الأولى ثانوي') || text.includes('السنة الأولى ثانوي')) return 'الأولى ثانوي';
+    
+    // Middle school years
+    if (text.includes('الرابعة متوسط') || text.includes('السنة الرابعة متوسط')) return 'الرابعة متوسط';
+    if (text.includes('الثالثة متوسط') || text.includes('السنة الثالثة متوسط')) return 'الثالثة متوسط';
+    if (text.includes('الثانية متوسط') || text.includes('السنة الثانية متوسط')) return 'الثانية متوسط';
+    if (text.includes('الأولى متوسط') || text.includes('السنة الأولى متوسط')) return 'الأولى متوسط';
+    
+    // Primary school years
+    if (text.includes('الخامسة ابتدائي') || text.includes('السنة الخامسة ابتدائي')) return 'الخامسة ابتدائي';
+    if (text.includes('الرابعة ابتدائي') || text.includes('السنة الرابعة ابتدائي')) return 'الرابعة ابتدائي';
+    if (text.includes('الثالثة ابتدائي') || text.includes('السنة الثالثة ابتدائي')) return 'الثالثة ابتدائي';
+    if (text.includes('الثانية ابتدائي') || text.includes('السنة الثانية ابتدائي')) return 'الثانية ابتدائي';
+    if (text.includes('الأولى ابتدائي') || text.includes('السنة الأولى ابتدائي')) return 'الأولى ابتدائي';
+    
+    return null;
+  };
+
   const getFilteredTeachers = (educationLevel: string, subjectId: number) => {
     return teachers.filter(teacher => 
       teacher.specializations.some((spec: any) => 
@@ -1596,7 +1621,7 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{selectedAdminGroup.grade && ` - ${selectedAdminGroup.grade}`}</p>
+                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{extractYearFromGroup(selectedAdminGroup) && ` - ${extractYearFromGroup(selectedAdminGroup)}`}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
@@ -1947,7 +1972,7 @@ export default function Groups() {
               </p>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="font-medium">{groupToDelete.name}</p>
-                <p className="text-sm text-gray-600">{groupToDelete.educationLevel} - {groupToDelete.nameAr || groupToDelete.subjectName}</p>
+                <p className="text-sm text-gray-600">{groupToDelete.educationLevel}{extractYearFromGroup(groupToDelete) && ` - ${extractYearFromGroup(groupToDelete)}`} - {groupToDelete.nameAr || groupToDelete.subjectName}</p>
                 <p className="text-sm text-red-600 mt-2">
                   ⚠️ سيتم حذف جميع الطلاب المسجلين في هذه المجموعة
                 </p>
@@ -1986,7 +2011,7 @@ export default function Groups() {
                     إدارة الحضور - {managementGroup.name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {managementGroup.description} - {managementGroup.educationLevel}
+                    {managementGroup.description} - {managementGroup.educationLevel}{extractYearFromGroup(managementGroup) && ` - ${extractYearFromGroup(managementGroup)}`}
                   </p>
                 </div>
                 <Button
