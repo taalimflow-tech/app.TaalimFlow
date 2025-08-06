@@ -951,9 +951,10 @@ export default function Groups() {
     }
   };
 
-  // Extract year information from group description or name
-  const extractYearFromGroup = (group: any): string | null => {
-    const text = `${group.name} ${group.description}`.toLowerCase();
+  // Extract year information from group or teaching module
+  const getGroupYearInfo = (group: any): string | null => {
+    // First, try to extract from group name/description
+    const text = `${group.name || ''} ${group.description || ''}`.toLowerCase();
     
     // Secondary school years
     if (text.includes('الثالثة ثانوي') || text.includes('السنة الثالثة ثانوي')) return 'الثالثة ثانوي';
@@ -972,6 +973,36 @@ export default function Groups() {
     if (text.includes('الثالثة ابتدائي') || text.includes('السنة الثالثة ابتدائي')) return 'الثالثة ابتدائي';
     if (text.includes('الثانية ابتدائي') || text.includes('السنة الثانية ابتدائي')) return 'الثانية ابتدائي';
     if (text.includes('الأولى ابتدائي') || text.includes('السنة الأولى ابتدائي')) return 'الأولى ابتدائي';
+    
+    // If no year found in group name/description, try to get from teaching module
+    if (group.subjectId && teachingModules) {
+      const subject = teachingModules.find((s: any) => s.id === group.subjectId);
+      if (subject && subject.grade) {
+        return subject.grade;
+      }
+      
+      // Map subject specializations to typical years (Algerian system)
+      if (subject && subject.nameAr) {
+        const subjectName = subject.nameAr.toLowerCase();
+        
+        // Secondary specializations typically for 3rd year
+        if (subjectName.includes('تسيير واقتصاد') || subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت')) {
+          return 'الثالثة ثانوي';
+        }
+        if (subjectName.includes('علوم تجريبية') || subjectName.includes('تجريبية')) {
+          return 'الثالثة ثانوي';
+        }
+        if (subjectName.includes('رياضيات') || subjectName.includes('تقني رياضي')) {
+          return 'الثالثة ثانوي';
+        }
+        if (subjectName.includes('آداب وفلسفة') || subjectName.includes('آداب') || subjectName.includes('فلسفة')) {
+          return 'الثالثة ثانوي';
+        }
+        if (subjectName.includes('لغات أجنبية') || subjectName.includes('لغات')) {
+          return 'الثالثة ثانوي';
+        }
+      }
+    }
     
     return null;
   };
@@ -1621,14 +1652,7 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{(() => {
-                  const year = extractYearFromGroup(selectedAdminGroup);
-                  console.log('DEBUG - Group name:', selectedAdminGroup.name);
-                  console.log('DEBUG - Group description:', selectedAdminGroup.description);
-                  console.log('DEBUG - Extracted year:', year);
-                  console.log('DEBUG - Full group object:', selectedAdminGroup);
-                  return year ? ` - ${year}` : '';
-                })()}</p>
+                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{getGroupYearInfo(selectedAdminGroup) && ` - ${getGroupYearInfo(selectedAdminGroup)}`}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
@@ -1979,7 +2003,7 @@ export default function Groups() {
               </p>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="font-medium">{groupToDelete.name}</p>
-                <p className="text-sm text-gray-600">{groupToDelete.educationLevel}{extractYearFromGroup(groupToDelete) && ` - ${extractYearFromGroup(groupToDelete)}`} - {groupToDelete.nameAr || groupToDelete.subjectName}</p>
+                <p className="text-sm text-gray-600">{groupToDelete.educationLevel}{getGroupYearInfo(groupToDelete) && ` - ${getGroupYearInfo(groupToDelete)}`} - {groupToDelete.nameAr || groupToDelete.subjectName}</p>
                 <p className="text-sm text-red-600 mt-2">
                   ⚠️ سيتم حذف جميع الطلاب المسجلين في هذه المجموعة
                 </p>
@@ -2018,7 +2042,7 @@ export default function Groups() {
                     إدارة الحضور - {managementGroup.name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {managementGroup.description} - {managementGroup.educationLevel}{extractYearFromGroup(managementGroup) && ` - ${extractYearFromGroup(managementGroup)}`}
+                    {managementGroup.description} - {managementGroup.educationLevel}{getGroupYearInfo(managementGroup) && ` - ${getGroupYearInfo(managementGroup)}`}
                   </p>
                 </div>
                 <Button
