@@ -1623,11 +1623,10 @@ export default function Groups() {
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
                 <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{(() => {
                   const year = extractYearFromGroup(selectedAdminGroup);
-                  console.log('Group data for year extraction:', {
-                    name: selectedAdminGroup.name,
-                    description: selectedAdminGroup.description,
-                    extractedYear: year
-                  });
+                  console.log('DEBUG - Group name:', selectedAdminGroup.name);
+                  console.log('DEBUG - Group description:', selectedAdminGroup.description);
+                  console.log('DEBUG - Extracted year:', year);
+                  console.log('DEBUG - Full group object:', selectedAdminGroup);
                   return year ? ` - ${year}` : '';
                 })()}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
