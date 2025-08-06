@@ -74,6 +74,7 @@ interface Teacher {
     name: string;
     nameAr: string;
     educationLevel: string;
+    grade?: string;
   }[];
 }
 
@@ -197,6 +198,72 @@ export default function Schedule() {
           badge: 'bg-gray-100 text-gray-800'
         };
     }
+  };
+
+  // Simple level and year format (same as Groups page)
+  const getSimpleLevelFormat = (educationLevel: string, grade?: string, subject?: any): string => {
+    let levelShort = '';
+    
+    if (educationLevel === 'الثانوي') levelShort = 'ثانوي';
+    else if (educationLevel === 'المتوسط') levelShort = 'متوسط';
+    else if (educationLevel === 'الابتدائي') levelShort = 'ابتدائي';
+    else return educationLevel;
+    
+    // Extract year number from grade if available
+    if (grade) {
+      if (grade.includes('الثالثة') || grade.includes('3')) return `${levelShort} 3`;
+      if (grade.includes('الثانية') || grade.includes('2')) return `${levelShort} 2`;  
+      if (grade.includes('الأولى') || grade.includes('1')) return `${levelShort} 1`;
+      if (grade.includes('الرابعة') || grade.includes('4')) return `${levelShort} 4`;
+      if (grade.includes('الخامسة') || grade.includes('5')) return `${levelShort} 5`;
+    }
+    
+    // If no grade, try to infer from subject specialization
+    if (subject) {
+      const subjectName = (subject.nameAr || subject.name || '').toLowerCase();
+      
+      if (educationLevel === 'الثانوي') {
+        // 3rd year secondary specializations
+        if (subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت') || subjectName.includes('تسيير')) {
+          return `${levelShort} 3`;
+        }
+        if (subjectName.includes('هندسة') || subjectName.includes('تقني')) {
+          return `${levelShort} 3`;
+        }
+        if (subjectName.includes('علوم طبيعية') || subjectName.includes('فيزياء') || subjectName.includes('كيمياء') || subjectName.includes('أحياء')) {
+          return `${levelShort} 3`;
+        }
+        if (subjectName.includes('رياضيات') || subjectName.includes('رياضة')) {
+          return `${levelShort} 3`;
+        }
+        if (subjectName.includes('آداب') || subjectName.includes('فلسفة') || subjectName.includes('تاريخ وجغرافيا')) {
+          return `${levelShort} 3`;
+        }
+        if (subjectName.includes('لغات أجنبية') || subjectName.includes('إنجليزية') || subjectName.includes('فرنسية')) {
+          return `${levelShort} 3`;
+        }
+      }
+      
+      if (educationLevel === 'المتوسط') {
+        if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
+          return `${levelShort} 4`;
+        }
+        if (subjectName.includes('فيزياء') || subjectName.includes('علوم طبيعية')) {
+          return `${levelShort} 4`;
+        }
+      }
+      
+      if (educationLevel === 'الابتدائي') {
+        if (subjectName.includes('علوم') || subjectName.includes('طبيعة')) {
+          return `${levelShort} 5`;
+        }
+        if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
+          return `${levelShort} 4`;
+        }
+      }
+    }
+    
+    return levelShort;
   };
 
   // Fetch schedule tables
@@ -662,8 +729,7 @@ export default function Schedule() {
                                   <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${levelColors.badge} shadow-sm`}>
                                     <div className="w-1.5 h-1.5 rounded-full bg-current mr-1"></div>
                                     <span className="text-xs">
-                                      {cell.educationLevel}
-                                      {cell.grade && ` - ${cell.grade}`}
+                                      {getSimpleLevelFormat(cell.educationLevel, cell.grade, cell.subject)}
                                     </span>
                                   </div>
                                   
@@ -1118,7 +1184,7 @@ export default function Schedule() {
                 <div className="space-y-1 text-sm text-gray-600">
                   <div>المادة: {linkingCell.subject?.nameAr}</div>
                   <div>المعلم: {linkingCell.teacher?.name}</div>
-                  <div>المستوى: {linkingCell.educationLevel}</div>
+                  <div>المستوى: {getSimpleLevelFormat(linkingCell.educationLevel, linkingCell.grade, linkingCell.subject)}</div>
                   {linkingCell.startTime && linkingCell.endTime && (
                     <div>الوقت: {linkingCell.startTime} - {linkingCell.endTime}</div>
                   )}
