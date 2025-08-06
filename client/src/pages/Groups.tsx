@@ -964,7 +964,9 @@ export default function Groups() {
     // First try to get grade from associated teaching module
     if (group.subjectId && teachingModules) {
       const subject = teachingModules.find((s: any) => s.id === group.subjectId);
+      console.log('DEBUG - Subject found:', subject);
       if (subject && subject.grade) {
+        console.log('DEBUG - Subject grade:', subject.grade);
         const grade = subject.grade;
         
         // Extract year number from grade
@@ -973,6 +975,21 @@ export default function Groups() {
         if (grade.includes('الأولى') || grade.includes('1')) return `${levelShort} 1`;
         if (grade.includes('الرابعة') || grade.includes('4')) return `${levelShort} 4`;
         if (grade.includes('الخامسة') || grade.includes('5')) return `${levelShort} 5`;
+      }
+    }
+    
+    // If no teaching module or grade, try to infer from subject specialization
+    // Economics and Management subjects are typically 3rd year secondary
+    if (level === 'الثانوي') {
+      const subjectName = (group.nameAr || group.subjectName || '').toLowerCase();
+      if (subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت') || subjectName.includes('تسيير')) {
+        return `${levelShort} 3`;
+      }
+      if (subjectName.includes('هندسة')) {
+        return `${levelShort} 3`; // Engineering subjects typically 3rd year
+      }
+      if (subjectName.includes('علوم طبيعية') || subjectName.includes('فيزياء') || subjectName.includes('كيمياء')) {
+        return `${levelShort} 3`; // Natural sciences typically 3rd year
       }
     }
     
@@ -1633,7 +1650,11 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
+                <p><strong>المستوى:</strong> {(() => {
+                  console.log('DEBUG - Group object:', selectedAdminGroup);
+                  console.log('DEBUG - Teaching modules:', teachingModules);
+                  return getSimpleLevelFormat(selectedAdminGroup);
+                })()}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
