@@ -1596,11 +1596,8 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}</p>
+                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{selectedAdminGroup.grade && ` - ${selectedAdminGroup.grade}`}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
-                {selectedAdminGroup.grade && (
-                  <p><strong>السنة/التخصص:</strong> {selectedAdminGroup.grade}</p>
-                )}
               </div>
             </div>
 
@@ -1649,7 +1646,7 @@ export default function Groups() {
                               />
                               <div className="flex-1">
                                 <p className="font-medium text-green-800">{student.name}</p>
-                                <p className="text-sm text-green-600">المستوى: {student.educationLevel}</p>
+                                <p className="text-sm text-green-600">المستوى: {student.educationLevel}{student.grade && ` - ${student.grade}`}</p>
                               </div>
                               <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">مسجل</span>
                             </div>
@@ -1778,10 +1775,7 @@ export default function Groups() {
                               />
                               <div className="flex-1">
                                 <p className="font-medium">{student.name}</p>
-                                <p className="text-sm text-gray-600">المستوى: {student.educationLevel}</p>
-                                {student.grade && (
-                                  <p className="text-xs text-gray-500">الصف: {student.grade}</p>
-                                )}
+                                <p className="text-sm text-gray-600">المستوى: {student.educationLevel}{student.grade && ` - ${student.grade}`}</p>
                               </div>
                               <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">متاح</span>
                             </div>
