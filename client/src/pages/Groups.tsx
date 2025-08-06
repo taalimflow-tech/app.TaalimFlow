@@ -1826,6 +1826,56 @@ export default function Groups() {
                               return studentGrade.includes('الأولى ابتدائي');
                             }
                             
+                            // Check if group has a specific subject that implies a year
+                            if (selectedAdminGroup.subjectId && teachingModules) {
+                              const subject = teachingModules.find((s: any) => s.id === selectedAdminGroup.subjectId);
+                              if (subject) {
+                                const subjectName = (subject.nameAr || subject.name || '').toLowerCase();
+                                
+                                // For secondary level specialized subjects (typically 3rd year)
+                                if (groupLevel === 'الثانوي') {
+                                  if (subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت') || subjectName.includes('تسيير')) {
+                                    return studentGrade.includes('الثالثة ثانوي');
+                                  }
+                                  if (subjectName.includes('هندسة') || subjectName.includes('تقني')) {
+                                    return studentGrade.includes('الثالثة ثانوي');
+                                  }
+                                  if (subjectName.includes('علوم طبيعية') || subjectName.includes('فيزياء') || subjectName.includes('كيمياء') || subjectName.includes('أحياء')) {
+                                    return studentGrade.includes('الثالثة ثانوي');
+                                  }
+                                  if (subjectName.includes('رياضيات') && !subjectName.includes('رياضيات عامة')) {
+                                    return studentGrade.includes('الثالثة ثانوي');
+                                  }
+                                  if (subjectName.includes('آداب') || subjectName.includes('فلسفة')) {
+                                    return studentGrade.includes('الثالثة ثانوي');
+                                  }
+                                  if (subjectName.includes('لغات أجنبية') && subjectName.includes('متخصص')) {
+                                    return studentGrade.includes('الثالثة ثانوي');
+                                  }
+                                }
+                                
+                                // For middle school specialized subjects
+                                if (groupLevel === 'المتوسط') {
+                                  if (subjectName.includes('فيزياء') || subjectName.includes('علوم طبيعية')) {
+                                    return studentGrade.includes('الرابعة متوسط');
+                                  }
+                                  if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
+                                    return studentGrade.includes('الرابعة متوسط');
+                                  }
+                                }
+                                
+                                // For primary school specialized subjects
+                                if (groupLevel === 'الابتدائي') {
+                                  if (subjectName.includes('علوم') || subjectName.includes('طبيعة')) {
+                                    return studentGrade.includes('الخامسة ابتدائي');
+                                  }
+                                  if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
+                                    return studentGrade.includes('الرابعة ابتدائي') || studentGrade.includes('الخامسة ابتدائي');
+                                  }
+                                }
+                              }
+                            }
+                            
                             // Check specialization mapping
                             if (groupGrade && groupLevel === 'الثانوي') {
                               const requiredYears = getYearFromSpecialization(groupGrade);
@@ -1839,10 +1889,19 @@ export default function Groups() {
                               return true;
                             }
                             
-                            // For groups without explicit year or specialization, show basic level match
-                            if (groupLevel === 'الابتدائي') return studentGrade.includes('ابتدائي');
-                            if (groupLevel === 'المتوسط') return studentGrade.includes('متوسط');
-                            if (groupLevel === 'الثانوي') return studentGrade.includes('ثانوي');
+                            // IMPORTANT: Only show students with same education level WITHOUT restricting by year
+                            // unless there's specific year information in group name/description
+                            if (groupLevel === 'الابتدائي') {
+                              return studentGrade.includes('ابتدائي');
+                            }
+                            if (groupLevel === 'المتوسط') {
+                              return studentGrade.includes('متوسط');
+                            }
+                            if (groupLevel === 'الثانوي') {
+                              // For general secondary subjects, allow all secondary years
+                              // but specialized subjects should have been caught above
+                              return studentGrade.includes('ثانوي');
+                            }
                             
                             return false;
                           })
