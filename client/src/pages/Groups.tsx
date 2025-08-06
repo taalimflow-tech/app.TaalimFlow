@@ -1621,7 +1621,15 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{extractYearFromGroup(selectedAdminGroup) && ` - ${extractYearFromGroup(selectedAdminGroup)}`}</p>
+                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{(() => {
+                  const year = extractYearFromGroup(selectedAdminGroup);
+                  console.log('Group data for year extraction:', {
+                    name: selectedAdminGroup.name,
+                    description: selectedAdminGroup.description,
+                    extractedYear: year
+                  });
+                  return year ? ` - ${year}` : '';
+                })()}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
