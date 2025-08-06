@@ -951,60 +951,26 @@ export default function Groups() {
     }
   };
 
-  // Extract year information from group or teaching module
-  const getGroupYearInfo = (group: any): string | null => {
-    // First, try to extract from group name/description
-    const text = `${group.name || ''} ${group.description || ''}`.toLowerCase();
+  // Simple level and year format
+  const getSimpleLevelFormat = (group: any): string => {
+    const level = group.educationLevel;
+    let levelShort = '';
     
-    // Secondary school years
-    if (text.includes('الثالثة ثانوي') || text.includes('السنة الثالثة ثانوي')) return 'الثالثة ثانوي';
-    if (text.includes('الثانية ثانوي') || text.includes('السنة الثانية ثانوي')) return 'الثانية ثانوي';
-    if (text.includes('الأولى ثانوي') || text.includes('السنة الأولى ثانوي')) return 'الأولى ثانوي';
+    if (level === 'الثانوي') levelShort = 'ثانوي';
+    else if (level === 'المتوسط') levelShort = 'متوسط';
+    else if (level === 'الابتدائي') levelShort = 'ابتدائي';
+    else return level;
     
-    // Middle school years
-    if (text.includes('الرابعة متوسط') || text.includes('السنة الرابعة متوسط')) return 'الرابعة متوسط';
-    if (text.includes('الثالثة متوسط') || text.includes('السنة الثالثة متوسط')) return 'الثالثة متوسط';
-    if (text.includes('الثانية متوسط') || text.includes('السنة الثانية متوسط')) return 'الثانية متوسط';
-    if (text.includes('الأولى متوسط') || text.includes('السنة الأولى متوسط')) return 'الأولى متوسط';
+    // Try to extract year number from group name/description
+    const text = `${group.name || ''} ${group.description || ''}`;
     
-    // Primary school years
-    if (text.includes('الخامسة ابتدائي') || text.includes('السنة الخامسة ابتدائي')) return 'الخامسة ابتدائي';
-    if (text.includes('الرابعة ابتدائي') || text.includes('السنة الرابعة ابتدائي')) return 'الرابعة ابتدائي';
-    if (text.includes('الثالثة ابتدائي') || text.includes('السنة الثالثة ابتدائي')) return 'الثالثة ابتدائي';
-    if (text.includes('الثانية ابتدائي') || text.includes('السنة الثانية ابتدائي')) return 'الثانية ابتدائي';
-    if (text.includes('الأولى ابتدائي') || text.includes('السنة الأولى ابتدائي')) return 'الأولى ابتدائي';
+    if (text.includes('الثالثة') || text.includes('3')) return `${levelShort} 3`;
+    if (text.includes('الثانية') || text.includes('2')) return `${levelShort} 2`;  
+    if (text.includes('الأولى') || text.includes('1')) return `${levelShort} 1`;
+    if (text.includes('الرابعة') || text.includes('4')) return `${levelShort} 4`;
+    if (text.includes('الخامسة') || text.includes('5')) return `${levelShort} 5`;
     
-    // If no year found in group name/description, try to get from teaching module
-    if (group.subjectId && teachingModules) {
-      const subject = teachingModules.find((s: any) => s.id === group.subjectId);
-      if (subject && subject.grade) {
-        return subject.grade;
-      }
-      
-      // Map subject specializations to typical years (Algerian system)
-      if (subject && subject.nameAr) {
-        const subjectName = subject.nameAr.toLowerCase();
-        
-        // Secondary specializations typically for 3rd year
-        if (subjectName.includes('تسيير واقتصاد') || subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت')) {
-          return 'الثالثة ثانوي';
-        }
-        if (subjectName.includes('علوم تجريبية') || subjectName.includes('تجريبية')) {
-          return 'الثالثة ثانوي';
-        }
-        if (subjectName.includes('رياضيات') || subjectName.includes('تقني رياضي')) {
-          return 'الثالثة ثانوي';
-        }
-        if (subjectName.includes('آداب وفلسفة') || subjectName.includes('آداب') || subjectName.includes('فلسفة')) {
-          return 'الثالثة ثانوي';
-        }
-        if (subjectName.includes('لغات أجنبية') || subjectName.includes('لغات')) {
-          return 'الثالثة ثانوي';
-        }
-      }
-    }
-    
-    return null;
+    return levelShort;
   };
 
   const getFilteredTeachers = (educationLevel: string, subjectId: number) => {
@@ -1652,7 +1618,7 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {selectedAdminGroup.educationLevel}{getGroupYearInfo(selectedAdminGroup) && ` - ${getGroupYearInfo(selectedAdminGroup)}`}</p>
+                <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
@@ -2003,7 +1969,7 @@ export default function Groups() {
               </p>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="font-medium">{groupToDelete.name}</p>
-                <p className="text-sm text-gray-600">{groupToDelete.educationLevel}{getGroupYearInfo(groupToDelete) && ` - ${getGroupYearInfo(groupToDelete)}`} - {groupToDelete.nameAr || groupToDelete.subjectName}</p>
+                <p className="text-sm text-gray-600">{getSimpleLevelFormat(groupToDelete)} - {groupToDelete.nameAr || groupToDelete.subjectName}</p>
                 <p className="text-sm text-red-600 mt-2">
                   ⚠️ سيتم حذف جميع الطلاب المسجلين في هذه المجموعة
                 </p>
@@ -2042,7 +2008,7 @@ export default function Groups() {
                     إدارة الحضور - {managementGroup.name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {managementGroup.description} - {managementGroup.educationLevel}{getGroupYearInfo(managementGroup) && ` - ${getGroupYearInfo(managementGroup)}`}
+                    {managementGroup.description} - {getSimpleLevelFormat(managementGroup)}
                   </p>
                 </div>
                 <Button
