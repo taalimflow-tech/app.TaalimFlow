@@ -964,9 +964,7 @@ export default function Groups() {
     // First try to get grade from associated teaching module
     if (group.subjectId && teachingModules) {
       const subject = teachingModules.find((s: any) => s.id === group.subjectId);
-      console.log('DEBUG - Subject found:', subject);
       if (subject && subject.grade) {
-        console.log('DEBUG - Subject grade:', subject.grade);
         const grade = subject.grade;
         
         // Extract year number from grade
@@ -979,17 +977,61 @@ export default function Groups() {
     }
     
     // If no teaching module or grade, try to infer from subject specialization
-    // Economics and Management subjects are typically 3rd year secondary
+    const subjectName = (group.nameAr || group.subjectName || '').toLowerCase();
+    
     if (level === 'الثانوي') {
-      const subjectName = (group.nameAr || group.subjectName || '').toLowerCase();
+      // 3rd year secondary specializations
       if (subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت') || subjectName.includes('تسيير')) {
         return `${levelShort} 3`;
       }
-      if (subjectName.includes('هندسة')) {
-        return `${levelShort} 3`; // Engineering subjects typically 3rd year
+      if (subjectName.includes('هندسة') || subjectName.includes('تقني')) {
+        return `${levelShort} 3`;
       }
-      if (subjectName.includes('علوم طبيعية') || subjectName.includes('فيزياء') || subjectName.includes('كيمياء')) {
-        return `${levelShort} 3`; // Natural sciences typically 3rd year
+      if (subjectName.includes('علوم طبيعية') || subjectName.includes('فيزياء') || subjectName.includes('كيمياء') || subjectName.includes('أحياء')) {
+        return `${levelShort} 3`;
+      }
+      if (subjectName.includes('رياضيات') || subjectName.includes('رياضة')) {
+        return `${levelShort} 3`;
+      }
+      if (subjectName.includes('آداب') || subjectName.includes('فلسفة') || subjectName.includes('تاريخ وجغرافيا')) {
+        return `${levelShort} 3`;
+      }
+      if (subjectName.includes('لغات أجنبية') || subjectName.includes('إنجليزية') || subjectName.includes('فرنسية')) {
+        return `${levelShort} 3`;
+      }
+      
+      // Common subjects that span multiple years
+      if (subjectName.includes('عربية') || subjectName.includes('قرآن') || subjectName.includes('تربية إسلامية')) {
+        return levelShort; // These are taught across all years
+      }
+    }
+    
+    if (level === 'المتوسط') {
+      // Most middle school subjects span years 1-4, but some are more specific
+      if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
+        return `${levelShort} 4`; // History/Geography intensifies in 4th year
+      }
+      if (subjectName.includes('فيزياء') || subjectName.includes('علوم طبيعية')) {
+        return `${levelShort} 4`; // Sciences in 4th year
+      }
+      if (subjectName.includes('رياضيات')) {
+        return levelShort; // Math across all middle school years
+      }
+      if (subjectName.includes('عربية') || subjectName.includes('فرنسية') || subjectName.includes('إنجليزية')) {
+        return levelShort; // Languages across all years
+      }
+    }
+    
+    if (level === 'الابتدائي') {
+      // Primary subjects are generally consistent across years
+      if (subjectName.includes('عربية') || subjectName.includes('رياضيات')) {
+        return levelShort; // Core subjects across all primary years
+      }
+      if (subjectName.includes('علوم') || subjectName.includes('طبيعة')) {
+        return `${levelShort} 5`; // Sciences mainly in 5th year
+      }
+      if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
+        return `${levelShort} 4`; // Social studies in 4th-5th year
       }
     }
     
@@ -1475,23 +1517,8 @@ export default function Groups() {
 
                 return filteredGroups.length > 0 ? (
                   filteredGroups.map((group) => {
-                    // Extract year from grade if available
-                    const getYearLevel = () => {
-                      if (group.studentsAssigned && group.studentsAssigned.length > 0) {
-                        const grades = group.studentsAssigned.map((student: any) => student.grade).filter(Boolean);
-                        if (grades.length > 0) {
-                          const grade = grades[0];
-                          if (grade.includes('الأولى')) return '1';
-                          if (grade.includes('الثانية')) return '2';
-                          if (grade.includes('الثالثة')) return '3';
-                          if (grade.includes('الرابعة')) return '4';
-                          if (grade.includes('الخامسة')) return '5';
-                        }
-                      }
-                      return '';
-                    };
-
-                    const yearLevel = getYearLevel();
+                    // Use the simple level format function
+                    const levelDisplay = getSimpleLevelFormat(group);
                     
                     // Get assigned teacher name
                     const getTeacherName = () => {
@@ -1519,7 +1546,7 @@ export default function Groups() {
                             {/* Level + Year Badge */}
                             <div className="flex justify-start">
                               <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
-                                {yearLevel ? `${group.educationLevel} ${yearLevel}` : group.educationLevel}
+                                {levelDisplay}
                               </span>
                             </div>
                             
@@ -1650,11 +1677,7 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {(() => {
-                  console.log('DEBUG - Group object:', selectedAdminGroup);
-                  console.log('DEBUG - Teaching modules:', teachingModules);
-                  return getSimpleLevelFormat(selectedAdminGroup);
-                })()}</p>
+                <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
