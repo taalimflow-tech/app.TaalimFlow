@@ -961,7 +961,22 @@ export default function Groups() {
     else if (level === 'الابتدائي') levelShort = 'ابتدائي';
     else return level;
     
-    // Try to extract year number from group name/description
+    // First try to get grade from associated teaching module
+    if (group.subjectId && teachingModules) {
+      const subject = teachingModules.find((s: any) => s.id === group.subjectId);
+      if (subject && subject.grade) {
+        const grade = subject.grade;
+        
+        // Extract year number from grade
+        if (grade.includes('الثالثة') || grade.includes('3')) return `${levelShort} 3`;
+        if (grade.includes('الثانية') || grade.includes('2')) return `${levelShort} 2`;  
+        if (grade.includes('الأولى') || grade.includes('1')) return `${levelShort} 1`;
+        if (grade.includes('الرابعة') || grade.includes('4')) return `${levelShort} 4`;
+        if (grade.includes('الخامسة') || grade.includes('5')) return `${levelShort} 5`;
+      }
+    }
+    
+    // Fallback: try to extract year number from group name/description
     const text = `${group.name || ''} ${group.description || ''}`;
     
     if (text.includes('الثالثة') || text.includes('3')) return `${levelShort} 3`;
@@ -1618,13 +1633,7 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {(() => {
-                  const result = getSimpleLevelFormat(selectedAdminGroup);
-                  console.log('DEBUG - Group:', selectedAdminGroup.name);
-                  console.log('DEBUG - Description:', selectedAdminGroup.description);
-                  console.log('DEBUG - Level format result:', result);
-                  return result;
-                })()}</p>
+                <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
