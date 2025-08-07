@@ -20,9 +20,12 @@ export async function generateStudentQRCode(
   name: string
 ): Promise<{ qrCode: string; qrCodeData: string }> {
   // Generate unique code
-  const uniqueCode = nanoid(12);
+  const uniqueCode = nanoid(8); // Shorter code
   
-  // Create QR code data
+  // Create simple QR code data - just the essentials for linking
+  const linkingData = `${type}:${id}:${schoolId}:${uniqueCode}`;
+  
+  // Store more detailed data separately
   const qrData: QRCodeData = {
     id,
     type,
@@ -32,13 +35,10 @@ export async function generateStudentQRCode(
     timestamp: Date.now()
   };
   
-  // Convert to JSON string
-  const qrCodeData = JSON.stringify(qrData);
-  
-  // Generate QR code as data URL
-  const qrCodeImage = await QRCode.toDataURL(qrCodeData, {
-    width: 256,
-    margin: 2,
+  // Generate QR code as data URL with the simple linking data
+  const qrCodeImage = await QRCode.toDataURL(linkingData, {
+    width: 200,
+    margin: 1,
     color: {
       dark: '#000000',
       light: '#FFFFFF'
@@ -47,7 +47,7 @@ export async function generateStudentQRCode(
   
   return {
     qrCode: qrCodeImage,
-    qrCodeData
+    qrCodeData: JSON.stringify(qrData)
   };
 }
 
