@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { RoleProtection } from '@/components/RoleProtection';
-import { UserPlus, Users, Copy, CheckCircle, Edit, Trash2 } from 'lucide-react';
+import { UserPlus, Users, Copy, CheckCircle, Edit, Trash2, QrCode } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -30,6 +30,7 @@ interface TeachingModule {
   id: number;
   name: string;
   description?: string;
+  educationLevel: string;
 }
 
 export default function AdminStudentManagement() {
@@ -55,6 +56,37 @@ export default function AdminStudentManagement() {
     educationLevel: '',
     grade: '',
     selectedSubjects: [] as string[]
+  });
+
+  // QR Code related state
+  const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
+  const [selectedStudentForQR, setSelectedStudentForQR] = useState<Student | null>(null);
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
+
+  // QR Code generation mutation
+  const generateQRMutation = useMutation({
+    mutationFn: async (studentId: number) => {
+      const response = await fetch(`/api/qrcode/student/${studentId}/regenerate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Failed to generate QR code');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setQrCodeData(data.qrCode);
+      toast({
+        title: '✅ تم إنشاء رمز QR بنجاح',
+        description: 'يمكن للطالب استخدام هذا الرمز لربط حسابه'
+      });
+    },
+    onError: () => {
+      toast({
+        title: '❌ خطأ في إنشاء رمز QR',
+        description: 'حاول مرة أخرى',
+        variant: 'destructive'
+      });
+    }
   });
 
   // Fetch unclaimed students
@@ -171,6 +203,34 @@ export default function AdminStudentManagement() {
       description: `تم نسخ رقم الطالب ${studentName}: ${studentId}`
     });
   };
+
+  // Handle QR code generation and display
+  const handleShowQRCode = async (student: Student) => {
+    setSelectedStudentForQR(student);
+    setIsQRDialogOpen(true);
+    setQrCodeData(null);
+    
+    try {
+      // Try to fetch existing QR code first
+      const response = await fetch(`/api/qrcode/student/${student.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setQrCodeData(data.qrCode);
+      } else {
+        // Generate new QR code if none exists
+        generateQRMutation.mutate(student.id);
+      }
+    } catch (error) {
+      // Generate new QR code on error
+      generateQRMutation.mutate(student.id);
+    }
+  };
+
+  const handleRegenerateQR = () => {
+    if (selectedStudentForQR) {
+      generateQRMutation.mutate(selectedStudentForQR.id);
+    }
+  };;
 
   // Function to get grades for each education level
   const getGradesForLevel = (educationLevel: string): string[] => {
@@ -462,6 +522,15 @@ export default function AdminStudentManagement() {
                             <Copy className="w-3 h-3 ml-1" />
                             نسخ الرقم
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleShowQRCode(student)}
+                            className="text-xs bg-green-50 hover:bg-green-100 text-green-700"
+                          >
+                            <QrCode className="w-3 h-3 ml-1" />
+                            QR
+                          </Button>
                           <button
                             onClick={() => openEditDialog(student)}
                             className="text-blue-600 hover:text-blue-800 p-2 rounded-md border border-blue-200 hover:bg-blue-50"
@@ -670,6 +739,79 @@ export default function AdminStudentManagement() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Dialog */}
+      <Dialog open={isQRDialogOpen} onOpenChange={setIsQRDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>رمز QR للطالب</DialogTitle>
+          </DialogHeader>
+          
+          {selectedStudentForQR && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <h4 className="font-semibold text-lg">{selectedStudentForQR.name}</h4>
+                <p className="text-sm text-gray-600">رقم الطالب: #{selectedStudentForQR.id}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedStudentForQR.educationLevel} - {selectedStudentForQR.grade}
+                </p>
+              </div>
+
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                {qrCodeData ? (
+                  <div className="text-center">
+                    <img 
+                      src={qrCodeData} 
+                      alt="QR Code" 
+                      className="mx-auto mb-4 max-w-full h-auto"
+                      style={{ maxWidth: '200px' }}
+                    />
+                    <p className="text-sm text-green-600 font-medium">
+                      يمكن للطالب مسح هذا الرمز لربط حسابه
+                    </p>
+                  </div>
+                ) : generateQRMutation.isPending ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-600">جاري إنشاء رمز QR...</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <QrCode className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">لم يتم إنشاء رمز QR بعد</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                {qrCodeData && (
+                  <Button 
+                    variant="outline" 
+                    onClick={handleRegenerateQR}
+                    disabled={generateQRMutation.isPending}
+                    className="flex-1"
+                  >
+                    إعادة إنشاء
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => setIsQRDialogOpen(false)}
+                  className="flex-1"
+                >
+                  إغلاق
+                </Button>
+              </div>
+
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <h4 className="font-medium text-blue-800 mb-1">كيفية الاستخدام:</h4>
+                <p className="text-sm text-blue-700">
+                  أرسل هذا الرمز للطالب ليقوم بمسحه أثناء التسجيل لربط حسابه بسهولة
+                </p>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </RoleProtection>
