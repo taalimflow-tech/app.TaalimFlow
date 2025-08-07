@@ -37,7 +37,8 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
     password: '',
     name: '',
     phone: '',
-    gender: ''
+    gender: '',
+    linkAs: '' // 'student' or 'parent'
   });
 
   // Check student ID mutation
@@ -93,7 +94,8 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
           password: data.password,
           name: data.name,
           phone: data.phone,
-          gender: data.gender
+          gender: data.gender,
+          linkAs: data.linkAs
         })
       });
       if (!response.ok) {
@@ -174,7 +176,7 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
 
   const handleClaimSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!claimData.email || !claimData.password || !claimData.name || !claimData.phone || !claimData.gender) {
+    if (!claimData.email || !claimData.password || !claimData.name || !claimData.phone || !claimData.gender || !claimData.linkAs) {
       toast({
         title: '⚠️ بيانات ناقصة',
         description: 'يرجى ملء جميع الحقول المطلوبة',
@@ -283,6 +285,27 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
           )}
 
           <form onSubmit={handleClaimSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="linkAs">نوع الحساب *</Label>
+              <Select value={claimData.linkAs} onValueChange={(value) => setClaimData({ ...claimData, linkAs: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر نوع الحساب" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">طالب - حساب للطالب نفسه</SelectItem>
+                  <SelectItem value="parent">ولي أمر - حساب لولي أمر الطالب</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-gray-600 mt-1">
+                {claimData.linkAs === 'student' ? 
+                  'ستحصل على حساب خاص بالطالب مع إمكانية الوصول لجميع المعلومات' :
+                  claimData.linkAs === 'parent' ?
+                  'ستحصل على حساب ولي أمر مع إمكانية متابعة الطالب' :
+                  'حدد نوع الحساب المناسب لك'
+                }
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="name">الاسم الكامل *</Label>
               <Input

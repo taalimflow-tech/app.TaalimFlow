@@ -387,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Student account claiming endpoint
   app.post("/api/auth/claim-student-account", async (req, res) => {
     try {
-      const { studentId, email, password, name, phone, gender } = req.body;
+      const { studentId, email, password, name, phone, gender, linkAs } = req.body;
       
       // Get school from session
       const schoolId = req.session?.schoolId;
@@ -420,13 +420,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
       }
       
-      // Create user account
+      // Create user account with appropriate role based on linkAs
       const userData = {
         email,
         password,
         name,
         phone,
-        role: 'student',
+        role: linkAs === 'parent' ? 'parent' : 'student',
         gender,
         schoolId
       };
@@ -434,6 +434,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Link student record to user account
       await storage.claimStudentAccount(unclaimedStudent.id, user.id);
+      
+      // If linking as parent, create parent-child relationship
+      if (linkAs === 'parent') {
+        // Create a child record linking the student to the parent
+        await storage.createChild({
+          name: unclaimedStudent.name,
+          educationLevel: unclaimedStudent.educationLevel,
+          grade: unclaimedStudent.grade,
+          gender: unclaimedStudent.gender,
+          parentId: user.id,
+          schoolId: user.schoolId,
+          selectedSubjects: [] // Empty array for now
+        });
+      }
       
       // Auto-login the user
       req.session.user = {
