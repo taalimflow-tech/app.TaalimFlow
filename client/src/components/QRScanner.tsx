@@ -16,7 +16,8 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement>(null);
-  const codeReaderRef = useRef<BrowserQRCodeReader | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scannerRef = useRef<BrowserQRCodeReader | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -33,7 +34,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const initializeScanner = async () => {
     try {
       setError('');
-      codeReaderRef.current = new BrowserQRCodeReader();
+      scannerRef.current = new BrowserQRCodeReader();
       
       // Get available video devices
       const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices();
@@ -53,36 +54,64 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   };
 
   const startScanning = async (deviceId?: string) => {
-    if (!codeReaderRef.current || !videoRef.current) return;
+    if (!scannerRef.current || !videoRef.current) return;
 
     try {
       setIsScanning(true);
       setError('');
       
-      const result = await codeReaderRef.current.decodeOnceFromVideoDevice(
-        deviceId || selectedDeviceId,
-        videoRef.current
-      );
+      // Start the video stream
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: deviceId || selectedDeviceId }
+      });
       
-      if (result) {
-        onScan(result.getText());
-        onClose();
-      }
+      streamRef.current = stream;
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      
+      // Start scanning loop
+      scanContinuously();
     } catch (err: any) {
-      console.error('Error scanning QR code:', err);
-      if (err.name !== 'NotFoundException') {
-        setError('خطأ في مسح الرمز');
-      }
-    } finally {
+      console.error('Error starting camera:', err);
+      setError('خطأ في تشغيل الكاميرا');
       setIsScanning(false);
     }
   };
 
-  const stopScanning = () => {
-    if (codeReaderRef.current) {
-      codeReaderRef.current.reset();
+  const scanContinuously = async () => {
+    if (!scannerRef.current || !videoRef.current) return;
+    
+    try {
+      const result = await scannerRef.current.decodeFromVideoElement(videoRef.current);
+      
+      if (result) {
+        onScan(result.getText());
+        onClose();
+        return;
+      }
+    } catch (err) {
+      // Continue scanning on error (expected for no QR code found)
     }
+    
+    // Continue scanning if still active
+    if (isScanning && isOpen) {
+      setTimeout(scanContinuously, 300);
+    }
+  };
+
+  const stopScanning = () => {
     setIsScanning(false);
+    
+    // Stop video stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    // Clear video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
   };
 
   const switchCamera = async () => {
@@ -99,7 +128,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
 
   const retry = () => {
     stopScanning();
-    startScanning();
+    initializeScanner();
   };
 
   if (!isOpen) return null;
@@ -161,7 +190,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
                     variant="outline"
                     size="sm"
                     onClick={switchCamera}
-                    disabled={isScanning}
+                    disabled={!isScanning}
                   >
                     <RotateCcw className="w-4 h-4 mr-2" />
                     تبديل الكاميرا
