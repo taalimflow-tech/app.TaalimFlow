@@ -189,6 +189,63 @@ export default function AdminVerification() {
   };
 
   // Function to export verified users to CSV with QR code images
+  const exportSimpleCSV = async () => {
+    try {
+      const csvData = [];
+      
+      // Add header
+      csvData.push(['الاسم الكامل', 'المستوى والسنة', 'رمز QR']);
+
+      // Add verified children
+      for (const child of verifiedChildren) {
+        const qrText = `STUDENT_${child.id}_${user?.schoolId}_child`;
+        csvData.push([
+          child.name,
+          formatEducationLevel(child.educationLevel, child.grade),
+          qrText
+        ]);
+      }
+
+      // Add verified students  
+      for (const student of verifiedStudents) {
+        const qrText = `STUDENT_${student.id}_${user?.schoolId}_student`;
+        csvData.push([
+          student.name,
+          formatEducationLevel(student.educationLevel, student.grade),
+          qrText
+        ]);
+      }
+
+      // Convert to CSV string
+      const csvString = csvData.map(row => 
+        row.map(field => `"${field}"`).join(',')
+      ).join('\n');
+
+      // Create and download file
+      const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `verified_users_simple_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "تم تصدير البيانات",
+        description: "تم تصدير قائمة الطلاب المبسطة بنجاح",
+      });
+    } catch (error) {
+      console.error('CSV export error:', error);
+      toast({
+        title: "خطأ في التصدير", 
+        description: "حدث خطأ أثناء تصدير البيانات",
+        variant: "destructive"
+      });
+    }
+  };
+
   const exportVerifiedUsersToCSV = async () => {
     try {
       toast({
@@ -692,15 +749,26 @@ export default function AdminVerification() {
                     </CardDescription>
                   </div>
                   {(verifiedChildren.length > 0 || verifiedStudents.length > 0) && (
-                    <Button
-                      onClick={exportVerifiedUsersToCSV}
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-2 text-xs bg-green-50 hover:bg-green-100 border-green-300 text-green-700"
-                    >
-                      <Download className="w-4 h-4" />
-                      تصدير CSV
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={exportVerifiedUsersToCSV}
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center gap-2 text-xs bg-green-50 hover:bg-green-100 border-green-300 text-green-700"
+                      >
+                        <Download className="w-4 h-4" />
+                        تصدير كامل
+                      </Button>
+                      <Button
+                        onClick={exportSimpleCSV}
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center gap-2 text-xs bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700"
+                      >
+                        <Download className="w-4 h-4" />
+                        تصدير مبسط
+                      </Button>
+                    </div>
                   )}
                 </div>
               </CardHeader>
