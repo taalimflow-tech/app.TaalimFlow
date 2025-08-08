@@ -101,14 +101,7 @@ export default function AdminStudentManagement() {
     enabled: !!user && user.role === 'admin'
   });
   
-  // Debug: Log teaching modules data
-  console.log('Teaching modules query state:', { 
-    modulesLoading, 
-    modulesError, 
-    teachingModules: teachingModules?.length,
-    user: user?.role,
-    enabled: !!user && user.role === 'admin'
-  });
+
 
   // Pre-register student mutation
   const preRegisterMutation = useMutation({
@@ -259,11 +252,6 @@ export default function AdminStudentManagement() {
   const getAvailableSubjects = (educationLevel: string) => {
     if (!teachingModules) return [];
     
-    // Debug: Log the education level and available modules
-    console.log('Selected education level:', educationLevel);
-    console.log('Available teaching modules:', teachingModules);
-    console.log('Modules for this level:', teachingModules.filter(module => module.educationLevel === educationLevel));
-    
     return teachingModules.filter(module => module.educationLevel === educationLevel);
   };
 
@@ -318,18 +306,18 @@ export default function AdminStudentManagement() {
   };
 
   const educationLevels = [
-    { value: 'ابتدائي', label: 'التعليم الابتدائي' },
-    { value: 'متوسط', label: 'التعليم المتوسط' },
-    { value: 'ثانوي', label: 'التعليم الثانوي' }
+    { value: 'الابتدائي', label: 'التعليم الابتدائي' },
+    { value: 'المتوسط', label: 'التعليم المتوسط' },
+    { value: 'الثانوي', label: 'التعليم الثانوي' }
   ];
 
   const getGrades = (level: string) => {
     switch (level) {
-      case 'ابتدائي':
+      case 'الابتدائي':
         return ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة'];
-      case 'متوسط':
+      case 'المتوسط':
         return ['الأولى متوسط', 'الثانية متوسط', 'الثالثة متوسط', 'الرابعة متوسط'];
-      case 'ثانوي':
+      case 'الثانوي':
         return ['الأولى ثانوي', 'الثانية ثانوي', 'الثالثة ثانوي'];
       default:
         return [];
