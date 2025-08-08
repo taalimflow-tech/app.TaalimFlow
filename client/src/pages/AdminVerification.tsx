@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar, Trash2, BookOpen } from 'lucide-react';
+import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar, Trash2, BookOpen, Download } from 'lucide-react';
 
 interface UnverifiedChild {
   id: number;
@@ -176,6 +176,106 @@ export default function AdminVerification() {
       setVerifiedItemSubjects(subjectNames);
     } else {
       setVerifiedItemSubjects([]);
+    }
+  };
+
+  // Function to generate QR code data for a student/child
+  const generateQRCodeData = (type: 'student' | 'child', id: number, schoolId: number) => {
+    // Generate a simple QR code format that matches what the scanner expects
+    return `${type}:${id}:${schoolId}:verified`;
+  };
+
+  // Function to export verified users to CSV
+  const exportVerifiedUsersToCSV = () => {
+    try {
+      // Prepare CSV data
+      const csvData = [];
+      
+      // CSV Headers
+      csvData.push([
+        'النوع',
+        'الاسم', 
+        'المستوى التعليمي',
+        'السنة الدراسية',
+        'المواد المختارة',
+        'تاريخ التحقق',
+        'تم التحقق بواسطة',
+        'ملاحظات التحقق',
+        'رمز QR'
+      ]);
+
+      // Add verified children
+      verifiedChildren.forEach(child => {
+        const subjectNames = child.selectedSubjects ? getSubjectNamesFromIds(child.selectedSubjects).join(' | ') : 'لا توجد';
+        const qrCode = generateQRCodeData('child', child.id, user?.schoolId || 0);
+        
+        csvData.push([
+          'طفل',
+          child.name,
+          formatEducationLevel(child.educationLevel, child.grade),
+          child.grade,
+          subjectNames,
+          new Date(child.verifiedAt).toLocaleDateString('ar-SA'),
+          'مدير', // We could fetch admin name but keeping it simple
+          child.verificationNotes || 'لا توجد ملاحظات',
+          qrCode
+        ]);
+      });
+
+      // Add verified students
+      verifiedStudents.forEach(student => {
+        const subjectNames = student.selectedSubjects ? getSubjectNamesFromIds(student.selectedSubjects).join(' | ') : 'لا توجد';
+        const qrCode = generateQRCodeData('student', student.id, user?.schoolId || 0);
+        
+        csvData.push([
+          'طالب',
+          student.name,
+          formatEducationLevel(student.educationLevel, student.grade),
+          student.grade,
+          subjectNames,
+          new Date(student.verifiedAt).toLocaleDateString('ar-SA'),
+          'مدير', // We could fetch admin name but keeping it simple
+          student.verificationNotes || 'لا توجد ملاحظات',
+          qrCode
+        ]);
+      });
+
+      // Convert to CSV string
+      const csvContent = csvData.map(row => 
+        row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`)
+          .join(',')
+      ).join('\n');
+
+      // Add BOM for proper Arabic display in Excel
+      const BOM = '\uFEFF';
+      const csvWithBOM = BOM + csvContent;
+
+      // Create blob and download
+      const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `verified_users_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      toast({
+        title: '✅ تم تصدير البيانات',
+        description: `تم تصدير ${verifiedChildren.length + verifiedStudents.length} سجل إلى ملف CSV`
+      });
+
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast({
+        title: '❌ خطأ في التصدير',
+        description: 'حدث خطأ أثناء تصدير البيانات',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -518,13 +618,28 @@ export default function AdminVerification() {
           <TabsContent value="verified" className="space-y-4 mt-2">
             <Card className="bg-white border border-gray-200 rounded-lg shadow-sm">
               <CardHeader className="pb-3 bg-gray-50 border-b border-gray-200" dir="rtl">
-                <CardTitle className="flex items-center gap-2 text-sm text-gray-900">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  الأطفال والطلاب المتحقق منهم
-                </CardTitle>
-                <CardDescription className="text-gray-600 text-xs">
-                  قائمة الأطفال والطلاب الذين تم التحقق من وثائقهم بنجاح
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-sm text-gray-900">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      الأطفال والطلاب المتحقق منهم
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 text-xs">
+                      قائمة الأطفال والطلاب الذين تم التحقق من وثائقهم بنجاح
+                    </CardDescription>
+                  </div>
+                  {(verifiedChildren.length > 0 || verifiedStudents.length > 0) && (
+                    <Button
+                      onClick={exportVerifiedUsersToCSV}
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center gap-2 text-xs bg-green-50 hover:bg-green-100 border-green-300 text-green-700"
+                    >
+                      <Download className="w-4 h-4" />
+                      تصدير CSV
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="p-6">
                 {verifiedChildren.length === 0 && verifiedStudents.length === 0 ? (
