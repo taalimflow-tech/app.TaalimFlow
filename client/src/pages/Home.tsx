@@ -63,7 +63,7 @@ export default function Home() {
                 <p className="text-gray-500 text-sm mb-6">سيتم عرض الإعلانات الجديدة هنا عند توفرها</p>
                 <Button 
                   className="bg-primary hover:bg-primary/90 text-white rounded-lg px-6 py-2"
-                  onClick={() => navigate('/announcements')}
+                  onClick={() => navigate(`${basePath}/announcements`)}
                 >
                   عرض جميع الإعلانات
                 </Button>
