@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar, Trash2, BookOpen, Download } from 'lucide-react';
+import { CheckCircle, XCircle, Users, GraduationCap, Clock, Calendar, Trash2, BookOpen, Download, IdCard } from 'lucide-react';
+import QRCode from 'qrcode';
+import { StudentIDCard } from '@/components/StudentIDCard';
 
 interface UnverifiedChild {
   id: number;
@@ -107,6 +109,7 @@ export default function AdminVerification() {
   const [availableSubjects, setAvailableSubjects] = useState<TeachingModule[]>([]);
   const [verifierAdminName, setVerifierAdminName] = useState<string>('');
   const [verifiedItemSubjects, setVerifiedItemSubjects] = useState<string[]>([]);
+  const [showIDCard, setShowIDCard] = useState(false);
 
   // Check if user has admin privileges
   if (!user || user.role !== 'admin') {
@@ -185,9 +188,14 @@ export default function AdminVerification() {
     return `${type}:${id}:${schoolId}:verified`;
   };
 
-  // Function to export verified users to CSV
-  const exportVerifiedUsersToCSV = () => {
+  // Function to export verified users to CSV with QR code images
+  const exportVerifiedUsersToCSV = async () => {
     try {
+      toast({
+        title: '⏳ جاري تحضير البيانات...',
+        description: 'يتم إنشاء رموز QR وتحضير الملف'
+      });
+
       // Prepare CSV data
       const csvData = [];
       
@@ -201,44 +209,99 @@ export default function AdminVerification() {
         'تاريخ التحقق',
         'تم التحقق بواسطة',
         'ملاحظات التحقق',
-        'رمز QR'
+        'رمز QR (نص)',
+        'رمز QR (صورة)'
       ]);
 
-      // Add verified children
-      verifiedChildren.forEach(child => {
+      // Process verified children
+      for (const child of verifiedChildren) {
         const subjectNames = child.selectedSubjects ? getSubjectNamesFromIds(child.selectedSubjects).join(' | ') : 'لا توجد';
-        const qrCode = generateQRCodeData('child', child.id, user?.schoolId || 0);
+        const qrCodeData = generateQRCodeData('child', child.id, user?.schoolId || 0);
         
-        csvData.push([
-          'طفل',
-          child.name,
-          formatEducationLevel(child.educationLevel, child.grade),
-          child.grade,
-          subjectNames,
-          new Date(child.verifiedAt).toLocaleDateString('ar-SA'),
-          'مدير', // We could fetch admin name but keeping it simple
-          child.verificationNotes || 'لا توجد ملاحظات',
-          qrCode
-        ]);
-      });
+        try {
+          // Generate QR code as data URL
+          const qrCodeImage = await QRCode.toDataURL(qrCodeData, {
+            width: 200,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
+          
+          csvData.push([
+            'طفل',
+            child.name,
+            formatEducationLevel(child.educationLevel, child.grade),
+            child.grade,
+            subjectNames,
+            new Date(child.verifiedAt).toLocaleDateString('en-US'),
+            'مدير',
+            child.verificationNotes || 'لا توجد ملاحظات',
+            qrCodeData,
+            qrCodeImage
+          ]);
+        } catch (qrError) {
+          console.error('Error generating QR code for child:', child.id, qrError);
+          csvData.push([
+            'طفل',
+            child.name,
+            formatEducationLevel(child.educationLevel, child.grade),
+            child.grade,
+            subjectNames,
+            new Date(child.verifiedAt).toLocaleDateString('en-US'),
+            'مدير',
+            child.verificationNotes || 'لا توجد ملاحظات',
+            qrCodeData,
+            'خطأ في إنشاء رمز QR'
+          ]);
+        }
+      }
 
-      // Add verified students
-      verifiedStudents.forEach(student => {
+      // Process verified students
+      for (const student of verifiedStudents) {
         const subjectNames = student.selectedSubjects ? getSubjectNamesFromIds(student.selectedSubjects).join(' | ') : 'لا توجد';
-        const qrCode = generateQRCodeData('student', student.id, user?.schoolId || 0);
+        const qrCodeData = generateQRCodeData('student', student.id, user?.schoolId || 0);
         
-        csvData.push([
-          'طالب',
-          student.name,
-          formatEducationLevel(student.educationLevel, student.grade),
-          student.grade,
-          subjectNames,
-          new Date(student.verifiedAt).toLocaleDateString('ar-SA'),
-          'مدير', // We could fetch admin name but keeping it simple
-          student.verificationNotes || 'لا توجد ملاحظات',
-          qrCode
-        ]);
-      });
+        try {
+          // Generate QR code as data URL
+          const qrCodeImage = await QRCode.toDataURL(qrCodeData, {
+            width: 200,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
+          
+          csvData.push([
+            'طالب',
+            student.name,
+            formatEducationLevel(student.educationLevel, student.grade),
+            student.grade,
+            subjectNames,
+            new Date(student.verifiedAt).toLocaleDateString('en-US'),
+            'مدير',
+            student.verificationNotes || 'لا توجد ملاحظات',
+            qrCodeData,
+            qrCodeImage
+          ]);
+        } catch (qrError) {
+          console.error('Error generating QR code for student:', student.id, qrError);
+          csvData.push([
+            'طالب',
+            student.name,
+            formatEducationLevel(student.educationLevel, student.grade),
+            student.grade,
+            subjectNames,
+            new Date(student.verifiedAt).toLocaleDateString('en-US'),
+            'مدير',
+            student.verificationNotes || 'لا توجد ملاحظات',
+            qrCodeData,
+            'خطأ في إنشاء رمز QR'
+          ]);
+        }
+      }
 
       // Convert to CSV string
       const csvContent = csvData.map(row => 
@@ -257,7 +320,7 @@ export default function AdminVerification() {
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `verified_users_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `verified_users_with_qr_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -265,8 +328,8 @@ export default function AdminVerification() {
       }
 
       toast({
-        title: '✅ تم تصدير البيانات',
-        description: `تم تصدير ${verifiedChildren.length + verifiedStudents.length} سجل إلى ملف CSV`
+        title: '✅ تم تصدير البيانات بنجاح',
+        description: `تم تصدير ${verifiedChildren.length + verifiedStudents.length} سجل مع رموز QR`
       });
 
     } catch (error) {
@@ -847,6 +910,32 @@ export default function AdminVerification() {
                           )}
                         </div>
                       </div>
+
+                      {/* Student ID Card Preview */}
+                      {showIDCard && selectedItem?.data && (
+                        <div className="mt-4">
+                          <h3 className="font-semibold mb-3 text-gray-900 text-sm text-center">
+                            بطاقة الهوية
+                          </h3>
+                          <div className="flex justify-center">
+                            <StudentIDCard
+                              student={{
+                                id: selectedItem.data.id,
+                                name: selectedItem.data.name,
+                                educationLevel: selectedItem.data.educationLevel,
+                                grade: selectedItem.data.grade,
+                                selectedSubjects: selectedItem.data.selectedSubjects,
+                                type: selectedItem.type === 'verified-child' ? 'child' : 'student'
+                              }}
+                              schoolInfo={{
+                                id: user?.schoolId || 0,
+                                name: 'مدرسة تجريبية' // You can fetch this from user context or API
+                              }}
+                              subjects={teachingModules}
+                            />
+                          </div>
+                        </div>
+                      )}
                       
                       <div className="flex gap-3 justify-end pt-4">
                         <Button
@@ -854,10 +943,19 @@ export default function AdminVerification() {
                           onClick={() => {
                             setShowModal(false);
                             setSelectedItem(null);
+                            setShowIDCard(false);
                           }}
                           className="bg-white hover:bg-gray-50 border-gray-300"
                         >
                           إغلاق
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowIDCard(!showIDCard)}
+                          className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700"
+                        >
+                          <IdCard className="w-4 h-4 mr-2" />
+                          {showIDCard ? 'إخفاء البطاقة' : 'عرض بطاقة الهوية'}
                         </Button>
                         <Button
                           variant="destructive"
@@ -982,6 +1080,7 @@ export default function AdminVerification() {
                             setSelectedSubjects([]);
                             setAvailableSubjects([]);
                             setSelectedItem(null);
+                            setShowIDCard(false);
                           }}
                           className="bg-white hover:bg-gray-50 border-gray-300"
                         >
