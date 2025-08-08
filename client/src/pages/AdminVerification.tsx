@@ -191,6 +191,11 @@ export default function AdminVerification() {
   // Function to export verified users to CSV with QR code images
   const exportSimpleCSV = async () => {
     try {
+      toast({
+        title: '⏳ جاري تحضير البيانات...',
+        description: 'يتم إنشاء أكواد QR...'
+      });
+
       const csvData = [];
       
       // Add header
@@ -199,20 +204,36 @@ export default function AdminVerification() {
       // Add verified children
       for (const child of verifiedChildren) {
         const qrText = `STUDENT_${child.id}_${user?.schoolId}_child`;
+        const qrImage = await QRCode.toDataURL(qrText, {
+          width: 150,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
         csvData.push([
           child.name,
           formatEducationLevel(child.educationLevel, child.grade),
-          qrText
+          qrImage
         ]);
       }
 
       // Add verified students  
       for (const student of verifiedStudents) {
         const qrText = `STUDENT_${student.id}_${user?.schoolId}_student`;
+        const qrImage = await QRCode.toDataURL(qrText, {
+          width: 150,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
         csvData.push([
           student.name,
           formatEducationLevel(student.educationLevel, student.grade),
-          qrText
+          qrImage
         ]);
       }
 
@@ -234,7 +255,7 @@ export default function AdminVerification() {
 
       toast({
         title: "تم تصدير البيانات",
-        description: "تم تصدير قائمة الطلاب المبسطة بنجاح",
+        description: "تم تصدير قائمة الطلاب المبسطة مع أكواد QR بنجاح",
       });
     } catch (error) {
       console.error('CSV export error:', error);
