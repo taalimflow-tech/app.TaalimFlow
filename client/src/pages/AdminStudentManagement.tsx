@@ -96,8 +96,17 @@ export default function AdminStudentManagement() {
   });
 
   // Fetch teaching modules for subject selection
-  const { data: teachingModules = [] } = useQuery<TeachingModule[]>({
+  const { data: teachingModules = [], isLoading: modulesLoading, error: modulesError } = useQuery<TeachingModule[]>({
     queryKey: ['/api/teaching-modules'],
+    enabled: !!user && user.role === 'admin'
+  });
+  
+  // Debug: Log teaching modules data
+  console.log('Teaching modules query state:', { 
+    modulesLoading, 
+    modulesError, 
+    teachingModules: teachingModules?.length,
+    user: user?.role,
     enabled: !!user && user.role === 'admin'
   });
 
@@ -249,6 +258,12 @@ export default function AdminStudentManagement() {
   // Function to get available subjects for education level
   const getAvailableSubjects = (educationLevel: string) => {
     if (!teachingModules) return [];
+    
+    // Debug: Log the education level and available modules
+    console.log('Selected education level:', educationLevel);
+    console.log('Available teaching modules:', teachingModules);
+    console.log('Modules for this level:', teachingModules.filter(module => module.educationLevel === educationLevel));
+    
     return teachingModules.filter(module => module.educationLevel === educationLevel);
   };
 
