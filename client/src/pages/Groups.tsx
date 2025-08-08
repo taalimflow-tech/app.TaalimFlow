@@ -1694,12 +1694,30 @@ export default function Groups() {
                   required
                 >
                   <option value="">اختر معلم...</option>
-                  {getFilteredTeachers(selectedAdminGroup.educationLevel, selectedAdminGroup.subjectId).map(teacher => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.name} ({teacher.specializations.find((s: any) => s.id === selectedAdminGroup.subjectId)?.name})
-                    </option>
-                  ))}
+                  {(() => {
+                    const filteredTeachers = getFilteredTeachers(selectedAdminGroup.educationLevel, selectedAdminGroup.subjectId);
+                    
+                    // If filtered teachers is empty, show all teachers
+                    const teachersToShow = filteredTeachers.length > 0 ? filteredTeachers : teachers;
+                    
+                    return teachersToShow.map(teacher => {
+                      const specialization = teacher.specializations.find((s: any) => s.id === selectedAdminGroup.subjectId);
+                      const specName = specialization?.name || 'تخصص عام';
+                      return (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.name} ({specName})
+                        </option>
+                      );
+                    });
+                  })()}
                 </select>
+                
+                {/* Debug info - show how many teachers match the filter */}
+                {getFilteredTeachers(selectedAdminGroup.educationLevel, selectedAdminGroup.subjectId).length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠️ لا يوجد معلمين متخصصين في هذه المادة - يظهر جميع المعلمين
+                  </p>
+                )}
               </div>
 
               {/* Student Assignment Section */}
