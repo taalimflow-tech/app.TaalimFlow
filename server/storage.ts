@@ -2832,14 +2832,16 @@ export class DatabaseStorage implements IStorage {
 
   async getCompatibleGroups(subjectId: number, teacherId: number, educationLevel: string, schoolId: number): Promise<any[]> {
     try {
-      return await db
+      // First try exact matching (all criteria must match)
+      const exactMatches = await db
         .select({
           id: groups.id,
           name: groups.name,
           educationLevel: groups.educationLevel,
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
-          studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`
+          studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`,
+          matchType: sql<string>`'exact'`
         })
         .from(groups)
         .leftJoin(groupUserAssignments, eq(groups.id, groupUserAssignments.groupId))
@@ -2847,7 +2849,7 @@ export class DatabaseStorage implements IStorage {
           eq(groups.schoolId, schoolId),
           eq(groups.subjectId, subjectId),
           eq(groups.teacherId, teacherId),
-          // Flexible education level matching - check if the group's education level contains the target level
+          // Flexible education level matching
           or(
             eq(groups.educationLevel, educationLevel),
             like(groups.educationLevel, `%${educationLevel}%`)
@@ -2855,6 +2857,37 @@ export class DatabaseStorage implements IStorage {
         ))
         .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
         .orderBy(groups.name);
+
+      if (exactMatches.length > 0) {
+        return exactMatches;
+      }
+
+      // If no exact matches, try partial matching (subject + education level, any teacher)
+      const partialMatches = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          educationLevel: groups.educationLevel,
+          subjectId: groups.subjectId,
+          teacherId: groups.teacherId,
+          studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`,
+          matchType: sql<string>`'partial'`
+        })
+        .from(groups)
+        .leftJoin(groupUserAssignments, eq(groups.id, groupUserAssignments.groupId))
+        .where(and(
+          eq(groups.schoolId, schoolId),
+          eq(groups.subjectId, subjectId),
+          // Flexible education level matching
+          or(
+            eq(groups.educationLevel, educationLevel),
+            like(groups.educationLevel, `%${educationLevel}%`)
+          )
+        ))
+        .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
+        .orderBy(groups.name);
+
+      return partialMatches;
     } catch (error) {
       console.error('Error getting compatible groups:', error);
       return [];
