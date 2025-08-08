@@ -2847,7 +2847,11 @@ export class DatabaseStorage implements IStorage {
           eq(groups.schoolId, schoolId),
           eq(groups.subjectId, subjectId),
           eq(groups.teacherId, teacherId),
-          eq(groups.educationLevel, educationLevel)
+          // Flexible education level matching - check if the group's education level contains the target level
+          or(
+            eq(groups.educationLevel, educationLevel),
+            like(groups.educationLevel, `%${educationLevel}%`)
+          )
         ))
         .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
         .orderBy(groups.name);
