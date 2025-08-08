@@ -6,6 +6,7 @@ This Progressive Web App (PWA) is a React-based mobile portal for private school
 ## User Preferences
 Preferred communication style: Simple, everyday language in English. User prefers English communication over other languages.
 Security preference: Code-based school access instead of public school directory for enhanced privacy and security.
+Interface preference: Phone verification functionality removed from Profile page for simplified user experience (December 2024).
 
 ## System Architecture
 

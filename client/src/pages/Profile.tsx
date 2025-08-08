@@ -66,7 +66,6 @@ export default function Profile() {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || '',
   });
 
   // Check Firebase email verification status
@@ -398,20 +397,7 @@ export default function Profile() {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    رقم الهاتف
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="أدخل رقم هاتفك"
-                    required
-                  />
-                </div>
+
                 
                 <Button type="submit" className="w-full" disabled={loading}>
                   <Save className="w-4 h-4 mr-2" />
