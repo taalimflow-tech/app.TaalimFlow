@@ -1891,15 +1891,16 @@ export default function Groups() {
                             // IMPORTANT: Only show students with same education level WITHOUT restricting by year
                             // unless there's specific year information in group name/description
                             if (groupLevel === 'الابتدائي') {
-                              return studentGrade.includes('ابتدائي');
+                              // Check both the grade field and education level field
+                              return student.educationLevel === 'الابتدائي' || studentGrade.includes('ابتدائي');
                             }
                             if (groupLevel === 'المتوسط') {
-                              return studentGrade.includes('متوسط');
+                              return student.educationLevel === 'المتوسط' || studentGrade.includes('متوسط');
                             }
                             if (groupLevel === 'الثانوي') {
                               // For general secondary subjects, allow all secondary years
                               // but specialized subjects should have been caught above
-                              return studentGrade.includes('ثانوي');
+                              return student.educationLevel === 'الثانوي' || studentGrade.includes('ثانوي');
                             }
                             
                             return false;
