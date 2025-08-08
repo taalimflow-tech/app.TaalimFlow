@@ -26,6 +26,7 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
   const [step, setStep] = useState<'check' | 'claim'>('check');
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [isProcessingQR, setIsProcessingQR] = useState(false);
   
   const [checkData, setCheckData] = useState({
     studentId: ''
@@ -121,6 +122,14 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
   });
 
   const handleQRScan = (qrData: string) => {
+    // Prevent multiple scans from processing simultaneously
+    if (isProcessingQR) {
+      return;
+    }
+    
+    setIsProcessingQR(true);
+    setShowQRScanner(false);
+    
     try {
       // Parse QR data - expecting format: "student:id:schoolId:code" or JSON
       let studentId: string;
@@ -146,7 +155,6 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
       // Update the input and trigger check
       setCheckData({ studentId });
       checkMutation.mutate({ studentId });
-      setShowQRScanner(false);
       
       toast({
         title: '✅ تم مسح الرمز بنجاح',
@@ -158,6 +166,11 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
         description: 'تأكد من أن الرمز صحيح ومن نفس المدرسة',
         variant: 'destructive'
       });
+    } finally {
+      // Reset the processing flag after a delay
+      setTimeout(() => {
+        setIsProcessingQR(false);
+      }, 2000);
     }
   };
 

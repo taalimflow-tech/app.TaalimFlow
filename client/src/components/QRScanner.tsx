@@ -15,6 +15,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const [error, setError] = useState<string>('');
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+  const [scanCompleted, setScanCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReaderRef = useRef<BrowserQRCodeReader | null>(null);
 
@@ -30,6 +31,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
 
   const cleanup = () => {
     setIsScanning(false);
+    setScanCompleted(false);
     if (codeReaderRef.current) {
       try {
         codeReaderRef.current.reset();
@@ -99,10 +101,14 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
         deviceId,
         videoRef.current,
         (result, error) => {
-          if (result) {
+          if (result && !scanCompleted) {
             console.log('QR code detected:', result.getText());
+            setScanCompleted(true);
             onScan(result.getText());
-            onClose();
+            // Close after a short delay to prevent multiple scans
+            setTimeout(() => {
+              onClose();
+            }, 100);
           }
           
           if (error && !(error instanceof Error && error.name === 'NotFoundException')) {
