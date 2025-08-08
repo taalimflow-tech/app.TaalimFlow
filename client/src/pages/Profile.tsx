@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirebaseEmailVerification } from '@/lib/firebase-email';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Settings, Shield, GraduationCap, Users, Phone, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar, Bell } from 'lucide-react';
+import { User, Settings, Shield, GraduationCap, Users, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar, Bell } from 'lucide-react';
 import { GroupDetailsModal } from '@/components/GroupDetailsModal';
 import NotificationSettings from '@/components/NotificationSettings';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ProfilePicture } from '@/components/ProfilePicture';
-import { PhoneVerificationModal } from '@/components/PhoneVerificationModal';
 import { EmailVerificationModal } from '@/components/EmailVerificationModal';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 
@@ -52,7 +51,6 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [showAddChild, setShowAddChild] = useState(false);
-  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<EnrolledGroup | null>(null);
@@ -423,51 +421,7 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* Phone Verification Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Phone className="w-5 h-5" />
-                تحقق من رقم الهاتف
-              </CardTitle>
-              <CardDescription>
-                تحقق من رقم هاتفك لمزيد من الأمان
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    user.phoneVerified ? 'bg-green-100' : 'bg-gray-200'
-                  }`}>
-                    {user.phoneVerified ? (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <Phone className="w-5 h-5 text-gray-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{user.phone}</p>
-                    <p className={`text-sm ${
-                      user.phoneVerified ? 'text-green-600' : 'text-gray-500'
-                    }`}>
-                      {user.phoneVerified ? 'تم التحقق من الرقم' : 'لم يتم التحقق من الرقم'}
-                    </p>
-                  </div>
-                </div>
-                {!user.phoneVerified && (
-                  <Button 
-                    onClick={() => setShowPhoneVerification(true)}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    تحقق الآن
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* Email Verification Section */}
           <Card>
@@ -871,17 +825,7 @@ export default function Profile() {
         </Card>
       </div>
 
-      {/* Phone Verification Modal */}
-      <PhoneVerificationModal
-        isOpen={showPhoneVerification}
-        onClose={() => setShowPhoneVerification(false)}
-        phoneNumber={user.phone}
-        onVerificationSuccess={() => {
-          // Refresh user data to update phone verification status
-          queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-          setShowPhoneVerification(false);
-        }}
-      />
+
 
       {/* Email Verification Modal */}
       <EmailVerificationModal
