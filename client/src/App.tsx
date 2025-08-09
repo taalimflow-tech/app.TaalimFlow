@@ -22,6 +22,7 @@ import AdminSuggestions from "@/pages/AdminSuggestions";
 import AdminVerification from "@/pages/AdminVerification";
 import AdminReports from "@/pages/AdminReports";
 import AdminStudentManagement from "@/pages/AdminStudentManagement";
+import AdminDesktopFeatures from "@/pages/AdminDesktopFeatures";
 import Announcements from "@/pages/Announcements";
 import SuperAdminSimple from "@/pages/SuperAdminSimple";
 import SchoolSelection from "@/pages/SchoolSelection";
@@ -140,6 +141,9 @@ function AppRoutes() {
           </Route>
           <Route path="/school/:code/admin/student-management">
             <AuthWrapper><Layout><AdminStudentManagement /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin/desktop-features">
+            <AuthWrapper><Layout><AdminDesktopFeatures /></Layout></AuthWrapper>
           </Route>
           
           {/* School Selection Route (must come after specific routes) */}

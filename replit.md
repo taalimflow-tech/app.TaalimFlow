@@ -37,6 +37,7 @@ Interface preference: Phone verification functionality removed from Profile page
 - **Scheduling System**: Comprehensive schedule management with independent grids per classroom, 30-minute intervals, precise time control, and color-coded displays.
 - **Reporting**: Admin interface for managing user reports and banning users.
 - **Subject Management**: Complete Algerian education curriculum with proper Arabic subject names organized by education level (الابتدائي, المتوسط, الثانوي), totaling 28 specialized teaching modules covering all standard subjects from primary through secondary education including engineering specializations.
+- **Desktop Application**: Electron-based desktop version with hardware integration capabilities for QR scanning, thermal printing, and advanced file operations while maintaining full compatibility with the existing PWA.
 
 ## External Dependencies
 
