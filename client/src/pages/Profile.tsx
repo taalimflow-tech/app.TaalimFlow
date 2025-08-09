@@ -421,9 +421,9 @@ export default function Profile() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                     isEmailVerified ? 'bg-green-100' : 'bg-gray-200'
                   }`}>
                     {isEmailVerified ? (
@@ -432,9 +432,9 @@ export default function Profile() {
                       <Mail className="w-5 h-5 text-gray-500" />
                     )}
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{user.email}</p>
-                    <p className={`text-sm ${
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900 break-all">{user.email}</p>
+                    <p className={`text-sm mt-1 ${
                       isEmailVerified ? 'text-green-600' : 'text-gray-500'
                     }`}>
                       {isEmailVerified ? 'تم التحقق من البريد الإلكتروني عبر Firebase' : 'لم يتم التحقق من البريد الإلكتروني'}
@@ -445,7 +445,7 @@ export default function Profile() {
                   <Button 
                     onClick={() => setShowEmailVerification(true)}
                     size="sm"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 flex-shrink-0"
                   >
                     <CheckCircle className="w-4 h-4" />
                     تحقق الآن
