@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Users, FileText, MessageSquare, Lightbulb, Settings, Monitor } from 'lucide-react';
+import { Shield, Users, FileText, MessageSquare, Lightbulb, Settings } from 'lucide-react';
 import { RoleProtection } from '@/components/RoleProtection';
 import { Link } from 'wouter';
 
@@ -87,16 +87,6 @@ export default function AdminPanel() {
                 <MessageSquare className="w-12 h-12 text-red-600 mx-auto mb-3" />
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة البلاغات</h3>
                 <p className="text-sm text-gray-600">عرض وإدارة بلاغات المستخدمين</p>
-              </CardContent>
-            </Card>
-          </Link>
-          
-          <Link href="admin/desktop-features">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Monitor className="w-12 h-12 text-indigo-600 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">ميزات سطح المكتب</h3>
-                <p className="text-sm text-gray-600">اختبار وإدارة ميزات التطبيق المكتبي</p>
               </CardContent>
             </Card>
           </Link>
