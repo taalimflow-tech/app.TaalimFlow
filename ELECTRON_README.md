@@ -74,17 +74,26 @@ client/src/components/
 ### Building for Distribution
 
 ```bash
-# Build for current platform
-npm run electron:pack
+# Simple build for current platform
+node build-desktop.js
 
-# Build distributables for all platforms
-npm run electron:dist
+# Build for specific platforms
+node build-desktop.js windows    # Windows installers (.exe, .msi)
+node build-desktop.js mac        # macOS installer (.dmg)
+node build-desktop.js linux      # Linux packages (.AppImage, .deb)
+node build-desktop.js all        # All platforms
 
-# Build for specific platform
-npm run electron:dist:win    # Windows
-npm run electron:dist:mac    # macOS
-npm run electron:dist:linux  # Linux
+# Advanced builds
+node electron/scripts/build.js    # Full build script
+node electron/scripts/package.js # Packaging only
 ```
+
+**What Gets Built:**
+- **Windows**: NSIS installer (.exe), MSI package, portable executable
+- **macOS**: Disk image (.dmg), application bundle (.app)
+- **Linux**: AppImage (.AppImage), Debian package (.deb), RPM package
+
+**Output Location:** `desktop-dist/` folder
 
 ### Next Steps
 
