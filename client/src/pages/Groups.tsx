@@ -978,9 +978,10 @@ export default function Groups() {
     
     // Debug log
     console.log('[DEBUG Badge] Group:', group.name, 'SubjectId:', group.subjectId, 'TeachingModules available:', !!teachingModules, 'Count:', teachingModules?.length);
+    console.log('[DEBUG Badge] selectedYearFilter:', selectedYearFilter);
     
     // First try to get grade from selected year filter if available
-    if (selectedYearFilter && selectedYearFilter !== '') {
+    if (selectedYearFilter && selectedYearFilter !== '' && selectedYearFilter !== 'جميع المستويات') {
       console.log('[DEBUG Badge] Using selectedYearFilter:', selectedYearFilter);
       if (selectedYearFilter.includes('الثالثة') || selectedYearFilter.includes('3')) yearNumber = ' 3';
       else if (selectedYearFilter.includes('الثانية') || selectedYearFilter.includes('2')) yearNumber = ' 2';  

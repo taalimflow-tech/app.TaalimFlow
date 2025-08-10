@@ -1,0 +1,32 @@
+SW registered:  ServiceWorkerRegistration
+firebase.ts:31 Firebase initialized successfully
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة العربية والرياضيات SubjectId: 35 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: العربية والرياضيات Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة العربية والرياضيات SubjectId: 35 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: العربية والرياضيات Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة اللغة الفرنسية SubjectId: 37 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: اللغة الفرنسية Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة اللغة الفرنسية SubjectId: 37 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: اللغة الفرنسية Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة العربية والرياضيات SubjectId: 35 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: العربية والرياضيات Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة العربية والرياضيات SubjectId: 35 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: العربية والرياضيات Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة اللغة الفرنسية SubjectId: 37 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: اللغة الفرنسية Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+Groups.tsx:980 [DEBUG Badge] Group: مجموعة اللغة الفرنسية SubjectId: 37 TeachingModules available: true Count: 28
+Groups.tsx:995 [DEBUG Badge] Found subject: اللغة الفرنسية Grade: جميع المستويات
+Groups.tsx:1074 [DEBUG Badge] Final result: ابتدائي
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 3
+stallwart.build.js:1 stallwart: failed ping 4
+stallwart.build.js:1 stallwart: failed ping 5
+stallwart.build.js:1 stallwart: session stalled
