@@ -1580,15 +1580,15 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
-                          // Handle "جميع المستويات" subjects - they apply to all years
-                          if (moduleGrade === 'جميع المستويات') {
-                            // These groups are suitable for all years within the education level
-                            return true;
-                          }
-                          
                           // Direct match with the selected year
                           if (moduleGradeLower.includes(selectedYear)) {
                             return true;
+                          }
+                          
+                          // Handle "جميع المستويات" subjects - don't show them when a specific year is selected
+                          // This ensures that when a user selects a specific year, only groups for that year appear
+                          if (moduleGrade === 'جميع المستويات') {
+                            return false; // Don't show general groups when filtering by specific year
                           }
                           
                           // For specialization subjects, map them to appropriate years
