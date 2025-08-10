@@ -1648,13 +1648,13 @@ export default function Groups() {
                             <div className="flex justify-start gap-2">
                               <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
                                 {(() => {
-                                  // If we have a specific grade selected, show the combined format
-                                  if (selectedGrade && selectedGrade !== '') {
-                                    // Show selected grade + education level
-                                    return `${selectedGrade} ${group.educationLevel}`;
+                                  // If we have a specific year filter selected, show the combined format
+                                  if (selectedYearFilter && selectedYearFilter !== '') {
+                                    // Show selected year + education level
+                                    return `${selectedYearFilter} ${group.educationLevel}`;
                                   }
                                   
-                                  // If no grade filter but group has specific grade, show it
+                                  // If no year filter but group has specific grade, show it
                                   if (group.subjectId && teachingModules) {
                                     const module = teachingModules.find((m: any) => m.id === group.subjectId);
                                     if (module && module.grade && module.grade !== 'جميع المستويات') {
