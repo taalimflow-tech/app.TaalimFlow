@@ -1526,10 +1526,28 @@ export default function Groups() {
                   // Apply year filter if selected
                   if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
-                      // Check if any assigned student has the selected grade level
-                      return group.studentsAssigned && group.studentsAssigned.some((student: any) => 
-                        student.grade === selectedYearFilter
-                      );
+                      // Check if the group is intended for this specific year level
+                      // Look in group name, description, or teaching module information
+                      const groupText = `${group.name} ${group.description || ''}`.toLowerCase();
+                      const selectedYear = selectedYearFilter.toLowerCase();
+                      
+                      // Check if group name/description contains the selected year
+                      if (groupText.includes(selectedYear)) {
+                        return true;
+                      }
+                      
+                      // Check teaching module information
+                      if (group.subjectId && teachingModules) {
+                        const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
+                        if (teachingModule) {
+                          const moduleText = `${teachingModule.name || ''} ${teachingModule.nameAr || ''} ${teachingModule.grade || ''}`.toLowerCase();
+                          if (moduleText.includes(selectedYear)) {
+                            return true;
+                          }
+                        }
+                      }
+                      
+                      return false;
                     });
                   }
                 }
