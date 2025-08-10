@@ -1428,17 +1428,17 @@ export default function Groups() {
               {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => {
                 const filterValue = level === 'مجموعات مخصصة' ? 'custom' : level;
                 
-                // Count groups for each filter
+                // Count groups for each filter (include custom subject placeholders)
                 let groupCount = 0;
                 if (filterValue === 'custom') {
                   groupCount = adminGroups.filter(group => 
-                    !group.isPlaceholder && 
+                    (!group.isPlaceholder || (group.isPlaceholder && group.schoolId)) && 
                     group.educationLevel && 
                     !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)
                   ).length;
                 } else {
                   groupCount = adminGroups.filter(group => 
-                    !group.isPlaceholder && 
+                    (!group.isPlaceholder || (group.isPlaceholder && group.schoolId)) && 
                     group.educationLevel === filterValue
                   ).length;
                 }
@@ -1516,8 +1516,8 @@ export default function Groups() {
               {existingGroupsFilter && (() => {
                 let filteredGroups = [];
                 
-                // First filter to only show admin-created groups (not placeholders)
-                const adminCreatedGroups = adminGroups.filter(group => !group.isPlaceholder);
+                // Show both admin-created groups and custom subject placeholders (school-specific placeholders)
+                const adminCreatedGroups = adminGroups.filter(group => !group.isPlaceholder || (group.isPlaceholder && group.schoolId));
                 
                 if (existingGroupsFilter === 'custom') {
                   // Show custom/other groups from admin groups that don't belong to standard education levels
