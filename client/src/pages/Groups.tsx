@@ -1794,12 +1794,24 @@ export default function Groups() {
                 <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
                 {(() => {
+                  // First check if we have a selected grade from the form context
+                  if (selectedGrade && selectedGrade !== '') {
+                    return <p><strong>السنة الدراسية:</strong> {selectedGrade}</p>;
+                  }
+                  
+                  // Fall back to module grade if available
                   if (selectedAdminGroup.subjectId && teachingModules) {
                     const module = teachingModules.find((m: any) => m.id === selectedAdminGroup.subjectId);
-                    if (module && module.grade) {
+                    if (module && module.grade && module.grade !== 'جميع المستويات') {
                       return <p><strong>السنة الدراسية:</strong> {module.grade}</p>;
                     }
                   }
+                  
+                  // If no specific grade, show the general level
+                  if (selectedLevel && selectedLevel !== 'جميع المستويات') {
+                    return <p><strong>المستوى التعليمي:</strong> {selectedLevel}</p>;
+                  }
+                  
                   return null;
                 })()}
               </div>
