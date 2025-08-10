@@ -1425,7 +1425,7 @@ export default function Groups() {
             
             {/* Education Level Filter Tabs */}
             <div className="flex flex-wrap gap-2 mb-4">
-              {['جميع المستويات', 'الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
+              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
                 <button
                   key={level}
                   onClick={() => {
@@ -1445,7 +1445,7 @@ export default function Groups() {
             </div>
 
             {/* Year Level Filter - Only show for specific education levels */}
-            {existingGroupsFilter && existingGroupsFilter !== 'custom' && existingGroupsFilter !== 'جميع المستويات' && (
+            {existingGroupsFilter && existingGroupsFilter !== 'custom' && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   فلترة حسب السنة الدراسية
@@ -1492,28 +1492,22 @@ export default function Groups() {
                 // First filter to only show admin-created groups (not placeholders)
                 const adminCreatedGroups = adminGroups.filter(group => !group.isPlaceholder);
                 
-                if (existingGroupsFilter === 'جميع المستويات') {
-                  // Show all admin groups regardless of level or subject type
-                  filteredGroups = adminCreatedGroups;
-                } else if (existingGroupsFilter === 'custom') {
+                if (existingGroupsFilter === 'custom') {
                   // Show groups based on custom subjects (subjects created by this school)
-                  // These are subjects that have a schoolId AND are not standard curriculum subjects
+                  // These are subjects that have a schoolId AND are not part of standard curriculum
                   filteredGroups = adminCreatedGroups.filter(group => {
                     // Find the teaching module for this group
                     const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
                     
                     // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
-                    // BUT exclude standard curriculum subjects that should appear in education level sections
-                    if (!teachingModule || !teachingModule.schoolId) {
-                      return false;
-                    }
+                    // BUT exclude standard curriculum subjects like "العربية والرياضيات" which should appear in primary section
+                    if (!teachingModule || !teachingModule.schoolId) return false;
                     
                     // Check if it's a standard curriculum subject that should appear in education level sections
                     const subjectName = (teachingModule.nameAr || teachingModule.name || '').toLowerCase();
                     const standardSubjects = [
                       'العربية والرياضيات', 'عربية', 'رياضيات', 'فرنسية', 'انجليزية', 'علوم',
-                      'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء', 'تربية بدنية',
-                      'تربية مدنية', 'تربية فنية', 'موسيقى', 'لغة عربية', 'رياضيات عامة'
+                      'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء'
                     ];
                     
                     // If it's a standard subject, it should appear in the education level section, not custom
@@ -1521,41 +1515,17 @@ export default function Groups() {
                       subjectName.includes(standard.toLowerCase())
                     );
                     
-                    // Only show truly custom subjects (non-standard subjects with schoolId)
                     return !isStandardSubject;
                   });
                 } else {
                   // Show admin groups by education level - include ALL groups for that level
-                  // This includes both standard curriculum subjects and any custom subjects for that level
-                  filteredGroups = adminCreatedGroups.filter(group => {
-                    if (group.educationLevel !== existingGroupsFilter) return false;
-                    
-                    // For education level sections, we want to show:
-                    // 1. All groups without custom subjects (standard curriculum)
-                    // 2. Groups with custom subjects that are standard curriculum subjects
-                    const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
-                    
-                    // If no teaching module or no schoolId, it's a standard subject - show it
-                    if (!teachingModule || !teachingModule.schoolId) return true;
-                    
-                    // If it has schoolId, check if it's a standard curriculum subject
-                    const subjectName = (teachingModule.nameAr || teachingModule.name || '').toLowerCase();
-                    const standardSubjects = [
-                      'العربية والرياضيات', 'عربية', 'رياضيات', 'فرنسية', 'انجليزية', 'علوم',
-                      'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء', 'تربية بدنية',
-                      'تربية مدنية', 'تربية فنية', 'موسيقى', 'لغة عربية', 'رياضيات عامة'
-                    ];
-                    
-                    // If it's a standard subject, show it in education level section even if it has schoolId
-                    const isStandardSubject = standardSubjects.some(standard => 
-                      subjectName.includes(standard.toLowerCase())
-                    );
-                    
-                    return isStandardSubject;
-                  });
+                  // regardless of whether they use custom or standard subjects
+                  filteredGroups = adminCreatedGroups.filter(group => 
+                    group.educationLevel === existingGroupsFilter
+                  );
                   
-                  // Apply year filter if selected (but not for "جميع المستويات")
-                  if (selectedYearFilter && existingGroupsFilter !== 'جميع المستويات') {
+                  // Apply year filter if selected
+                  if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
                       // Check if any assigned student has the selected grade level
                       return group.studentsAssigned && group.studentsAssigned.some((student: any) => 
@@ -1648,8 +1618,6 @@ export default function Groups() {
                       <p className="text-sm">
                         {existingGroupsFilter === 'custom' 
                           ? 'لا توجد مجموعات مخصصة حالياً'
-                          : existingGroupsFilter === 'جميع المستويات'
-                          ? 'لا توجد مجموعات حالياً'
                           : `لا توجد مجموعات في ${existingGroupsFilter} حالياً`
                         }
                       </p>
