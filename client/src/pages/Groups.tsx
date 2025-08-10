@@ -1432,9 +1432,8 @@ export default function Groups() {
                 let groupCount = 0;
                 if (filterValue === 'custom') {
                   groupCount = adminGroups.filter(group => 
-                    (!group.isPlaceholder || (group.isPlaceholder && group.schoolId)) && 
-                    group.educationLevel && 
-                    !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)
+                    (group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)) ||
+                    (group.isPlaceholder && group.schoolId && teachingModules?.find(tm => tm.id === group.subjectId && tm.educationLevel === 'جميع المستويات'))
                   ).length;
                 } else {
                   groupCount = adminGroups.filter(group => 
@@ -1521,8 +1520,10 @@ export default function Groups() {
                 
                 if (existingGroupsFilter === 'custom') {
                   // Show custom/other groups from admin groups that don't belong to standard education levels
+                  // OR are custom subjects (school-specific placeholders) created for "جميع المستويات"
                   filteredGroups = adminCreatedGroups.filter(group => 
-                    group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)
+                    (group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)) ||
+                    (group.isPlaceholder && group.schoolId && teachingModules?.find(tm => tm.id === group.subjectId && tm.educationLevel === 'جميع المستويات'))
                   );
                 } else {
                   // Show admin groups by education level - only admin-created groups
@@ -1637,7 +1638,10 @@ export default function Groups() {
                           <p>Non-placeholder groups: {adminGroups.filter(g => !g.isPlaceholder).length}</p>
                           <p>Groups in current filter: {
                             existingGroupsFilter === 'custom' 
-                              ? adminGroups.filter(group => !group.isPlaceholder && group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)).length
+                              ? adminGroups.filter(group => 
+                                  (group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)) ||
+                                  (group.isPlaceholder && group.schoolId && teachingModules?.find(tm => tm.id === group.subjectId && tm.educationLevel === 'جميع المستويات'))
+                                ).length
                               : adminGroups.filter(group => !group.isPlaceholder && group.educationLevel === existingGroupsFilter).length
                           }</p>
                           {adminGroups.filter(g => g.name?.includes('chess')).length > 0 && (
