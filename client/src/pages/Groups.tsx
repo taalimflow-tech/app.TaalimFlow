@@ -976,9 +976,23 @@ export default function Groups() {
     
     let yearNumber = '';
     
-    // First try to get grade from associated teaching module
-    if (group.subjectId && teachingModules) {
+    // Debug log
+    console.log('[DEBUG Badge] Group:', group.name, 'SubjectId:', group.subjectId, 'TeachingModules available:', !!teachingModules, 'Count:', teachingModules?.length);
+    
+    // First try to get grade from selected year filter if available
+    if (selectedYearFilter && selectedYearFilter !== '') {
+      console.log('[DEBUG Badge] Using selectedYearFilter:', selectedYearFilter);
+      if (selectedYearFilter.includes('الثالثة') || selectedYearFilter.includes('3')) yearNumber = ' 3';
+      else if (selectedYearFilter.includes('الثانية') || selectedYearFilter.includes('2')) yearNumber = ' 2';  
+      else if (selectedYearFilter.includes('الأولى') || selectedYearFilter.includes('1')) yearNumber = ' 1';
+      else if (selectedYearFilter.includes('الرابعة') || selectedYearFilter.includes('4')) yearNumber = ' 4';
+      else if (selectedYearFilter.includes('الخامسة') || selectedYearFilter.includes('5')) yearNumber = ' 5';
+    }
+    
+    // If no year filter, try to get grade from associated teaching module
+    if (!yearNumber && group.subjectId && teachingModules) {
       const subject = teachingModules.find((s: any) => s.id === group.subjectId);
+      console.log('[DEBUG Badge] Found subject:', subject?.name, 'Grade:', subject?.grade);
       if (subject && subject.grade) {
         const grade = subject.grade;
         
@@ -1056,7 +1070,9 @@ export default function Groups() {
       else if (group.gender === 'mixed') genderText = ' - مختلط';
     }
     
-    return `${levelShort}${yearNumber}${genderText}`;
+    const result = `${levelShort}${yearNumber}${genderText}`;
+    console.log('[DEBUG Badge] Final result:', result);
+    return result;
   };
 
   const getFilteredTeachers = (educationLevel: string, subjectId: number) => {
