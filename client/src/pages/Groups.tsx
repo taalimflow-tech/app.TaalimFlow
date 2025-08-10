@@ -1425,23 +1425,50 @@ export default function Groups() {
             
             {/* Education Level Filter Tabs */}
             <div className="flex flex-wrap gap-2 mb-4">
-              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
-                <button
-                  key={level}
-                  onClick={() => {
-                    const filterValue = level === 'مجموعات مخصصة' ? 'custom' : level;
-                    setExistingGroupsFilter(filterValue);
-                    setSelectedYearFilter(''); // Reset year filter when changing education level
-                  }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-blue-50'
-                  }`}
-                >
-                  {level}
-                </button>
-              ))}
+              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => {
+                const filterValue = level === 'مجموعات مخصصة' ? 'custom' : level;
+                
+                // Count groups for each filter
+                let groupCount = 0;
+                if (filterValue === 'custom') {
+                  groupCount = adminGroups.filter(group => 
+                    !group.isPlaceholder && 
+                    group.educationLevel && 
+                    !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)
+                  ).length;
+                } else {
+                  groupCount = adminGroups.filter(group => 
+                    !group.isPlaceholder && 
+                    group.educationLevel === filterValue
+                  ).length;
+                }
+                
+                return (
+                  <button
+                    key={level}
+                    onClick={() => {
+                      setExistingGroupsFilter(filterValue);
+                      setSelectedYearFilter(''); // Reset year filter when changing education level
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                      existingGroupsFilter === filterValue
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-blue-50'
+                    }`}
+                  >
+                    {level}
+                    {groupCount > 0 && (
+                      <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                        existingGroupsFilter === filterValue
+                          ? 'bg-blue-400 text-white'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {groupCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Year Level Filter - Only show for specific education levels */}
@@ -1600,6 +1627,31 @@ export default function Groups() {
                           : `لا توجد مجموعات في ${existingGroupsFilter} حالياً`
                         }
                       </p>
+                      
+                      {/* Debug Information */}
+                      {process.env.NODE_ENV === 'development' && (
+                        <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-left">
+                          <p className="font-bold">Debug Info:</p>
+                          <p>Current filter: {existingGroupsFilter}</p>
+                          <p>Total admin groups: {adminGroups.length}</p>
+                          <p>Non-placeholder groups: {adminGroups.filter(g => !g.isPlaceholder).length}</p>
+                          <p>Groups in current filter: {
+                            existingGroupsFilter === 'custom' 
+                              ? adminGroups.filter(group => !group.isPlaceholder && group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel)).length
+                              : adminGroups.filter(group => !group.isPlaceholder && group.educationLevel === existingGroupsFilter).length
+                          }</p>
+                          {adminGroups.filter(g => g.name?.includes('chess')).length > 0 && (
+                            <div className="mt-2 p-2 bg-yellow-100 rounded">
+                              <p className="font-bold text-yellow-800">Chess subject found!</p>
+                              {adminGroups.filter(g => g.name?.includes('chess')).map(group => (
+                                <p key={group.subjectId} className="text-yellow-700">
+                                  Name: {group.name} | Level: {group.educationLevel} | Placeholder: {group.isPlaceholder ? 'Yes' : 'No'}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
