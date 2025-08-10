@@ -1640,10 +1640,23 @@ export default function Groups() {
                         <CardContent className="p-4">
                           <div className="space-y-3">
                             {/* Level + Year Badge */}
-                            <div className="flex justify-start">
+                            <div className="flex justify-start gap-2">
                               <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
                                 {levelDisplay}
                               </span>
+                              {(() => {
+                                if (group.subjectId && teachingModules) {
+                                  const module = teachingModules.find((m: any) => m.id === group.subjectId);
+                                  if (module && module.grade) {
+                                    return (
+                                      <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">
+                                        {module.grade}
+                                      </span>
+                                    );
+                                  }
+                                }
+                                return null;
+                              })()}
                             </div>
                             
                             {/* Title */}
@@ -1775,6 +1788,15 @@ export default function Groups() {
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
                 <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
+                {(() => {
+                  if (selectedAdminGroup.subjectId && teachingModules) {
+                    const module = teachingModules.find((m: any) => m.id === selectedAdminGroup.subjectId);
+                    if (module && module.grade) {
+                      return <p><strong>السنة الدراسية:</strong> {module.grade}</p>;
+                    }
+                  }
+                  return null;
+                })()}
               </div>
             </div>
 
