@@ -2586,39 +2586,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Teaching modules/custom subjects methods
-  async getTeachingModuleByName(nameAr: string, educationLevel: string, schoolId?: number): Promise<any | undefined> {
-    const conditions = [
-      eq(teachingModules.nameAr, nameAr), 
-      eq(teachingModules.educationLevel, educationLevel)
-    ];
-    
-    if (schoolId) {
-      conditions.push(eq(teachingModules.schoolId, schoolId));
-    }
-    
+  async getTeachingModuleByName(nameAr: string, educationLevel: string): Promise<any | undefined> {
     const [module] = await db
       .select()
       .from(teachingModules)
-      .where(and(...conditions));
+      .where(and(eq(teachingModules.nameAr, nameAr), eq(teachingModules.educationLevel, educationLevel)));
     return module;
   }
 
-  async getTeachingModuleByNameAllLevels(nameAr: string, schoolId?: number): Promise<any | undefined> {
-    const conditions = [eq(teachingModules.nameAr, nameAr)];
-    
-    if (schoolId) {
-      conditions.push(eq(teachingModules.schoolId, schoolId));
-    }
-    
+  async getTeachingModuleByNameAllLevels(nameAr: string): Promise<any | undefined> {
     const [module] = await db
       .select()
       .from(teachingModules)
-      .where(and(...conditions))
+      .where(eq(teachingModules.nameAr, nameAr))
       .limit(1);
     return module;
   }
 
-  async createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string, schoolId?: number }) {
+  async createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string }) {
     const [customSubject] = await db
       .insert(teachingModules)
       .values({
@@ -2626,8 +2611,7 @@ export class DatabaseStorage implements IStorage {
         nameAr: subjectData.nameAr,
         educationLevel: subjectData.educationLevel,
         grade: subjectData.grade,
-        description: subjectData.description,
-        schoolId: subjectData.schoolId
+        description: subjectData.description
       })
       .returning();
     return customSubject;

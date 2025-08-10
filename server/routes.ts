@@ -1843,17 +1843,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "اسم المادة والمستوى التعليمي مطلوبان" });
       }
       
-      const schoolId = req.session.user.schoolId;
-      
-      // Check if custom subject already exists for the specific education level in this school
+      // Check if custom subject already exists for the specific education level
       if (educationLevel !== 'جميع المستويات') {
-        const existingSubject = await storage.getTeachingModuleByName(nameAr, educationLevel, schoolId);
+        const existingSubject = await storage.getTeachingModuleByName(nameAr, educationLevel);
         if (existingSubject) {
           return res.status(400).json({ error: "المادة موجودة بالفعل لهذا المستوى" });
         }
       } else {
-        // For "جميع المستويات", check if it exists across all levels in this school
-        const existingSubject = await storage.getTeachingModuleByNameAllLevels(nameAr, schoolId);
+        // For "جميع المستويات", check if it exists across all levels
+        const existingSubject = await storage.getTeachingModuleByNameAllLevels(nameAr);
         if (existingSubject) {
           return res.status(400).json({ error: "المادة موجودة بالفعل" });
         }
@@ -1870,8 +1868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             nameAr,
             educationLevel: level,
             grade: grade || undefined,
-            description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة - متاحة لجميع المستويات`,
-            schoolId
+            description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة - متاحة لجميع المستويات`
           });
           createdSubjects.push(customSubject);
         }
@@ -1882,8 +1879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nameAr,
           educationLevel,
           grade: grade || undefined,
-          description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة`,
-          schoolId
+          description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة`
         });
         createdSubjects.push(customSubject);
       }
