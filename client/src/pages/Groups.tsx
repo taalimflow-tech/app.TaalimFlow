@@ -928,8 +928,21 @@ export default function Groups() {
   };
 
   const confirmDeleteGroup = () => {
-    if (groupToDelete && groupToDelete.id) {
-      deleteGroupMutation.mutate(groupToDelete.id);
+    if (groupToDelete) {
+      console.log('Attempting to delete group:', groupToDelete);
+      if (groupToDelete.id) {
+        console.log('Group has ID:', groupToDelete.id);
+        deleteGroupMutation.mutate(groupToDelete.id);
+      } else {
+        console.log('Group has no ID - this is a virtual group that cannot be deleted');
+        toast({
+          title: "لا يمكن حذف هذه المجموعة",
+          description: "هذه مجموعة افتراضية. يجب إنشاؤها أولاً لحذفها",
+          variant: "destructive"
+        });
+        setShowDeleteConfirm(false);
+        setGroupToDelete(null);
+      }
     }
   };
 
@@ -2003,7 +2016,7 @@ export default function Groups() {
 
               <div className="flex justify-between">
                 <div>
-                  {selectedAdminGroup?.id && (
+                  {selectedAdminGroup?.id && selectedAdminGroup.id !== null && (
                     <Button
                       type="button"
                       onClick={() => handleDeleteGroup(selectedAdminGroup)}

@@ -1375,7 +1375,7 @@ export class DatabaseStorage implements IStorage {
     return combinedResults;
   }
 
-  async deleteGroup(groupId: number, schoolId?: number): Promise<void> {
+  async deleteGroup(groupId: number, schoolId?: number): Promise<boolean> {
     try {
       // Delete in correct order to respect foreign key constraints
       
@@ -1395,17 +1395,19 @@ export class DatabaseStorage implements IStorage {
       await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, groupId));
       
       // 6. Finally delete the group itself
+      let result;
       if (schoolId) {
-        await db
+        result = await db
           .delete(groups)
           .where(and(eq(groups.id, groupId), eq(groups.schoolId, schoolId)));
       } else {
-        await db
+        result = await db
           .delete(groups)
           .where(eq(groups.id, groupId));
       }
       
-      // Don't return anything for void return type
+      // Return true if at least one row was deleted
+      return result.rowCount ? result.rowCount > 0 : true;
     } catch (error) {
       console.error('Error deleting group:', error);
       throw error;
