@@ -1602,10 +1602,10 @@ export default function Groups() {
                             return true;
                           }
                           
-                          // Handle "جميع المستويات" subjects - don't show them when a specific year is selected
-                          // This ensures that when a user selects a specific year, only groups for that year appear
+                          // Handle "جميع المستويات" subjects - SHOW them for all year selections
+                          // since they are general subjects that apply to all years
                           if (moduleGrade === 'جميع المستويات') {
-                            return false; // Don't show general groups when filtering by specific year
+                            return true; // Show general subjects for all year filters
                           }
                           
                           // For specialization subjects, map them to appropriate years
