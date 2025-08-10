@@ -1652,7 +1652,8 @@ export default function Groups() {
                               {(() => {
                                 if (group.subjectId && teachingModules) {
                                   const module = teachingModules.find((m: any) => m.id === group.subjectId);
-                                  if (module && module.grade) {
+                                  // Only show grade badge if it's NOT "جميع المستويات" (since that's redundant with education level)
+                                  if (module && module.grade && module.grade !== 'جميع المستويات') {
                                     return (
                                       <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">
                                         {module.grade}
