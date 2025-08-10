@@ -1313,7 +1313,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(users.role, 'student'),
-          eq(students.educationLevel, educationLevel),
+          educationLevel === 'جميع المستويات' ? sql`1=1` : eq(students.educationLevel, educationLevel),
           schoolId ? eq(users.schoolId, schoolId) : sql`1=1`
         )
       );
@@ -1335,7 +1335,7 @@ export class DatabaseStorage implements IStorage {
       .from(students)
       .where(
         and(
-          eq(students.educationLevel, educationLevel),
+          educationLevel === 'جميع المستويات' ? sql`1=1` : eq(students.educationLevel, educationLevel),
           eq(students.verified, true),
           isNull(students.userId), // Pre-registered students have no userId yet
           schoolId ? eq(students.schoolId, schoolId) : sql`1=1`
@@ -1359,7 +1359,7 @@ export class DatabaseStorage implements IStorage {
       .from(children)
       .where(
         and(
-          eq(children.educationLevel, educationLevel),
+          educationLevel === 'جميع المستويات' ? sql`1=1` : eq(children.educationLevel, educationLevel),
           schoolId ? eq(children.schoolId, schoolId) : sql`1=1`
         )
       );
