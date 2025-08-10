@@ -1648,22 +1648,37 @@ export default function Groups() {
                             <div className="flex justify-start gap-2">
                               <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
                                 {(() => {
-                                  // If we have a specific year filter selected, show the combined format
-                                  if (selectedYearFilter && selectedYearFilter !== '') {
-                                    // Show selected year + education level
-                                    return `${selectedYearFilter} ${group.educationLevel}`;
-                                  }
+                                  // Use the enhanced getSimpleLevelFormat like in Schedule page
+                                  let levelShort = '';
+                                  if (group.educationLevel === 'الثانوي') levelShort = 'ثانوي';
+                                  else if (group.educationLevel === 'المتوسط') levelShort = 'متوسط';
+                                  else if (group.educationLevel === 'الابتدائي') levelShort = 'ابتدائي';
+                                  else return group.educationLevel;
                                   
-                                  // If no year filter but group has specific grade, show it
-                                  if (group.subjectId && teachingModules) {
+                                  let yearNumber = '';
+                                  
+                                  // If year filter is selected, use it
+                                  if (selectedYearFilter && selectedYearFilter !== '') {
+                                    if (selectedYearFilter.includes('الثالثة') || selectedYearFilter.includes('3')) yearNumber = ' 3';
+                                    else if (selectedYearFilter.includes('الثانية') || selectedYearFilter.includes('2')) yearNumber = ' 2';  
+                                    else if (selectedYearFilter.includes('الأولى') || selectedYearFilter.includes('1')) yearNumber = ' 1';
+                                    else if (selectedYearFilter.includes('الرابعة') || selectedYearFilter.includes('4')) yearNumber = ' 4';
+                                    else if (selectedYearFilter.includes('الخامسة') || selectedYearFilter.includes('5')) yearNumber = ' 5';
+                                  }
+                                  // Otherwise, try to get grade from teaching module
+                                  else if (group.subjectId && teachingModules) {
                                     const module = teachingModules.find((m: any) => m.id === group.subjectId);
                                     if (module && module.grade && module.grade !== 'جميع المستويات') {
-                                      return `${module.grade} ${group.educationLevel}`;
+                                      const grade = module.grade;
+                                      if (grade.includes('الثالثة') || grade.includes('3')) yearNumber = ' 3';
+                                      else if (grade.includes('الثانية') || grade.includes('2')) yearNumber = ' 2';  
+                                      else if (grade.includes('الأولى') || grade.includes('1')) yearNumber = ' 1';
+                                      else if (grade.includes('الرابعة') || grade.includes('4')) yearNumber = ' 4';
+                                      else if (grade.includes('الخامسة') || grade.includes('5')) yearNumber = ' 5';
                                     }
                                   }
                                   
-                                  // Default to just education level
-                                  return levelDisplay;
+                                  return `${levelShort}${yearNumber}`;
                                 })()}
                               </span>
                             </div>
