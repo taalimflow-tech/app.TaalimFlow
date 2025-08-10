@@ -1494,35 +1494,43 @@ export default function Groups() {
                 
                 if (existingGroupsFilter === 'custom') {
                   // Show groups based on custom subjects (subjects created by this school)
-                  // These are subjects that have a schoolId AND are not part of standard curriculum
+                  // These are subjects that have a schoolId (school-specific custom subjects)
                   filteredGroups = adminCreatedGroups.filter(group => {
                     // Find the teaching module for this group
                     const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
                     
                     // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
-                    // BUT exclude standard curriculum subjects like "العربية والرياضيات" which should appear in primary section
-                    if (!teachingModule || !teachingModule.schoolId) return false;
+                    // All subjects with schoolId should appear in custom section
+                    return teachingModule && teachingModule.schoolId;
+                  });
+                } else {
+                  // Show admin groups by education level - include ALL groups for that level
+                  // This includes both standard curriculum subjects and any custom subjects for that level
+                  filteredGroups = adminCreatedGroups.filter(group => {
+                    if (group.educationLevel !== existingGroupsFilter) return false;
                     
-                    // Check if it's a standard curriculum subject that should appear in education level sections
+                    // For education level sections, we want to show:
+                    // 1. All groups without custom subjects (standard curriculum)
+                    // 2. Groups with custom subjects that are standard curriculum subjects
+                    const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
+                    
+                    // If no teaching module or no schoolId, it's a standard subject - show it
+                    if (!teachingModule || !teachingModule.schoolId) return true;
+                    
+                    // If it has schoolId, check if it's a standard curriculum subject
                     const subjectName = (teachingModule.nameAr || teachingModule.name || '').toLowerCase();
                     const standardSubjects = [
                       'العربية والرياضيات', 'عربية', 'رياضيات', 'فرنسية', 'انجليزية', 'علوم',
                       'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء'
                     ];
                     
-                    // If it's a standard subject, it should appear in the education level section, not custom
+                    // If it's a standard subject, show it in education level section even if it has schoolId
                     const isStandardSubject = standardSubjects.some(standard => 
                       subjectName.includes(standard.toLowerCase())
                     );
                     
-                    return !isStandardSubject;
+                    return isStandardSubject;
                   });
-                } else {
-                  // Show admin groups by education level - include ALL groups for that level
-                  // regardless of whether they use custom or standard subjects
-                  filteredGroups = adminCreatedGroups.filter(group => 
-                    group.educationLevel === existingGroupsFilter
-                  );
                   
                   // Apply year filter if selected
                   if (selectedYearFilter) {
