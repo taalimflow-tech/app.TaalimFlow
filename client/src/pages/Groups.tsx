@@ -1494,24 +1494,30 @@ export default function Groups() {
                 
                 if (existingGroupsFilter === 'custom') {
                   // Show groups based on custom subjects (subjects created by this school)
-                  // These are subjects that have a schoolId (school-specific custom subjects)
+                  // These are subjects that have a schoolId AND are not standard curriculum subjects
                   filteredGroups = adminCreatedGroups.filter(group => {
                     // Find the teaching module for this group
                     const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
                     
-                    // Debug logging to understand the data structure
-                    if (teachingModule && teachingModule.schoolId) {
-                      console.log('Custom subject found:', {
-                        groupName: group.name,
-                        subjectName: teachingModule.nameAr || teachingModule.name,
-                        schoolId: teachingModule.schoolId,
-                        educationLevel: group.educationLevel
-                      });
-                    }
-                    
                     // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
-                    // All subjects with schoolId should appear in custom section
-                    return teachingModule && teachingModule.schoolId;
+                    // BUT exclude standard curriculum subjects that should appear in education level sections
+                    if (!teachingModule || !teachingModule.schoolId) return false;
+                    
+                    // Check if it's a standard curriculum subject that should appear in education level sections
+                    const subjectName = (teachingModule.nameAr || teachingModule.name || '').toLowerCase();
+                    const standardSubjects = [
+                      'العربية والرياضيات', 'عربية', 'رياضيات', 'فرنسية', 'انجليزية', 'علوم',
+                      'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء', 'تربية بدنية',
+                      'تربية مدنية', 'تربية فنية', 'موسيقى', 'لغة عربية', 'رياضيات عامة'
+                    ];
+                    
+                    // If it's a standard subject, it should appear in the education level section, not custom
+                    const isStandardSubject = standardSubjects.some(standard => 
+                      subjectName.includes(standard.toLowerCase())
+                    );
+                    
+                    // Only show truly custom subjects (non-standard subjects with schoolId)
+                    return !isStandardSubject;
                   });
                 } else {
                   // Show admin groups by education level - include ALL groups for that level
@@ -1531,7 +1537,8 @@ export default function Groups() {
                     const subjectName = (teachingModule.nameAr || teachingModule.name || '').toLowerCase();
                     const standardSubjects = [
                       'العربية والرياضيات', 'عربية', 'رياضيات', 'فرنسية', 'انجليزية', 'علوم',
-                      'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء'
+                      'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء', 'تربية بدنية',
+                      'تربية مدنية', 'تربية فنية', 'موسيقى', 'لغة عربية', 'رياضيات عامة'
                     ];
                     
                     // If it's a standard subject, show it in education level section even if it has schoolId
