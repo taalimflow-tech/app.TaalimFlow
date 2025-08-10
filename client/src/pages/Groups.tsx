@@ -1336,7 +1336,12 @@ export default function Groups() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setShowCustomSubjectModal(true)}
+                            onClick={() => {
+                              // Pre-fill the custom subject modal with the current selection
+                              setCustomSubjectLevel(selectedLevel);
+                              setCustomSubjectGrade(selectedGrade || '');
+                              setShowCustomSubjectModal(true);
+                            }}
                             className="border-green-300 text-green-600 hover:bg-green-50"
                           >
                             <Plus className="w-4 h-4 mr-2" />
@@ -2109,13 +2114,29 @@ export default function Groups() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowCustomSubjectModal(false)}
+                onClick={() => {
+                  setShowCustomSubjectModal(false);
+                  // Clear form when closing
+                  setCustomSubjectName('');
+                  setCustomSubjectNameAr('');
+                  setCustomSubjectLevel('');
+                  setCustomSubjectGrade('');
+                }}
               >
                 إغلاق
               </Button>
             </div>
             
             <form onSubmit={handleCreateCustomSubject} className="space-y-4">
+              {/* Show info when pre-filled from groups creation */}
+              {customSubjectLevel && customSubjectGrade && (
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-700">
+                    سيتم إنشاء المادة لـ: <strong>{customSubjectLevel} - {customSubjectGrade}</strong>
+                  </p>
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   اسم المادة (بالإنجليزية) *
@@ -2185,7 +2206,14 @@ export default function Groups() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowCustomSubjectModal(false)}
+                  onClick={() => {
+                    setShowCustomSubjectModal(false);
+                    // Clear form when canceling
+                    setCustomSubjectName('');
+                    setCustomSubjectNameAr('');
+                    setCustomSubjectLevel('');
+                    setCustomSubjectGrade('');
+                  }}
                   className="mr-2"
                 >
                   إلغاء
