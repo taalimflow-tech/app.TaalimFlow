@@ -76,7 +76,7 @@ export interface IStorage {
   getGroupsBySchool(schoolId: number): Promise<Group[]>;
   getGroupById(id: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
-  deleteGroup(id: number): Promise<void>;
+  deleteGroup(id: number, schoolId?: number): Promise<void>;
   
   // Admin group management methods
   getAdminGroups(schoolId?: number): Promise<any[]>;
@@ -428,6 +428,31 @@ export class DatabaseStorage implements IStorage {
     role?: string;
     schoolId?: number;
   }): Promise<User[]> {
+    // Build conditions array first
+    const conditions = [];
+
+    // CRITICAL: School ID filter for multi-tenancy data isolation
+    if (filters.schoolId) {
+      conditions.push(eq(users.schoolId, filters.schoolId));
+    }
+
+    // Search filter
+    if (filters.search) {
+      conditions.push(
+        or(
+          ilike(users.name, `%${filters.search}%`),
+          ilike(users.email, `%${filters.search}%`),
+          ilike(users.phone, `%${filters.search}%`)
+        )
+      );
+    }
+
+    // Role filter
+    if (filters.role) {
+      conditions.push(eq(users.role, filters.role));
+    }
+
+    // Create base query with all possible joins upfront
     let query = db.select({
       id: users.id,
       email: users.email,
@@ -453,34 +478,14 @@ export class DatabaseStorage implements IStorage {
       bannedAt: users.bannedAt,
       bannedBy: users.bannedBy,
       createdAt: users.createdAt,
-      student: students,
+      schoolId: users.schoolId,
     })
     .from(users)
     .leftJoin(students, eq(users.id, students.userId))
-    .leftJoin(children, eq(users.id, children.parentId));
-
-    const conditions = [];
-
-    // CRITICAL: School ID filter for multi-tenancy data isolation
-    if (filters.schoolId) {
-      conditions.push(eq(users.schoolId, filters.schoolId));
-    }
-
-    // Search filter
-    if (filters.search) {
-      conditions.push(
-        or(
-          ilike(users.name, `%${filters.search}%`),
-          ilike(users.email, `%${filters.search}%`),
-          ilike(users.phone, `%${filters.search}%`)
-        )
-      );
-    }
-
-    // Role filter
-    if (filters.role) {
-      conditions.push(eq(users.role, filters.role));
-    }
+    .leftJoin(children, eq(users.id, children.parentId))
+    .leftJoin(teacherSpecializations, eq(users.id, teacherSpecializations.teacherId))
+    .leftJoin(teachingModules, eq(teacherSpecializations.moduleId, teachingModules.id))
+    .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId));
 
     // Education level filter (applies to students and children)
     if (filters.educationLevel) {
@@ -494,16 +499,11 @@ export class DatabaseStorage implements IStorage {
 
     // Subject filter (for teacher assignments)
     if (filters.subject) {
-      query = query
-        .leftJoin(teacherSpecializations, eq(users.id, teacherSpecializations.teacherId))
-        .leftJoin(teachingModules, eq(teacherSpecializations.moduleId, teachingModules.id));
       conditions.push(eq(teachingModules.id, filters.subject));
     }
 
     // Assigned teacher filter (for schedule assignments)
     if (filters.assignedTeacher) {
-      query = query
-        .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId));
       conditions.push(eq(scheduleCells.teacherId, filters.assignedTeacher));
     }
 
@@ -961,7 +961,7 @@ export class DatabaseStorage implements IStorage {
     for (const senderId of senderIds) {
       for (const receiverId of receiverIds) {
         messagesToInsert.push({
-          schoolId,
+          schoolId: schoolId!,
           senderId,
           receiverId,
           teacherId, // Use existing teacher ID
@@ -1032,10 +1032,6 @@ export class DatabaseStorage implements IStorage {
     return group;
   }
 
-  async deleteGroup(id: number): Promise<void> {
-    await db.delete(groups).where(eq(groups.id, id));
-  }
-
   // Admin group management methods
   async getAdminGroups(schoolId?: number): Promise<any[]> {
     try {
@@ -1054,7 +1050,16 @@ export class DatabaseStorage implements IStorage {
       
       for (const module of allModules) {
         // Check if there are existing groups for this module
-        let existingGroupsQuery = db
+        const whereConditions = [
+          eq(groups.educationLevel, module.educationLevel),
+          eq(groups.subjectId, module.id)
+        ];
+        
+        if (schoolId) {
+          whereConditions.push(eq(groups.schoolId, schoolId));
+        }
+        
+        const existingGroups = await db
           .select({
             id: groups.id,
             name: groups.name,
@@ -1070,22 +1075,8 @@ export class DatabaseStorage implements IStorage {
           })
           .from(groups)
           .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
-          .leftJoin(users, eq(groups.teacherId, users.id));
-        
-        if (schoolId) {
-          existingGroupsQuery = existingGroupsQuery.where(and(
-            eq(groups.educationLevel, module.educationLevel),
-            eq(groups.subjectId, module.id),
-            eq(groups.schoolId, schoolId)
-          ));
-        } else {
-          existingGroupsQuery = existingGroupsQuery.where(and(
-            eq(groups.educationLevel, module.educationLevel),
-            eq(groups.subjectId, module.id)
-          ));
-        }
-        
-        const existingGroups = await existingGroupsQuery;
+          .leftJoin(users, eq(groups.teacherId, users.id))
+          .where(and(...whereConditions));
         
         if (existingGroups.length === 0) {
           // Create a placeholder group for this subject
@@ -1384,7 +1375,7 @@ export class DatabaseStorage implements IStorage {
     return combinedResults;
   }
 
-  async deleteGroup(groupId: number, schoolId: number): Promise<boolean> {
+  async deleteGroup(groupId: number, schoolId?: number): Promise<void> {
     try {
       // Delete in correct order to respect foreign key constraints
       
@@ -1404,12 +1395,17 @@ export class DatabaseStorage implements IStorage {
       await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, groupId));
       
       // 6. Finally delete the group itself
-      const result = await db
-        .delete(groups)
-        .where(and(eq(groups.id, groupId), eq(groups.schoolId, schoolId)))
-        .returning();
+      if (schoolId) {
+        await db
+          .delete(groups)
+          .where(and(eq(groups.id, groupId), eq(groups.schoolId, schoolId)));
+      } else {
+        await db
+          .delete(groups)
+          .where(eq(groups.id, groupId));
+      }
       
-      return result.length > 0;
+      // Don't return anything for void return type
     } catch (error) {
       console.error('Error deleting group:', error);
       throw error;
@@ -1429,7 +1425,7 @@ export class DatabaseStorage implements IStorage {
   async createFormation(insertFormation: InsertFormation): Promise<Formation> {
     const [formation] = await db
       .insert(formations)
-      .values([insertFormation])
+      .values(insertFormation)
       .returning();
     return formation;
   }
@@ -1441,7 +1437,7 @@ export class DatabaseStorage implements IStorage {
   async createGroupRegistration(insertGroupRegistration: InsertGroupRegistration): Promise<GroupRegistration> {
     const [registration] = await db
       .insert(groupRegistrations)
-      .values([insertGroupRegistration])
+      .values(insertGroupRegistration)
       .returning();
     return registration;
   }
@@ -1449,7 +1445,7 @@ export class DatabaseStorage implements IStorage {
   async createFormationRegistration(insertFormationRegistration: InsertFormationRegistration): Promise<FormationRegistration> {
     const [registration] = await db
       .insert(formationRegistrations)
-      .values([insertFormationRegistration])
+      .values(insertFormationRegistration)
       .returning();
     return registration;
   }
@@ -1473,7 +1469,7 @@ export class DatabaseStorage implements IStorage {
   async createNotification(insertNotification: InsertNotification): Promise<Notification> {
     const [notification] = await db
       .insert(notifications)
-      .values([insertNotification])
+      .values(insertNotification)
       .returning();
     return notification;
   }
