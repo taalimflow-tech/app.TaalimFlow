@@ -1457,6 +1457,34 @@ export default function Groups() {
               ))}
             </div>
 
+            {/* Statistics about available groups */}
+            {existingGroupsFilter && existingGroupsFilter !== 'custom' && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-1">إحصائيات المجموعات:</p>
+                  <p>• إجمالي المجموعات في {existingGroupsFilter}: {adminGroups.filter(g => !g.isPlaceholder && g.educationLevel === existingGroupsFilter).length}</p>
+                  {(() => {
+                    const groupsInLevel = adminGroups.filter(g => !g.isPlaceholder && g.educationLevel === existingGroupsFilter);
+                    const groupsByGrade: Record<string, number> = {};
+                    
+                    groupsInLevel.forEach(group => {
+                      if (group.subjectId && teachingModules) {
+                        const module = teachingModules.find((m: any) => m.id === group.subjectId);
+                        if (module) {
+                          const grade = module.grade || 'غير محدد';
+                          groupsByGrade[grade] = (groupsByGrade[grade] || 0) + 1;
+                        }
+                      }
+                    });
+                    
+                    return Object.entries(groupsByGrade).map(([grade, count]) => (
+                      <p key={grade}>• {grade}: {count} مجموعة</p>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
+
             {/* Year Level Filter - Only show for specific education levels */}
             {existingGroupsFilter && existingGroupsFilter !== 'custom' && (
               <div className="mb-6">
@@ -1536,7 +1564,7 @@ export default function Groups() {
                     group.educationLevel === existingGroupsFilter
                   );
                   
-                  // Apply year filter if selected - STRICT FILTERING
+                  // Apply year filter if selected
                   if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
                       // Check teaching module's grade field
@@ -1547,10 +1575,10 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
-                          // Handle "جميع المستويات" subjects properly
+                          // Handle "جميع المستويات" subjects - they apply to all years
                           if (moduleGrade === 'جميع المستويات') {
-                            // "جميع المستويات" subjects should only appear when no year filter is selected
-                            return false;
+                            // These groups are suitable for all years within the education level
+                            return true;
                           }
                           
                           // Direct match with the selected year
