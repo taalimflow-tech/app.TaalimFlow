@@ -1,0 +1,32 @@
+SW registered:  [object ServiceWorkerRegistration]
+firebase.ts:31 Firebase initialized successfully
+84001753-cd9f-49eb-88d4-ad6f08b9e298-00-jxknonh67ydg.worf.replit.dev/api/auth/me:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+84001753-cd9f-49eb-88d4-ad6f08b9e298-00-jxknonh67ydg.worf.replit.dev/api/auth/me:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+VM1327 home:7 SW registered:  ServiceWorkerRegistration
+firebase.ts:31 Firebase initialized successfully
+Groups.tsx:1500 DEBUG: All admin groups for custom filter: Array(0)
+Groups.tsx:1548 DEBUG: Final filtered custom groups: 0 Array(0)
+Groups.tsx:1500 DEBUG: All admin groups for custom filter: Array(0)
+Groups.tsx:1548 DEBUG: Final filtered custom groups: 0 Array(0)
+Groups.tsx:1500 DEBUG: All admin groups for custom filter: Array(0)
+Groups.tsx:1548 DEBUG: Final filtered custom groups: 0 Array(0)
+Groups.tsx:1500 DEBUG: All admin groups for custom filter: Array(0)
+Groups.tsx:1548 DEBUG: Final filtered custom groups: 0 Array(0)
+Groups.tsx:1500 DEBUG: All admin groups for custom filter: Array(3)
+Groups.tsx:1511 DEBUG: Checking group "مجموعة للاساقست" (ID: 3) with subjectId 71: Object
+Groups.tsx:1522 DEBUG: Group "مجموعة للاساقست" EXCLUDED: No teaching module or no schoolId
+Groups.tsx:1511 DEBUG: Checking group "مجموعة ascacasc" (ID: 4) with subjectId 80: Object
+Groups.tsx:1522 DEBUG: Group "مجموعة ascacasc" EXCLUDED: No teaching module or no schoolId
+Groups.tsx:1511 DEBUG: Checking group "مجموعة العربية والرياضيات" (ID: 2) with subjectId 35: Object
+Groups.tsx:1539 DEBUG: Group "مجموعة العربية والرياضيات" subject name: "العربية والرياضيات", isStandardSubject: true
+Groups.tsx:1543 DEBUG: Group "مجموعة العربية والرياضيات" EXCLUDED in custom groups
+Groups.tsx:1548 DEBUG: Final filtered custom groups: 0 Array(0)
+Groups.tsx:1500 DEBUG: All admin groups for custom filter: Array(3)
+Groups.tsx:1511 DEBUG: Checking group "مجموعة للاساقست" (ID: 3) with subjectId 71: Object
+Groups.tsx:1522 DEBUG: Group "مجموعة للاساقست" EXCLUDED: No teaching module or no schoolId
+Groups.tsx:1511 DEBUG: Checking group "مجموعة ascacasc" (ID: 4) with subjectId 80: Object
+Groups.tsx:1522 DEBUG: Group "مجموعة ascacasc" EXCLUDED: No teaching module or no schoolId
+Groups.tsx:1511 DEBUG: Checking group "مجموعة العربية والرياضيات" (ID: 2) with subjectId 35: Object
+Groups.tsx:1539 DEBUG: Group "مجموعة العربية والرياضيات" subject name: "العربية والرياضيات", isStandardSubject: true
+Groups.tsx:1543 DEBUG: Group "مجموعة العربية والرياضيات" EXCLUDED in custom groups
+Groups.tsx:1548 DEBUG: Final filtered custom groups: 0 Array(0)

@@ -1496,12 +1496,19 @@ export default function Groups() {
                   // Show groups based on custom subjects (subjects created by this school)
                   // These are subjects that have a schoolId AND are not standard curriculum subjects
                   
-                  // Debug: Log all admin groups
+                  // Debug: Log all admin groups and available teaching modules
                   console.log('DEBUG: All admin groups for custom filter:', adminCreatedGroups.map(g => ({
                     id: g.id,
                     name: g.name,
                     subjectId: g.subjectId,
                     educationLevel: g.educationLevel
+                  })));
+                  
+                  console.log('DEBUG: Available teaching modules:', teachingModules?.map(m => ({
+                    id: m.id,
+                    name: m.name,
+                    nameAr: m.nameAr,
+                    schoolId: m.schoolId
                   })));
                   
                   filteredGroups = adminCreatedGroups.filter(group => {
