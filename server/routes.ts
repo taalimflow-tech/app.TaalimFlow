@@ -1843,15 +1843,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "اسم المادة والمستوى التعليمي مطلوبان" });
       }
       
-      // Check if custom subject already exists for the specific education level
+      const schoolId = req.session.user.schoolId;
+      
+      // Check if custom subject already exists for the specific education level in this school
       if (educationLevel !== 'جميع المستويات') {
-        const existingSubject = await storage.getTeachingModuleByName(nameAr, educationLevel);
+        const existingSubject = await storage.getTeachingModuleByName(nameAr, educationLevel, schoolId);
         if (existingSubject) {
           return res.status(400).json({ error: "المادة موجودة بالفعل لهذا المستوى" });
         }
       } else {
-        // For "جميع المستويات", check if it exists across all levels
-        const existingSubject = await storage.getTeachingModuleByNameAllLevels(nameAr);
+        // For "جميع المستويات", check if it exists across all levels in this school
+        const existingSubject = await storage.getTeachingModuleByNameAllLevels(nameAr, schoolId);
         if (existingSubject) {
           return res.status(400).json({ error: "المادة موجودة بالفعل" });
         }
@@ -1868,7 +1870,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             nameAr,
             educationLevel: level,
             grade: grade || undefined,
-            description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة - متاحة لجميع المستويات`
+            description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة - متاحة لجميع المستويات`,
+            schoolId
           });
           createdSubjects.push(customSubject);
         }
@@ -1879,7 +1882,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nameAr,
           educationLevel,
           grade: grade || undefined,
-          description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة`
+          description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة`,
+          schoolId
         });
         createdSubjects.push(customSubject);
       }
