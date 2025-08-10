@@ -1547,10 +1547,10 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
-                          // FIXED: "جميع المستويات" subjects should appear for ALL year selections within the same education level
+                          // Handle "جميع المستويات" subjects properly
                           if (moduleGrade === 'جميع المستويات') {
-                            // Always show "جميع المستويات" subjects when a year is selected within the same education level
-                            return true;
+                            // "جميع المستويات" subjects should only appear when no year filter is selected
+                            return false;
                           }
                           
                           // Direct match with the selected year
