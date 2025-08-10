@@ -1499,12 +1499,26 @@ export default function Groups() {
                     // Find the teaching module for this group
                     const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
                     
+                    // Debug logging
+                    console.log('Custom filter - Group:', group.name, 'Subject ID:', group.subjectId);
+                    console.log('Teaching Module:', teachingModule);
+                    
                     // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
-                    // BUT exclude standard curriculum subjects like "العربية والرياضيات" which should appear in primary section
-                    if (!teachingModule || !teachingModule.schoolId) return false;
+                    if (!teachingModule) {
+                      console.log('No teaching module found');
+                      return false;
+                    }
+                    
+                    // Check if it has schoolId (school-specific subject)
+                    if (!teachingModule.schoolId) {
+                      console.log('Teaching module has no schoolId - standard subject');
+                      return false;
+                    }
                     
                     // Check if it's a standard curriculum subject that should appear in education level sections
                     const subjectName = (teachingModule.nameAr || teachingModule.name || '').toLowerCase();
+                    console.log('Subject name for filtering:', subjectName);
+                    
                     const standardSubjects = [
                       'العربية والرياضيات', 'عربية', 'رياضيات', 'فرنسية', 'انجليزية', 'علوم',
                       'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء'
@@ -1515,7 +1529,11 @@ export default function Groups() {
                       subjectName.includes(standard.toLowerCase())
                     );
                     
-                    return !isStandardSubject;
+                    console.log('Is standard subject?', isStandardSubject);
+                    const shouldInclude = !isStandardSubject;
+                    console.log('Should include in custom?', shouldInclude);
+                    
+                    return shouldInclude;
                   });
                 } else {
                   // Show admin groups by education level - include ALL groups for that level
