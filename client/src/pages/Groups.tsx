@@ -1499,6 +1499,16 @@ export default function Groups() {
                     // Find the teaching module for this group
                     const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
                     
+                    // Debug logging to understand the data structure
+                    if (teachingModule && teachingModule.schoolId) {
+                      console.log('Custom subject found:', {
+                        groupName: group.name,
+                        subjectName: teachingModule.nameAr || teachingModule.name,
+                        schoolId: teachingModule.schoolId,
+                        educationLevel: group.educationLevel
+                      });
+                    }
+                    
                     // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
                     // All subjects with schoolId should appear in custom section
                     return teachingModule && teachingModule.schoolId;
