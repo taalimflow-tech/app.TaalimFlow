@@ -1534,9 +1534,10 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
-                          // STRICT: "جميع المستويات" subjects should NOT appear for specific years
+                          // FIXED: "جميع المستويات" subjects should appear for ALL year selections within the same education level
                           if (moduleGrade === 'جميع المستويات') {
-                            return false;
+                            // Always show "جميع المستويات" subjects when a year is selected within the same education level
+                            return true;
                           }
                           
                           // Direct match with the selected year
@@ -1598,74 +1599,14 @@ export default function Groups() {
                         <CardContent className="p-4">
                           <div className="space-y-3">
                             {/* Level + Year Badge */}
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-start">
                               <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
                                 {levelDisplay}
                               </span>
-                              {/* Subject Grade Info Badge */}
-                              {(() => {
-                                if (group.subjectId && teachingModules) {
-                                  const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
-                                  if (teachingModule && teachingModule.grade) {
-                                    const gradeColor = teachingModule.grade === 'جميع المستويات' 
-                                      ? 'bg-orange-100 text-orange-700' 
-                                      : 'bg-teal-100 text-teal-700';
-                                    return (
-                                      <span className={`text-xs px-2 py-1 rounded-full ${gradeColor}`}>
-                                        {teachingModule.grade}
-                                      </span>
-                                    );
-                                  }
-                                }
-                                return null;
-                              })()}
                             </div>
                             
                             {/* Title */}
                             <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName}</h3>
-                            
-                            {/* Subject Details */}
-                            {(() => {
-                              if (group.subjectId && teachingModules) {
-                                const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
-                                if (teachingModule) {
-                                  return (
-                                    <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                                      <div><strong>المادة:</strong> {teachingModule.nameAr || teachingModule.name}</div>
-                                      <div><strong>نطاق التدريس:</strong> {teachingModule.grade || 'غير محدد'}</div>
-                                      {teachingModule.schoolId ? (
-                                        <div><strong>النوع:</strong> مادة مخصصة</div>
-                                      ) : (
-                                        <div><strong>النوع:</strong> مادة أساسية</div>
-                                      )}
-                                    </div>
-                                  );
-                                }
-                              }
-                              return null;
-                            })()}
-                            
-                            {/* Filtering Debug Info */}
-                            {selectedYearFilter && (
-                              <div className="text-xs bg-blue-50 border border-blue-200 p-2 rounded">
-                                <div className="text-blue-700">
-                                  <strong>فلتر السنة النشط:</strong> {selectedYearFilter}
-                                </div>
-                                {(() => {
-                                  if (group.subjectId && teachingModules) {
-                                    const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
-                                    if (teachingModule && teachingModule.grade === 'جميع المستويات') {
-                                      return (
-                                        <div className="text-orange-600 mt-1">
-                                          💡 هذه المجموعة لجميع المستويات - تظهر فقط عند اختيار "جميع السنوات"
-                                        </div>
-                                      );
-                                    }
-                                  }
-                                  return null;
-                                })()}
-                              </div>
-                            )}
                             
                             {/* Teacher */}
                             <div className="text-sm text-gray-600">
