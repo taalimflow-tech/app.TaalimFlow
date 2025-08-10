@@ -1554,8 +1554,8 @@ export default function Groups() {
                     return isStandardSubject;
                   });
                   
-                  // Apply year filter if selected
-                  if (selectedYearFilter) {
+                  // Apply year filter if selected (but not for "جميع المستويات")
+                  if (selectedYearFilter && existingGroupsFilter !== 'جميع المستويات') {
                     filteredGroups = filteredGroups.filter(group => {
                       // Check if any assigned student has the selected grade level
                       return group.studentsAssigned && group.studentsAssigned.some((student: any) => 
