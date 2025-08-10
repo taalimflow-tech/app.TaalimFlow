@@ -1647,22 +1647,20 @@ export default function Groups() {
                             {/* Level + Year Badge */}
                             <div className="flex justify-start gap-2">
                               <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
-                                {levelDisplay}
-                              </span>
-                              {(() => {
-                                if (group.subjectId && teachingModules) {
-                                  const module = teachingModules.find((m: any) => m.id === group.subjectId);
-                                  // Only show grade badge if it's NOT "جميع المستويات" (since that's redundant with education level)
-                                  if (module && module.grade && module.grade !== 'جميع المستويات') {
-                                    return (
-                                      <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">
-                                        {module.grade}
-                                      </span>
-                                    );
+                                {(() => {
+                                  // If we have a specific grade selected and this group has that grade, show level + year
+                                  if (selectedGrade && group.subjectId && teachingModules) {
+                                    const module = teachingModules.find((m: any) => m.id === group.subjectId);
+                                    if (module && module.grade && module.grade !== 'جميع المستويات') {
+                                      // Show combined education level + specific year
+                                      return `${selectedGrade} ${group.educationLevel}`;
+                                    }
                                   }
-                                }
-                                return null;
-                              })()}
+                                  
+                                  // Default to just education level
+                                  return levelDisplay;
+                                })()}
+                              </span>
                             </div>
                             
                             {/* Title */}
