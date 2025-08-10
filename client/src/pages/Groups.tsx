@@ -1493,13 +1493,16 @@ export default function Groups() {
                 const adminCreatedGroups = adminGroups.filter(group => !group.isPlaceholder);
                 
                 if (existingGroupsFilter === 'custom') {
-                  // Show groups that are truly "custom" - those that don't fit into standard education levels
-                  // Even if a subject was created as custom, if it belongs to a standard education level,
-                  // it should appear in that level's section, not in the custom section
+                  // Show groups based on custom subjects (subjects created by this school)
+                  // These are subjects that have a schoolId (school-specific) rather than being global curriculum subjects
                   filteredGroups = adminCreatedGroups.filter(group => {
-                    // A group is "custom" only if it doesn't belong to standard education levels
-                    // This ensures that subjects created for specific levels appear in their proper sections
-                    return group.educationLevel && !['الابتدائي', 'المتوسط', 'الثانوي'].includes(group.educationLevel);
+                    // Find the teaching module for this group
+                    const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
+                    
+                    // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
+                    // This allows users to see all groups they created using custom subjects,
+                    // regardless of education level
+                    return teachingModule && teachingModule.schoolId;
                   });
                 } else {
                   // Show admin groups by education level - only admin-created groups
