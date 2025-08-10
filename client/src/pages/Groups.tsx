@@ -1534,10 +1534,9 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
-                          // STRICT FILTERING: "جميع المستويات" subjects should NOT appear when specific year is selected
-                          // They should only appear when "جميع السنوات" is selected (selectedYearFilter is empty)
+                          // STRICT: "جميع المستويات" subjects should NOT appear for specific years
                           if (moduleGrade === 'جميع المستويات') {
-                            return false; // Hide "جميع المستويات" subjects when specific year is selected
+                            return false;
                           }
                           
                           // Direct match with the selected year
@@ -1547,7 +1546,6 @@ export default function Groups() {
                           
                           // For specialization subjects, map them to appropriate years
                           if (existingGroupsFilter === 'الثانوي') {
-                            // Most specializations are for 3rd year secondary
                             const isThirdYearSpecialization = [
                               'تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي',
                               'آداب وفلسفة', 'لغات أجنبية'
