@@ -1526,22 +1526,42 @@ export default function Groups() {
                   // Apply year filter if selected
                   if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
-                      // Check if the group is intended for this specific year level
-                      // Look in group name, description, or teaching module information
-                      const groupText = `${group.name} ${group.description || ''}`.toLowerCase();
-                      const selectedYear = selectedYearFilter.toLowerCase();
-                      
-                      // Check if group name/description contains the selected year
-                      if (groupText.includes(selectedYear)) {
-                        return true;
-                      }
-                      
-                      // Check teaching module information
+                      // Check teaching module's grade field
                       if (group.subjectId && teachingModules) {
                         const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
                         if (teachingModule) {
-                          const moduleText = `${teachingModule.name || ''} ${teachingModule.nameAr || ''} ${teachingModule.grade || ''}`.toLowerCase();
-                          if (moduleText.includes(selectedYear)) {
+                          const moduleGrade = teachingModule.grade || '';
+                          
+                          // If the module is for "جميع المستويات", show it for all year selections
+                          if (moduleGrade === 'جميع المستويات') {
+                            return true;
+                          }
+                          
+                          // Check for specific year matches
+                          const selectedYear = selectedYearFilter.toLowerCase();
+                          const moduleGradeLower = moduleGrade.toLowerCase();
+                          
+                          // Direct match with the selected year
+                          if (moduleGradeLower.includes(selectedYear)) {
+                            return true;
+                          }
+                          
+                          // For specialization subjects, map them to appropriate years
+                          if (existingGroupsFilter === 'الثانوي') {
+                            // Most specializations are for 3rd year secondary
+                            const isThirdYearSpecialization = [
+                              'تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي',
+                              'آداب وفلسفة', 'لغات أجنبية'
+                            ].some(spec => moduleGradeLower.includes(spec.toLowerCase()));
+                            
+                            if (isThirdYearSpecialization && selectedYear.includes('الثالثة ثانوي')) {
+                              return true;
+                            }
+                          }
+                          
+                          // Check if group name/description contains the selected year (fallback)
+                          const groupText = `${group.name} ${group.description || ''}`.toLowerCase();
+                          if (groupText.includes(selectedYear)) {
                             return true;
                           }
                         }
