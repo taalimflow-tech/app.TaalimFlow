@@ -1523,7 +1523,7 @@ export default function Groups() {
                     group.educationLevel === existingGroupsFilter
                   );
                   
-                  // Apply year filter if selected
+                  // Apply year filter if selected - STRICT FILTERING
                   if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
                       // Check teaching module's grade field
@@ -1531,15 +1531,14 @@ export default function Groups() {
                         const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
                         if (teachingModule) {
                           const moduleGrade = teachingModule.grade || '';
-                          
-                          // If the module is for "جميع المستويات", show it for all year selections
-                          if (moduleGrade === 'جميع المستويات') {
-                            return true;
-                          }
-                          
-                          // Check for specific year matches
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
+                          
+                          // STRICT FILTERING: "جميع المستويات" subjects should NOT appear when specific year is selected
+                          // They should only appear when "جميع السنوات" is selected (selectedYearFilter is empty)
+                          if (moduleGrade === 'جميع المستويات') {
+                            return false; // Hide "جميع المستويات" subjects when specific year is selected
+                          }
                           
                           // Direct match with the selected year
                           if (moduleGradeLower.includes(selectedYear)) {
