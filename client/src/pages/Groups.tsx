@@ -1584,6 +1584,17 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
+                          // DEBUG: Log filtering decision
+                          console.log('[FILTER DEBUG]', {
+                            groupName: group.name,
+                            subjectId: group.subjectId,
+                            subjectName: teachingModule.name,
+                            moduleGrade,
+                            selectedYear: selectedYearFilter,
+                            moduleGradeLower,
+                            selectedYearLower: selectedYear
+                          });
+                          
                           // Handle year-specific matching
                           if (moduleGrade !== 'جميع المستويات') {
                             // For subjects with specific grades/years, do exact matching
