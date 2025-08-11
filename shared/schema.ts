@@ -318,8 +318,17 @@ export const teachingModules = pgTable("teaching_modules", {
   name: text("name").notNull(),
   nameAr: text("name_ar").notNull(), // Arabic name
   educationLevel: text("education_level").notNull(), // الابتدائي، المتوسط، الثانوي
-  grade: text("grade"), // Optional - specific grade within level
+  grade: text("grade"), // Optional - DEPRECATED: use module_years table instead
   description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ChatGPT's solution: Separate mapping table for module-year relationships
+// This prevents subject duplication and keeps the database clean
+export const moduleYears = pgTable("module_years", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").references(() => teachingModules.id, { onDelete: "cascade" }).notNull(),
+  grade: text("grade").notNull(), // السنة الأولى ابتدائي, السنة الثانية ابتدائي, جميع المستويات, etc.
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -598,8 +607,13 @@ export const insertTeachingModuleSchema = createInsertSchema(teachingModules).pi
   name: true,
   nameAr: true,
   educationLevel: true,
-  grade: true,
+  grade: true, // DEPRECATED: use moduleYears table instead
   description: true,
+});
+
+export const insertModuleYearSchema = createInsertSchema(moduleYears).pick({
+  moduleId: true,
+  grade: true,
 });
 
 export const insertTeacherSpecializationSchema = createInsertSchema(teacherSpecializations).pick({

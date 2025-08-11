@@ -2390,6 +2390,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ChatGPT's solution: New API endpoints for module-year mapping
+  app.get("/api/modules-with-years", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const modules = await storage.getModulesWithYears(req.session.user.schoolId);
+      res.json(modules);
+    } catch (error) {
+      console.error("Error getting modules with years:", error);
+      res.status(500).json({ error: "خطأ في جلب المواد والسنوات" });
+    }
+  });
+
+  app.post("/api/admin/module-years", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "غير مصرح لك بهذا الإجراء" });
+      }
+
+      const { moduleId, grade } = req.body;
+      await storage.createModuleYear(moduleId, grade);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error creating module year:", error);
+      res.status(500).json({ error: "خطأ في ربط المادة بالسنة" });
+    }
+  });
+
   // Teacher specialization routes
   app.get("/api/teacher-specializations/:teacherId", async (req, res) => {
     try {

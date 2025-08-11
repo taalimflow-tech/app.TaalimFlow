@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, moduleYears, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray, isNull } from "drizzle-orm";
 
@@ -141,6 +141,11 @@ export interface IStorage {
   getTeachingModuleByNameAllLevels(nameAr: string): Promise<any | undefined>;
   getTeachingModuleByNameAndGrade(nameAr: string, educationLevel: string, grade: string): Promise<any | undefined>;
   createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string }): Promise<any>;
+  
+  // ChatGPT's solution: Module Years mapping methods
+  getModuleYears(moduleId: number): Promise<string[]>;
+  createModuleYear(moduleId: number, grade: string): Promise<void>;
+  getModulesWithYears(schoolId?: number): Promise<any[]>;
   
   // Teacher specialization methods
   getTeacherSpecializations(teacherId: number): Promise<TeacherSpecialization[]>;
@@ -1791,6 +1796,43 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeachingModule(id: number): Promise<void> {
     await db.delete(teachingModules).where(eq(teachingModules.id, id));
+  }
+
+  // ChatGPT's solution: Module Years mapping methods
+  async getModuleYears(moduleId: number): Promise<string[]> {
+    const years = await db
+      .select()
+      .from(moduleYears)
+      .where(eq(moduleYears.moduleId, moduleId));
+    return years.map(y => y.grade);
+  }
+
+  async createModuleYear(moduleId: number, grade: string): Promise<void> {
+    await db.insert(moduleYears).values({ moduleId, grade });
+  }
+
+  async getModulesWithYears(schoolId?: number): Promise<any[]> {
+    const modules = await db
+      .select()
+      .from(teachingModules)
+      .where(schoolId ? 
+        or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)) :
+        isNull(teachingModules.schoolId)
+      )
+      .orderBy(teachingModules.educationLevel, teachingModules.name);
+
+    // Get years for each module
+    const modulesWithYears = await Promise.all(
+      modules.map(async (module) => {
+        const years = await this.getModuleYears(module.id);
+        return {
+          ...module,
+          years
+        };
+      })
+    );
+
+    return modulesWithYears;
   }
 
   // Teacher specialization methods
