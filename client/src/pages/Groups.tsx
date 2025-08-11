@@ -1584,34 +1584,35 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
-                          // Direct match with the selected year
-                          if (moduleGradeLower.includes(selectedYear)) {
-                            return true;
-                          }
-                          
-                          // Handle "جميع المستويات" subjects - SHOW them for all year selections
-                          // These are general curriculum subjects that apply to all years within the education level
-                          if (moduleGrade === 'جميع المستويات') {
-                            return true; // Always show general curriculum subjects regardless of year filter
-                          }
-                          
-                          // For specialization subjects, map them to appropriate years
-                          if (existingGroupsFilter === 'الثانوي') {
-                            const isThirdYearSpecialization = [
-                              'تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي',
-                              'آداب وفلسفة', 'لغات أجنبية'
-                            ].some(spec => moduleGradeLower.includes(spec.toLowerCase()));
+                          // Handle year-specific matching
+                          if (moduleGrade !== 'جميع المستويات') {
+                            // For subjects with specific grades/years, do exact matching
                             
-                            if (isThirdYearSpecialization && selectedYear.includes('الثالثة ثانوي')) {
+                            // Direct text matching for custom year-specific subjects
+                            if (moduleGradeLower.includes(selectedYear)) {
                               return true;
                             }
-                          }
-                          
-                          // Check if group name/description contains the selected year (fallback)
-                          const groupText = `${group.name} ${group.description || ''}`.toLowerCase();
-                          if (groupText.includes(selectedYear)) {
+                            
+                            // Map secondary specializations to 3rd year
+                            if (existingGroupsFilter === 'الثانوي' && selectedYear.includes('الثالثة ثانوي')) {
+                              const isThirdYearSpec = [
+                                'تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي',
+                                'آداب وفلسفة', 'لغات أجنبية'
+                              ].some(spec => moduleGradeLower.includes(spec.toLowerCase()));
+                              
+                              if (isThirdYearSpec) {
+                                return true;
+                              }
+                            }
+                            
+                            // If none of the above match, hide the group for this year filter
+                            return false;
+                          } else {
+                            // Handle "جميع المستويات" subjects - legacy curriculum subjects
+                            // These appear for all year selections (backward compatibility)
                             return true;
                           }
+
                         }
                       }
                       
