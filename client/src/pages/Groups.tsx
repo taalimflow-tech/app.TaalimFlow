@@ -964,7 +964,7 @@ export default function Groups() {
     }
   };
 
-  // Simple level and year format with gender
+  // Simple level and year format using ChatGPT's clean architecture
   const getSimpleLevelFormat = (group: any): string => {
     const level = group.educationLevel;
     let levelShort = '';
@@ -974,80 +974,100 @@ export default function Groups() {
     else if (level === 'الابتدائي') levelShort = 'ابتدائي';
     else return level;
     
-    let yearNumber = '';
+    let yearNumbers = '';
     
-    // Get grade from the teaching module (the subject's intrinsic year)
+    // ChatGPT's solution: Use module-years mapping to show specific years
     if (group.subjectId && teachingModules) {
       const subject = teachingModules.find((s: any) => s.id === group.subjectId);
-      if (subject && subject.grade && subject.grade !== 'جميع المستويات') {
-        const grade = subject.grade;
-        
-        // Extract year number from the teaching module's grade (subject's actual year)
-        if (grade.includes('الثالثة') || grade.includes('3')) yearNumber = ' 3';
-        else if (grade.includes('الثانية') || grade.includes('2')) yearNumber = ' 2';  
-        else if (grade.includes('الأولى') || grade.includes('1')) yearNumber = ' 1';
-        else if (grade.includes('الرابعة') || grade.includes('4')) yearNumber = ' 4';
-        else if (grade.includes('الخامسة') || grade.includes('5')) yearNumber = ' 5';
-      } else if (subject && subject.grade === 'جميع المستويات') {
-        // For legacy curriculum subjects, don't show year numbers - they are general
-        yearNumber = '';
+      if (subject) {
+        // If the subject uses ChatGPT's module-years mapping, check if we have the years data
+        if (subject.years && Array.isArray(subject.years) && subject.years.length > 0) {
+          // Extract year numbers from the mapped years
+          const years = subject.years
+            .filter((year: string) => year !== 'جميع المستويات')
+            .map((year: string) => {
+              if (year.includes('الثالثة') || year.includes('3')) return '3';
+              else if (year.includes('الثانية') || year.includes('2')) return '2';  
+              else if (year.includes('الأولى') || year.includes('1')) return '1';
+              else if (year.includes('الرابعة') || year.includes('4')) return '4';
+              else if (year.includes('الخامسة') || year.includes('5')) return '5';
+              return null;
+            })
+            .filter(Boolean)
+            .sort();
+          
+          if (years.length === 1) {
+            yearNumbers = ` ${years[0]}`;
+          } else if (years.length > 1) {
+            yearNumbers = ` ${years.join(',')}`;
+          }
+        }
+        // Fall back to legacy grade field if no module-years mapping
+        else if (subject.grade && subject.grade !== 'جميع المستويات') {
+          const grade = subject.grade;
+          if (grade.includes('الثالثة') || grade.includes('3')) yearNumbers = ' 3';
+          else if (grade.includes('الثانية') || grade.includes('2')) yearNumbers = ' 2';  
+          else if (grade.includes('الأولى') || grade.includes('1')) yearNumbers = ' 1';
+          else if (grade.includes('الرابعة') || grade.includes('4')) yearNumbers = ' 4';
+          else if (grade.includes('الخامسة') || grade.includes('5')) yearNumbers = ' 5';
+        }
       }
     }
     
     // If no teaching module or grade, try to infer from subject specialization
-    if (!yearNumber) {
+    if (!yearNumbers) {
       const subjectName = (group.nameAr || group.subjectName || '').toLowerCase();
       
       if (level === 'الثانوي') {
         // 3rd year secondary specializations
         if (subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت') || subjectName.includes('تسيير')) {
-          yearNumber = ' 3';
+          yearNumbers = ' 3';
         }
         else if (subjectName.includes('هندسة') || subjectName.includes('تقني')) {
-          yearNumber = ' 3';
+          yearNumbers = ' 3';
         }
         else if (subjectName.includes('علوم طبيعية') || subjectName.includes('فيزياء') || subjectName.includes('كيمياء') || subjectName.includes('أحياء')) {
-          yearNumber = ' 3';
+          yearNumbers = ' 3';
         }
         else if (subjectName.includes('رياضيات') || subjectName.includes('رياضة')) {
-          yearNumber = ' 3';
+          yearNumbers = ' 3';
         }
         else if (subjectName.includes('آداب') || subjectName.includes('فلسفة') || subjectName.includes('تاريخ وجغرافيا')) {
-          yearNumber = ' 3';
+          yearNumbers = ' 3';
         }
         else if (subjectName.includes('لغات أجنبية') || subjectName.includes('إنجليزية') || subjectName.includes('فرنسية')) {
-          yearNumber = ' 3';
+          yearNumbers = ' 3';
         }
       }
       
       if (level === 'المتوسط') {
         // Most middle school subjects span years 1-4, but some are more specific
         if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
-          yearNumber = ' 4'; // History/Geography intensifies in 4th year
+          yearNumbers = ' 4'; // History/Geography intensifies in 4th year
         }
         else if (subjectName.includes('فيزياء') || subjectName.includes('علوم طبيعية')) {
-          yearNumber = ' 4'; // Sciences in 4th year
+          yearNumbers = ' 4'; // Sciences in 4th year
         }
       }
       
       if (level === 'الابتدائي') {
         if (subjectName.includes('علوم') || subjectName.includes('طبيعة')) {
-          yearNumber = ' 5'; // Sciences mainly in 5th year
+          yearNumbers = ' 5'; // Sciences mainly in 5th year
         }
         else if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
-          yearNumber = ' 4'; // Social studies in 4th-5th year
+          yearNumbers = ' 4'; // Social studies in 4th-5th year
         }
       }
       
       // Fallback: try to extract year number from group name/description
-      if (!yearNumber) {
+      if (!yearNumbers) {
         const text = `${group.name || ''} ${group.description || ''}`;
         
-        if (text.includes('الثالثة') || text.includes('3')) yearNumber = ' 3';
-        else if (text.includes('الثانية') || text.includes('2')) yearNumber = ' 2';  
-        else if (text.includes('الأولى') || text.includes('1')) yearNumber = ' 1';
-        else if (text.includes('الرابعة') || text.includes('4')) yearNumber = ' 4';
-        else if (text.includes('الخامسة') || text.includes('5')) yearNumber = ' 5';
+        if (text.includes('الثالثة') || text.includes('3')) yearNumbers = ' 3';
+        else if (text.includes('الثانية') || text.includes('2')) yearNumbers = ' 2';  
+        else if (text.includes('الأولى') || text.includes('1')) yearNumbers = ' 1';
+        else if (text.includes('الرابعة') || text.includes('4')) yearNumbers = ' 4';
+        else if (text.includes('الخامسة') || text.includes('5')) yearNumbers = ' 5';
       }
     }
     
@@ -1059,7 +1079,7 @@ export default function Groups() {
       else if (group.gender === 'mixed') genderText = ' - مختلط';
     }
     
-    const result = `${levelShort}${yearNumber}${genderText}`;
+    const result = `${levelShort}${yearNumbers}${genderText}`;
     return result;
   };
 
