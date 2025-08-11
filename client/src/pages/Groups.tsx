@@ -976,13 +976,9 @@ export default function Groups() {
     
     let yearNumber = '';
     
-    // Debug log
-    console.log('[DEBUG Badge] Group:', group.name, 'SubjectId:', group.subjectId, 'TeachingModules available:', !!teachingModules, 'Count:', teachingModules?.length);
-    
-    // ALWAYS try to get grade from the teaching module first (the subject's intrinsic year)
+    // Get grade from the teaching module (the subject's intrinsic year)
     if (group.subjectId && teachingModules) {
       const subject = teachingModules.find((s: any) => s.id === group.subjectId);
-      console.log('[DEBUG Badge] Found subject:', subject?.name, 'Grade:', subject?.grade);
       if (subject && subject.grade && subject.grade !== 'جميع المستويات') {
         const grade = subject.grade;
         
@@ -992,19 +988,10 @@ export default function Groups() {
         else if (grade.includes('الأولى') || grade.includes('1')) yearNumber = ' 1';
         else if (grade.includes('الرابعة') || grade.includes('4')) yearNumber = ' 4';
         else if (grade.includes('الخامسة') || grade.includes('5')) yearNumber = ' 5';
-        
-        console.log('[DEBUG Badge] Using subject grade:', grade, 'Year number:', yearNumber);
+      } else if (subject && subject.grade === 'جميع المستويات') {
+        // For legacy curriculum subjects, don't show year numbers - they are general
+        yearNumber = '';
       }
-    }
-    
-    // Only fallback to filter if the subject has no specific grade (legacy subjects)
-    if (!yearNumber && selectedYearFilter && selectedYearFilter !== '' && selectedYearFilter !== 'جميع المستويات') {
-      console.log('[DEBUG Badge] Fallback to selectedYearFilter:', selectedYearFilter);
-      if (selectedYearFilter.includes('الثالثة') || selectedYearFilter.includes('3')) yearNumber = ' 3';
-      else if (selectedYearFilter.includes('الثانية') || selectedYearFilter.includes('2')) yearNumber = ' 2';  
-      else if (selectedYearFilter.includes('الأولى') || selectedYearFilter.includes('1')) yearNumber = ' 1';
-      else if (selectedYearFilter.includes('الرابعة') || selectedYearFilter.includes('4')) yearNumber = ' 4';
-      else if (selectedYearFilter.includes('الخامسة') || selectedYearFilter.includes('5')) yearNumber = ' 5';
     }
     
     // If no teaching module or grade, try to infer from subject specialization
@@ -1073,7 +1060,6 @@ export default function Groups() {
     }
     
     const result = `${levelShort}${yearNumber}${genderText}`;
-    console.log('[DEBUG Badge] Final result:', result);
     return result;
   };
 
@@ -1604,9 +1590,9 @@ export default function Groups() {
                           }
                           
                           // Handle "جميع المستويات" subjects - SHOW them for all year selections
-                          // since they are general subjects that apply to all years
+                          // These are general curriculum subjects that apply to all years within the education level
                           if (moduleGrade === 'جميع المستويات') {
-                            return true; // Show general subjects for all year filters
+                            return true; // Always show general curriculum subjects regardless of year filter
                           }
                           
                           // For specialization subjects, map them to appropriate years
