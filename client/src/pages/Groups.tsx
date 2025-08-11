@@ -515,7 +515,7 @@ export default function Groups() {
   });
 
   const { data: teachingModules = [] } = useQuery<any[]>({
-    queryKey: ['/api/teaching-modules'],
+    queryKey: ['/api/modules-with-years'],
     enabled: !!user && user.role === 'admin',
   });
 
@@ -979,6 +979,7 @@ export default function Groups() {
     // ChatGPT's solution: Use module-years mapping to show specific years
     if (group.subjectId && teachingModules) {
       const subject = teachingModules.find((s: any) => s.id === group.subjectId);
+      
       if (subject) {
         // If the subject uses ChatGPT's module-years mapping, check if we have the years data
         if (subject.years && Array.isArray(subject.years) && subject.years.length > 0) {
