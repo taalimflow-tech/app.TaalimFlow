@@ -63,7 +63,7 @@ export default function Groups() {
   const [filterGrade, setFilterGrade] = useState<string>('جميع السنوات');
   
   // State for modals
-  const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
+  const [showCreateForm, setShowCreateForm] = useState<boolean>(true);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [showManageModal, setShowManageModal] = useState<boolean>(false);
   const [selectedTeacher, setSelectedTeacher] = useState<number | null>(null);
