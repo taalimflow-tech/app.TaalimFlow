@@ -1584,32 +1584,13 @@ export default function Groups() {
                           const selectedYear = selectedYearFilter.toLowerCase();
                           const moduleGradeLower = moduleGrade.toLowerCase();
                           
-                          // DEBUG: Log filtering decision
-                          console.log('[FILTER DEBUG]', {
-                            groupName: group.name,
-                            subjectId: group.subjectId,
-                            subjectName: teachingModule.name,
-                            moduleGrade,
-                            selectedYear: selectedYearFilter,
-                            moduleGradeLower,
-                            selectedYearLower: selectedYear
-                          });
-                          
                           // Always show legacy subjects with "جميع المستويات"
                           if (moduleGrade === 'جميع المستويات') {
-                            console.log('[FILTER DEBUG] Showing legacy subject:', teachingModule.name);
                             return true;
                           }
                           
-                          // Exact match for specific years (this fixes the partial matching issue)
-                          const exactMatch = moduleGrade.trim() === selectedYearFilter.trim();
-                          console.log('[FILTER DEBUG] Exact match check:', {
-                            moduleGrade: moduleGrade.trim(),
-                            selectedYear: selectedYearFilter.trim(),
-                            matches: exactMatch
-                          });
-                          
-                          if (exactMatch) {
+                          // Exact match for specific years (fixes partial matching issue)
+                          if (moduleGrade.trim() === selectedYearFilter.trim()) {
                             return true;
                           }
                           
@@ -1621,13 +1602,11 @@ export default function Groups() {
                             ].some(spec => moduleGradeLower.includes(spec.toLowerCase()));
                             
                             if (isThirdYearSpec) {
-                              console.log('[FILTER DEBUG] Showing 3rd year specialization:', teachingModule.name);
                               return true;
                             }
                           }
                           
-                          // If no match, hide the group for this year filter
-                          console.log('[FILTER DEBUG] Hiding group - no match');
+                          // Hide groups that don't match the selected year filter
                           return false;
 
                         }
