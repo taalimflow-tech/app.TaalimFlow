@@ -1595,34 +1595,40 @@ export default function Groups() {
                             selectedYearLower: selectedYear
                           });
                           
-                          // Handle year-specific matching
-                          if (moduleGrade !== 'جميع المستويات') {
-                            // For subjects with specific grades/years, do exact matching
-                            
-                            // Direct text matching for custom year-specific subjects
-                            if (moduleGradeLower.includes(selectedYear)) {
-                              return true;
-                            }
-                            
-                            // Map secondary specializations to 3rd year
-                            if (existingGroupsFilter === 'الثانوي' && selectedYear.includes('الثالثة ثانوي')) {
-                              const isThirdYearSpec = [
-                                'تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي',
-                                'آداب وفلسفة', 'لغات أجنبية'
-                              ].some(spec => moduleGradeLower.includes(spec.toLowerCase()));
-                              
-                              if (isThirdYearSpec) {
-                                return true;
-                              }
-                            }
-                            
-                            // If none of the above match, hide the group for this year filter
-                            return false;
-                          } else {
-                            // Handle "جميع المستويات" subjects - legacy curriculum subjects
-                            // These appear for all year selections (backward compatibility)
+                          // Always show legacy subjects with "جميع المستويات"
+                          if (moduleGrade === 'جميع المستويات') {
+                            console.log('[FILTER DEBUG] Showing legacy subject:', teachingModule.name);
                             return true;
                           }
+                          
+                          // Exact match for specific years (this fixes the partial matching issue)
+                          const exactMatch = moduleGrade.trim() === selectedYearFilter.trim();
+                          console.log('[FILTER DEBUG] Exact match check:', {
+                            moduleGrade: moduleGrade.trim(),
+                            selectedYear: selectedYearFilter.trim(),
+                            matches: exactMatch
+                          });
+                          
+                          if (exactMatch) {
+                            return true;
+                          }
+                          
+                          // Handle secondary specializations mapping to 3rd year
+                          if (existingGroupsFilter === 'الثانوي' && selectedYearFilter.includes('الثالثة ثانوي')) {
+                            const isThirdYearSpec = [
+                              'تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي',
+                              'آداب وفلسفة', 'لغات أجنبية'
+                            ].some(spec => moduleGradeLower.includes(spec.toLowerCase()));
+                            
+                            if (isThirdYearSpec) {
+                              console.log('[FILTER DEBUG] Showing 3rd year specialization:', teachingModule.name);
+                              return true;
+                            }
+                          }
+                          
+                          // If no match, hide the group for this year filter
+                          console.log('[FILTER DEBUG] Hiding group - no match');
+                          return false;
 
                         }
                       }
