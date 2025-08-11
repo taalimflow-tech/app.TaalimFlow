@@ -832,12 +832,12 @@ export default function Groups() {
 
   const handleCreateCustomSubject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (customSubjectName && customSubjectNameAr && customSubjectLevel) {
+    if (customSubjectName && customSubjectNameAr && customSubjectLevel && customSubjectGrade) {
       createCustomSubjectMutation.mutate({
         name: customSubjectName,
         nameAr: customSubjectNameAr,
         educationLevel: customSubjectLevel,
-        grade: customSubjectGrade || undefined
+        grade: customSubjectGrade
       });
     }
   };
@@ -978,32 +978,33 @@ export default function Groups() {
     
     // Debug log
     console.log('[DEBUG Badge] Group:', group.name, 'SubjectId:', group.subjectId, 'TeachingModules available:', !!teachingModules, 'Count:', teachingModules?.length);
-    console.log('[DEBUG Badge] selectedYearFilter:', selectedYearFilter);
     
-    // First try to get grade from selected year filter if available
-    if (selectedYearFilter && selectedYearFilter !== '' && selectedYearFilter !== 'جميع المستويات') {
-      console.log('[DEBUG Badge] Using selectedYearFilter:', selectedYearFilter);
-      if (selectedYearFilter.includes('الثالثة') || selectedYearFilter.includes('3')) yearNumber = ' 3';
-      else if (selectedYearFilter.includes('الثانية') || selectedYearFilter.includes('2')) yearNumber = ' 2';  
-      else if (selectedYearFilter.includes('الأولى') || selectedYearFilter.includes('1')) yearNumber = ' 1';
-      else if (selectedYearFilter.includes('الرابعة') || selectedYearFilter.includes('4')) yearNumber = ' 4';
-      else if (selectedYearFilter.includes('الخامسة') || selectedYearFilter.includes('5')) yearNumber = ' 5';
-    }
-    
-    // If no year filter, try to get grade from associated teaching module
-    if (!yearNumber && group.subjectId && teachingModules) {
+    // ALWAYS try to get grade from the teaching module first (the subject's intrinsic year)
+    if (group.subjectId && teachingModules) {
       const subject = teachingModules.find((s: any) => s.id === group.subjectId);
       console.log('[DEBUG Badge] Found subject:', subject?.name, 'Grade:', subject?.grade);
-      if (subject && subject.grade) {
+      if (subject && subject.grade && subject.grade !== 'جميع المستويات') {
         const grade = subject.grade;
         
-        // Extract year number from grade
+        // Extract year number from the teaching module's grade (subject's actual year)
         if (grade.includes('الثالثة') || grade.includes('3')) yearNumber = ' 3';
         else if (grade.includes('الثانية') || grade.includes('2')) yearNumber = ' 2';  
         else if (grade.includes('الأولى') || grade.includes('1')) yearNumber = ' 1';
         else if (grade.includes('الرابعة') || grade.includes('4')) yearNumber = ' 4';
         else if (grade.includes('الخامسة') || grade.includes('5')) yearNumber = ' 5';
+        
+        console.log('[DEBUG Badge] Using subject grade:', grade, 'Year number:', yearNumber);
       }
+    }
+    
+    // Only fallback to filter if the subject has no specific grade (legacy subjects)
+    if (!yearNumber && selectedYearFilter && selectedYearFilter !== '' && selectedYearFilter !== 'جميع المستويات') {
+      console.log('[DEBUG Badge] Fallback to selectedYearFilter:', selectedYearFilter);
+      if (selectedYearFilter.includes('الثالثة') || selectedYearFilter.includes('3')) yearNumber = ' 3';
+      else if (selectedYearFilter.includes('الثانية') || selectedYearFilter.includes('2')) yearNumber = ' 2';  
+      else if (selectedYearFilter.includes('الأولى') || selectedYearFilter.includes('1')) yearNumber = ' 1';
+      else if (selectedYearFilter.includes('الرابعة') || selectedYearFilter.includes('4')) yearNumber = ' 4';
+      else if (selectedYearFilter.includes('الخامسة') || selectedYearFilter.includes('5')) yearNumber = ' 5';
     }
     
     // If no teaching module or grade, try to infer from subject specialization
@@ -2192,7 +2193,6 @@ export default function Groups() {
                   required
                 >
                   <option value="">اختر المستوى...</option>
-                  <option value="جميع المستويات">جميع المستويات</option>
                   <option value="الابتدائي">الابتدائي</option>
                   <option value="المتوسط">المتوسط</option>
                   <option value="الثانوي">الثانوي</option>
@@ -2201,21 +2201,27 @@ export default function Groups() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  السنة الدراسية (اختياري)
+                  السنة الدراسية *
                 </label>
                 <select
                   value={customSubjectGrade}
                   onChange={(e) => setCustomSubjectGrade(e.target.value)}
-                  disabled={!customSubjectLevel}
+                  disabled={!customSubjectLevel || customSubjectLevel === 'جميع المستويات'}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  required
                 >
-                  <option value="">جميع السنوات</option>
+                  <option value="">اختر السنة...</option>
                   {customSubjectLevel !== 'جميع المستويات' && getAvailableGrades(customSubjectLevel).map(grade => (
                     <option key={grade.value} value={grade.value}>
                       {grade.label}
                     </option>
                   ))}
                 </select>
+                {customSubjectLevel === 'جميع المستويات' && (
+                  <p className="text-sm text-amber-600 mt-1">
+                    💡 لإنشاء مواد لجميع المستويات، قم بإنشاء مادة منفصلة لكل سنة دراسية
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">

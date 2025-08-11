@@ -137,6 +137,10 @@ export interface IStorage {
   getTeachingModulesByLevel(educationLevel: string): Promise<TeachingModule[]>;
   createTeachingModule(module: InsertTeachingModule): Promise<TeachingModule>;
   deleteTeachingModule(id: number): Promise<void>;
+  getTeachingModuleByName(nameAr: string, educationLevel: string): Promise<any | undefined>;
+  getTeachingModuleByNameAllLevels(nameAr: string): Promise<any | undefined>;
+  getTeachingModuleByNameAndGrade(nameAr: string, educationLevel: string, grade: string): Promise<any | undefined>;
+  createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string }): Promise<any>;
   
   // Teacher specialization methods
   getTeacherSpecializations(teacherId: number): Promise<TeacherSpecialization[]>;
@@ -2598,6 +2602,18 @@ export class DatabaseStorage implements IStorage {
       .from(teachingModules)
       .where(eq(teachingModules.nameAr, nameAr))
       .limit(1);
+    return module;
+  }
+
+  async getTeachingModuleByNameAndGrade(nameAr: string, educationLevel: string, grade: string): Promise<any | undefined> {
+    const [module] = await db
+      .select()
+      .from(teachingModules)
+      .where(and(
+        eq(teachingModules.nameAr, nameAr), 
+        eq(teachingModules.educationLevel, educationLevel),
+        eq(teachingModules.grade, grade)
+      ));
     return module;
   }
 
