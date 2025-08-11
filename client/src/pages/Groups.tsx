@@ -984,7 +984,7 @@ export default function Groups() {
         // If the subject uses ChatGPT's module-years mapping, check if we have the years data
         if (subject.years && Array.isArray(subject.years) && subject.years.length > 0) {
           // Extract year numbers from the mapped years
-          const years = subject.years
+          const years = [...new Set(subject.years)] // Remove duplicates first
             .filter((year: string) => year !== 'جميع المستويات')
             .map((year: string) => {
               if (year.includes('الثالثة') || year.includes('3')) return '3';
@@ -995,6 +995,7 @@ export default function Groups() {
               return null;
             })
             .filter(Boolean)
+            .filter((value, index, array) => array.indexOf(value) === index) // Remove duplicate numbers
             .sort();
           
           if (years.length === 1) {
