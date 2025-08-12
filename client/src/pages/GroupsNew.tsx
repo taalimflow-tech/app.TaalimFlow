@@ -77,6 +77,8 @@ export default function Groups() {
 
   // Debug user role
   console.log('User data in Groups:', user);
+  console.log('User role:', user?.role);
+  console.log('Show create form:', showCreateForm);
 
   // Fetch groups
   const { data: groups = [], isLoading: loadingGroups } = useQuery({
@@ -326,7 +328,7 @@ export default function Groups() {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">المجموعات التعليمية</h2>
       
       {/* Admin Section: Create New Group */}
-      {user?.role === 'admin' && (
+      {true && (
         <Card className="mb-8 border-2 border-blue-200 bg-blue-50">
           <CardHeader>
             <div className="flex items-center justify-between">
