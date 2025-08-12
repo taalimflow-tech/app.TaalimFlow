@@ -988,12 +988,27 @@ export default function Groups() {
       if (subject && subject.grade && subject.grade !== 'جميع المستويات') {
         const grade = subject.grade;
         
-        // Extract year number from the teaching module's grade - works for all levels
+        // Handle year-specific grades first
         if (grade.includes('الثالثة') || grade.includes('3')) yearNumber = ' 3';
         else if (grade.includes('الثانية') || grade.includes('2')) yearNumber = ' 2';  
         else if (grade.includes('الأولى') || grade.includes('1')) yearNumber = ' 1';
         else if (grade.includes('الرابعة') || grade.includes('4')) yearNumber = ' 4';
         else if (grade.includes('الخامسة') || grade.includes('5')) yearNumber = ' 5';
+        
+        // Handle Algerian secondary specialization tracks (all 3rd year)
+        else if (level === 'الثانوي') {
+          if (grade === 'علمي' || grade === 'أدبي' || grade === 'تسيير واقتصاد' || 
+              grade === 'رياضيات' || grade === 'تقني رياضي' || grade === 'لغات أجنبية') {
+            yearNumber = ' 3'; // All specializations are 3rd year
+          }
+        }
+        
+        // Handle middle school specializations
+        else if (level === 'المتوسط') {
+          if (grade === 'علمي' || grade === 'أدبي') {
+            yearNumber = ' 4'; // Most specializations start in 4th year middle
+          }
+        }
       } else if (subject && subject.grade === 'جميع المستويات') {
         // For legacy curriculum subjects, don't show year numbers - they are general
         yearNumber = '';
