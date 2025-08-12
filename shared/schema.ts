@@ -136,8 +136,10 @@ export const groups = pgTable("groups", {
   category: text("category").notNull(),
   imageUrl: text("image_url"),
   maxMembers: integer("max_members"),
-  educationLevel: text("education_level"), // الابتدائي, المتوسط, الثانوي
-  subjectId: integer("subject_id").references(() => teachingModules.id), // Subject/module
+  educationLevel: text("education_level").notNull(), // الابتدائي, المتوسط, الثانوي - required for new clean implementation
+  grade: text("grade"), // specific grade like "السنة الأولى ابتدائي" - added for new clean implementation
+  subjectName: text("subject_name"), // direct subject name - added for new clean implementation
+  subjectId: integer("subject_id").references(() => teachingModules.id), // Subject/module - legacy field, kept for compatibility
   teacherId: integer("teacher_id").references(() => users.id), // Assigned teacher
   studentsAssigned: integer("students_assigned").array(), // Array of student user IDs
   isAdminManaged: boolean("is_admin_managed").default(false), // Admin-managed vs public groups

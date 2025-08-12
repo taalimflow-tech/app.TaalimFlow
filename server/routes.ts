@@ -1617,8 +1617,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         description: description || `مجموعة ${subjectName} - ${grade}`,
         educationLevel,
-        grade,
-        subjectName,
+        grade, // Include grade in the new clean implementation
+        subjectName, // Include subjectName in the new clean implementation
+        category: 'دراسية', // Add required category field
         schoolId: req.session.user.schoolId
       };
       
