@@ -988,7 +988,7 @@ export default function Groups() {
       if (subject && subject.grade && subject.grade !== 'جميع المستويات') {
         const grade = subject.grade;
         
-        // Extract year number from the teaching module's grade (subject's actual year)
+        // Extract year number from the teaching module's grade - works for all levels
         if (grade.includes('الثالثة') || grade.includes('3')) yearNumber = ' 3';
         else if (grade.includes('الثانية') || grade.includes('2')) yearNumber = ' 2';  
         else if (grade.includes('الأولى') || grade.includes('1')) yearNumber = ' 1';
@@ -997,63 +997,6 @@ export default function Groups() {
       } else if (subject && subject.grade === 'جميع المستويات') {
         // For legacy curriculum subjects, don't show year numbers - they are general
         yearNumber = '';
-      }
-    }
-    
-    // If no teaching module or grade, try to infer from subject specialization
-    if (!yearNumber) {
-      const subjectName = (group.nameAr || group.subjectName || '').toLowerCase();
-      
-      if (level === 'الثانوي') {
-        // 3rd year secondary specializations
-        if (subjectName.includes('اقتصاد') || subjectName.includes('مناجمنت') || subjectName.includes('تسيير')) {
-          yearNumber = ' 3';
-        }
-        else if (subjectName.includes('هندسة') || subjectName.includes('تقني')) {
-          yearNumber = ' 3';
-        }
-        else if (subjectName.includes('علوم طبيعية') || subjectName.includes('فيزياء') || subjectName.includes('كيمياء') || subjectName.includes('أحياء')) {
-          yearNumber = ' 3';
-        }
-        else if (subjectName.includes('رياضيات') || subjectName.includes('رياضة')) {
-          yearNumber = ' 3';
-        }
-        else if (subjectName.includes('آداب') || subjectName.includes('فلسفة') || subjectName.includes('تاريخ وجغرافيا')) {
-          yearNumber = ' 3';
-        }
-        else if (subjectName.includes('لغات أجنبية') || subjectName.includes('إنجليزية') || subjectName.includes('فرنسية')) {
-          yearNumber = ' 3';
-        }
-      }
-      
-      if (level === 'المتوسط') {
-        // Most middle school subjects span years 1-4, but some are more specific
-        if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
-          yearNumber = ' 4'; // History/Geography intensifies in 4th year
-        }
-        else if (subjectName.includes('فيزياء') || subjectName.includes('علوم طبيعية')) {
-          yearNumber = ' 4'; // Sciences in 4th year
-        }
-      }
-      
-      if (level === 'الابتدائي') {
-        if (subjectName.includes('علوم') || subjectName.includes('طبيعة')) {
-          yearNumber = ' 5'; // Sciences mainly in 5th year
-        }
-        else if (subjectName.includes('تاريخ') || subjectName.includes('جغرافيا')) {
-          yearNumber = ' 4'; // Social studies in 4th-5th year
-        }
-      }
-      
-      // Fallback: try to extract year number from group name/description
-      if (!yearNumber) {
-        const text = `${group.name || ''} ${group.description || ''}`;
-        
-        if (text.includes('الثالثة') || text.includes('3')) yearNumber = ' 3';
-        else if (text.includes('الثانية') || text.includes('2')) yearNumber = ' 2';  
-        else if (text.includes('الأولى') || text.includes('1')) yearNumber = ' 1';
-        else if (text.includes('الرابعة') || text.includes('4')) yearNumber = ' 4';
-        else if (text.includes('الخامسة') || text.includes('5')) yearNumber = ' 5';
       }
     }
     
