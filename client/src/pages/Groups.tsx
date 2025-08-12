@@ -1604,15 +1604,13 @@ export default function Groups() {
                         if (teachingModule) {
                           const moduleGrade = teachingModule.grade || '';
                           
-                          // Always show legacy subjects with "جميع المستويات"
-                          if (moduleGrade === 'جميع المستويات') {
-                            return true;
-                          }
-                          
-                          // Exact match for specific years
+                          // Exact match for specific years - ONLY show if grade matches exactly
                           if (moduleGrade.trim() === selectedYearFilter.trim()) {
                             return true;
                           }
+                          
+                          // Don't show "جميع المستويات" subjects when filtering by specific year
+                          // Only show them when no year filter is applied
                           
                           // Handle secondary specializations mapping to 3rd year
                           if (existingGroupsFilter === 'الثانوي' && selectedYearFilter.includes('الثالثة ثانوي')) {
