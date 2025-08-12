@@ -519,6 +519,12 @@ export default function Groups() {
     enabled: !!user && user.role === 'admin',
   });
 
+  // ChatGPT's solution: Fetch modules with their year mappings
+  const { data: modulesWithYears = [] } = useQuery<any[]>({
+    queryKey: ['/api/modules-with-years'],
+    enabled: !!user && user.role === 'admin',
+  });
+
   const { data: teachers = [] } = useQuery<any[]>({
     queryKey: ['/api/teachers-with-specializations'],
     enabled: !!user && user.role === 'admin',
@@ -1573,29 +1579,44 @@ export default function Groups() {
                     group.educationLevel === existingGroupsFilter
                   );
                   
-                  // Apply year filter if selected
+                  // ChatGPT's solution: Apply year filter using module-years mapping
                   if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
-                      // Check teaching module's grade field
+                      // First, check ChatGPT's new module-years mapping
+                      if (group.subjectId && modulesWithYears) {
+                        const moduleWithYears = modulesWithYears.find((m: any) => m.id === group.subjectId);
+                        if (moduleWithYears && moduleWithYears.years) {
+                          // Check if the selected year is in the module's mapped years
+                          const hasYearMapping = moduleWithYears.years.includes(selectedYearFilter);
+                          
+                          // Also check for "جميع المستويات" which should appear in all year filters
+                          const hasAllLevels = moduleWithYears.years.includes('جميع المستويات');
+                          
+                          if (hasYearMapping || hasAllLevels) {
+                            return true;
+                          }
+                        }
+                      }
+                      
+                      // Legacy fallback: Check old teaching modules grade field
                       if (group.subjectId && teachingModules) {
                         const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
                         if (teachingModule) {
                           const moduleGrade = teachingModule.grade || '';
-                          const selectedYear = selectedYearFilter.toLowerCase();
-                          const moduleGradeLower = moduleGrade.toLowerCase();
                           
                           // Always show legacy subjects with "جميع المستويات"
                           if (moduleGrade === 'جميع المستويات') {
                             return true;
                           }
                           
-                          // Exact match for specific years (fixes partial matching issue)
+                          // Exact match for specific years
                           if (moduleGrade.trim() === selectedYearFilter.trim()) {
                             return true;
                           }
                           
                           // Handle secondary specializations mapping to 3rd year
                           if (existingGroupsFilter === 'الثانوي' && selectedYearFilter.includes('الثالثة ثانوي')) {
+                            const moduleGradeLower = moduleGrade.toLowerCase();
                             const isThirdYearSpec = [
                               'تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي',
                               'آداب وفلسفة', 'لغات أجنبية'
@@ -1605,11 +1626,13 @@ export default function Groups() {
                               return true;
                             }
                           }
-                          
-                          // Hide groups that don't match the selected year filter
-                          return false;
-
                         }
+                      }
+                      
+                      // Fallback: Check group name/description for year mentions
+                      const groupText = `${group.name} ${group.description || ''}`;
+                      if (groupText.includes(selectedYearFilter)) {
+                        return true;
                       }
                       
                       return false;
