@@ -1592,8 +1592,17 @@ export default function Groups() {
                     });
                     
                     console.log('DEBUG: Groups after year filtering:', filteredGroups.length);
+                  } else {
+                    console.log('DEBUG: No year filter applied - showing all groups for education level');
                   }
                 }
+
+                console.log('DEBUG: Final filtered groups:', filteredGroups.map(g => ({
+                  id: g.id,
+                  name: g.name,
+                  educationLevel: g.educationLevel
+                })));
+                console.log('DEBUG: About to render', filteredGroups.length, 'groups');
 
                 return filteredGroups.length > 0 ? (
                   filteredGroups.map((group) => {
