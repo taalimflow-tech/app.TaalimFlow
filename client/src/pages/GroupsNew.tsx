@@ -75,6 +75,9 @@ export default function Groups() {
     enabled: true
   }) as { data: User | undefined };
 
+  // Debug user role
+  console.log('User data in Groups:', user);
+
   // Fetch groups
   const { data: groups = [], isLoading: loadingGroups } = useQuery({
     queryKey: ['/api/groups'],
@@ -323,7 +326,7 @@ export default function Groups() {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">المجموعات التعليمية</h2>
       
       {/* Admin Section: Create New Group */}
-      {user.role === 'admin' && (
+      {user?.role === 'admin' && (
         <Card className="mb-8 border-2 border-blue-200 bg-blue-50">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -518,7 +521,7 @@ export default function Groups() {
           <div className="text-center py-8">
             <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-600">لا توجد مجموعات مطابقة للفلتر المحدد</p>
-            {user.role === 'admin' && (
+            {user?.role === 'admin' && (
               <p className="text-sm text-gray-500 mt-2">يمكنك إنشاء مجموعة جديدة من الأعلى</p>
             )}
           </div>
@@ -555,7 +558,7 @@ export default function Groups() {
                     </div>
                     
                     {/* Action Buttons */}
-                    {user.role === 'admin' && (
+                    {user?.role === 'admin' && (
                       <div className="space-y-2 pt-2">
                         <Button
                           onClick={() => handleManageGroup(group)}
