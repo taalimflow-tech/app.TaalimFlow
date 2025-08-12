@@ -1306,7 +1306,8 @@ export class DatabaseStorage implements IStorage {
   async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]> {
     console.log(`[DEBUG] getAvailableStudentsByLevelAndSubject called with: educationLevel=${educationLevel}, subjectId=${subjectId}, schoolId=${schoolId}`);
     
-    // Get direct students (users with 'student' role)
+    // Get direct students (users with 'student' role) - ensure each user appears only once
+    // by selecting the most recent student record for each user
     let directStudentsQuery = db
       .select({
         id: users.id,
@@ -1318,7 +1319,7 @@ export class DatabaseStorage implements IStorage {
         type: sql<string>`'student'`.as('type')
       })
       .from(users)
-      .leftJoin(students, eq(users.id, students.userId))
+      .innerJoin(students, eq(users.id, students.userId))
       .where(
         and(
           eq(users.role, 'student'),
@@ -1327,8 +1328,19 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    const directStudents = await directStudentsQuery;
-    console.log(`[DEBUG] Found ${directStudents.length} direct students:`, directStudents);
+    const allDirectStudents = await directStudentsQuery;
+    console.log(`[DEBUG] Found ${allDirectStudents.length} direct student records:`, allDirectStudents);
+    
+    // Remove duplicates by keeping only the most recent student record per user
+    const uniqueDirectStudents = allDirectStudents.reduce((acc: any[], current: any) => {
+      const existing = acc.find(student => student.id === current.id);
+      if (!existing) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+    
+    console.log(`[DEBUG] After deduplication: ${uniqueDirectStudents.length} unique direct students:`, uniqueDirectStudents);
 
     // Get pre-registered students (verified but userId is null)
     let preRegisteredQuery = db
@@ -1377,9 +1389,10 @@ export class DatabaseStorage implements IStorage {
     console.log(`[DEBUG] Found ${childrenStudents.length} children:`, childrenStudents);
 
     // Combine all results and sort by name
-    const combinedResults = [...directStudents, ...preRegisteredStudents, ...childrenStudents];
+    const combinedResults = [...uniqueDirectStudents, ...preRegisteredStudents, ...childrenStudents];
     combinedResults.sort((a, b) => a.name.localeCompare(b.name));
     console.log(`[DEBUG] Combined results:`, combinedResults);
+    console.log(`[DEBUG] Returning ${combinedResults.length} available students to frontend`);
 
     return combinedResults;
   }
