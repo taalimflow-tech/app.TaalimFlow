@@ -12,7 +12,7 @@ import Schedule from "@/pages/Schedule";
 import Teachers from "@/pages/Teachers";
 import Suggestions from "@/pages/Suggestions";
 import Blog from "@/pages/Blog";
-import Groups from "@/pages/GroupsNew";
+import Groups from "@/pages/Groups";
 import Formations from "@/pages/Formations";
 import AdminPanel from "@/pages/AdminPanel";
 import AdminUsers from "@/pages/AdminUsers";

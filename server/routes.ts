@@ -1577,25 +1577,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Group routes
   app.get("/api/groups", requireAuth, async (req, res) => {
     try {
+      
       const groups = await storage.getGroupsBySchool(req.session.user.schoolId);
-      
-      // Transform groups to include required fields for new clean UI
-      const transformedGroups = groups.map(group => ({
-        id: group.id,
-        name: group.name,
-        description: group.description,
-        educationLevel: group.educationLevel,
-        grade: group.grade,
-        subjectName: group.subjectName,
-        teacherId: group.teacherId,
-        teacherName: group.teacherName,
-        studentsAssigned: group.studentsAssigned || [],
-        memberCount: group.studentsAssigned?.length || 0
-      }));
-      
-      res.json(transformedGroups);
+      res.json(groups);
     } catch (error) {
-      console.error("Error fetching groups:", error);
       res.status(500).json({ error: "Failed to fetch groups" });
     }
   });
@@ -1606,23 +1591,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
       
-      // Clean group creation with simple data structure
-      const { name, description, educationLevel, grade, subjectName } = req.body;
-      
-      if (!name || !educationLevel || !grade || !subjectName) {
-        return res.status(400).json({ error: "جميع الحقول مطلوبة" });
-      }
-      
+      const validatedData = insertGroupSchema.parse(req.body);
       const groupData = {
-        name,
-        description: description || `مجموعة ${subjectName} - ${grade}`,
-        educationLevel,
-        grade, // Include grade in the new clean implementation
-        subjectName, // Include subjectName in the new clean implementation
-        category: 'دراسية', // Add required category field
+        ...validatedData,
         schoolId: req.session.user.schoolId
       };
-      
       const group = await storage.createGroup(groupData);
       
       // Create notifications for all users about new group
@@ -1641,52 +1614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(group);
     } catch (error) {
-      console.error("Error creating group:", error);
       res.status(400).json({ error: "Invalid group data" });
-    }
-  });
-
-  // Update group route for new clean UI
-  app.patch("/api/groups/:id", async (req, res) => {
-    try {
-      if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
-      }
-      
-      const groupId = parseInt(req.params.id);
-      const { teacherId, studentsAssigned } = req.body;
-      
-      const updateData: any = {};
-      if (teacherId !== undefined) updateData.teacherId = teacherId;
-      if (studentsAssigned !== undefined) updateData.studentsAssigned = studentsAssigned;
-      
-      const updatedGroup = await storage.updateGroup(groupId, updateData);
-      res.json(updatedGroup);
-    } catch (error) {
-      console.error("Error updating group:", error);
-      res.status(400).json({ error: "Failed to update group" });
-    }
-  });
-
-  // Simple teachers endpoint for new Groups UI
-  app.get("/api/teachers", requireAuth, async (req, res) => {
-    try {
-      const teachers = await storage.getTeachers(req.session.user.schoolId);
-      res.json(teachers);
-    } catch (error) {
-      console.error("Error fetching teachers:", error);
-      res.status(500).json({ error: "Failed to fetch teachers" });
-    }
-  });
-
-  // Simple students endpoint for new Groups UI
-  app.get("/api/students", requireAuth, async (req, res) => {
-    try {
-      const students = await storage.getStudents(req.session.user.schoolId);
-      res.json(students);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-      res.status(500).json({ error: "Failed to fetch students" });
     }
   });
 

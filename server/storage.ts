@@ -55,7 +55,7 @@ export interface IStorage {
   deleteBlogPost(id: number): Promise<void>;
   
   // Teacher methods
-  getTeachers(schoolId: number): Promise<Teacher[]>;
+  getTeachers(): Promise<Teacher[]>;
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
@@ -76,7 +76,6 @@ export interface IStorage {
   getGroupsBySchool(schoolId: number): Promise<Group[]>;
   getGroupById(id: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
-  updateGroup(groupId: number, updates: any): Promise<Group>;
   deleteGroup(id: number, schoolId?: number): Promise<void>;
   
   // Admin group management methods
@@ -102,7 +101,6 @@ export interface IStorage {
   
   // Student methods
   createStudent(student: InsertStudent): Promise<Student>;
-  getStudents(schoolId: number): Promise<Student[]>;
   getStudentByUserId(userId: number): Promise<Student | undefined>;
   getStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string } | null>;
   regenerateStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string }>;
@@ -620,38 +618,6 @@ export class DatabaseStorage implements IStorage {
     return student;
   }
 
-  async getStudents(schoolId: number): Promise<Student[]> {
-    // Get students from both students table and users table, combined for clean UI
-    const studentsFromTable = await db
-      .select({
-        id: students.id,
-        name: users.name,
-        educationLevel: students.educationLevel,
-        grade: students.grade,
-        schoolId: students.schoolId
-      })
-      .from(students)
-      .leftJoin(users, eq(students.userId, users.id))
-      .where(eq(students.schoolId, schoolId))
-      .orderBy(users.name);
-
-    // Also get children who are treated as students
-    const childrenFromTable = await db
-      .select({
-        id: children.id,
-        name: children.name,
-        educationLevel: children.educationLevel,
-        grade: children.grade,
-        schoolId: children.schoolId
-      })
-      .from(children)
-      .where(eq(children.schoolId, schoolId))
-      .orderBy(children.name);
-
-    // Combine and return all students
-    return [...studentsFromTable, ...childrenFromTable] as any[];
-  }
-
   async getStudentByUserId(userId: number): Promise<Student | undefined> {
     const [student] = await db.select().from(students).where(eq(students.userId, userId));
     return student || undefined;
@@ -893,20 +859,8 @@ export class DatabaseStorage implements IStorage {
     await db.delete(blogPosts).where(eq(blogPosts.id, id));
   }
 
-  async getTeachers(schoolId: number): Promise<Teacher[]> {
-    // Return teachers as users with teacher role - simplified for new Groups UI
-    const teacherUsers = await db
-      .select({
-        id: users.id,
-        name: users.name,
-        email: users.email,
-        phone: users.phone
-      })
-      .from(users)
-      .where(and(eq(users.role, 'teacher'), eq(users.schoolId, schoolId)))
-      .orderBy(users.name);
-    
-    return teacherUsers as any[];
+  async getTeachers(): Promise<Teacher[]> {
+    return await db.select().from(teachers).orderBy(desc(teachers.createdAt));
   }
 
   async getTeachersBySchool(schoolId: number): Promise<Teacher[]> {
@@ -1085,15 +1039,6 @@ export class DatabaseStorage implements IStorage {
       .values(insertGroup)
       .returning();
     return group;
-  }
-
-  async updateGroup(groupId: number, updates: any): Promise<Group> {
-    const [updatedGroup] = await db
-      .update(groups)
-      .set(updates)
-      .where(eq(groups.id, groupId))
-      .returning();
-    return updatedGroup;
   }
 
   // Admin group management methods
