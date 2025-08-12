@@ -1579,38 +1579,19 @@ export default function Groups() {
                     group.educationLevel === existingGroupsFilter
                   );
                   
-                  // ChatGPT's solution: Apply year filter using module-years mapping
+                  // Apply strict year filtering
                   if (selectedYearFilter) {
                     filteredGroups = filteredGroups.filter(group => {
-                      // First, check ChatGPT's new module-years mapping
-                      if (group.subjectId && modulesWithYears) {
-                        const moduleWithYears = modulesWithYears.find((m: any) => m.id === group.subjectId);
-                        if (moduleWithYears && moduleWithYears.years) {
-                          // Check if the selected year is in the module's mapped years
-                          const hasYearMapping = moduleWithYears.years.includes(selectedYearFilter);
-                          
-                          // Also check for "جميع المستويات" which should appear in all year filters
-                          const hasAllLevels = moduleWithYears.years.includes('جميع المستويات');
-                          
-                          if (hasYearMapping || hasAllLevels) {
-                            return true;
-                          }
-                        }
-                      }
-                      
-                      // Legacy fallback: Check old teaching modules grade field
+                      // Check teaching modules grade field for exact match only
                       if (group.subjectId && teachingModules) {
                         const teachingModule = teachingModules.find((m: any) => m.id === group.subjectId);
                         if (teachingModule) {
                           const moduleGrade = teachingModule.grade || '';
                           
-                          // Exact match for specific years - ONLY show if grade matches exactly
+                          // ONLY show groups whose teaching module grade exactly matches the selected year
                           if (moduleGrade.trim() === selectedYearFilter.trim()) {
                             return true;
                           }
-                          
-                          // Don't show "جميع المستويات" subjects when filtering by specific year
-                          // Only show them when no year filter is applied
                           
                           // Handle secondary specializations mapping to 3rd year
                           if (existingGroupsFilter === 'الثانوي' && selectedYearFilter.includes('الثالثة ثانوي')) {
@@ -1625,12 +1606,6 @@ export default function Groups() {
                             }
                           }
                         }
-                      }
-                      
-                      // Fallback: Check group name/description for year mentions
-                      const groupText = `${group.name} ${group.description || ''}`;
-                      if (groupText.includes(selectedYearFilter)) {
-                        return true;
                       }
                       
                       return false;
@@ -1800,29 +1775,8 @@ export default function Groups() {
               <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
-                <p><strong>المستوى:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
+                <p><strong>المستوى والسنة:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
                 <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
-                {(() => {
-                  // First check if we have a selected grade from the form context
-                  if (selectedGrade && selectedGrade !== '') {
-                    return <p><strong>السنة الدراسية:</strong> {selectedGrade}</p>;
-                  }
-                  
-                  // Fall back to module grade if available
-                  if (selectedAdminGroup.subjectId && teachingModules) {
-                    const module = teachingModules.find((m: any) => m.id === selectedAdminGroup.subjectId);
-                    if (module && module.grade && module.grade !== 'جميع المستويات') {
-                      return <p><strong>السنة الدراسية:</strong> {module.grade}</p>;
-                    }
-                  }
-                  
-                  // If no specific grade, show the general level
-                  if (selectedLevel && selectedLevel !== 'جميع المستويات') {
-                    return <p><strong>المستوى التعليمي:</strong> {selectedLevel}</p>;
-                  }
-                  
-                  return null;
-                })()}
               </div>
             </div>
 
