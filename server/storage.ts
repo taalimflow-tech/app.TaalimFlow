@@ -1641,7 +1641,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getVerifiedStudents(schoolId: number): Promise<any[]> {
-    return await db
+    const allVerifiedStudents = await db
       .select({
         id: students.id,
         userId: students.userId,
@@ -1665,6 +1665,28 @@ export class DatabaseStorage implements IStorage {
         )
       ))
       .orderBy(desc(students.verifiedAt));
+
+    // Remove duplicates by keeping only the most recent verified student record per user
+    const uniqueVerifiedStudents = allVerifiedStudents.reduce((acc: any[], current: any) => {
+      if (current.userId) {
+        // For students with userId, check if we already have this user
+        const existing = acc.find(student => student.userId === current.userId);
+        if (!existing) {
+          acc.push(current);
+        } else if (new Date(current.verifiedAt) > new Date(existing.verifiedAt)) {
+          // Replace with more recent verification
+          const index = acc.findIndex(student => student.userId === current.userId);
+          acc[index] = current;
+        }
+      } else {
+        // For pre-registered students (no userId), keep all as they're unique
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+
+    console.log(`[DEBUG] getVerifiedStudents: Found ${allVerifiedStudents.length} total records, returning ${uniqueVerifiedStudents.length} unique students`);
+    return uniqueVerifiedStudents;
   }
 
   async undoVerifyChild(childId: number): Promise<Child> {
