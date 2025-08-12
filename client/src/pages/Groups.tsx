@@ -1533,9 +1533,19 @@ export default function Groups() {
                 } else {
                   // Show admin groups by education level - include ALL groups for that level
                   // regardless of whether they use custom or standard subjects
-                  filteredGroups = adminCreatedGroups.filter(group => 
-                    group.educationLevel === existingGroupsFilter
-                  );
+                  console.log('DEBUG: Filtering groups for level:', existingGroupsFilter);
+                  console.log('DEBUG: Available admin groups:', adminCreatedGroups.map(g => ({
+                    id: g.id,
+                    name: g.name,
+                    educationLevel: g.educationLevel,
+                    subjectId: g.subjectId
+                  })));
+                  
+                  filteredGroups = adminCreatedGroups.filter(group => {
+                    const matches = group.educationLevel === existingGroupsFilter;
+                    console.log(`DEBUG: Group "${group.name}" level "${group.educationLevel}" matches filter "${existingGroupsFilter}":`, matches);
+                    return matches;
+                  });
                   
                   // Apply strict year filtering
                   if (selectedYearFilter) {
