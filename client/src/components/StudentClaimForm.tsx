@@ -124,9 +124,11 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
   const handleQRScan = (qrData: string) => {
     // Prevent multiple scans from processing simultaneously
     if (isProcessingQR) {
+      console.log('QR scan ignored - already processing');
       return;
     }
     
+    console.log('Processing QR scan:', qrData);
     setIsProcessingQR(true);
     setShowQRScanner(false);
     

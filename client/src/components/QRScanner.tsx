@@ -104,8 +104,16 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
           if (result && !scanCompleted) {
             console.log('QR code detected:', result.getText());
             setScanCompleted(true);
+            // Stop the scanner immediately to prevent further scanning
+            if (codeReaderRef.current) {
+              try {
+                codeReaderRef.current.reset();
+              } catch (err) {
+                console.log('Scanner stop error:', err);
+              }
+            }
             onScan(result.getText());
-            // Close after a short delay to prevent multiple scans
+            // Close after a short delay
             setTimeout(() => {
               onClose();
             }, 100);
