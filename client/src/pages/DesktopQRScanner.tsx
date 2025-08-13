@@ -154,7 +154,7 @@ export default function DesktopQRScanner() {
             handleQRScan(result.getText());
           }
           // Suppress NotFoundException - it's normal when no QR code is visible
-          if (error && error.name !== 'NotFoundException') {
+          if (error && !error.name?.includes('NotFoundException')) {
             console.error('QR scanning error:', error);
           }
         }
