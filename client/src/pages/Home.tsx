@@ -34,13 +34,15 @@ export default function Home() {
     : baseQuickActions;
 
   return (
-    <div className="bg-background min-h-screen">
-      <div className="px-4 py-6 lg:px-0 space-y-6 lg:space-y-8">
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen lg:bg-gradient-to-br lg:from-white lg:via-gray-50/50 lg:to-gray-100/30">
+      <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6 lg:space-y-10 max-w-7xl mx-auto">
         {/* Latest Announcements Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Megaphone className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-bold text-gray-800">آخر الإعلانات</h2>
+        <section className="space-y-6 lg:space-y-8">
+          <div className="flex items-center gap-3 mb-6 lg:mb-8">
+            <div className="p-2 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl">
+              <Megaphone className="w-6 h-6 lg:w-7 lg:h-7 text-primary" />
+            </div>
+            <h2 className="text-xl lg:text-3xl font-bold text-gray-800 bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text">آخر الإعلانات</h2>
           </div>
           
           {loading ? (
@@ -54,15 +56,15 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Megaphone className="w-8 h-8 text-gray-400" />
+            <Card className="bg-white rounded-2xl shadow-lg border-0 lg:shadow-xl backdrop-blur-sm">
+              <CardContent className="p-8 lg:p-12 text-center">
+                <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Megaphone className="w-10 h-10 lg:w-12 lg:h-12 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">لا توجد إعلانات حالياً</h3>
-                <p className="text-gray-500 text-sm mb-6">سيتم عرض الإعلانات الجديدة هنا عند توفرها</p>
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-800 mb-3">لا توجد إعلانات حالياً</h3>
+                <p className="text-gray-500 text-sm lg:text-base mb-8">سيتم عرض الإعلانات الجديدة هنا عند توفرها</p>
                 <Button 
-                  className="bg-primary hover:bg-primary/90 text-white rounded-lg px-6 py-2"
+                  className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white rounded-xl px-8 py-3 lg:px-10 lg:py-4 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   onClick={() => navigate(`${basePath}/announcements`)}
                 >
                   عرض جميع الإعلانات
@@ -73,20 +75,31 @@ export default function Home() {
         </section>
 
         {/* Quick Actions Grid */}
-        <section className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-800">الخدمات السريعة</h3>
+        <section className="space-y-6 lg:space-y-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/5 rounded-xl">
+              <span className="text-xl">⚡</span>
+            </div>
+            <h3 className="text-lg lg:text-2xl font-bold text-gray-800 bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text">الخدمات السريعة</h3>
+          </div>
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-            {quickActions.map((action) => (
+            {quickActions.map((action, index) => (
               <Button
                 key={action.path}
                 variant="outline"
                 onClick={() => navigate(action.path)}
-                className="bg-white rounded-xl p-4 h-20 flex flex-col items-center justify-center space-y-2 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:scale-105 group"
+                className={`bg-gradient-to-br from-white to-gray-50 rounded-2xl p-4 lg:p-6 h-24 lg:h-28 flex flex-col items-center justify-center space-y-2 lg:space-y-3 shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-105 group relative overflow-hidden ${
+                  index === 0 ? 'hover:from-blue-50 hover:to-blue-100' :
+                  index === 1 ? 'hover:from-green-50 hover:to-green-100' :
+                  index === 2 ? 'hover:from-purple-50 hover:to-purple-100' :
+                  'hover:from-yellow-50 hover:to-yellow-100'
+                }`}
               >
-                <div className="text-2xl transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(168,85,247,0.5)] group-hover:scale-110">
+                <div className="text-3xl lg:text-4xl transition-all duration-300 group-hover:drop-shadow-[0_0_15px_rgba(168,85,247,0.5)] group-hover:scale-110 filter">
                   {action.icon}
                 </div>
-                <p className="text-sm font-medium text-gray-700">{action.label}</p>
+                <p className="text-sm lg:text-base font-semibold text-gray-700 group-hover:text-gray-800">{action.label}</p>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
               </Button>
             ))}
           </div>

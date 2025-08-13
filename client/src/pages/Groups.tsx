@@ -1248,30 +1248,33 @@ export default function Groups() {
   }
 
   return (
-    <div className="px-4 py-6 lg:px-0">
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen lg:bg-gradient-to-br lg:from-white lg:via-gray-50/50 lg:to-gray-100/30">
+      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-7xl mx-auto">
       <div className="lg:hidden">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">المجموعات التعليمية</h2>
       </div>
       
       {/* Desktop: Enhanced header with stats */}
-      <div className="hidden lg:block mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">إدارة المجموعات التعليمية</h1>
-            <p className="text-gray-600">إنشاء وإدارة المجموعات الدراسية للطلاب</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-              <div className="text-2xl font-bold text-green-600">
-                {adminGroups.filter(g => !g.isPlaceholder).length}
-              </div>
-              <div className="text-sm text-green-700">مجموعة نشطة</div>
+      <div className="hidden lg:block mb-10">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3">إدارة المجموعات التعليمية</h1>
+              <p className="text-gray-600 text-lg">إنشاء وإدارة المجموعات الدراسية للطلاب</p>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="text-2xl font-bold text-blue-600">
-                {adminGroups.reduce((total, group) => total + (group.studentsAssigned?.length || 0), 0)}
+            <div className="flex items-center gap-6">
+              <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200 shadow-lg">
+                <div className="text-3xl font-bold text-green-600 mb-1">
+                  {adminGroups.filter(g => !g.isPlaceholder).length}
+                </div>
+                <div className="text-sm font-semibold text-green-700">مجموعة نشطة</div>
               </div>
-              <div className="text-sm text-blue-700">طالب مسجل</div>
+              <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 shadow-lg">
+                <div className="text-3xl font-bold text-blue-600 mb-1">
+                  {adminGroups.reduce((total, group) => total + (group.studentsAssigned?.length || 0), 0)}
+                </div>
+                <div className="text-sm font-semibold text-blue-700">طالب مسجل</div>
+              </div>
             </div>
           </div>
         </div>
@@ -2614,9 +2617,7 @@ export default function Groups() {
         </div>
       )}
 
-
-
-
+      </div>
     </div>
   );
 }

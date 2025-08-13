@@ -56,9 +56,9 @@ export function DesktopSidebar() {
   };
 
   return (
-    <aside className="w-80 bg-white border-l border-gray-200 min-h-screen flex flex-col">
+    <aside className="w-80 bg-gradient-to-b from-white to-gray-50 border-l border-gray-200 min-h-screen flex flex-col shadow-lg">
       {/* School Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           {selectedSchool?.logoUrl ? (
             <div className="w-12 h-12 rounded-full overflow-hidden shadow-sm border-2 border-gray-200">
@@ -96,10 +96,10 @@ export function DesktopSidebar() {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-right transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-right transition-all duration-200 ${
                   isActive 
-                    ? 'bg-primary/10 text-primary border border-primary/20' 
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-gradient-to-l from-primary/15 to-primary/5 text-primary border border-primary/20 shadow-sm' 
+                    : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-md'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -111,9 +111,9 @@ export function DesktopSidebar() {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className="mb-4">
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
               <User className="w-5 h-5 text-primary" />
             </div>

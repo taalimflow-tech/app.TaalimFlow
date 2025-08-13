@@ -22,7 +22,7 @@ export function Header() {
   });
 
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+    <header className="bg-gradient-to-r from-white via-white to-gray-50 border-b border-gray-100 sticky top-0 z-40 shadow-sm backdrop-blur-sm bg-white/95">
       <div className="lg:max-w-none lg:px-8 max-w-md mx-auto px-4 py-4 flex items-center justify-between">
         <button 
           onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
@@ -33,7 +33,7 @@ export function Header() {
         
         {/* Desktop: Page title */}
         <div className="hidden lg:block">
-          <h1 className="text-xl font-semibold text-gray-800">
+          <h1 className="text-2xl font-bold text-gray-800 bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text">
             {location.includes('/home') ? 'الرئيسية' :
              location.includes('/schedule') ? 'الجدول الدراسي' :
              location.includes('/teachers') ? 'المعلمين' :

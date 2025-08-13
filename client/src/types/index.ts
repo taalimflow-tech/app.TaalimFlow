@@ -8,12 +8,12 @@ export interface User {
 }
 
 export interface Announcement {
-  id: string;
+  id: number;
   title: string;
   content: string;
-  imageUrl?: string;
-  authorId: string;
-  schoolId?: number;
+  imageUrl: string | null;
+  authorId: number | null;
+  schoolId: number;
   createdAt: Date;
   updatedAt: Date;
 }
