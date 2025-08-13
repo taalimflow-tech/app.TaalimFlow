@@ -3718,5 +3718,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Desktop QR Scanner API endpoints
+  app.post("/api/scan-student-qr", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      // Only admins and teachers can use desktop scanner
+      if (!['admin', 'teacher'].includes(req.session.user.role)) {
+        return res.status(403).json({ error: "غير مسموح لك باستخدام الماسح المكتبي" });
+      }
+      
+      const { qrData } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة" });
+      }
+      
+      if (!qrData) {
+        return res.status(400).json({ error: "بيانات الرمز مطلوبة" });
+      }
+      
+      // Parse QR data - expecting format: "student:id:schoolId:verified" or "child:id:schoolId:verified"
+      let studentId: number;
+      let studentType: 'student' | 'child';
+      
+      try {
+        const parts = qrData.split(':');
+        if (parts.length < 4 || !['student', 'child'].includes(parts[0])) {
+          throw new Error('صيغة الرمز غير صحيحة');
+        }
+        
+        studentType = parts[0] as 'student' | 'child';
+        studentId = parseInt(parts[1]);
+        const qrSchoolId = parseInt(parts[2]);
+        
+        // Verify school ID matches
+        if (qrSchoolId !== schoolId) {
+          return res.status(400).json({ error: "هذا الرمز لا ينتمي لمدرستك" });
+        }
+        
+        // Verify verification status
+        if (parts[3] !== 'verified') {
+          return res.status(400).json({ error: "الطالب غير محقق من قبل الإدارة" });
+        }
+        
+      } catch (error) {
+        return res.status(400).json({ error: "تعذر قراءة بيانات الرمز" });
+      }
+      
+      // Get complete student profile with attendance and payment data
+      const studentProfile = await storage.getStudentCompleteProfile(studentId, studentType, schoolId);
+      
+      if (!studentProfile) {
+        return res.status(404).json({ error: "لم يتم العثور على الطالب" });
+      }
+      
+      res.json(studentProfile);
+    } catch (error) {
+      console.error('Error scanning student QR:', error);
+      res.status(500).json({ error: "حدث خطأ في مسح الرمز" });
+    }
+  });
+  
+  // Mark attendance via desktop scanner
+  app.post("/api/scan-student-qr/mark-attendance", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      // Only admins and teachers can mark attendance
+      if (!['admin', 'teacher'].includes(req.session.user.role)) {
+        return res.status(403).json({ error: "غير مسموح لك بتسجيل الحضور" });
+      }
+      
+      const { studentId, studentType, status = 'present' } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId || !studentId || !studentType) {
+        return res.status(400).json({ error: "بيانات ناقصة" });
+      }
+      
+      // Record attendance for today
+      const result = await storage.markStudentAttendanceToday(
+        studentId, 
+        studentType as 'student' | 'child',
+        status as 'present' | 'absent' | 'late' | 'excused',
+        req.session.user.id,
+        schoolId
+      );
+      
+      res.json({ success: true, message: "تم تسجيل الحضور بنجاح", attendance: result });
+    } catch (error) {
+      console.error('Error marking attendance:', error);
+      res.status(500).json({ error: "حدث خطأ في تسجيل الحضور" });
+    }
+  });
+  
+  // Record payment via desktop scanner
+  app.post("/api/scan-student-qr/record-payment", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      // Only admins can record payments
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بتسجيل الدفعات" });
+      }
+      
+      const { studentId, studentType, amount, paymentMethod, notes, year, month } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId || !studentId || !studentType || !amount) {
+        return res.status(400).json({ error: "بيانات ناقصة" });
+      }
+      
+      // Record payment
+      const result = await storage.recordStudentPayment({
+        studentId,
+        studentType: studentType as 'student' | 'child',
+        amount: parseFloat(amount),
+        paymentMethod,
+        notes,
+        year: year || new Date().getFullYear(),
+        month: month || new Date().getMonth() + 1,
+        paidBy: req.session.user.id,
+        schoolId
+      });
+      
+      res.json({ success: true, message: "تم تسجيل الدفعة بنجاح", payment: result });
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      res.status(500).json({ error: "حدث خطأ في تسجيل الدفعة" });
+    }
+  });
+
   return httpServer;
 }

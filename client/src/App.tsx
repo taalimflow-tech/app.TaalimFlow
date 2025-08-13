@@ -32,6 +32,7 @@ import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
 import TeacherSpecializations from "@/pages/TeacherSpecializations";
 import StudentStatus from "@/pages/StudentStatus";
+import DesktopQRScanner from "@/pages/DesktopQRScanner";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -142,6 +143,9 @@ function AppRoutes() {
           </Route>
           <Route path="/school/:code/admin/student-management">
             <AuthWrapper><Layout><AdminStudentManagement /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/desktop-scanner">
+            <AuthWrapper><Layout><DesktopQRScanner /></Layout></AuthWrapper>
           </Route>
           
           {/* School Selection Route (must come after specific routes) */}

@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -32,11 +32,13 @@ export function DesktopSidebar() {
   
   if (user?.role === 'admin') {
     roleSpecificItems = [
-      { icon: Shield, label: 'لوحة الإدارة', path: `${basePath}/admin` || '/admin' }
+      { icon: Shield, label: 'لوحة الإدارة', path: `${basePath}/admin` || '/admin' },
+      { icon: QrCode, label: 'الماسح المكتبي', path: `${basePath}/desktop-scanner` || '/desktop-scanner' }
     ];
   } else if (user?.role === 'teacher') {
     roleSpecificItems = [
-      { icon: BookOpen, label: 'تخصصاتي', path: `${basePath}/teacher-specializations` || '/teacher-specializations' }
+      { icon: BookOpen, label: 'تخصصاتي', path: `${basePath}/teacher-specializations` || '/teacher-specializations' },
+      { icon: QrCode, label: 'الماسح المكتبي', path: `${basePath}/desktop-scanner` || '/desktop-scanner' }
     ];
   } else if (user?.role === 'student' || user?.role === 'parent') {
     roleSpecificItems = [

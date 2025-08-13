@@ -237,6 +237,27 @@ export interface IStorage {
   getChildAttendanceRecords(childId: number, schoolId: number): Promise<any[]>;
   getChildPaymentRecords(childId: number, schoolId: number): Promise<any[]>;
   getChildEnrolledGroups(childId: number, schoolId: number): Promise<any[]>;
+  
+  // Desktop QR Scanner interface methods
+  getStudentCompleteProfile(studentId: number, studentType: 'student' | 'child', schoolId: number): Promise<any | null>;
+  markStudentAttendanceToday(
+    studentId: number, 
+    studentType: 'student' | 'child',
+    status: 'present' | 'absent' | 'late' | 'excused',
+    markedBy: number,
+    schoolId: number
+  ): Promise<any>;
+  recordStudentPayment(paymentData: {
+    studentId: number;
+    studentType: 'student' | 'child';
+    amount: number;
+    paymentMethod?: string;
+    notes?: string;
+    year: number;
+    month: number;
+    paidBy: number;
+    schoolId: number;
+  }): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3804,6 +3825,310 @@ export class DatabaseStorage implements IStorage {
       return result;
     } catch (error) {
       console.error('Error fetching student payment records:', error);
+      throw error;
+    }
+  }
+
+  // Desktop QR Scanner methods implementation
+  async getStudentCompleteProfile(studentId: number, studentType: 'student' | 'child', schoolId: number): Promise<any | null> {
+    try {
+      let studentProfile: any = null;
+      
+      if (studentType === 'student') {
+        // Get student from users table
+        const [student] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            phone: users.phone,
+            role: users.role,
+            educationLevel: students.educationLevel,
+            selectedSubjects: students.selectedSubjects,
+            profilePicture: users.profilePicture,
+            verified: users.verified,
+            type: sql<string>`'student'`
+          })
+          .from(users)
+          .leftJoin(students, eq(students.userId, users.id))
+          .where(and(
+            eq(users.id, studentId),
+            eq(users.schoolId, schoolId),
+            eq(users.role, 'student')
+          ));
+          
+        if (!student) return null;
+        studentProfile = student;
+        
+      } else {
+        // Get child from children table
+        const [child] = await db
+          .select({
+            id: children.id,
+            name: children.name,
+            birthDate: children.birthDate,
+            parentId: children.parentId,
+            educationLevel: children.educationLevel,
+            selectedSubjects: children.selectedSubjects,
+            profilePicture: children.profilePicture,
+            verified: children.verified,
+            type: sql<string>`'child'`,
+            parentName: users.name,
+            parentPhone: users.phone
+          })
+          .from(children)
+          .leftJoin(users, eq(children.parentId, users.id))
+          .where(and(
+            eq(children.id, studentId),
+            eq(children.schoolId, schoolId)
+          ));
+          
+        if (!child) return null;
+        studentProfile = child;
+      }
+      
+      // Get attendance statistics
+      const attendanceStats = await db
+        .select({
+          totalClasses: sql<number>`count(*)`,
+          presentCount: sql<number>`sum(case when ${groupAttendance.status} = 'present' then 1 else 0 end)`,
+          absentCount: sql<number>`sum(case when ${groupAttendance.status} = 'absent' then 1 else 0 end)`,
+          lateCount: sql<number>`sum(case when ${groupAttendance.status} = 'late' then 1 else 0 end)`
+        })
+        .from(groupAttendance)
+        .where(and(
+          eq(groupAttendance.studentId, studentId),
+          eq(groupAttendance.studentType, studentType)
+        ));
+      
+      // Get payment statistics 
+      const paymentStats = await db
+        .select({
+          totalDue: sql<number>`count(*)`,
+          paidCount: sql<number>`sum(case when ${studentMonthlyPayments.isPaid} = true then 1 else 0 end)`,
+          unpaidCount: sql<number>`sum(case when ${studentMonthlyPayments.isPaid} = false then 1 else 0 end)`,
+          totalAmount: sql<number>`sum(case when ${studentMonthlyPayments.amount} is not null then cast(${studentMonthlyPayments.amount} as numeric) else 0 end)`
+        })
+        .from(studentMonthlyPayments)
+        .where(and(
+          eq(studentMonthlyPayments.studentId, studentId),
+          eq(studentMonthlyPayments.studentType, studentType),
+          eq(studentMonthlyPayments.schoolId, schoolId)
+        ));
+      
+      // Get enrolled groups
+      const enrolledGroups = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          educationLevel: groups.educationLevel,
+          subjectName: teachingModules.nameAr,
+          teacherName: users.name
+        })
+        .from(groupMixedAssignments)
+        .leftJoin(groups, eq(groupMixedAssignments.groupId, groups.id))
+        .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+        .leftJoin(teachers, eq(groups.teacherId, teachers.id))
+        .leftJoin(users, eq(teachers.userId, users.id))
+        .where(and(
+          eq(groupMixedAssignments.studentId, studentId),
+          eq(groupMixedAssignments.studentType, studentType),
+          eq(groups.schoolId, schoolId)
+        ));
+      
+      // Get recent attendance (last 10 records)
+      const recentAttendance = await db
+        .select({
+          id: groupAttendance.id,
+          date: groupAttendance.date,
+          status: groupAttendance.status,
+          groupName: groups.name,
+          notes: groupAttendance.notes
+        })
+        .from(groupAttendance)
+        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
+        .where(and(
+          eq(groupAttendance.studentId, studentId),
+          eq(groupAttendance.studentType, studentType)
+        ))
+        .orderBy(desc(groupAttendance.date))
+        .limit(10);
+      
+      // Get recent payments (last 10 records)
+      const recentPayments = await db
+        .select({
+          id: studentMonthlyPayments.id,
+          year: studentMonthlyPayments.year,
+          month: studentMonthlyPayments.month,
+          amount: studentMonthlyPayments.amount,
+          isPaid: studentMonthlyPayments.isPaid,
+          paidAt: studentMonthlyPayments.paidAt,
+          notes: studentMonthlyPayments.notes
+        })
+        .from(studentMonthlyPayments)
+        .where(and(
+          eq(studentMonthlyPayments.studentId, studentId),
+          eq(studentMonthlyPayments.studentType, studentType),
+          eq(studentMonthlyPayments.schoolId, schoolId)
+        ))
+        .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month))
+        .limit(10);
+      
+      return {
+        ...studentProfile,
+        attendanceStats: attendanceStats[0] || { totalClasses: 0, presentCount: 0, absentCount: 0, lateCount: 0 },
+        paymentStats: paymentStats[0] || { totalDue: 0, paidCount: 0, unpaidCount: 0, totalAmount: 0 },
+        enrolledGroups,
+        recentAttendance,
+        recentPayments
+      };
+      
+    } catch (error) {
+      console.error('Error getting student complete profile:', error);
+      return null;
+    }
+  }
+  
+  async markStudentAttendanceToday(
+    studentId: number, 
+    studentType: 'student' | 'child',
+    status: 'present' | 'absent' | 'late' | 'excused',
+    markedBy: number,
+    schoolId: number
+  ): Promise<any> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Get student's enrolled groups to mark attendance for all
+      const enrolledGroups = await db
+        .select({ groupId: groupMixedAssignments.groupId })
+        .from(groupMixedAssignments)
+        .leftJoin(groups, eq(groupMixedAssignments.groupId, groups.id))
+        .where(and(
+          eq(groupMixedAssignments.studentId, studentId),
+          eq(groupMixedAssignments.studentType, studentType),
+          eq(groups.schoolId, schoolId)
+        ));
+      
+      const attendanceRecords = [];
+      
+      for (const group of enrolledGroups) {
+        // Check if attendance already exists for today
+        const existingAttendance = await db
+          .select()
+          .from(groupAttendance)
+          .where(and(
+            eq(groupAttendance.studentId, studentId),
+            eq(groupAttendance.studentType, studentType),
+            eq(groupAttendance.groupId, group.groupId),
+            eq(groupAttendance.date, today)
+          ))
+          .limit(1);
+        
+        if (existingAttendance.length > 0) {
+          // Update existing attendance
+          const [updatedRecord] = await db
+            .update(groupAttendance)
+            .set({
+              status,
+              markedBy,
+              updatedAt: new Date()
+            })
+            .where(eq(groupAttendance.id, existingAttendance[0].id))
+            .returning();
+          attendanceRecords.push(updatedRecord);
+        } else {
+          // Create new attendance record
+          const [newRecord] = await db
+            .insert(groupAttendance)
+            .values({
+              studentId,
+              studentType,
+              groupId: group.groupId,
+              date: today,
+              status,
+              markedBy,
+              schoolId
+            })
+            .returning();
+          attendanceRecords.push(newRecord);
+        }
+      }
+      
+      return attendanceRecords;
+      
+    } catch (error) {
+      console.error('Error marking student attendance:', error);
+      throw error;
+    }
+  }
+  
+  async recordStudentPayment(paymentData: {
+    studentId: number;
+    studentType: 'student' | 'child';
+    amount: number;
+    paymentMethod?: string;
+    notes?: string;
+    year: number;
+    month: number;
+    paidBy: number;
+    schoolId: number;
+  }): Promise<any> {
+    try {
+      const { studentId, studentType, amount, paymentMethod, notes, year, month, paidBy, schoolId } = paymentData;
+      
+      // Check if payment record already exists
+      const existingPayment = await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(and(
+          eq(studentMonthlyPayments.studentId, studentId),
+          eq(studentMonthlyPayments.studentType, studentType),
+          eq(studentMonthlyPayments.year, year),
+          eq(studentMonthlyPayments.month, month),
+          eq(studentMonthlyPayments.schoolId, schoolId)
+        ))
+        .limit(1);
+      
+      if (existingPayment.length > 0) {
+        // Update existing payment
+        const [updatedPayment] = await db
+          .update(studentMonthlyPayments)
+          .set({
+            isPaid: true,
+            amount: amount.toString(),
+            paidAt: new Date(),
+            paidBy,
+            notes,
+            updatedAt: new Date()
+          })
+          .where(eq(studentMonthlyPayments.id, existingPayment[0].id))
+          .returning();
+        
+        return updatedPayment;
+      } else {
+        // Create new payment record
+        const [newPayment] = await db
+          .insert(studentMonthlyPayments)
+          .values({
+            studentId,
+            studentType,
+            year,
+            month,
+            isPaid: true,
+            amount: amount.toString(),
+            paidAt: new Date(),
+            paidBy,
+            notes,
+            schoolId
+          })
+          .returning();
+        
+        return newPayment;
+      }
+      
+    } catch (error) {
+      console.error('Error recording student payment:', error);
       throw error;
     }
   }
