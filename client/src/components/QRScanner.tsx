@@ -18,6 +18,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const [scanCompleted, setScanCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReaderRef = useRef<BrowserQRCodeReader | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -32,12 +33,18 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const cleanup = () => {
     setIsScanning(false);
     setScanCompleted(false);
-    if (codeReaderRef.current) {
+    if (controlsRef.current) {
       try {
-        codeReaderRef.current.reset();
+        controlsRef.current.stop();
       } catch (err) {
         console.log('Scanner cleanup error:', err);
       }
+    }
+    // Also stop all video streams
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
     }
   };
 
@@ -97,7 +104,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       console.log('Starting camera with device:', deviceId);
       
       // Use the ZXing library's built-in method to start video
-      await codeReaderRef.current.decodeFromVideoDevice(
+      const controls = await codeReaderRef.current.decodeFromVideoDevice(
         deviceId,
         videoRef.current,
         (result, error) => {
@@ -105,9 +112,9 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
             console.log('QR code detected:', result.getText());
             setScanCompleted(true);
             // Stop the scanner immediately to prevent further scanning
-            if (codeReaderRef.current) {
+            if (controlsRef.current) {
               try {
-                codeReaderRef.current.reset();
+                controlsRef.current.stop();
               } catch (err) {
                 console.log('Scanner stop error:', err);
               }
@@ -124,6 +131,9 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
           }
         }
       );
+      
+      // Store the controls for cleanup
+      controlsRef.current = controls;
 
       console.log('Camera started successfully');
 
