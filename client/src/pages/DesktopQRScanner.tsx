@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { BrowserQRCodeReader } from '@zxing/browser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,8 @@ import {
   AlertCircle,
   FileText,
   Printer,
-  UserCheck
+  UserCheck,
+  RotateCcw
 } from 'lucide-react';
 
 interface StudentProfile {
@@ -88,8 +89,11 @@ export default function DesktopQRScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannedProfile, setScannedProfile] = useState<StudentProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [codeReader, setCodeReader] = useState<BrowserQRCodeReader | null>(null);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement>(null);
+  const codeReaderRef = useRef<BrowserQRCodeReader | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -98,6 +102,11 @@ export default function DesktopQRScanner() {
   const [paymentMonth, setPaymentMonth] = useState(new Date().getMonth() + 1);
   const [paymentYear, setPaymentYear] = useState(new Date().getFullYear());
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return cleanup;
+  }, []);
 
   // Check if user has permission to use desktop scanner
   if (!user || !['admin', 'teacher'].includes(user.role)) {
@@ -113,90 +122,141 @@ export default function DesktopQRScanner() {
     );
   }
 
-  const startScanning = useCallback(async () => {
+  const cleanup = useCallback(() => {
+    setIsScanning(false);
+    if (controlsRef.current) {
+      try {
+        controlsRef.current.stop();
+      } catch (err) {
+        console.log('Scanner cleanup error:', err);
+      }
+    }
+    // Also stop all video streams
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
+  const initializeScanner = useCallback(async () => {
     try {
       setError(null);
       setScannedProfile(null);
-      
-      console.log('Starting QR scanner...');
-      console.log('Video element available:', !!videoRef.current);
-      
-      // Check if we have camera permissions first
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        console.log('Camera permission granted, available tracks:', stream.getVideoTracks().length);
-        stream.getTracks().forEach(track => track.stop()); // Clean up test stream
-      } catch (permError) {
-        console.error('Camera permission denied:', permError);
-        throw new Error('لم يتم منح إذن الوصول للكاميرا. يرجى السماح بالوصول للكاميرا وإعادة المحاولة.');
-      }
-      
-      const reader = new BrowserQRCodeReader();
-      setCodeReader(reader);
-      
-      // Get available video devices
-      const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices();
-      console.log('Available video devices:', videoInputDevices.length, videoInputDevices);
-      
-      if (videoInputDevices.length === 0) {
-        throw new Error('لم يتم العثور على كاميرا متاحة. تأكد من توصيل كاميرا ومنح الإذن للمتصفح.');
-      }
-      
       setIsScanning(true);
-      
-      // Start continuous scanning with video preview
-      const controls = await reader.decodeFromVideoDevice(
-        videoInputDevices[0].deviceId,
-        videoRef.current!,
-        (result, error) => {
-          if (result) {
-            console.log('QR Code detected:', result.getText());
-            handleQRScan(result.getText());
-          }
-          // Suppress NotFoundException - it's normal when no QR code is visible
-          if (error && !error.name?.includes('NotFoundException')) {
-            console.error('QR scanning error:', error);
-          }
+
+      // Check browser support
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError('متصفحك لا يدعم استخدام الكاميرا');
+        setIsScanning(false);
+        return;
+      }
+
+      // Initialize code reader
+      codeReaderRef.current = new BrowserQRCodeReader();
+
+      // Get video devices
+      try {
+        const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices();
+        console.log('Available cameras:', videoInputDevices);
+        setDevices(videoInputDevices);
+
+        if (videoInputDevices.length === 0) {
+          setError('لم يتم العثور على كاميرا في جهازك');
+          setIsScanning(false);
+          return;
         }
-      );
-      
-      console.log('QR scanner started successfully with controls:', !!controls);
-      
-      // Store controls for cleanup
-      setCodeReader({ ...reader, controls } as any);
-      
-    } catch (err: any) {
-      console.error('Scanning error:', err);
-      setError(`خطأ في المسح: ${err.message || 'خطأ غير معروف'}`);
+
+        // Try to use the first available camera
+        const deviceId = videoInputDevices[0].deviceId;
+        setSelectedDeviceId(deviceId);
+        await startCamera(deviceId);
+
+      } catch (deviceErr) {
+        console.error('Error listing devices:', deviceErr);
+        setError('خطأ في العثور على الكاميرات المتاحة');
+        setIsScanning(false);
+      }
+
+    } catch (err) {
+      console.error('Error initializing scanner:', err);
+      setError('خطأ في تهيئة الماسح الضوئي');
       setIsScanning(false);
     }
   }, []);
 
+  const startCamera = useCallback(async (deviceId: string) => {
+    if (!codeReaderRef.current || !videoRef.current) {
+      setError('خطأ في تهيئة الكاميرا');
+      setIsScanning(false);
+      return;
+    }
+
+    try {
+      console.log('Starting camera with device:', deviceId);
+      
+      // Use the ZXing library's built-in method to start video
+      const controls = await codeReaderRef.current.decodeFromVideoDevice(
+        deviceId,
+        videoRef.current,
+        (result, error) => {
+          if (result) {
+            console.log('QR code detected:', result.getText());
+            handleQRScan(result.getText());
+          }
+          
+          if (error && error.name !== 'NotFoundException') {
+            console.error('Decode error:', error);
+          }
+        }
+      );
+      
+      // Store the controls for cleanup
+      controlsRef.current = controls;
+
+      console.log('Camera started successfully');
+
+    } catch (err: any) {
+      console.error('Error starting camera:', err);
+      
+      if (err.name === 'NotAllowedError') {
+        setError('يرجى السماح بالوصول للكاميرا');
+      } else if (err.name === 'NotFoundError') {
+        setError('لم يتم العثور على الكاميرا المحددة');
+      } else if (err.name === 'NotReadableError') {
+        setError('الكاميرا مستخدمة من تطبيق آخر');
+      } else {
+        setError('خطأ في تشغيل الكاميرا: ' + (err.message || 'خطأ غير معروف'));
+      }
+      setIsScanning(false);
+    }
+  }, []);
+
+  const startScanning = useCallback(async () => {
+    await initializeScanner();
+  }, [initializeScanner]);
+
   const stopScanning = useCallback(() => {
     console.log('Stopping QR scanner...');
+    cleanup();
+  }, [cleanup]);
+
+  const switchCamera = useCallback(async () => {
+    if (devices.length <= 1) return;
     
-    if (codeReader) {
-      // Stop the QR reader controls if they exist
-      if ((codeReader as any).controls) {
-        (codeReader as any).controls.stop();
-      }
-      
-      // Stop all video tracks
-      if (videoRef.current) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        if (stream) {
-          stream.getTracks().forEach(track => {
-            track.stop();
-            console.log('Stopped video track:', track.kind);
-          });
-        }
-        videoRef.current.srcObject = null;
-      }
-    }
+    const currentIndex = devices.findIndex(device => device.deviceId === selectedDeviceId);
+    const nextIndex = (currentIndex + 1) % devices.length;
+    const nextDeviceId = devices[nextIndex].deviceId;
     
-    setIsScanning(false);
-    setCodeReader(null);
-  }, [codeReader]);
+    setSelectedDeviceId(nextDeviceId);
+    cleanup();
+    await startCamera(nextDeviceId);
+  }, [devices, selectedDeviceId, cleanup, startCamera]);
+
+  const retry = useCallback(() => {
+    cleanup();
+    initializeScanner();
+  }, [cleanup, initializeScanner]);
 
   const handleQRScan = async (qrData: string) => {
     try {
@@ -384,8 +444,23 @@ export default function DesktopQRScanner() {
                   </div>
                 )}
               </div>
-              <div className="text-center mt-2 text-sm text-gray-600">
-                وجه الكاميرا نحو رمز QR الخاص بالطالب
+              <div className="text-center mt-2 space-y-2">
+                <p className="text-sm text-gray-600">
+                  وجه الكاميرا نحو رمز QR الخاص بالطالب
+                </p>
+                
+                {devices.length > 1 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={switchCamera}
+                    disabled={!isScanning}
+                    className="text-xs"
+                  >
+                    <RotateCcw className="w-3 h-3 ml-1" />
+                    تبديل الكاميرا ({devices.length} متاح)
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -394,6 +469,12 @@ export default function DesktopQRScanner() {
             <Alert className="mb-4" variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
+              <div className="mt-3">
+                <Button onClick={retry} size="sm" variant="outline">
+                  <RotateCcw className="h-4 w-4 ml-2" />
+                  إعادة المحاولة
+                </Button>
+              </div>
             </Alert>
           )}
         </CardContent>
