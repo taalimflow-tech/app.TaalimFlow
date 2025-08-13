@@ -195,10 +195,38 @@ export default function DesktopQRScanner() {
     try {
       console.log('Starting camera with device:', deviceId);
       
-      // Use the ZXing library's built-in method to start video
-      const controls = await codeReaderRef.current.decodeFromVideoDevice(
-        deviceId,
-        videoRef.current,
+      const videoElement = videoRef.current;
+      
+      // Manually get MediaStream first
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'environment' // Use back camera if available
+        }
+      };
+      
+      console.log('Getting user media with constraints:', constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // Set the stream to video element
+      videoElement.srcObject = stream;
+      
+      // Wait for video to be ready
+      await new Promise((resolve, reject) => {
+        videoElement.addEventListener('loadedmetadata', resolve, { once: true });
+        videoElement.addEventListener('error', reject, { once: true });
+        
+        // Timeout after 5 seconds
+        setTimeout(() => reject(new Error('Video loading timeout')), 5000);
+      });
+      
+      console.log('Video loaded, dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight);
+      
+      // Now start QR code scanning using ZXing on the video element
+      const scanningControls = await codeReaderRef.current.decodeFromVideoElement(
+        videoElement,
         (result, error) => {
           if (result) {
             console.log('QR code detected:', result.getText());
@@ -211,10 +239,16 @@ export default function DesktopQRScanner() {
         }
       );
       
-      // Store the controls for cleanup
-      controlsRef.current = controls;
+      // Store both stream and scanning controls for cleanup
+      controlsRef.current = {
+        stop: () => {
+          scanningControls.stop();
+          stream.getTracks().forEach(track => track.stop());
+          videoElement.srcObject = null;
+        }
+      };
 
-      console.log('Camera started successfully');
+      console.log('Camera and QR scanning started successfully');
 
     } catch (err: any) {
       console.error('Error starting camera:', err);
@@ -225,6 +259,8 @@ export default function DesktopQRScanner() {
         setError('لم يتم العثور على الكاميرا المحددة');
       } else if (err.name === 'NotReadableError') {
         setError('الكاميرا مستخدمة من تطبيق آخر');
+      } else if (err.message === 'Video loading timeout') {
+        setError('انتهت مهلة تحميل الفيديو. جرب كاميرا أخرى');
       } else {
         setError('خطأ في تشغيل الكاميرا: ' + (err.message || 'خطأ غير معروف'));
       }
@@ -429,12 +465,24 @@ export default function DesktopQRScanner() {
               <div className="relative">
                 <video 
                   ref={videoRef} 
-                  className="w-full max-w-md mx-auto border-2 border-green-400 rounded-lg"
-                  style={{ aspectRatio: '4/3' }}
+                  className="w-full max-w-md mx-auto border-2 border-green-400 rounded-lg bg-gray-900"
+                  style={{ aspectRatio: '4/3', minHeight: '300px' }}
                   autoPlay
                   playsInline
                   muted
+                  controls={false}
                 />
+                
+                {/* Scanner overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-48 h-48 border-2 border-white border-dashed rounded-lg relative">
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-500"></div>
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-500"></div>
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-500"></div>
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-500"></div>
+                  </div>
+                </div>
+                
                 <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
                   جاهز للمسح
                 </div>
