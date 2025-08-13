@@ -135,10 +135,6 @@ export default function DesktopQRScanner() {
 
   // Search and filter functions
   const handleSearch = async () => {
-    if (!searchQuery.trim() && !selectedEducationLevel && !selectedRole) {
-      return;
-    }
-
     setIsSearching(true);
     try {
       const params = new URLSearchParams();
@@ -150,7 +146,11 @@ export default function DesktopQRScanner() {
 
       if (response.ok) {
         const results = await response.json();
-        setSearchResults(results);
+        // Filter to show students and parents only 
+        const filteredResults = results.filter((user: any) => 
+          user.role === 'student' || user.role === 'user'
+        );
+        setSearchResults(filteredResults);
         setShowStudentList(true);
       } else {
         const errorData = await response.json();
@@ -172,6 +172,13 @@ export default function DesktopQRScanner() {
     }
   };
 
+  // Load all students on component mount
+  useEffect(() => {
+    if (user && ['admin', 'teacher'].includes(user.role)) {
+      handleSearch();
+    }
+  }, [user]);
+
   const handleSelectStudent = async (student: any) => {
     setIsProcessing(true);
     try {
@@ -188,8 +195,7 @@ export default function DesktopQRScanner() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                studentId: child.id,
-                studentType: 'child'
+                qrData: `child:${child.id}:${user?.schoolId}:verified`
               })
             });
             
@@ -218,8 +224,7 @@ export default function DesktopQRScanner() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            studentId: student.id,
-            studentType: 'student'
+            qrData: `student:${student.id}:${user?.schoolId}:verified`
           })
         });
 
@@ -820,69 +825,49 @@ export default function DesktopQRScanner() {
           <CardContent>
             {isSearching ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
                 <p className="text-gray-600">جاري البحث...</p>
               </div>
             ) : searchResults.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
                 {searchResults.map((student) => (
-                  <div key={student.id} className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={student.profilePicture} />
-                          <AvatarFallback>
-                            <User className="h-5 w-5" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-sm">{student.name}</h3>
-                          <div className="text-xs text-gray-600">#{student.id}</div>
+                  <div key={student.id} className="border rounded-lg p-4 bg-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium">{student.name}</h3>
+                          <div className="text-sm text-gray-600">#{student.id}</div>
+                          {student.email && (
+                            <div className="text-xs text-gray-500">{student.email}</div>
+                          )}
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <Badge variant={student.role === 'student' ? 'default' : 'secondary'} className="text-xs">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={student.role === 'student' ? 'default' : 'secondary'}>
                           {student.role === 'student' ? 'طالب' : 'ولي أمر'}
                         </Badge>
                         {student.verified && (
-                          <Badge className="bg-green-100 text-green-800 text-xs">
-                            <UserCheck className="h-3 w-3 ml-1" />
+                          <Badge className="bg-green-100 text-green-800">
                             محقق
                           </Badge>
                         )}
+                        <Button
+                          size="sm"
+                          onClick={() => handleSelectStudent(student)}
+                          disabled={isProcessing}
+                          className="ml-2"
+                        >
+                          اختيار
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="space-y-1 text-xs text-gray-600 mb-3">
-                      {student.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-3 w-3" />
-                          <span className="truncate">{student.email}</span>
-                        </div>
-                      )}
-                      {student.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-3 w-3" />
-                          <span>{student.phone}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <Button
-                      size="sm"
-                      onClick={() => handleSelectStudent(student)}
-                      disabled={isProcessing}
-                      className="w-full"
-                    >
-                      <User className="h-4 w-4 ml-2" />
-                      عرض الملف الشخصي
-                    </Button>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
-                <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
                 <p>لا توجد نتائج. جرب البحث بكلمات مختلفة أو غير الفلاتر</p>
               </div>
             )}
@@ -1003,36 +988,33 @@ export default function DesktopQRScanner() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  إحصائيات الحضور
-                </CardTitle>
+                <CardTitle className="text-lg">إحصائيات الحضور</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {scannedProfile.attendanceStats.presentCount}
-                    </div>
-                    <div className="text-sm text-gray-600">حاضر</div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2 border rounded">
+                    <span className="text-sm">حاضر</span>
+                    <span className="font-semibold text-green-600">
+                      {scannedProfile.attendanceStats?.presentCount || 0}
+                    </span>
                   </div>
-                  <div className="text-center p-3 bg-red-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">
-                      {scannedProfile.attendanceStats.absentCount}
-                    </div>
-                    <div className="text-sm text-gray-600">غائب</div>
+                  <div className="flex justify-between items-center p-2 border rounded">
+                    <span className="text-sm">غائب</span>
+                    <span className="font-semibold text-red-600">
+                      {scannedProfile.attendanceStats?.absentCount || 0}
+                    </span>
                   </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {scannedProfile.attendanceStats.lateCount}
-                    </div>
-                    <div className="text-sm text-gray-600">متأخر</div>
+                  <div className="flex justify-between items-center p-2 border rounded">
+                    <span className="text-sm">متأخر</span>
+                    <span className="font-semibold text-yellow-600">
+                      {scannedProfile.attendanceStats?.lateCount || 0}
+                    </span>
                   </div>
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {scannedProfile.attendanceStats.totalClasses}
-                    </div>
-                    <div className="text-sm text-gray-600">إجمالي</div>
+                  <div className="flex justify-between items-center p-2 border rounded">
+                    <span className="text-sm">إجمالي الحصص</span>
+                    <span className="font-semibold text-blue-600">
+                      {scannedProfile.attendanceStats?.totalClasses || 0}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -1040,30 +1022,27 @@ export default function DesktopQRScanner() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  إحصائيات المدفوعات
-                </CardTitle>
+                <CardTitle className="text-lg">إحصائيات المدفوعات</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {scannedProfile.paymentStats.paidCount}
-                    </div>
-                    <div className="text-sm text-gray-600">مدفوع</div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2 border rounded">
+                    <span className="text-sm">مدفوع</span>
+                    <span className="font-semibold text-green-600">
+                      {scannedProfile.paymentStats?.paidCount || 0}
+                    </span>
                   </div>
-                  <div className="text-center p-3 bg-red-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">
-                      {scannedProfile.paymentStats.unpaidCount}
-                    </div>
-                    <div className="text-sm text-gray-600">غير مدفوع</div>
+                  <div className="flex justify-between items-center p-2 border rounded">
+                    <span className="text-sm">غير مدفوع</span>
+                    <span className="font-semibold text-red-600">
+                      {scannedProfile.paymentStats?.unpaidCount || 0}
+                    </span>
                   </div>
-                  <div className="col-span-2 text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {scannedProfile.paymentStats.totalAmount} دج
-                    </div>
-                    <div className="text-sm text-gray-600">إجمالي المبلغ</div>
+                  <div className="flex justify-between items-center p-2 border rounded">
+                    <span className="text-sm">إجمالي المبلغ</span>
+                    <span className="font-semibold text-blue-600">
+                      {scannedProfile.paymentStats?.totalAmount || 0} دج
+                    </span>
                   </div>
                 </div>
               </CardContent>
