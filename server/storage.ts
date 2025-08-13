@@ -3868,29 +3868,22 @@ export class DatabaseStorage implements IStorage {
         
       } else {
         // Get child from children table
+        console.log('🔍 Querying children table for child...');
         const [child] = await db
-          .select({
-            id: children.id,
-            name: children.name,
-            birthDate: children.birthDate,
-            parentId: children.parentId,
-            educationLevel: children.educationLevel,
-            selectedSubjects: children.selectedSubjects,
-            profilePicture: children.profilePicture,
-            verified: children.verified,
-            type: sql<string>`'child'`,
-            parentName: users.name,
-            parentPhone: users.phone
-          })
+          .select()
           .from(children)
-          .leftJoin(users, eq(children.parentId, users.id))
           .where(and(
             eq(children.id, studentId),
             eq(children.schoolId, schoolId)
           ));
           
-        if (!child) return null;
-        studentProfile = child;
+        console.log('🔍 Child query result:', child);
+        if (!child) {
+          console.log('❌ No child found with the given criteria');
+          return null;
+        }
+        // Add type field for consistency with student records
+        studentProfile = { ...child, type: 'child' };
       }
       
       // For now, return basic student info without complex statistics to avoid SQL syntax errors
