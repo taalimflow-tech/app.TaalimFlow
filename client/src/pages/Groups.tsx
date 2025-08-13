@@ -831,7 +831,11 @@ export default function Groups() {
         groupId: selectedAdminGroup.id,
         studentIds: selectedStudents,
         teacherId: selectedTeacher,
-        groupData: selectedAdminGroup.isPlaceholder ? selectedAdminGroup : undefined
+        groupData: selectedAdminGroup.isPlaceholder ? {
+          ...selectedAdminGroup,
+          description: selectedAdminGroup.description || `مجموعة تعليمية لمادة ${selectedAdminGroup.nameAr || selectedAdminGroup.subjectName || 'غير محددة'}`,
+          category: selectedAdminGroup.category || 'دراسية'
+        } : undefined
       });
     }
   };
