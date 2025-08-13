@@ -41,7 +41,7 @@ export function BottomNavigation() {
   const navItems = [...baseNavItems, ...roleSpecificItems];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-around py-2">
           {navItems.map((item) => {

@@ -13,6 +13,7 @@ export interface Announcement {
   content: string;
   imageUrl?: string;
   authorId: string;
+  schoolId?: number;
   createdAt: Date;
   updatedAt: Date;
 }

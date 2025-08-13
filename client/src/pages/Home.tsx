@@ -35,7 +35,7 @@ export default function Home() {
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-6 lg:px-0 space-y-6 lg:space-y-8">
         {/* Latest Announcements Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
@@ -48,7 +48,7 @@ export default function Home() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : announcements.length > 0 ? (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
               {announcements.map((announcement) => (
                 <AnnouncementCard key={announcement.id} announcement={announcement} />
               ))}
@@ -75,7 +75,7 @@ export default function Home() {
         {/* Quick Actions Grid */}
         <section className="space-y-4">
           <h3 className="text-lg font-bold text-gray-800">الخدمات السريعة</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
             {quickActions.map((action) => (
               <Button
                 key={action.path}

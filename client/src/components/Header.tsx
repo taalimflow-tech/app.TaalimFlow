@@ -7,7 +7,7 @@ import { NotificationPanel } from './NotificationPanel';
 
 export function Header() {
   const { user, logout } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Get school context from storage
@@ -15,7 +15,7 @@ export function Header() {
   const schoolCode = sessionStorage.getItem('schoolCode');
 
   // Fetch unread notification count
-  const { data: unreadCount = { count: 0 } } = useQuery({
+  const { data: unreadCount = { count: 0 } } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications/unread-count'],
     enabled: !!user,
     refetchInterval: 30000 // Refetch every 30 seconds
@@ -23,13 +23,27 @@ export function Header() {
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-      <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="lg:max-w-none lg:px-8 max-w-md mx-auto px-4 py-4 flex items-center justify-between">
         <button 
           onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
-          className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           <Menu className="w-6 h-6 text-gray-600" />
         </button>
+        
+        {/* Desktop: Page title */}
+        <div className="hidden lg:block">
+          <h1 className="text-xl font-semibold text-gray-800">
+            {location.includes('/home') ? 'الرئيسية' :
+             location.includes('/schedule') ? 'الجدول الدراسي' :
+             location.includes('/teachers') ? 'المعلمين' :
+             location.includes('/messages') ? 'الرسائل' :
+             location.includes('/groups') ? 'المجموعات' :
+             location.includes('/suggestions') ? 'الاقتراحات' :
+             location.includes('/admin') ? 'لوحة الإدارة' :
+             'مدرستي'}
+          </h1>
+        </div>
         
         <div className="flex items-center space-x-reverse space-x-3">
           {selectedSchool?.logoUrl ? (

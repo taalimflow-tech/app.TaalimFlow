@@ -1248,8 +1248,34 @@ export default function Groups() {
   }
 
   return (
-    <div className="px-4 py-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">المجموعات التعليمية</h2>
+    <div className="px-4 py-6 lg:px-0">
+      <div className="lg:hidden">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">المجموعات التعليمية</h2>
+      </div>
+      
+      {/* Desktop: Enhanced header with stats */}
+      <div className="hidden lg:block mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">إدارة المجموعات التعليمية</h1>
+            <p className="text-gray-600">إنشاء وإدارة المجموعات الدراسية للطلاب</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="text-2xl font-bold text-green-600">
+                {adminGroups.filter(g => !g.isPlaceholder).length}
+              </div>
+              <div className="text-sm text-green-700">مجموعة نشطة</div>
+            </div>
+            <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-2xl font-bold text-blue-600">
+                {adminGroups.reduce((total, group) => total + (group.studentsAssigned?.length || 0), 0)}
+              </div>
+              <div className="text-sm text-blue-700">طالب مسجل</div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       {/* Admin Group Management Section */}
       {user?.role === 'admin' && (
@@ -1402,7 +1428,7 @@ export default function Groups() {
                           </Button>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                           {getSubjectGroups().map(group => (
                             <div 
                               key={group.id || group.subjectId} 
@@ -1577,7 +1603,7 @@ export default function Groups() {
             )}
 
             {/* Groups Display */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
               {existingGroupsFilter && (() => {
                 let filteredGroups = [];
                 

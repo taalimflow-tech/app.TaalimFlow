@@ -68,7 +68,8 @@ function AppRoutes() {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Mobile container for screens under lg, full width for desktop */}
+      <div className="lg:max-w-none lg:w-full max-w-md mx-auto bg-white min-h-screen">
         <Switch>
           {/* Public Routes */}
           <Route path="/" component={PublicHome} />
