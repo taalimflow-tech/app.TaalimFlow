@@ -783,7 +783,7 @@ export default function DesktopQRScanner() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {scannedProfile.recentAttendance.map((attendance) => (
+                    {scannedProfile.recentAttendance?.length > 0 ? scannedProfile.recentAttendance.map((attendance) => (
                       <div key={attendance.id} className="flex justify-between items-center p-3 border rounded">
                         <div>
                           <div className="font-medium">{attendance.groupName}</div>
@@ -794,7 +794,11 @@ export default function DesktopQRScanner() {
                         </div>
                         {getStatusBadge(attendance.status)}
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-center text-gray-500 py-4">
+                        لا توجد سجلات حضور حديثة
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -810,7 +814,7 @@ export default function DesktopQRScanner() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {scannedProfile.recentPayments.map((payment) => (
+                    {scannedProfile.recentPayments?.length > 0 ? scannedProfile.recentPayments.map((payment) => (
                       <div key={payment.id} className="flex justify-between items-center p-3 border rounded">
                         <div>
                           <div className="font-medium">
@@ -834,7 +838,11 @@ export default function DesktopQRScanner() {
                           )}
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-center text-gray-500 py-4">
+                        لا توجد سجلات دفع حديثة
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
