@@ -118,23 +118,39 @@ export default function DesktopQRScanner() {
       setError(null);
       setScannedProfile(null);
       
+      console.log('Starting QR scanner...');
+      
       const reader = new BrowserQRCodeReader();
       setCodeReader(reader);
       
       // Get available video devices
       const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices();
+      console.log('Available video devices:', videoInputDevices);
+      
       if (videoInputDevices.length === 0) {
-        throw new Error('لم يتم العثور على كاميرا');
+        throw new Error('لم يتم العثور على كاميرا متاحة');
       }
       
       setIsScanning(true);
       
-      // Start scanning with the first available camera
-      const result = await reader.decodeOnceFromVideoDevice(videoInputDevices[0].deviceId, videoRef.current!);
+      // Start continuous scanning with video preview
+      const controls = await reader.decodeFromVideoDevice(
+        videoInputDevices[0].deviceId,
+        videoRef.current!,
+        (result, error) => {
+          if (result) {
+            console.log('QR Code detected:', result.getText());
+            handleQRScan(result.getText());
+          }
+          if (error && !(error instanceof Error && error.name === 'NotFoundException')) {
+            console.error('QR scanning error:', error);
+          }
+        }
+      );
       
-      if (result) {
-        await handleQRScan(result.getText());
-      }
+      // Store controls for cleanup
+      setCodeReader({ ...reader, controls } as any);
+      
     } catch (err: any) {
       console.error('Scanning error:', err);
       setError(`خطأ في المسح: ${err.message || 'خطأ غير معروف'}`);
@@ -143,14 +159,27 @@ export default function DesktopQRScanner() {
   }, []);
 
   const stopScanning = useCallback(() => {
-    if (codeReader && videoRef.current) {
-      // Stop all video tracks
-      const stream = videoRef.current.srcObject as MediaStream;
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+    console.log('Stopping QR scanner...');
+    
+    if (codeReader) {
+      // Stop the QR reader controls if they exist
+      if ((codeReader as any).controls) {
+        (codeReader as any).controls.stop();
       }
-      videoRef.current.srcObject = null;
+      
+      // Stop all video tracks
+      if (videoRef.current) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream) {
+          stream.getTracks().forEach(track => {
+            track.stop();
+            console.log('Stopped video track:', track.kind);
+          });
+        }
+        videoRef.current.srcObject = null;
+      }
     }
+    
     setIsScanning(false);
     setCodeReader(null);
   }, [codeReader]);
