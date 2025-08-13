@@ -229,12 +229,22 @@ export default function DesktopQRScanner() {
         videoElement,
         (result, error) => {
           if (result) {
-            console.log('QR code detected:', result.getText());
+            console.log('🎯 QR code detected successfully:', result.getText());
+            console.log('QR code format:', result.getBarcodeFormat());
+            console.log('QR code raw bytes:', result.getRawBytes());
             handleQRScan(result.getText());
           }
           
-          if (error && error.name !== 'NotFoundException') {
-            console.error('Decode error:', error);
+          if (error) {
+            // Only log non-NotFoundException errors, but still log them for debugging
+            if (error.name !== 'NotFoundException') {
+              console.error('❌ Decode error:', error.name, error.message);
+            } else {
+              // Occasionally log NotFoundException to confirm scanning is active
+              if (Math.random() < 0.01) { // Log 1% of the time
+                console.log('🔍 Scanning active - no QR code found in frame');
+              }
+            }
           }
         }
       );
@@ -297,18 +307,27 @@ export default function DesktopQRScanner() {
   const handleQRScan = async (qrData: string) => {
     try {
       setIsProcessing(true);
+      console.log('🔄 Processing QR data:', qrData);
+      console.log('🔄 QR data length:', qrData.length);
+      console.log('🔄 QR data first 100 chars:', qrData.substring(0, 100));
+      
       const response = await fetch('/api/scan-student-qr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrData })
       });
 
+      console.log('📡 API response status:', response.status);
+      console.log('📡 API response ok:', response.ok);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ API error response:', error);
         throw new Error(error.error || 'خطأ في مسح الرمز');
       }
 
       const profile = await response.json();
+      console.log('✅ Profile received:', profile);
       setScannedProfile(profile);
       stopScanning();
       
@@ -318,9 +337,16 @@ export default function DesktopQRScanner() {
       });
       
     } catch (error: any) {
-      console.error('QR scan error:', error);
+      console.error('❌ QR scan error:', error);
       setError(error.message || 'خطأ في مسح الرمز');
       stopScanning();
+      
+      // Show error toast
+      toast({
+        title: "خطأ في مسح الرمز",
+        description: error.message || 'خطأ في مسح الرمز',
+        variant: "destructive"
+      });
     } finally {
       setIsProcessing(false);
     }

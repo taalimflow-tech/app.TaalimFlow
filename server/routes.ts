@@ -3741,9 +3741,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "بيانات الرمز مطلوبة" });
       }
       
-      // Parse QR data - expecting format: "student:id:schoolId:verified" or "child:id:schoolId:verified"
+      // Parse QR data - supporting multiple formats:
+      // Format 1: "student:id:schoolId:verified" (test QR codes)
+      // Format 2: "student:id:schoolId:uniqueCode" (real student QR codes)
       let studentId: number;
       let studentType: 'student' | 'child';
+      let verificationPart: string;
       
       try {
         const parts = qrData.split(':');
@@ -3754,18 +3757,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studentType = parts[0] as 'student' | 'child';
         studentId = parseInt(parts[1]);
         const qrSchoolId = parseInt(parts[2]);
+        verificationPart = parts[3];
         
         // Verify school ID matches
         if (qrSchoolId !== schoolId) {
           return res.status(400).json({ error: "هذا الرمز لا ينتمي لمدرستك" });
         }
         
-        // Verify verification status
-        if (parts[3] !== 'verified') {
-          return res.status(400).json({ error: "الطالب غير محقق من قبل الإدارة" });
+        // For test QR codes, check if it's "verified"
+        // For real QR codes, we'll verify the student is verified in the database
+        if (verificationPart === 'verified') {
+          console.log('Test QR code detected - bypassing database verification check');
+        } else {
+          console.log('Real student QR code detected with unique code:', verificationPart);
+          // For real QR codes, we'll check student verification status from database
         }
         
       } catch (error) {
+        console.error('Error parsing QR data:', error);
         return res.status(400).json({ error: "تعذر قراءة بيانات الرمز" });
       }
       
@@ -3775,6 +3784,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!studentProfile) {
         return res.status(404).json({ error: "لم يتم العثور على الطالب" });
       }
+      
+      // For real QR codes (not test ones), verify the student is actually verified
+      if (verificationPart !== 'verified' && !studentProfile.verified) {
+        return res.status(400).json({ error: "الطالب غير محقق من قبل الإدارة" });
+      }
+      
+      console.log('Student profile found:', {
+        id: studentProfile.id,
+        name: studentProfile.name,
+        type: studentProfile.type,
+        verified: studentProfile.verified
+      });
       
       res.json(studentProfile);
     } catch (error) {

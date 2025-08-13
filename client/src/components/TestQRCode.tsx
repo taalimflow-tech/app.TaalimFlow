@@ -20,8 +20,26 @@ export default function TestQRCode() {
 
     setIsGenerating(true);
     try {
-      // Generate QR data in the expected format: "type:id:schoolId:verified"
-      const qrData = `${studentType}:${studentId}:${user.schoolId}:verified`;
+      let qrData: string;
+      
+      // Generate QR data based on actual student QR codes from database
+      const realStudentCodes = {
+        '1': 'nebOtu6Y',
+        '5': 'iATAisVv', 
+        '6': 'pj0RuX7H'
+      };
+      
+      const uniqueCode = realStudentCodes[studentId as keyof typeof realStudentCodes];
+      
+      if (uniqueCode) {
+        // Use real format for existing students
+        qrData = `${studentType}:${studentId}:${user.schoolId}:${uniqueCode}`;
+      } else {
+        // Use test format for other IDs
+        qrData = `${studentType}:${studentId}:${user.schoolId}:verified`;
+      }
+      
+      console.log('Generated QR data:', qrData);
       
       // Generate QR code image
       const qrCodeUrl = await QRCode.toDataURL(qrData, {
