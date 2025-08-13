@@ -1212,6 +1212,15 @@ export default function Groups() {
     }
     
     // Create group objects from teaching modules (either existing groups or placeholders)
+    console.log('DEBUG: Creating groups from modules:', relevantModules.map(m => ({
+      id: m.id,
+      name: m.name,
+      name_ar: m.name_ar,
+      nameAr: m.nameAr,
+      educationLevel: m.educationLevel,
+      grade: m.grade
+    })));
+    
     return relevantModules.map((module: any) => {
       // Check if there's already a group for this module
       const existingGroup = adminGroups.find(group => 
@@ -1225,9 +1234,9 @@ export default function Groups() {
         // Create a placeholder group
         return {
           id: null, // No ID means it's a placeholder
-          name: `مجموعة ${module.name_ar}`,
-          nameAr: module.name_ar,
-          subjectName: module.name_ar,
+          name: `مجموعة ${module.name_ar || module.name || 'مادة غير محددة'}`,
+          nameAr: module.name_ar || module.name,
+          subjectName: module.name_ar || module.name,
           subjectId: module.id,
           educationLevel: selectedLevel,
           teacherId: null,
@@ -1439,7 +1448,7 @@ export default function Groups() {
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <h4 className="font-medium text-gray-900">
-                                  {group.nameAr || group.subjectName}
+                                  {group.nameAr || group.subjectName || group.name || 'مادة غير محددة'}
                                 </h4>
                                 <span className={`text-xs px-2 py-1 rounded ${group.isPlaceholder ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                                   {group.isPlaceholder ? 'فارغة' : 'نشطة'}
@@ -1759,7 +1768,7 @@ export default function Groups() {
                             </div>
                             
                             {/* Title */}
-                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName}</h3>
+                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || group.name || 'مادة غير محددة'}</h3>
                             
                             {/* Teacher */}
                             <div className="text-sm text-gray-600">
