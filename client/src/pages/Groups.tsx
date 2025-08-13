@@ -1027,6 +1027,13 @@ export default function Groups() {
     return result;
   };
 
+  // Helper function to get subject name by ID
+  const getSubjectNameById = (subjectId: number | null) => {
+    if (!subjectId || !teachingModules) return 'غير محدد';
+    const subject = teachingModules.find((module: any) => module.id === subjectId);
+    return subject ? (subject.nameAr || subject.name_ar || subject.name) : 'غير محدد';
+  };
+
   const getFilteredTeachers = (educationLevel: string, subjectId: number) => {
     return teachers.filter(teacher => 
       teacher.specializations.some((spec: any) => 
@@ -1439,7 +1446,7 @@ export default function Groups() {
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <h4 className="font-medium text-gray-900">
-                                  {group.nameAr || group.subjectName}
+                                  {group.nameAr || group.subjectName || getSubjectNameById(group.subjectId)}
                                 </h4>
                                 <span className={`text-xs px-2 py-1 rounded ${group.isPlaceholder ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                                   {group.isPlaceholder ? 'فارغة' : 'نشطة'}
@@ -1759,7 +1766,7 @@ export default function Groups() {
                             </div>
                             
                             {/* Title */}
-                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName}</h3>
+                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || getSubjectNameById(group.subjectId)}</h3>
                             
                             {/* Teacher */}
                             <div className="text-sm text-gray-600">
@@ -1886,7 +1893,7 @@ export default function Groups() {
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
                 <p><strong>المستوى والسنة:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
-                <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
+                <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName || getSubjectNameById(selectedAdminGroup.subjectId)}</p>
               </div>
             </div>
 
