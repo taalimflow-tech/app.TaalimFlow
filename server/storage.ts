@@ -2953,7 +2953,53 @@ export class DatabaseStorage implements IStorage {
         return exactMatches;
       }
 
-      // If no exact matches, try partial matching (subject + education level, any teacher)
+      // If no exact matches, try subject name compatibility (same subject different grades)
+      const requestedSubject = await db
+        .select({ name: teachingModules.nameAr, name_en: teachingModules.name })
+        .from(teachingModules)
+        .where(eq(teachingModules.id, subjectId))
+        .limit(1);
+      
+      if (requestedSubject.length > 0) {
+        const subjectName = requestedSubject[0].name || requestedSubject[0].name_en || '';
+        
+        // Find groups with same subject name but different grade levels
+        const subjectCompatibleMatches = await db
+          .select({
+            id: groups.id,
+            name: groups.name,
+            educationLevel: groups.educationLevel,
+            subjectId: groups.subjectId,
+            teacherId: groups.teacherId,
+            studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`,
+            matchType: sql<string>`'subject_compatible'`
+          })
+          .from(groups)
+          .leftJoin(groupUserAssignments, eq(groups.id, groupUserAssignments.groupId))
+          .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+          .where(and(
+            eq(groups.schoolId, schoolId),
+            eq(groups.teacherId, teacherId),
+            // Flexible education level matching
+            or(
+              eq(groups.educationLevel, educationLevel),
+              like(groups.educationLevel, `%${educationLevel}%`)
+            ),
+            // Same subject name
+            or(
+              eq(teachingModules.nameAr, subjectName),
+              eq(teachingModules.name, subjectName)
+            )
+          ))
+          .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
+          .orderBy(groups.name);
+          
+        if (subjectCompatibleMatches.length > 0) {
+          return subjectCompatibleMatches;
+        }
+      }
+
+      // If no subject-compatible matches, try partial matching (subject + education level, any teacher)
       const partialMatches = await db
         .select({
           id: groups.id,
