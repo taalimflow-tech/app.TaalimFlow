@@ -1561,8 +1561,21 @@ export default function Groups() {
                           console.log(`DEBUG: Group "${group.name}" has teaching module grade: "${moduleGrade}"`);
                           
                           // ONLY show groups whose teaching module grade exactly matches the selected year
-                          if (moduleGrade.trim() === selectedYearFilter.trim()) {
+                          // Handle both formats: "الثالثة متوسط" and "السنة الثالثة متوسط"
+                          const moduleGradeTrimmed = moduleGrade.trim();
+                          const filterTrimmed = selectedYearFilter.trim();
+                          
+                          if (moduleGradeTrimmed === filterTrimmed) {
                             console.log(`DEBUG: Exact match found for "${group.name}"`);
+                            return true;
+                          }
+                          
+                          // Try matching without "السنة" prefix
+                          const moduleGradeWithoutPrefix = moduleGradeTrimmed.replace(/^السنة\s+/, '');
+                          const filterWithoutPrefix = filterTrimmed.replace(/^السنة\s+/, '');
+                          
+                          if (moduleGradeWithoutPrefix === filterWithoutPrefix) {
+                            console.log(`DEBUG: Format-adjusted match found for "${group.name}" (${moduleGradeTrimmed} matches ${filterTrimmed})`);
                             return true;
                           }
                           
