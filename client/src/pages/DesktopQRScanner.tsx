@@ -119,16 +119,27 @@ export default function DesktopQRScanner() {
       setScannedProfile(null);
       
       console.log('Starting QR scanner...');
+      console.log('Video element available:', !!videoRef.current);
+      
+      // Check if we have camera permissions first
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        console.log('Camera permission granted, available tracks:', stream.getVideoTracks().length);
+        stream.getTracks().forEach(track => track.stop()); // Clean up test stream
+      } catch (permError) {
+        console.error('Camera permission denied:', permError);
+        throw new Error('لم يتم منح إذن الوصول للكاميرا. يرجى السماح بالوصول للكاميرا وإعادة المحاولة.');
+      }
       
       const reader = new BrowserQRCodeReader();
       setCodeReader(reader);
       
       // Get available video devices
       const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices();
-      console.log('Available video devices:', videoInputDevices);
+      console.log('Available video devices:', videoInputDevices.length, videoInputDevices);
       
       if (videoInputDevices.length === 0) {
-        throw new Error('لم يتم العثور على كاميرا متاحة');
+        throw new Error('لم يتم العثور على كاميرا متاحة. تأكد من توصيل كاميرا ومنح الإذن للمتصفح.');
       }
       
       setIsScanning(true);
@@ -147,6 +158,8 @@ export default function DesktopQRScanner() {
           }
         }
       );
+      
+      console.log('QR scanner started successfully with controls:', !!controls);
       
       // Store controls for cleanup
       setCodeReader({ ...reader, controls } as any);
