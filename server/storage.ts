@@ -3835,10 +3835,11 @@ export class DatabaseStorage implements IStorage {
       let studentProfile: any = null;
       
       if (studentType === 'student') {
-        // Get student from users table
+        // Get student from students table using student ID, not user ID
         const [student] = await db
           .select({
-            id: users.id,
+            id: students.id,
+            userId: users.id,
             name: users.name,
             email: users.email,
             phone: users.phone,
@@ -3846,15 +3847,14 @@ export class DatabaseStorage implements IStorage {
             educationLevel: students.educationLevel,
             selectedSubjects: students.selectedSubjects,
             profilePicture: users.profilePicture,
-            verified: users.verified,
+            verified: students.verified,
             type: sql<string>`'student'`
           })
-          .from(users)
-          .leftJoin(students, eq(students.userId, users.id))
+          .from(students)
+          .leftJoin(users, eq(students.userId, users.id))
           .where(and(
-            eq(users.id, studentId),
-            eq(users.schoolId, schoolId),
-            eq(users.role, 'student')
+            eq(students.id, studentId),
+            eq(students.schoolId, schoolId)
           ));
           
         if (!student) return null;
@@ -3887,7 +3887,7 @@ export class DatabaseStorage implements IStorage {
         studentProfile = child;
       }
       
-      // Get attendance statistics
+      // Get attendance statistics - use the actual student/child ID
       const attendanceStats = await db
         .select({
           totalClasses: sql<number>`count(*)`,
@@ -3901,7 +3901,7 @@ export class DatabaseStorage implements IStorage {
           eq(groupAttendance.studentType, studentType)
         ));
       
-      // Get payment statistics 
+      // Get payment statistics - use the actual student/child ID
       const paymentStats = await db
         .select({
           totalDue: sql<number>`count(*)`,
