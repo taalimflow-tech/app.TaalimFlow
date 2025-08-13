@@ -153,7 +153,8 @@ export default function DesktopQRScanner() {
             console.log('QR Code detected:', result.getText());
             handleQRScan(result.getText());
           }
-          if (error && !(error instanceof Error && error.name === 'NotFoundException')) {
+          // Suppress NotFoundException - it's normal when no QR code is visible
+          if (error && error.name !== 'NotFoundException') {
             console.error('QR scanning error:', error);
           }
         }
@@ -365,19 +366,27 @@ export default function DesktopQRScanner() {
           
           {isScanning && (
             <div className="mb-4">
-              <video 
-                ref={videoRef} 
-                className="w-full max-w-md mx-auto border rounded-lg"
-                style={{ aspectRatio: '4/3' }}
-                autoPlay
-                playsInline
-                muted
-              />
-              {isProcessing && (
-                <div className="text-center mt-2">
-                  <span className="text-sm text-gray-600">جاري معالجة الرمز...</span>
+              <div className="relative">
+                <video 
+                  ref={videoRef} 
+                  className="w-full max-w-md mx-auto border-2 border-green-400 rounded-lg"
+                  style={{ aspectRatio: '4/3' }}
+                  autoPlay
+                  playsInline
+                  muted
+                />
+                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                  جاهز للمسح
                 </div>
-              )}
+                {isProcessing && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+                    <span className="text-white font-semibold">جاري معالجة الرمز...</span>
+                  </div>
+                )}
+              </div>
+              <div className="text-center mt-2 text-sm text-gray-600">
+                وجه الكاميرا نحو رمز QR الخاص بالطالب
+              </div>
             </div>
           )}
           
