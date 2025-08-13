@@ -1233,6 +1233,8 @@ export default function Groups() {
         return {
           id: null, // No ID means it's a placeholder
           name: `مجموعة ${module.name_ar}`,
+          description: `مجموعة تعليمية لمادة ${module.name_ar}`,
+          category: 'دراسية',
           nameAr: module.name_ar,
           subjectName: module.name_ar,
           subjectId: module.id,
