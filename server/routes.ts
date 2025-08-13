@@ -445,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           gender: unclaimedStudent.gender as "male" | "female",
           parentId: user.id,
           schoolId: user.schoolId!,
-          selectedSubjects: [] // Empty array for now
+          selectedSubjects: [] as string[] // Empty array for now
         });
       }
       
@@ -1817,13 +1817,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "معرف المجموعة غير صحيح" });
       }
       
-      const deleted = await storage.deleteGroup(groupId, req.session.user.schoolId);
+      await storage.deleteGroup(groupId, req.session.user.schoolId);
       
-      if (deleted) {
-        res.json({ success: true, message: "تم حذف المجموعة بنجاح" });
-      } else {
-        res.status(404).json({ error: "المجموعة غير موجودة" });
-      }
+      // If no error was thrown, the deletion was successful
+      res.json({ success: true, message: "تم حذف المجموعة بنجاح" });
     } catch (error) {
       console.error("Error deleting group:", error);
       res.status(500).json({ error: "فشل في حذف المجموعة" });

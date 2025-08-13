@@ -565,7 +565,7 @@ export class DatabaseStorage implements IStorage {
     const [parentInfo] = await db
       .select({ verified: users.verified })
       .from(users)
-      .where(eq(users.id, insertChild.parentId))
+      .where(eq(users.id, insertChild.parentId!))
       .limit(1);
     
     if (parentInfo?.verified) {
@@ -1312,7 +1312,7 @@ export class DatabaseStorage implements IStorage {
             phone: users.phone
           })
           .from(users)
-          .where(eq(users.id, assignment.studentId))
+          .where(eq(users.id, assignment.studentId!))
           .limit(1);
         
         if (studentData[0]) {
@@ -1327,7 +1327,7 @@ export class DatabaseStorage implements IStorage {
             phone: sql<string>`''`.as('phone')
           })
           .from(children)
-          .where(eq(children.id, assignment.studentId))
+          .where(eq(children.id, assignment.studentId!))
           .limit(1);
         
         if (childData[0]) {
@@ -1433,7 +1433,7 @@ export class DatabaseStorage implements IStorage {
     return combinedResults;
   }
 
-  async deleteGroup(groupId: number, schoolId?: number): Promise<boolean> {
+  async deleteGroup(groupId: number, schoolId?: number): Promise<void> {
     try {
       // Delete in correct order to respect foreign key constraints
       
@@ -1464,8 +1464,7 @@ export class DatabaseStorage implements IStorage {
           .where(eq(groups.id, groupId));
       }
       
-      // Return true if at least one row was deleted
-      return result.rowCount ? result.rowCount > 0 : true;
+      // Don't return anything for void method
     } catch (error) {
       console.error('Error deleting group:', error);
       throw error;
@@ -1853,7 +1852,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(teachingModules)
-      .where(or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)))
+      .where(or(eq(teachingModules.schoolId, schoolId), isNull(teachingModules.schoolId)))
       .orderBy(desc(teachingModules.createdAt));
   }
 
@@ -1887,7 +1886,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(teachingModules)
       .where(schoolId ? 
-        or(eq(teachingModules.schoolId, schoolId), eq(teachingModules.schoolId, null)) :
+        or(eq(teachingModules.schoolId, schoolId), isNull(teachingModules.schoolId)) :
         isNull(teachingModules.schoolId)
       )
       .orderBy(teachingModules.educationLevel, teachingModules.name);
