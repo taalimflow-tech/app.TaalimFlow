@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserCheck, CheckCircle, Camera } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { QRScanner } from './QRScanner';
+import { shouldAllowRequest } from '@/utils/requestThrottle';
 
 interface StudentClaimFormProps {
   onSuccess: () => void;
@@ -27,6 +28,17 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [isProcessingQR, setIsProcessingQR] = useState(false);
+  const lastProcessedQRRef = useRef<string>('');
+  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
   
   const [checkData, setCheckData] = useState({
     studentId: ''
@@ -42,9 +54,17 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
     linkAs: '' // 'student' or 'parent'
   });
 
-  // Check student ID mutation
+  // Check student ID mutation with throttling
   const checkMutation = useMutation({
     mutationFn: async (data: { studentId: string }) => {
+      const throttleKey = `check-student-${data.studentId}`;
+      
+      // Throttle requests to prevent excessive API calls
+      if (!shouldAllowRequest(throttleKey, 2000)) {
+        throw new Error('طلب سريع جداً، يرجى الانتظار قليلاً');
+      }
+      
+      console.log('Checking student ID:', data.studentId);
       const response = await fetch('/api/auth/check-student-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,14 +141,15 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
     }
   });
 
-  const handleQRScan = (qrData: string) => {
-    // Prevent multiple scans from processing simultaneously
-    if (isProcessingQR) {
-      console.log('QR scan ignored - already processing');
+  const handleQRScan = useCallback((qrData: string) => {
+    // Prevent duplicate processing of the same QR code
+    if (isProcessingQR || qrData === lastProcessedQRRef.current) {
+      console.log('QR scan ignored - already processing or duplicate:', qrData);
       return;
     }
     
     console.log('Processing QR scan:', qrData);
+    lastProcessedQRRef.current = qrData;
     setIsProcessingQR(true);
     setShowQRScanner(false);
     
@@ -172,11 +193,15 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
       // Reset the processing flag after a delay
       setTimeout(() => {
         setIsProcessingQR(false);
+        // Clear the last processed QR after a longer delay to allow re-scanning if needed
+        setTimeout(() => {
+          lastProcessedQRRef.current = '';
+        }, 5000);
       }, 2000);
     }
-  };
+  }, [isProcessingQR, checkMutation]);
 
-  const handleCheckSubmit = (e: React.FormEvent) => {
+  const handleCheckSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!checkData.studentId) {
       toast({
@@ -186,10 +211,19 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
       });
       return;
     }
-    checkMutation.mutate(checkData);
-  };
+    
+    // Debounce manual submissions to prevent rapid clicking
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      console.log('Manual check submission for student ID:', checkData.studentId);
+      checkMutation.mutate(checkData);
+    }, 300);
+  }, [checkData, checkMutation, toast]);
 
-  const handleClaimSubmit = (e: React.FormEvent) => {
+  const handleClaimSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!claimData.email || !claimData.password || !claimData.name || !claimData.phone || !claimData.gender || !claimData.linkAs) {
       toast({
@@ -199,8 +233,15 @@ export function StudentClaimForm({ onSuccess, onCancel }: StudentClaimFormProps)
       });
       return;
     }
+    
+    // Prevent double submission
+    if (claimMutation.isPending) {
+      return;
+    }
+    
+    console.log('Submitting claim account request');
     claimMutation.mutate(claimData);
-  };
+  }, [claimData, claimMutation, toast]);
 
   if (step === 'check') {
     return (

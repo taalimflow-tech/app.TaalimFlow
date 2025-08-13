@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,53 +15,41 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [school, setSchool] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<Error | null>(null);
-
-  // Fetch school data properly
-  useEffect(() => {
-    if (!schoolCode) return;
-    
-    let isCancelled = false;
-    
-    const fetchSchool = async () => {
-      try {
-        setIsLoading(true);
-        setFetchError(null);
-        
-        const response = await fetch("/api/school/select", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ schoolCode }),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || "فشل في جلب بيانات المدرسة");
-        }
-
-        if (!isCancelled) {
-          setSchool(result.school);
-        }
-      } catch (err) {
-        if (!isCancelled) {
-          setFetchError(err as Error);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
+  // Use TanStack Query instead of manual state management to prevent excessive requests
+  const {
+    data: school,
+    isLoading,
+    error: fetchError,
+    refetch
+  } = useQuery({
+    queryKey: ['/api/school/select', schoolCode],
+    queryFn: async () => {
+      if (!schoolCode) {
+        throw new Error('School code is required');
       }
-    };
+      
+      console.log('Fetching school data for code:', schoolCode);
+      const response = await fetch("/api/school/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ schoolCode }),
+      });
 
-    fetchSchool();
-    
-    return () => {
-      isCancelled = true;
-    };
-  }, [schoolCode]);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "فشل في جلب بيانات المدرسة");
+      }
+
+      return result.school;
+    },
+    enabled: !!schoolCode,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    retry: 1, // Only retry once to prevent excessive requests
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchOnReconnect: false, // Prevent refetch on reconnect
+  });
 
   const handleAccessSchool = async () => {
     setLoading(true);
