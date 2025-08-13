@@ -6,7 +6,7 @@ import { Group } from '@shared/schema';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, User, Plus, Calendar, DollarSign, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
+import { Users, Settings, BookOpen, GraduationCap, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, User, Plus, Calendar, CheckCircle, XCircle, Clock, CreditCard } from 'lucide-react';
 
 // Component for displaying scheduled dates attendance carousel
 function ScheduledDatesCarousel({ 
@@ -1353,30 +1353,19 @@ export default function Groups() {
                                 </Button>
                                 
                                 {!group.isPlaceholder && user?.role === 'admin' && (
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="flex-1 border-green-500 text-green-600 hover:bg-green-50"
-                                      onClick={() => openGroupManagement(group, 'attendance')}
-                                    >
-                                      <Calendar className="w-4 h-4 mr-1" />
-                                      الحضور
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="flex-1 border-purple-500 text-purple-600 hover:bg-purple-50"
-                                      onClick={() => openGroupManagement(group, 'financial')}
-                                    >
-                                      <DollarSign className="w-4 h-4 mr-1" />
-                                      المالية
-                                    </Button>
-                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full border-green-500 text-green-600 hover:bg-green-50"
+                                    onClick={() => openGroupManagement(group, 'attendance')}
+                                  >
+                                    <Calendar className="w-4 h-4 mr-1" />
+                                    الحضور
+                                  </Button>
                                 )}
                                 {!group.isPlaceholder && user?.role !== 'admin' && (
                                   <div className="text-center text-sm text-gray-500 py-2">
-                                    الحضور والإدارة المالية متاحة للمديرين فقط
+                                    الحضور متاح للمديرين فقط
                                   </div>
                                 )}
                               </div>
