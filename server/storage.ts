@@ -2946,11 +2946,10 @@ export class DatabaseStorage implements IStorage {
           educationLevel: groups.educationLevel,
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
-          studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`,
+          studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
           matchType: sql<string>`'exact'`
         })
         .from(groups)
-        .leftJoin(groupUserAssignments, eq(groups.id, groupUserAssignments.groupId))
         .where(and(
           eq(groups.schoolId, schoolId),
           eq(groups.subjectId, subjectId),
@@ -2961,7 +2960,6 @@ export class DatabaseStorage implements IStorage {
             like(groups.educationLevel, `%${educationLevel}%`)
           )
         ))
-        .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
         .orderBy(groups.name);
 
       if (exactMatches.length > 0) {
@@ -2986,11 +2984,10 @@ export class DatabaseStorage implements IStorage {
             educationLevel: groups.educationLevel,
             subjectId: groups.subjectId,
             teacherId: groups.teacherId,
-            studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`,
+            studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
             matchType: sql<string>`'subject_compatible'`
           })
           .from(groups)
-          .leftJoin(groupUserAssignments, eq(groups.id, groupUserAssignments.groupId))
           .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
           .where(and(
             eq(groups.schoolId, schoolId),
@@ -3006,7 +3003,7 @@ export class DatabaseStorage implements IStorage {
               eq(teachingModules.name, subjectName)
             )
           ))
-          .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
+
           .orderBy(groups.name);
           
         if (subjectCompatibleMatches.length > 0) {
@@ -3022,11 +3019,10 @@ export class DatabaseStorage implements IStorage {
           educationLevel: groups.educationLevel,
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
-          studentsCount: sql<number>`count(distinct ${groupUserAssignments.userId})::int`,
+          studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
           matchType: sql<string>`'partial'`
         })
         .from(groups)
-        .leftJoin(groupUserAssignments, eq(groups.id, groupUserAssignments.groupId))
         .where(and(
           eq(groups.schoolId, schoolId),
           eq(groups.subjectId, subjectId),
@@ -3036,7 +3032,6 @@ export class DatabaseStorage implements IStorage {
             like(groups.educationLevel, `%${educationLevel}%`)
           )
         ))
-        .groupBy(groups.id, groups.name, groups.educationLevel, groups.subjectId, groups.teacherId)
         .orderBy(groups.name);
 
       return partialMatches;

@@ -1222,7 +1222,7 @@ export default function Schedule() {
                           <div>
                             <div className="font-medium text-sm">{group.name}</div>
                             <div className="text-xs text-gray-500">
-                              {group.studentsCount || 0} طالب
+                              {group.studentsCount || group.studentsAssigned?.length || 0} طالب
                             </div>
                           </div>
                           <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
