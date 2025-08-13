@@ -1049,46 +1049,125 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Get teaching modules - filter by school if provided
+      // Get all existing groups with their module and teacher info in one query
+      const existingGroups = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          description: groups.description,
+          category: groups.category,
+          educationLevel: groups.educationLevel,
+          subjectId: groups.subjectId,
+          teacherId: groups.teacherId,
+          subjectName: teachingModules.name,
+          nameAr: teachingModules.nameAr,
+          teacherName: users.name,
+          createdAt: groups.createdAt
+        })
+        .from(groups)
+        .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+        .leftJoin(users, eq(groups.teacherId, users.id))
+        .where(eq(groups.schoolId, schoolId))
+        .orderBy(groups.educationLevel, groups.name);
+
+      // Get all teaching modules available for this school
       const allModules = await db.select().from(teachingModules)
         .where(or(eq(teachingModules.schoolId, schoolId), isNull(teachingModules.schoolId)))
         .orderBy(teachingModules.educationLevel, teachingModules.name);
       
-      // Generate all possible groups based on education levels and subjects
-      const allPossibleGroups = [];
+      // Get all group assignments in one query for performance
+      const allAssignments = await db
+        .select({
+          groupId: groupMixedAssignments.groupId,
+          studentId: groupMixedAssignments.studentId,
+          studentType: groupMixedAssignments.studentType
+        })
+        .from(groupMixedAssignments)
+        .innerJoin(groups, eq(groupMixedAssignments.groupId, groups.id))
+        .where(eq(groups.schoolId, schoolId));
       
-      for (const module of allModules) {
-        // Check if there are existing groups for this module
-        const whereConditions = [
-          eq(groups.educationLevel, module.educationLevel),
-          eq(groups.subjectId, module.id)
-        ];
-        
-        if (schoolId) {
-          whereConditions.push(eq(groups.schoolId, schoolId));
+      // Create a map of group assignments for quick lookup
+      const assignmentsByGroup = new Map<number, any[]>();
+      for (const assignment of allAssignments) {
+        if (!assignmentsByGroup.has(assignment.groupId)) {
+          assignmentsByGroup.set(assignment.groupId, []);
         }
+        assignmentsByGroup.get(assignment.groupId)!.push(assignment);
+      }
+      
+      // Process existing groups and add student assignments
+      const allPossibleGroups = [];
+      const existingGroupSubjectIds = new Set(existingGroups.map(g => g.subjectId));
+      
+      // Batch query all student and children data for better performance
+      const allStudentIds = new Set<number>();
+      const allChildIds = new Set<number>();
+      
+      for (const assignment of allAssignments) {
+        if (assignment.studentType === 'student') {
+          allStudentIds.add(assignment.studentId);
+        } else if (assignment.studentType === 'child') {
+          allChildIds.add(assignment.studentId);
+        }
+      }
+      
+      // Get all students in one query
+      const allStudentsData = allStudentIds.size > 0 ? await db
+        .select({
+          id: users.id,
+          name: users.name,
+          educationLevel: students.educationLevel,
+          grade: students.grade,
+          email: users.email
+        })
+        .from(users)
+        .leftJoin(students, eq(users.id, students.userId))
+        .where(inArray(users.id, Array.from(allStudentIds))) : [];
+      
+      // Get all children in one query  
+      const allChildrenData = allChildIds.size > 0 ? await db
+        .select({
+          id: children.id,
+          name: children.name,
+          educationLevel: children.educationLevel,
+          grade: children.grade,
+          email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
+        })
+        .from(children)
+        .where(inArray(children.id, Array.from(allChildIds))) : [];
+      
+      // Create lookup maps for quick access
+      const studentsMap = new Map(allStudentsData.map(s => [s.id, { ...s, type: 'student' }]));
+      const childrenMap = new Map(allChildrenData.map(c => [c.id, { ...c, type: 'child' }]));
+
+      for (const group of existingGroups) {
+        const assignments = assignmentsByGroup.get(group.id) || [];
+        const assignedStudents = [];
         
-        const existingGroups = await db
-          .select({
-            id: groups.id,
-            name: groups.name,
-            description: groups.description,
-            category: groups.category,
-            educationLevel: groups.educationLevel,
-            subjectId: groups.subjectId,
-            teacherId: groups.teacherId,
-            subjectName: teachingModules.name,
-            nameAr: teachingModules.nameAr,
-            teacherName: users.name,
-            createdAt: groups.createdAt
-          })
-          .from(groups)
-          .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
-          .leftJoin(users, eq(groups.teacherId, users.id))
-          .where(and(...whereConditions));
-        
-        if (existingGroups.length === 0) {
-          // Create a placeholder group for this subject
+        for (const assignment of assignments) {
+          if (assignment.studentType === 'student') {
+            const studentData = studentsMap.get(assignment.studentId);
+            if (studentData) {
+              assignedStudents.push(studentData);
+            }
+          } else if (assignment.studentType === 'child') {
+            const childData = childrenMap.get(assignment.studentId);
+            if (childData) {
+              assignedStudents.push(childData);
+            }
+          }
+        }
+
+        allPossibleGroups.push({
+          ...group,
+          studentsAssigned: assignedStudents,
+          isPlaceholder: false
+        });
+      }
+      
+      // Add placeholder groups for subjects without existing groups
+      for (const module of allModules) {
+        if (!existingGroupSubjectIds.has(module.id)) {
           allPossibleGroups.push({
             id: null,
             name: `مجموعة ${module.nameAr || module.name}`,
@@ -1104,70 +1183,6 @@ export class DatabaseStorage implements IStorage {
             studentsAssigned: [],
             isPlaceholder: true
           });
-        } else {
-          // Add existing groups with their assigned students
-          for (const group of existingGroups) {
-            // Get assigned students for this group (both students and children)
-            const mixedAssignments = await db
-              .select({
-                studentId: groupMixedAssignments.studentId,
-                studentType: groupMixedAssignments.studentType
-              })
-              .from(groupMixedAssignments)
-              .where(eq(groupMixedAssignments.groupId, group.id));
-
-            const assignedStudents = [];
-            for (const assignment of mixedAssignments) {
-              if (assignment.studentType === 'student') {
-                // Get student from users/students tables
-                const studentData = await db
-                  .select({
-                    id: users.id,
-                    name: users.name,
-                    educationLevel: students.educationLevel,
-                    grade: students.grade,
-                    email: users.email
-                  })
-                  .from(users)
-                  .leftJoin(students, eq(users.id, students.userId))
-                  .where(eq(users.id, assignment.studentId))
-                  .limit(1);
-                
-                if (studentData[0]) {
-                  assignedStudents.push({
-                    ...studentData[0],
-                    type: 'student'  // Explicitly set type
-                  });
-                }
-              } else if (assignment.studentType === 'child') {
-                // Get child from children table
-                const childData = await db
-                  .select({
-                    id: children.id,
-                    name: children.name,
-                    educationLevel: children.educationLevel,
-                    grade: children.grade,
-                    email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
-                  })
-                  .from(children)
-                  .where(eq(children.id, assignment.studentId))
-                  .limit(1);
-                
-                if (childData[0]) {
-                  assignedStudents.push({
-                    ...childData[0],
-                    type: 'child'  // Explicitly set type
-                  });
-                }
-              }
-            }
-
-            allPossibleGroups.push({
-              ...group,
-              studentsAssigned: assignedStudents,
-              isPlaceholder: false
-            });
-          }
         }
       }
 
