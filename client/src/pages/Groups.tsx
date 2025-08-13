@@ -1472,26 +1472,26 @@ export default function Groups() {
                   <option value="">جميع السنوات</option>
                   {existingGroupsFilter === 'الابتدائي' && (
                     <>
-                      <option value="السنة الأولى ابتدائي">السنة الأولى ابتدائي</option>
-                      <option value="السنة الثانية ابتدائي">السنة الثانية ابتدائي</option>
-                      <option value="السنة الثالثة ابتدائي">السنة الثالثة ابتدائي</option>
-                      <option value="السنة الرابعة ابتدائي">السنة الرابعة ابتدائي</option>
-                      <option value="السنة الخامسة ابتدائي">السنة الخامسة ابتدائي</option>
+                      <option value="الأولى ابتدائي">الأولى ابتدائي</option>
+                      <option value="الثانية ابتدائي">الثانية ابتدائي</option>
+                      <option value="الثالثة ابتدائي">الثالثة ابتدائي</option>
+                      <option value="الرابعة ابتدائي">الرابعة ابتدائي</option>
+                      <option value="الخامسة ابتدائي">الخامسة ابتدائي</option>
                     </>
                   )}
                   {existingGroupsFilter === 'المتوسط' && (
                     <>
-                      <option value="السنة الأولى متوسط">السنة الأولى متوسط</option>
-                      <option value="السنة الثانية متوسط">السنة الثانية متوسط</option>
-                      <option value="السنة الثالثة متوسط">السنة الثالثة متوسط</option>
-                      <option value="السنة الرابعة متوسط">السنة الرابعة متوسط</option>
+                      <option value="الأولى متوسط">الأولى متوسط</option>
+                      <option value="الثانية متوسط">الثانية متوسط</option>
+                      <option value="الثالثة متوسط">الثالثة متوسط</option>
+                      <option value="الرابعة متوسط">الرابعة متوسط</option>
                     </>
                   )}
                   {existingGroupsFilter === 'الثانوي' && (
                     <>
-                      <option value="السنة الأولى ثانوي">السنة الأولى ثانوي</option>
-                      <option value="السنة الثانية ثانوي">السنة الثانية ثانوي</option>
-                      <option value="السنة الثالثة ثانوي">السنة الثالثة ثانوي</option>
+                      <option value="الأولى ثانوي">الأولى ثانوي</option>
+                      <option value="الثانية ثانوي">الثانية ثانوي</option>
+                      <option value="الثالثة ثانوي">الثالثة ثانوي</option>
                     </>
                   )}
                 </select>
@@ -1561,21 +1561,8 @@ export default function Groups() {
                           console.log(`DEBUG: Group "${group.name}" has teaching module grade: "${moduleGrade}"`);
                           
                           // ONLY show groups whose teaching module grade exactly matches the selected year
-                          // Handle both formats: "الثالثة متوسط" and "السنة الثالثة متوسط"
-                          const moduleGradeTrimmed = moduleGrade.trim();
-                          const filterTrimmed = selectedYearFilter.trim();
-                          
-                          if (moduleGradeTrimmed === filterTrimmed) {
+                          if (moduleGrade.trim() === selectedYearFilter.trim()) {
                             console.log(`DEBUG: Exact match found for "${group.name}"`);
-                            return true;
-                          }
-                          
-                          // Try matching without "السنة" prefix
-                          const moduleGradeWithoutPrefix = moduleGradeTrimmed.replace(/^السنة\s+/, '');
-                          const filterWithoutPrefix = filterTrimmed.replace(/^السنة\s+/, '');
-                          
-                          if (moduleGradeWithoutPrefix === filterWithoutPrefix) {
-                            console.log(`DEBUG: Format-adjusted match found for "${group.name}" (${moduleGradeTrimmed} matches ${filterTrimmed})`);
                             return true;
                           }
                           
