@@ -838,16 +838,12 @@ export default function Groups() {
 
   const handleCreateCustomSubject = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // For "All Levels", use "جميع المستويات" as the grade
-    const gradeToUse = customSubjectLevel === 'جميع المستويات' ? 'جميع المستويات' : customSubjectGrade;
-    
-    if (customSubjectName && customSubjectNameAr && customSubjectLevel && (gradeToUse || customSubjectLevel === 'جميع المستويات')) {
+    if (customSubjectName && customSubjectNameAr && customSubjectLevel && customSubjectGrade) {
       createCustomSubjectMutation.mutate({
         name: customSubjectName,
         nameAr: customSubjectNameAr,
         educationLevel: customSubjectLevel,
-        grade: gradeToUse
+        grade: customSubjectGrade
       });
     }
   };
@@ -1029,13 +1025,6 @@ export default function Groups() {
     
     const result = `${levelShort}${yearNumber}${genderText}`;
     return result;
-  };
-
-  // Helper function to get subject name by ID
-  const getSubjectNameById = (subjectId: number | null) => {
-    if (!subjectId || !teachingModules) return 'غير محدد';
-    const subject = teachingModules.find((module: any) => module.id === subjectId);
-    return subject ? (subject.nameAr || subject.name_ar || subject.name) : 'غير محدد';
   };
 
   const getFilteredTeachers = (educationLevel: string, subjectId: number) => {
@@ -1237,8 +1226,6 @@ export default function Groups() {
         return {
           id: null, // No ID means it's a placeholder
           name: `مجموعة ${module.name_ar}`,
-          description: `مجموعة تعليمية لمادة ${module.name_ar}`,
-          category: 'دراسية',
           nameAr: module.name_ar,
           subjectName: module.name_ar,
           subjectId: module.id,
@@ -1452,7 +1439,7 @@ export default function Groups() {
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <h4 className="font-medium text-gray-900">
-                                  {group.nameAr || group.subjectName || getSubjectNameById(group.subjectId)}
+                                  {group.nameAr || group.subjectName}
                                 </h4>
                                 <span className={`text-xs px-2 py-1 rounded ${group.isPlaceholder ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                                   {group.isPlaceholder ? 'فارغة' : 'نشطة'}
@@ -1772,7 +1759,7 @@ export default function Groups() {
                             </div>
                             
                             {/* Title */}
-                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || getSubjectNameById(group.subjectId)}</h3>
+                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName}</h3>
                             
                             {/* Teacher */}
                             <div className="text-sm text-gray-600">
@@ -1899,7 +1886,7 @@ export default function Groups() {
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
                 <p><strong>المستوى والسنة:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
-                <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName || getSubjectNameById(selectedAdminGroup.subjectId)}</p>
+                <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
               </div>
             </div>
 
@@ -2274,7 +2261,6 @@ export default function Groups() {
                   required
                 >
                   <option value="">اختر المستوى...</option>
-                  <option value="جميع المستويات">جميع المستويات</option>
                   <option value="الابتدائي">الابتدائي</option>
                   <option value="المتوسط">المتوسط</option>
                   <option value="الثانوي">الثانوي</option>
@@ -2290,7 +2276,7 @@ export default function Groups() {
                   onChange={(e) => setCustomSubjectGrade(e.target.value)}
                   disabled={!customSubjectLevel || customSubjectLevel === 'جميع المستويات'}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  required={customSubjectLevel !== 'جميع المستويات'}
+                  required
                 >
                   <option value="">اختر السنة...</option>
                   {customSubjectLevel !== 'جميع المستويات' && getAvailableGrades(customSubjectLevel).map(grade => (
@@ -2300,8 +2286,8 @@ export default function Groups() {
                   ))}
                 </select>
                 {customSubjectLevel === 'جميع المستويات' && (
-                  <p className="text-sm text-blue-600 mt-1">
-                    📚 هذه المادة ستكون متاحة لجميع الطلاب بغض النظر عن المستوى الدراسي
+                  <p className="text-sm text-amber-600 mt-1">
+                    💡 لإنشاء مواد لجميع المستويات، قم بإنشاء مادة منفصلة لكل سنة دراسية
                   </p>
                 )}
               </div>

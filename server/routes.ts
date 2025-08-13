@@ -444,7 +444,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           grade: unclaimedStudent.grade,
           gender: unclaimedStudent.gender as "male" | "female",
           parentId: user.id,
-          schoolId: user.schoolId!
+          schoolId: user.schoolId!,
+          selectedSubjects: [] // Empty array for now
         });
       }
       

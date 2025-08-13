@@ -1203,8 +1203,8 @@ export class DatabaseStorage implements IStorage {
         .values({
           schoolId: schoolId,
           name: groupData.name,
-          description: groupData.description || `مجموعة تعليمية لمادة ${groupData.name}`,
-          category: groupData.category || 'دراسية',
+          description: groupData.description,
+          category: groupData.category,
           educationLevel: groupData.educationLevel,
           subjectId: groupData.subjectId,
           teacherId: teacherId,
