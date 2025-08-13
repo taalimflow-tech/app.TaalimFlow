@@ -31,7 +31,9 @@ import {
   FileText,
   Printer,
   UserCheck,
-  RotateCcw
+  RotateCcw,
+  Search,
+  Filter
 } from 'lucide-react';
 
 interface StudentProfile {
@@ -103,6 +105,15 @@ export default function DesktopQRScanner() {
   const [paymentYear, setPaymentYear] = useState(new Date().getFullYear());
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showStudentList, setShowStudentList] = useState(false);
+
   // Cleanup on component unmount
   useEffect(() => {
     return cleanup;
@@ -121,6 +132,125 @@ export default function DesktopQRScanner() {
       </div>
     );
   }
+
+  // Search and filter functions
+  const handleSearch = async () => {
+    if (!searchQuery.trim() && !selectedEducationLevel && !selectedRole) {
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.append('search', searchQuery.trim());
+      if (selectedEducationLevel) params.append('educationLevel', selectedEducationLevel);
+      if (selectedRole) params.append('role', selectedRole);
+      
+      const response = await fetch(`/api/users?${params.toString()}`);
+
+      if (response.ok) {
+        const results = await response.json();
+        setSearchResults(results);
+        setShowStudentList(true);
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "خطأ في البحث",
+          description: errorData.error || "فشل في البحث عن الطلاب",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "خطأ في الشبكة",
+        description: "فشل في الاتصال بالخادم",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectStudent = async (student: any) => {
+    setIsProcessing(true);
+    try {
+      // For users with role 'user', we need to find their children
+      if (student.role === 'user') {
+        // Get children for this parent
+        const childrenResponse = await fetch(`/api/children?parentId=${student.id}`);
+        if (childrenResponse.ok) {
+          const children = await childrenResponse.json();
+          if (children.length > 0) {
+            // For now, select the first child - in a real implementation you'd show a selection dialog
+            const child = children[0];
+            const response = await fetch('/api/scan-student-qr', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                studentId: child.id,
+                studentType: 'child'
+              })
+            });
+            
+            if (response.ok) {
+              const profileData = await response.json();
+              setScannedProfile(profileData);
+              setShowStudentList(false);
+              toast({
+                title: "تم تحميل ملف الطفل",
+                description: `تم تحميل ملف ${profileData.name} بنجاح`
+              });
+              return;
+            }
+          } else {
+            toast({
+              title: "لا توجد أطفال",
+              description: "لا يوجد أطفال مسجلين لهذا الولي",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
+      } else {
+        // Regular student selection
+        const response = await fetch('/api/scan-student-qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            studentId: student.id,
+            studentType: 'student'
+          })
+        });
+
+        if (response.ok) {
+          const profileData = await response.json();
+          setScannedProfile(profileData);
+          setShowStudentList(false);
+          toast({
+            title: "تم تحميل ملف الطالب",
+            description: `تم تحميل ملف ${profileData.name} بنجاح`
+          });
+        } else {
+          const errorData = await response.json();
+          toast({
+            title: "خطأ في تحميل الملف",
+            description: errorData.error || "فشل في تحميل ملف الطالب",
+            variant: "destructive"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Student selection error:', error);
+      toast({
+        title: "خطأ في الشبكة",
+        description: "فشل في الاتصال بالخادم",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const cleanup = useCallback(() => {
     setIsScanning(false);
@@ -553,6 +683,212 @@ export default function DesktopQRScanner() {
           )}
         </CardContent>
       </Card>
+
+      {/* Search and Filter Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              البحث عن الطلاب
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowStudentList(!showStudentList)}
+            >
+              {showStudentList ? 'إخفاء القائمة' : 'عرض قائمة الطلاب'}
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            ابحث عن الطلاب بالاسم أو الرقم أو اعرض قائمة مفلترة حسب المستوى والسنة
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Search Bar */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="ابحث بالاسم، الرقم، أو البريد الإلكتروني..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-1"
+              />
+              <Button 
+                onClick={handleSearch}
+                disabled={isSearching || isProcessing}
+                className="px-6"
+              >
+                <Search className="h-4 w-4 ml-2" />
+                {isSearching ? 'بحث...' : 'بحث'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                فلترة
+              </Button>
+            </div>
+
+            {/* Filters */}
+            {showFilters && (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2">المستوى التعليمي</Label>
+                    <Select value={selectedEducationLevel} onValueChange={setSelectedEducationLevel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر المستوى التعليمي" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">جميع المستويات</SelectItem>
+                        <SelectItem value="الابتدائي">الابتدائي</SelectItem>
+                        <SelectItem value="المتوسط">المتوسط</SelectItem>
+                        <SelectItem value="الثانوي">الثانوي</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium mb-2">نوع المستخدم</Label>
+                    <Select value={selectedRole} onValueChange={setSelectedRole}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر نوع المستخدم" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">الكل</SelectItem>
+                        <SelectItem value="student">طلاب</SelectItem>
+                        <SelectItem value="user">أولياء الأمور</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Search Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedEducationLevel('الابتدائي');
+                  setSelectedRole('student');
+                  handleSearch();
+                }}
+              >
+                طلاب الابتدائي
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedEducationLevel('المتوسط');
+                  setSelectedRole('student');
+                  handleSearch();
+                }}
+              >
+                طلاب المتوسط
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedEducationLevel('الثانوي');
+                  setSelectedRole('student');
+                  handleSearch();
+                }}
+              >
+                طلاب الثانوي
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Student List */}
+      {showStudentList && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              نتائج البحث ({searchResults.length} طالب)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isSearching ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <p className="text-gray-600">جاري البحث...</p>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {searchResults.map((student) => (
+                  <div key={student.id} className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={student.profilePicture} />
+                          <AvatarFallback>
+                            <User className="h-5 w-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold text-sm">{student.name}</h3>
+                          <div className="text-xs text-gray-600">#{student.id}</div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant={student.role === 'student' ? 'default' : 'secondary'} className="text-xs">
+                          {student.role === 'student' ? 'طالب' : 'ولي أمر'}
+                        </Badge>
+                        {student.verified && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            <UserCheck className="h-3 w-3 ml-1" />
+                            محقق
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1 text-xs text-gray-600 mb-3">
+                      {student.email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate">{student.email}</span>
+                        </div>
+                      )}
+                      {student.phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-3 w-3" />
+                          <span>{student.phone}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      size="sm"
+                      onClick={() => handleSelectStudent(student)}
+                      disabled={isProcessing}
+                      className="w-full"
+                    >
+                      <User className="h-4 w-4 ml-2" />
+                      عرض الملف الشخصي
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                <p>لا توجد نتائج. جرب البحث بكلمات مختلفة أو غير الفلاتر</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {scannedProfile && (
         <div className="grid gap-6">
