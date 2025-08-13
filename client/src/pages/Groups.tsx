@@ -838,12 +838,16 @@ export default function Groups() {
 
   const handleCreateCustomSubject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (customSubjectName && customSubjectNameAr && customSubjectLevel && customSubjectGrade) {
+    
+    // For "All Levels", use "جميع المستويات" as the grade
+    const gradeToUse = customSubjectLevel === 'جميع المستويات' ? 'جميع المستويات' : customSubjectGrade;
+    
+    if (customSubjectName && customSubjectNameAr && customSubjectLevel && (gradeToUse || customSubjectLevel === 'جميع المستويات')) {
       createCustomSubjectMutation.mutate({
         name: customSubjectName,
         nameAr: customSubjectNameAr,
         educationLevel: customSubjectLevel,
-        grade: customSubjectGrade
+        grade: gradeToUse
       });
     }
   };
@@ -2270,6 +2274,7 @@ export default function Groups() {
                   required
                 >
                   <option value="">اختر المستوى...</option>
+                  <option value="جميع المستويات">جميع المستويات</option>
                   <option value="الابتدائي">الابتدائي</option>
                   <option value="المتوسط">المتوسط</option>
                   <option value="الثانوي">الثانوي</option>
@@ -2285,7 +2290,7 @@ export default function Groups() {
                   onChange={(e) => setCustomSubjectGrade(e.target.value)}
                   disabled={!customSubjectLevel || customSubjectLevel === 'جميع المستويات'}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  required
+                  required={customSubjectLevel !== 'جميع المستويات'}
                 >
                   <option value="">اختر السنة...</option>
                   {customSubjectLevel !== 'جميع المستويات' && getAvailableGrades(customSubjectLevel).map(grade => (
@@ -2295,8 +2300,8 @@ export default function Groups() {
                   ))}
                 </select>
                 {customSubjectLevel === 'جميع المستويات' && (
-                  <p className="text-sm text-amber-600 mt-1">
-                    💡 لإنشاء مواد لجميع المستويات، قم بإنشاء مادة منفصلة لكل سنة دراسية
+                  <p className="text-sm text-blue-600 mt-1">
+                    📚 هذه المادة ستكون متاحة لجميع الطلاب بغض النظر عن المستوى الدراسي
                   </p>
                 )}
               </div>
