@@ -3891,9 +3891,9 @@ export class DatabaseStorage implements IStorage {
       const attendanceStats = await db
         .select({
           totalClasses: sql<number>`count(*)`,
-          presentCount: sql<number>`sum(case when ${groupAttendance.status} = 'present' then 1 else 0 end)`,
-          absentCount: sql<number>`sum(case when ${groupAttendance.status} = 'absent' then 1 else 0 end)`,
-          lateCount: sql<number>`sum(case when ${groupAttendance.status} = 'late' then 1 else 0 end)`
+          presentCount: sql<number>`sum(case when status = 'present' then 1 else 0 end)`,
+          absentCount: sql<number>`sum(case when status = 'absent' then 1 else 0 end)`,
+          lateCount: sql<number>`sum(case when status = 'late' then 1 else 0 end)`
         })
         .from(groupAttendance)
         .where(and(
@@ -3905,9 +3905,9 @@ export class DatabaseStorage implements IStorage {
       const paymentStats = await db
         .select({
           totalDue: sql<number>`count(*)`,
-          paidCount: sql<number>`sum(case when ${studentMonthlyPayments.isPaid} = true then 1 else 0 end)`,
-          unpaidCount: sql<number>`sum(case when ${studentMonthlyPayments.isPaid} = false then 1 else 0 end)`,
-          totalAmount: sql<number>`sum(case when ${studentMonthlyPayments.amount} is not null then cast(${studentMonthlyPayments.amount} as numeric) else 0 end)`
+          paidCount: sql<number>`sum(case when is_paid = true then 1 else 0 end)`,
+          unpaidCount: sql<number>`sum(case when is_paid = false then 1 else 0 end)`,
+          totalAmount: sql<number>`sum(case when amount is not null then cast(amount as numeric) else 0 end)`
         })
         .from(studentMonthlyPayments)
         .where(and(
