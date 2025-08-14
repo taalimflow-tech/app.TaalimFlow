@@ -3906,5 +3906,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get student's enrolled groups for ticket printer
+  app.get("/api/students/:studentId/groups", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      // Only admins and teachers can access this
+      if (!['admin', 'teacher'].includes(req.session.user.role)) {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول لهذه البيانات" });
+      }
+      
+      const { studentId } = req.params;
+      const { type } = req.query;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة" });
+      }
+      
+      // Get student's enrolled groups based on type
+      const groups = await storage.getStudentEnrolledGroups(parseInt(studentId), type as 'student' | 'child', schoolId);
+      
+      res.json(groups);
+    } catch (error) {
+      console.error('Error fetching student groups:', error);
+      res.status(500).json({ error: "حدث خطأ في جلب مجموعات الطالب" });
+    }
+  });
+
+  // Create ticket-based payment with multiple groups and months
+  app.post("/api/scan-student-qr/create-ticket-payment", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      // Only admins can create ticket payments
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بإنشاء إيصال الدفع" });
+      }
+      
+      const { transactions, totalAmount } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId || !transactions || !Array.isArray(transactions) || transactions.length === 0) {
+        return res.status(400).json({ error: "بيانات ناقصة" });
+      }
+      
+      // Generate unique receipt ID
+      const receiptId = `REC-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+      
+      // Process each transaction
+      const createdTransactions = [];
+      
+      for (const transaction of transactions) {
+        // Mark student payment for this month
+        const paymentRecord = await storage.markStudentPayment(
+          transaction.studentId,
+          transaction.year,
+          transaction.month,
+          true, // Mark as paid
+          schoolId,
+          req.session.user.id,
+          transaction.amount / 100, // Convert back from cents
+          `${transaction.notes || ''} - إيصال: ${receiptId}`.trim()
+        );
+        
+        // Create transaction record
+        const transactionRecord = await storage.createTransaction({
+          schoolId,
+          groupId: transaction.groupId,
+          studentId: transaction.studentId,
+          studentType: transaction.studentType,
+          transactionType: 'payment',
+          amount: transaction.amount, // Amount in cents
+          currency: 'DZD',
+          description: `دفع شهر ${transaction.month}/${transaction.year}`,
+          paidDate: new Date(),
+          paymentMethod: transaction.paymentMethod,
+          status: 'paid',
+          notes: `${transaction.notes || ''} - إيصال: ${receiptId}`.trim(),
+          recordedBy: req.session.user.id
+        });
+        
+        createdTransactions.push({
+          paymentRecord,
+          transactionRecord
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "تم إنشاء إيصال الدفع بنجاح", 
+        receiptId,
+        totalAmount,
+        transactionCount: createdTransactions.length,
+        transactions: createdTransactions
+      });
+      
+    } catch (error) {
+      console.error('Error creating ticket payment:', error);
+      res.status(500).json({ error: "حدث خطأ في إنشاء إيصال الدفع" });
+    }
+  });
+
   return httpServer;
 }

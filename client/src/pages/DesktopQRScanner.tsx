@@ -428,13 +428,20 @@ export default function DesktopQRScanner() {
   const codeReaderRef = useRef<BrowserQRCodeReader | null>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
   
-  // Payment form state
+  // Enhanced payment form state for ticket printer
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paymentNotes, setPaymentNotes] = useState('');
-  const [paymentMonth, setPaymentMonth] = useState(new Date().getMonth() + 1);
-  const [paymentYear, setPaymentYear] = useState(new Date().getFullYear());
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Group-based payment state
+  const [selectedGroups, setSelectedGroups] = useState<{[key: number]: {months: number[], groupName: string, subjectName: string}}>({});
+  const [availableGroups, setAvailableGroups] = useState<any[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  
+  // Ticket state
+  const [generatedTicket, setGeneratedTicket] = useState<any>(null);
+  const [showTicket, setShowTicket] = useState(false);
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -918,10 +925,189 @@ export default function DesktopQRScanner() {
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
-  const months = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-  ];
+  // Fetch student's enrolled groups when profile is loaded
+  useEffect(() => {
+    if (scannedProfile && scannedProfile.id) {
+      fetchStudentGroups();
+    }
+  }, [scannedProfile]);
+
+  const fetchStudentGroups = async () => {
+    if (!scannedProfile) return;
+    
+    setLoadingGroups(true);
+    try {
+      const response = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`);
+      if (response.ok) {
+        const groups = await response.json();
+        setAvailableGroups(groups);
+      } else {
+        console.error('Failed to fetch student groups');
+      }
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  const handleGroupSelection = (groupId: number, selected: boolean) => {
+    if (selected) {
+      const group = availableGroups.find(g => g.id === groupId);
+      if (group) {
+        setSelectedGroups(prev => ({
+          ...prev,
+          [groupId]: {
+            months: [],
+            groupName: group.name,
+            subjectName: group.subjectName || group.nameAr
+          }
+        }));
+      }
+    } else {
+      setSelectedGroups(prev => {
+        const newState = { ...prev };
+        delete newState[groupId];
+        return newState;
+      });
+    }
+  };
+
+  const handleMonthToggle = (groupId: number, month: number) => {
+    setSelectedGroups(prev => ({
+      ...prev,
+      [groupId]: {
+        ...prev[groupId],
+        months: prev[groupId].months.includes(month)
+          ? prev[groupId].months.filter(m => m !== month)
+          : [...prev[groupId].months, month]
+      }
+    }));
+  };
+
+  const generatePaymentTicket = async () => {
+    if (!scannedProfile || !paymentAmount || Object.keys(selectedGroups).length === 0) {
+      toast({
+        title: "معلومات ناقصة",
+        description: "يرجى تحديد المجموعات والأشهر والمبلغ",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate that at least one month is selected
+    const hasSelectedMonths = Object.values(selectedGroups).some(group => group.months.length > 0);
+    if (!hasSelectedMonths) {
+      toast({
+        title: "معلومات ناقصة", 
+        description: "يرجى تحديد الأشهر المراد دفعها",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+
+      // Create transactions for each selected group/month combination
+      const transactions = [];
+      for (const [groupId, groupData] of Object.entries(selectedGroups)) {
+        for (const month of groupData.months) {
+          const transaction = {
+            studentId: scannedProfile.id,
+            studentType: scannedProfile.type,
+            groupId: parseInt(groupId),
+            amount: Math.round((parseFloat(paymentAmount) / getTotalSelectedMonths()) * 100), // Convert to cents and distribute
+            paymentMethod,
+            notes: paymentNotes,
+            month,
+            year: new Date().getFullYear()
+          };
+          transactions.push(transaction);
+        }
+      }
+
+      // Create payment records
+      const response = await fetch('/api/scan-student-qr/create-ticket-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transactions,
+          totalAmount: parseFloat(paymentAmount)
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'خطأ في إنشاء إيصال الدفع');
+      }
+
+      const result = await response.json();
+
+      // Generate ticket data
+      const ticket = {
+        receiptId: result.receiptId || `REC-${Date.now()}`,
+        studentName: scannedProfile.name,
+        paymentDate: new Date().toLocaleDateString('ar-SA'),
+        amount: parseFloat(paymentAmount),
+        paymentMethod: getPaymentMethodText(paymentMethod),
+        groups: Object.entries(selectedGroups).map(([groupId, groupData]) => ({
+          groupName: groupData.groupName,
+          subjectName: groupData.subjectName,
+          months: groupData.months.map(m => getMonthName(m))
+        }))
+      };
+
+      setGeneratedTicket(ticket);
+      setShowTicket(true);
+
+      toast({
+        title: "تم إنشاء إيصال الدفع",
+        description: `إيصال رقم: ${ticket.receiptId}`
+      });
+
+      // Reset form
+      setPaymentAmount('');
+      setPaymentNotes('');
+      setSelectedGroups({});
+
+    } catch (error: any) {
+      console.error('Ticket generation error:', error);
+      toast({
+        title: "خطأ في إنشاء الإيصال",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const getTotalSelectedMonths = () => {
+    return Object.values(selectedGroups).reduce((total, group) => total + group.months.length, 0);
+  };
+
+  const getMonthName = (monthNum: number) => {
+    const monthNames = [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ];
+    return monthNames[monthNum - 1] || `الشهر ${monthNum}`;
+  };
+
+  const getPaymentMethodText = (method: string) => {
+    const methods = {
+      'cash': 'نقدي',
+      'bank': 'تحويل بنكي', 
+      'card': 'بطاقة',
+      'cheque': 'شيك'
+    };
+    return methods[method as keyof typeof methods] || method;
+  };
+
+  const printTicket = () => {
+    window.print();
+  };
 
   return (
     <div className="container mx-auto p-6" dir="rtl">
@@ -1478,7 +1664,7 @@ export default function DesktopQRScanner() {
                       <div key={payment.id} className="flex justify-between items-center p-3 border rounded">
                         <div>
                           <div className="font-medium">
-                            {months[payment.month - 1]} {payment.year}
+                            {getMonthName(payment.month)} {payment.year}
                           </div>
                           {payment.amount && (
                             <div className="text-sm text-gray-600">{payment.amount} دج</div>
@@ -1513,21 +1699,98 @@ export default function DesktopQRScanner() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5" />
-                      تسجيل دفعة جديدة
+                      <Printer className="h-5 w-5" />
+                      طابعة إيصال الدفع
                     </CardTitle>
+                    <CardDescription>
+                      تحديد المجموعات والأشهر لإنشاء إيصال دفع شامل
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <CardContent className="space-y-6">
+                    {/* Groups Selection */}
+                    <div>
+                      <Label className="text-base font-medium">اختيار المجموعات والأشهر</Label>
+                      <div className="mt-3 space-y-4">
+                        {loadingGroups ? (
+                          <div className="text-center py-4">
+                            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
+                            <p className="text-sm text-gray-500 mt-2">جاري تحميل المجموعات...</p>
+                          </div>
+                        ) : availableGroups.length > 0 ? (
+                          availableGroups.map((group) => (
+                            <div key={group.id} className="border rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-3">
+                                  <input
+                                    type="checkbox"
+                                    id={`group-${group.id}`}
+                                    checked={selectedGroups[group.id] !== undefined}
+                                    onChange={(e) => handleGroupSelection(group.id, e.target.checked)}
+                                    className="ml-2"
+                                  />
+                                  <label htmlFor={`group-${group.id}`} className="cursor-pointer">
+                                    <div className="font-medium">{group.name}</div>
+                                    <div className="text-sm text-gray-600">
+                                      {group.subjectName || group.nameAr} - {group.educationLevel}
+                                    </div>
+                                  </label>
+                                </div>
+                              </div>
+                              
+                              {selectedGroups[group.id] && (
+                                <div className="border-t pt-3">
+                                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                                    الأشهر المراد دفعها:
+                                  </Label>
+                                  <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                                    {Array.from({length: 12}, (_, i) => i + 1).map((month) => (
+                                      <label key={month} className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedGroups[group.id]?.months.includes(month) || false}
+                                          onChange={() => handleMonthToggle(group.id, month)}
+                                          className="ml-1"
+                                        />
+                                        <span className="text-sm">{getMonthName(month)}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                  {selectedGroups[group.id]?.months.length > 0 && (
+                                    <div className="mt-2 text-sm text-blue-600">
+                                      الأشهر المحددة: {selectedGroups[group.id].months.map(m => getMonthName(m)).join(', ')}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-6 text-gray-500">
+                            <Users className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                            <p>لا توجد مجموعات متاحة لهذا الطالب</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Payment Details */}
+                    <Separator />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="amount">المبلغ (دج)</Label>
+                        <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
                         <Input
                           id="amount"
                           type="number"
                           value={paymentAmount}
                           onChange={(e) => setPaymentAmount(e.target.value)}
                           placeholder="0.00"
+                          className="text-lg font-medium"
                         />
+                        {getTotalSelectedMonths() > 0 && (
+                          <div className="text-sm text-gray-500 mt-1">
+                            إجمالي {getTotalSelectedMonths()} شهر - متوسط {paymentAmount ? (parseFloat(paymentAmount) / getTotalSelectedMonths()).toFixed(2) : '0'} دج/شهر
+                          </div>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="method">طريقة الدفع</Label>
@@ -1544,33 +1807,6 @@ export default function DesktopQRScanner() {
                         </Select>
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="month">الشهر</Label>
-                        <Select value={paymentMonth.toString()} onValueChange={(value) => setPaymentMonth(parseInt(value))}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {months.map((month, index) => (
-                              <SelectItem key={index} value={(index + 1).toString()}>
-                                {month}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="year">السنة</Label>
-                        <Input
-                          id="year"
-                          type="number"
-                          value={paymentYear}
-                          onChange={(e) => setPaymentYear(parseInt(e.target.value))}
-                        />
-                      </div>
-                    </div>
 
                     <div>
                       <Label htmlFor="notes">ملاحظات</Label>
@@ -1579,17 +1815,18 @@ export default function DesktopQRScanner() {
                         value={paymentNotes}
                         onChange={(e) => setPaymentNotes(e.target.value)}
                         placeholder="ملاحظات إضافية..."
-                        rows={3}
+                        rows={2}
                       />
                     </div>
 
                     <Button 
-                      onClick={handleRecordPayment}
-                      disabled={!paymentAmount || isProcessing}
+                      onClick={generatePaymentTicket}
+                      disabled={!paymentAmount || Object.keys(selectedGroups).length === 0 || getTotalSelectedMonths() === 0 || isProcessing}
                       className="w-full"
+                      size="lg"
                     >
-                      <DollarSign className="h-4 w-4 ml-2" />
-                      تسجيل الدفعة
+                      <Printer className="h-4 w-4 ml-2" />
+                      {isProcessing ? 'جاري الإنشاء...' : 'إنشاء وطباعة إيصال الدفع'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -1607,6 +1844,90 @@ export default function DesktopQRScanner() {
       {!scannedProfile && (
         <div className="mt-6">
           <TestQRCode />
+        </div>
+      )}
+
+      {/* Payment Ticket Modal */}
+      {showTicket && generatedTicket && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto" id="payment-ticket">
+            <div className="p-6" dir="rtl">
+              {/* Ticket Header */}
+              <div className="text-center border-b pb-4 mb-4">
+                <div className="text-xl font-bold mb-2">إيصال دفع</div>
+                <div className="text-lg font-semibold text-blue-600">
+                  {user?.schoolName || 'مؤسسة تعليمية'}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">
+                  رقم الإيصال: {generatedTicket.receiptId}
+                </div>
+                <div className="text-sm text-gray-600">
+                  تاريخ الدفع: {generatedTicket.paymentDate}
+                </div>
+              </div>
+
+              {/* Student Information */}
+              <div className="mb-4">
+                <div className="font-semibold mb-2">معلومات الطالب:</div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <div>الاسم: <span className="font-medium">{generatedTicket.studentName}</span></div>
+                </div>
+              </div>
+
+              {/* Payment Details */}
+              <div className="mb-4">
+                <div className="font-semibold mb-2">تفاصيل الدفع:</div>
+                <div className="space-y-2">
+                  {generatedTicket.groups.map((group: any, index: number) => (
+                    <div key={index} className="bg-blue-50 p-3 rounded">
+                      <div className="font-medium text-blue-800">{group.groupName}</div>
+                      <div className="text-sm text-blue-600">{group.subjectName}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        الأشهر المدفوعة: {group.months.join(', ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment Summary */}
+              <div className="border-t pt-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span>المبلغ الإجمالي:</span>
+                  <span className="text-xl font-bold text-green-600">
+                    {generatedTicket.amount.toFixed(2)} دج
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>طريقة الدفع:</span>
+                  <span>{generatedTicket.paymentMethod}</span>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center text-xs text-gray-500 border-t pt-3">
+                شكراً لكم على دفع الرسوم في الوقت المحدد
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 mt-6 print:hidden">
+                <Button 
+                  onClick={printTicket}
+                  className="flex-1"
+                >
+                  <Printer className="h-4 w-4 ml-2" />
+                  طباعة
+                </Button>
+                <Button 
+                  onClick={() => setShowTicket(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
