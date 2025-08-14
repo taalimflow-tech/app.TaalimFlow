@@ -3855,36 +3855,25 @@ export class DatabaseStorage implements IStorage {
         const student = result.students;
         const user = result.users;
         
-        // Handle case where student exists but no user account (verified children without Firebase auth)
+        // Only create profile if user account exists - students without user accounts should not appear in QR scanner
         if (!user) {
-          studentProfile = {
-            id: student.id,
-            userId: null,
-            name: student.name || 'طالب غير محدد', // Use student name from students table
-            email: '',
-            phone: student.phone || '',
-            role: 'student',
-            educationLevel: student.educationLevel,
-            selectedSubjects: student.selectedSubjects,
-            profilePicture: null,
-            verified: student.verified,
-            type: 'student'
-          };
-        } else {
-          studentProfile = {
-            id: student.id,
-            userId: user.id,
-            name: user.name || student.name || 'طالب غير محدد', // Prefer user name, fallback to student name
-            email: user.email,
-            phone: user.phone || student.phone,
-            role: user.role,
-            educationLevel: student.educationLevel,
-            selectedSubjects: student.selectedSubjects,
-            profilePicture: user.profilePicture,
-            verified: student.verified,
-            type: 'student'
-          };
+          console.log('❌ Student exists but no user account linked - skipping incomplete profile');
+          return null;
         }
+        
+        studentProfile = {
+          id: student.id,
+          userId: user.id,
+          name: user.name || student.name || 'طالب غير محدد', // Prefer user name, fallback to student name
+          email: user.email,
+          phone: user.phone || student.phone,
+          role: user.role,
+          educationLevel: student.educationLevel,
+          selectedSubjects: student.selectedSubjects,
+          profilePicture: user.profilePicture,
+          verified: student.verified,
+          type: 'student'
+        };
         
       } else {
         // Get child from children table
