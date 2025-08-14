@@ -1658,7 +1658,7 @@ export default function DesktopQRScanner() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {scannedProfile.enrolledGroups.map((group) => (
+                    {scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0 ? scannedProfile.enrolledGroups.map((group) => (
                       <div key={group.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start">
                           <div>
@@ -1671,7 +1671,11 @@ export default function DesktopQRScanner() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-center text-gray-500 py-4">
+                        لا توجد مجموعات مسجل فيها
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
