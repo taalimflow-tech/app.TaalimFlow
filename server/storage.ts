@@ -4007,18 +4007,8 @@ export class DatabaseStorage implements IStorage {
       
       // Search verified students only (from students table)
       if (!filters.role || filters.role === 'student') {
-        let studentQuery = db
-          .select({
-            id: students.id,
-            userId: users.id,
-            name: users.name,
-            email: users.email,
-            phone: users.phone,
-            role: users.role,
-            educationLevel: students.educationLevel,
-            verified: students.verified,
-            type: sql<string>`'student'`
-          })
+        const studentResults = await db
+          .select()
           .from(students)
           .leftJoin(users, eq(students.userId, users.id))
           .where(and(
@@ -4026,65 +4016,86 @@ export class DatabaseStorage implements IStorage {
             eq(students.verified, true)
           ));
 
-        // Apply search filter for students
-        if (filters.search) {
-          studentQuery = studentQuery.where(
-            or(
-              ilike(users.name, `%${filters.search}%`),
-              ilike(users.email, `%${filters.search}%`),
-              sql`CAST(${students.id} AS TEXT) ILIKE ${`%${filters.search}%`}`
-            )
-          );
-        }
+        // Process and filter student results
+        for (const result of studentResults) {
+          const student = result.students;
+          const user = result.users;
+          
+          if (!user) continue;
 
-        // Apply education level filter for students
-        if (filters.educationLevel) {
-          studentQuery = studentQuery.where(eq(students.educationLevel, filters.educationLevel));
-        }
+          // Apply search filter
+          if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            const matchesName = user.name.toLowerCase().includes(searchTerm);
+            const matchesEmail = user.email?.toLowerCase().includes(searchTerm);
+            const matchesId = student.id.toString().includes(searchTerm);
+            
+            if (!matchesName && !matchesEmail && !matchesId) {
+              continue;
+            }
+          }
 
-        const studentResults = await studentQuery;
-        results.push(...studentResults);
+          // Apply education level filter
+          if (filters.educationLevel && student.educationLevel !== filters.educationLevel) {
+            continue;
+          }
+
+          results.push({
+            id: student.id,
+            userId: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            educationLevel: student.educationLevel,
+            verified: student.verified,
+            type: 'student'
+          });
+        }
       }
 
       // Search verified children (only if role is not specifically 'student')
       if (!filters.role || filters.role === 'child') {
-        let childQuery = db
-          .select({
-            id: children.id,
-            userId: sql<number | null>`NULL`,
-            name: children.name,
-            email: sql<string>`''`,
-            phone: children.parentPhone,
-            role: sql<string>`'child'`,
-            educationLevel: children.educationLevel,
-            verified: children.verified,
-            type: sql<string>`'child'`,
-            parentName: children.parentName
-          })
+        const childResults = await db
+          .select()
           .from(children)
           .where(and(
             eq(children.schoolId, filters.schoolId),
             eq(children.verified, true)
           ));
 
-        // Apply search filter for children
-        if (filters.search) {
-          childQuery = childQuery.where(
-            or(
-              ilike(children.name, `%${filters.search}%`),
-              ilike(children.parentName, `%${filters.search}%`),
-              sql`CAST(${children.id} AS TEXT) ILIKE ${`%${filters.search}%`}`
-            )
-          );
-        }
+        // Process and filter child results
+        for (const child of childResults) {
+          // Apply search filter
+          if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            const matchesName = child.name.toLowerCase().includes(searchTerm);
+            const matchesParentName = child.parentName?.toLowerCase().includes(searchTerm);
+            const matchesId = child.id.toString().includes(searchTerm);
+            
+            if (!matchesName && !matchesParentName && !matchesId) {
+              continue;
+            }
+          }
 
-        // Apply education level filter for children
-        if (filters.educationLevel) {
-          childQuery = childQuery.where(eq(children.educationLevel, filters.educationLevel));
-        }
+          // Apply education level filter
+          if (filters.educationLevel && child.educationLevel !== filters.educationLevel) {
+            continue;
+          }
 
-        const childResults = await childQuery;
-        results.push(...childResults);
+          results.push({
+            id: child.id,
+            userId: null,
+            name: child.name,
+            email: '',
+            phone: child.parentPhone,
+            role: 'child',
+            educationLevel: child.educationLevel,
+            verified: child.verified,
+            type: 'child',
+            parentName: child.parentName
+          });
+        }
       }
 
       console.log(`[DEBUG] searchStudentsAndChildren: Found ${results.length} total records (verified only)`);
