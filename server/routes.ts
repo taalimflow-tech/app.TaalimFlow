@@ -871,6 +871,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // User management routes (Admin only)
+  // New endpoint for QR scanner that searches both students and children
+  app.get("/api/qr-scanner/search", requireAuth, async (req, res) => {
+    try {
+      if (!['admin', 'teacher'].includes(req.session.user.role)) {
+        return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+      
+      // CRITICAL: Prevent access if user doesn't belong to a school
+      if (!req.session.user.schoolId) {
+        return res.status(403).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+      
+      const { search, educationLevel, role } = req.query;
+      
+      // Build filter object
+      const filters = {
+        search: search && typeof search === 'string' ? search : undefined,
+        educationLevel: educationLevel && typeof educationLevel === 'string' ? educationLevel : undefined,
+        role: role && typeof role === 'string' ? role : undefined,
+        schoolId: req.session.user.schoolId
+      };
+      
+      // Use new search method that includes both students and children
+      const results = await storage.searchStudentsAndChildren(filters);
+      
+      res.json(results);
+    } catch (error) {
+      console.error('Error searching students and children:', error);
+      res.status(500).json({ error: "Failed to search students and children" });
+    }
+  });
+
   app.get("/api/users", requireAuth, async (req, res) => {
     try {
       if (req.session.user.role !== 'admin') {

@@ -3995,6 +3995,102 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Search both students and children for QR scanner
+  async searchStudentsAndChildren(filters: {
+    search?: string;
+    educationLevel?: string;
+    role?: string;
+    schoolId: number;
+  }): Promise<any[]> {
+    try {
+      const results: any[] = [];
+      
+      // Search students from users table
+      let studentQuery = db
+        .select({
+          id: students.id,
+          userId: users.id,
+          name: users.name,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          educationLevel: students.educationLevel,
+          verified: students.verified,
+          type: sql<string>`'student'`
+        })
+        .from(students)
+        .leftJoin(users, eq(students.userId, users.id))
+        .where(and(
+          eq(students.schoolId, filters.schoolId),
+          eq(users.role, 'student')
+        ));
+
+      // Apply search filter for students
+      if (filters.search) {
+        studentQuery = studentQuery.where(
+          or(
+            ilike(users.name, `%${filters.search}%`),
+            ilike(users.email, `%${filters.search}%`),
+            sql`CAST(${students.id} AS TEXT) ILIKE ${`%${filters.search}%`}`
+          )
+        );
+      }
+
+      // Apply education level filter for students
+      if (filters.educationLevel) {
+        studentQuery = studentQuery.where(eq(students.educationLevel, filters.educationLevel));
+      }
+
+      const studentResults = await studentQuery;
+      results.push(...studentResults);
+
+      // Search children from children table (only if role is not specifically 'student')
+      if (!filters.role || filters.role !== 'student') {
+        let childQuery = db
+          .select({
+            id: children.id,
+            userId: sql<number>`NULL`,
+            name: children.name,
+            email: sql<string>`''`,
+            phone: children.parentPhone,
+            role: sql<string>`'child'`,
+            educationLevel: children.educationLevel,
+            verified: children.verified,
+            type: sql<string>`'child'`,
+            parentName: children.parentName
+          })
+          .from(children)
+          .where(eq(children.schoolId, filters.schoolId));
+
+        // Apply search filter for children
+        if (filters.search) {
+          childQuery = childQuery.where(
+            or(
+              ilike(children.name, `%${filters.search}%`),
+              ilike(children.parentName, `%${filters.search}%`),
+              sql`CAST(${children.id} AS TEXT) ILIKE ${`%${filters.search}%`}`
+            )
+          );
+        }
+
+        // Apply education level filter for children
+        if (filters.educationLevel) {
+          childQuery = childQuery.where(eq(children.educationLevel, filters.educationLevel));
+        }
+
+        const childResults = await childQuery;
+        results.push(...childResults);
+      }
+
+      console.log(`[DEBUG] searchStudentsAndChildren: Found ${results.length} total records`);
+      return results;
+      
+    } catch (error) {
+      console.error('Error searching students and children:', error);
+      throw error;
+    }
+  }
+
   async markStudentAttendanceToday(
     studentId: number, 
     studentType: 'student' | 'child',

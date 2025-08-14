@@ -473,15 +473,13 @@ export default function DesktopQRScanner() {
       if (selectedEducationLevel) params.append('educationLevel', selectedEducationLevel);
       if (selectedRole) params.append('role', selectedRole);
       
-      const response = await fetch(`/api/users?${params.toString()}`);
+      // Use new QR scanner endpoint that searches both students and children
+      const response = await fetch(`/api/qr-scanner/search?${params.toString()}`);
 
       if (response.ok) {
         const results = await response.json();
-        // Filter to show students and parents only 
-        const filteredResults = results.filter((user: any) => 
-          user.role === 'student' || user.role === 'user'
-        );
-        setSearchResults(filteredResults);
+        // The results already include both students and children
+        setSearchResults(results);
         setShowStudentList(true);
       } else {
         const errorData = await response.json();
@@ -1095,8 +1093,8 @@ export default function DesktopQRScanner() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">الكل</SelectItem>
-                        <SelectItem value="student">طلاب</SelectItem>
-                        <SelectItem value="user">أولياء الأمور</SelectItem>
+                        <SelectItem value="student">طلاب مسجلين</SelectItem>
+                        <SelectItem value="child">أطفال</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1111,7 +1109,7 @@ export default function DesktopQRScanner() {
                 size="sm"
                 onClick={() => {
                   setSelectedEducationLevel('الابتدائي');
-                  setSelectedRole('student');
+                  setSelectedRole('');
                   handleSearch();
                 }}
               >
@@ -1122,7 +1120,7 @@ export default function DesktopQRScanner() {
                 size="sm"
                 onClick={() => {
                   setSelectedEducationLevel('المتوسط');
-                  setSelectedRole('student');
+                  setSelectedRole('');
                   handleSearch();
                 }}
               >
@@ -1133,11 +1131,22 @@ export default function DesktopQRScanner() {
                 size="sm"
                 onClick={() => {
                   setSelectedEducationLevel('الثانوي');
-                  setSelectedRole('student');
+                  setSelectedRole('');
                   handleSearch();
                 }}
               >
                 طلاب الثانوي
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedEducationLevel('');
+                  setSelectedRole('child');
+                  handleSearch();
+                }}
+              >
+                جميع الأطفال
               </Button>
             </div>
           </div>
@@ -1176,8 +1185,8 @@ export default function DesktopQRScanner() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={student.role === 'student' ? 'default' : 'secondary'}>
-                          {student.role === 'student' ? 'طالب' : 'ولي أمر'}
+                        <Badge variant={student.type === 'student' ? 'default' : 'secondary'}>
+                          {student.type === 'student' ? 'طالب مسجل' : 'طفل'}
                         </Badge>
                         {student.verified && (
                           <Badge className="bg-green-100 text-green-800">
