@@ -3927,7 +3927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get student's enrolled groups based on type
-      const groups = await storage.getStudentEnrolledGroups(parseInt(studentId), type as 'student' | 'child', schoolId);
+      const groups = await storage.getStudentEnrolledGroups(parseInt(studentId), schoolId);
       
       res.json(groups);
     } catch (error) {
@@ -3979,13 +3979,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schoolId,
           groupId: transaction.groupId,
           studentId: transaction.studentId,
-          studentType: transaction.studentType,
           transactionType: 'payment',
           amount: transaction.amount, // Amount in cents
           currency: 'DZD',
           description: `دفع شهر ${transaction.month}/${transaction.year}`,
           paidDate: new Date(),
-          paymentMethod: transaction.paymentMethod,
+          paymentMethod: 'cash', // Always cash
           status: 'paid',
           notes: `${transaction.notes || ''} - إيصال: ${receiptId}`.trim(),
           recordedBy: req.session.user.id

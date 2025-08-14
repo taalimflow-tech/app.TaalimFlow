@@ -876,10 +876,10 @@ export default function DesktopQRScanner() {
           studentId: scannedProfile.id,
           studentType: scannedProfile.type,
           amount: parseFloat(paymentAmount),
-          paymentMethod,
+          paymentMethod: 'cash',
           notes: paymentNotes,
-          year: paymentYear,
-          month: paymentMonth
+          year: new Date().getFullYear(),
+          month: new Date().getMonth() + 1
         })
       });
 
@@ -940,12 +940,23 @@ export default function DesktopQRScanner() {
       const response = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`);
       if (response.ok) {
         const groups = await response.json();
+        console.log('Fetched student groups:', groups);
         setAvailableGroups(groups);
       } else {
-        console.error('Failed to fetch student groups');
+        console.error('Failed to fetch student groups, status:', response.status);
+        // Use the already loaded groups from the profile
+        if (scannedProfile.enrolledGroups) {
+          console.log('Using enrolled groups from profile:', scannedProfile.enrolledGroups);
+          setAvailableGroups(scannedProfile.enrolledGroups);
+        }
       }
     } catch (error) {
       console.error('Error fetching groups:', error);
+      // Fallback to enrolled groups from the profile
+      if (scannedProfile.enrolledGroups) {
+        console.log('Fallback to enrolled groups:', scannedProfile.enrolledGroups);
+        setAvailableGroups(scannedProfile.enrolledGroups);
+      }
     } finally {
       setLoadingGroups(false);
     }
@@ -1018,7 +1029,7 @@ export default function DesktopQRScanner() {
             studentType: scannedProfile.type,
             groupId: parseInt(groupId),
             amount: Math.round((parseFloat(paymentAmount) / getTotalSelectedMonths()) * 100), // Convert to cents and distribute
-            paymentMethod,
+            paymentMethod: 'cash', // Always cash
             notes: paymentNotes,
             month,
             year: new Date().getFullYear()
@@ -1050,7 +1061,6 @@ export default function DesktopQRScanner() {
         studentName: scannedProfile.name,
         paymentDate: new Date().toLocaleDateString('ar-SA'),
         amount: parseFloat(paymentAmount),
-        paymentMethod: getPaymentMethodText(paymentMethod),
         groups: Object.entries(selectedGroups).map(([groupId, groupData]) => ({
           groupName: groupData.groupName,
           subjectName: groupData.subjectName,
@@ -1775,37 +1785,21 @@ export default function DesktopQRScanner() {
 
                     {/* Payment Details */}
                     <Separator />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
-                        <Input
-                          id="amount"
-                          type="number"
-                          value={paymentAmount}
-                          onChange={(e) => setPaymentAmount(e.target.value)}
-                          placeholder="0.00"
-                          className="text-lg font-medium"
-                        />
-                        {getTotalSelectedMonths() > 0 && (
-                          <div className="text-sm text-gray-500 mt-1">
-                            إجمالي {getTotalSelectedMonths()} شهر - متوسط {paymentAmount ? (parseFloat(paymentAmount) / getTotalSelectedMonths()).toFixed(2) : '0'} دج/شهر
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor="method">طريقة الدفع</Label>
-                        <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">نقدي</SelectItem>
-                            <SelectItem value="bank">تحويل بنكي</SelectItem>
-                            <SelectItem value="card">بطاقة</SelectItem>
-                            <SelectItem value="cheque">شيك</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div>
+                      <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="text-lg font-medium"
+                      />
+                      {getTotalSelectedMonths() > 0 && (
+                        <div className="text-sm text-gray-500 mt-1">
+                          إجمالي {getTotalSelectedMonths()} شهر - متوسط {paymentAmount ? (parseFloat(paymentAmount) / getTotalSelectedMonths()).toFixed(2) : '0'} دج/شهر
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -1856,7 +1850,7 @@ export default function DesktopQRScanner() {
               <div className="text-center border-b pb-4 mb-4">
                 <div className="text-xl font-bold mb-2">إيصال دفع</div>
                 <div className="text-lg font-semibold text-blue-600">
-                  {user?.schoolName || 'مؤسسة تعليمية'}
+                  مؤسسة تعليمية
                 </div>
                 <div className="text-sm text-gray-600 mt-1">
                   رقم الإيصال: {generatedTicket.receiptId}
@@ -1900,7 +1894,7 @@ export default function DesktopQRScanner() {
                 </div>
                 <div className="flex justify-between items-center text-sm text-gray-600">
                   <span>طريقة الدفع:</span>
-                  <span>{generatedTicket.paymentMethod}</span>
+                  <span>نقدي</span>
                 </div>
               </div>
 
