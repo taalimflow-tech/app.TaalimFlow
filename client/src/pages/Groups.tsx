@@ -535,6 +535,8 @@ export default function Groups() {
     enabled: !!user && user.role === 'admin' && !!selectedAdminGroup?.educationLevel && !!selectedAdminGroup?.subjectId,
   });
 
+
+
   // Attendance data queries
   const { data: attendanceData = [] } = useQuery<any[]>({
     queryKey: ['/api/groups', managementGroup?.id, 'attendance'],
@@ -1990,6 +1992,8 @@ export default function Groups() {
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
                           .filter(student => {
+
+                            
                             // Smart year-based filtering with specialization mapping
                             if (!student.grade) return true; // Allow if no grade specified
                             
