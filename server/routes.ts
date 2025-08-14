@@ -4047,75 +4047,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Create ticket-based payment with multiple groups and months
   app.post("/api/scan-student-qr/create-ticket-payment", async (req, res) => {
+    console.log('🎫 Payment ticket creation request received');
+    console.log('Session user:', req.session?.user ? {
+      id: req.session.user.id,
+      role: req.session.user.role,
+      schoolId: req.session.user.schoolId
+    } : 'None');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     try {
       if (!req.session?.user) {
+        console.log('❌ No session user found');
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
       // Only admins can create ticket payments
       if (req.session.user.role !== 'admin') {
+        console.log('❌ User role is not admin:', req.session.user.role);
         return res.status(403).json({ error: "غير مسموح لك بإنشاء إيصال الدفع" });
       }
       
       const { transactions, totalAmount } = req.body;
       const schoolId = req.session.user.schoolId;
       
+      console.log('Validating request data:', {
+        schoolId,
+        transactions: transactions ? transactions.length : 'undefined',
+        totalAmount
+      });
+      
       if (!schoolId || !transactions || !Array.isArray(transactions) || transactions.length === 0) {
+        console.log('❌ Validation failed - missing data');
         return res.status(400).json({ error: "بيانات ناقصة" });
       }
       
       // Generate unique receipt ID
       const receiptId = `REC-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+      console.log('📄 Generated receipt ID:', receiptId);
       
       // Process each transaction
       const createdTransactions = [];
       
       for (const transaction of transactions) {
-        // Mark student payment for this month
-        const paymentRecord = await storage.markStudentPayment(
-          transaction.studentId,
-          transaction.year,
-          transaction.month,
-          true, // Mark as paid
-          schoolId,
-          req.session.user.id,
-          transaction.amount / 100, // Convert back from cents
-          `${transaction.notes || ''} - إيصال: ${receiptId}`.trim()
-        );
+        console.log('💰 Processing transaction:', transaction);
         
-        // Create transaction record
-        const transactionRecord = await storage.createTransaction({
-          schoolId,
-          groupId: transaction.groupId,
-          studentId: transaction.studentId,
-          transactionType: 'payment',
-          amount: transaction.amount, // Amount in cents
-          currency: 'DZD',
-          description: `دفع شهر ${transaction.month}/${transaction.year}`,
-          paidDate: new Date(),
-          paymentMethod: 'cash', // Always cash
-          status: 'paid',
-          notes: `${transaction.notes || ''} - إيصال: ${receiptId}`.trim(),
-          recordedBy: req.session.user.id
-        });
-        
-        createdTransactions.push({
-          paymentRecord,
-          transactionRecord
-        });
+        try {
+          // Mark student payment for this month
+          const paymentRecord = await storage.markStudentPayment(
+            transaction.studentId,
+            transaction.year,
+            transaction.month,
+            true, // Mark as paid
+            schoolId,
+            req.session.user.id,
+            transaction.amount / 100, // Convert back from cents
+            `${transaction.notes || ''} - إيصال: ${receiptId}`.trim()
+          );
+          console.log('✅ Payment record created:', paymentRecord.id);
+          
+          // Create transaction record
+          const transactionRecord = await storage.createTransaction({
+            schoolId,
+            groupId: transaction.groupId,
+            studentId: transaction.studentId,
+            transactionType: 'payment',
+            amount: transaction.amount, // Amount in cents
+            currency: 'DZD',
+            description: `دفع شهر ${transaction.month}/${transaction.year}`,
+            paidDate: new Date(),
+            paymentMethod: 'cash', // Always cash
+            status: 'paid',
+            notes: `${transaction.notes || ''} - إيصال: ${receiptId}`.trim(),
+            recordedBy: req.session.user.id
+          });
+          console.log('✅ Transaction record created:', transactionRecord.id);
+          
+          createdTransactions.push({
+            paymentRecord,
+            transactionRecord
+          });
+          
+        } catch (transactionError) {
+          console.error('❌ Error processing transaction:', transactionError);
+          throw transactionError;
+        }
       }
       
-      res.json({ 
+      console.log('✅ All transactions processed successfully');
+      const response = { 
         success: true, 
         message: "تم إنشاء إيصال الدفع بنجاح", 
         receiptId,
         totalAmount,
         transactionCount: createdTransactions.length,
         transactions: createdTransactions
-      });
+      };
+      
+      console.log('📤 Sending response:', response);
+      res.json(response);
       
     } catch (error) {
-      console.error('Error creating ticket payment:', error);
+      console.error('❌ Error creating ticket payment:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({ error: "حدث خطأ في إنشاء إيصال الدفع" });
     }
   });

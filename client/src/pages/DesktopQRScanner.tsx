@@ -1087,19 +1087,32 @@ export default function DesktopQRScanner() {
         }
       }
 
+      console.log('Sending payment request with transactions:', transactions);
+      
       // Create payment records
       const response = await fetch('/api/scan-student-qr/create-ticket-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important for session
         body: JSON.stringify({
           transactions,
           totalAmount: parseFloat(paymentAmount)
         })
       });
 
+      console.log('Payment API response status:', response.status);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'خطأ في إنشاء إيصال الدفع');
+        let errorMessage = 'خطأ في إنشاء إيصال الدفع';
+        try {
+          const error = await response.json();
+          errorMessage = error.error || errorMessage;
+          console.error('Payment API error details:', error);
+        } catch (e) {
+          console.error('Could not parse error response:', e);
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
