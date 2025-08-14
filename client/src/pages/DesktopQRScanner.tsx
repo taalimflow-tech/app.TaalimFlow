@@ -105,6 +105,7 @@ function GroupAttendanceTable({
   const [paymentStatus, setPaymentStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+  const [paymentStatusByMonth, setPaymentStatusByMonth] = useState<{[key: string]: any}>({});
 
   // Group dates by month similar to Groups page
   const monthGroups = scheduledDates.reduce((acc: { [key: string]: string[] }, date: string) => {
@@ -115,6 +116,21 @@ function GroupAttendanceTable({
   }, {});
 
   const monthKeys = Object.keys(monthGroups).sort().reverse();
+  
+  // Initialize to current month if available, otherwise start from first month
+  useEffect(() => {
+    if (monthKeys.length > 0) {
+      const currentDate = new Date();
+      const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const currentMonthIdx = monthKeys.indexOf(currentMonthKey);
+      if (currentMonthIdx >= 0) {
+        setCurrentMonthIndex(currentMonthIdx);
+      } else {
+        setCurrentMonthIndex(0); // Default to first available month
+      }
+    }
+  }, [monthKeys.length]);
+
   const currentMonthKey = monthKeys[currentMonthIndex];
   const currentMonthDates = currentMonthKey ? monthGroups[currentMonthKey].sort() : [];
 
@@ -139,6 +155,7 @@ function GroupAttendanceTable({
     }
   };
 
+  // Fetch all group data once
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
@@ -146,9 +163,10 @@ function GroupAttendanceTable({
         
         // Fetch scheduled dates for the group
         const scheduledResponse = await fetch(`/api/groups/${groupId}/scheduled-dates`);
+        let dates: string[] = [];
         if (scheduledResponse.ok) {
           const scheduledData = await scheduledResponse.json();
-          const dates = scheduledData.dates || [];
+          dates = scheduledData.dates || [];
           setScheduledDates(dates);
         }
 
@@ -163,16 +181,41 @@ function GroupAttendanceTable({
           setAttendanceHistory(studentAttendance);
         }
 
-        // Fetch payment status for current month
-        const currentDate = new Date();
-        const paymentResponse = await fetch(`/api/groups/${groupId}/payment-status/${currentDate.getFullYear()}/${currentDate.getMonth() + 1}`);
-        if (paymentResponse.ok) {
-          const paymentData = await paymentResponse.json();
-          // Find payment status for this student
-          const studentPayment = paymentData.find((record: any) => 
-            record.studentId === studentId && record.studentType === studentType
-          );
-          setPaymentStatus(studentPayment);
+        // Only fetch payment data if we have dates
+        if (dates.length > 0) {
+          // Create month groups from dates
+          const monthGroups = dates.reduce((acc: { [key: string]: string[] }, date: string) => {
+            const monthKey = date.substring(0, 7); // YYYY-MM format
+            if (!acc[monthKey]) acc[monthKey] = [];
+            acc[monthKey].push(date);
+            return acc;
+          }, {});
+
+          // Fetch payment status for all months that have scheduled dates
+          const paymentPromises = Object.keys(monthGroups).map(async (monthKey) => {
+            const [year, month] = monthKey.split('-');
+            const response = await fetch(`/api/groups/${groupId}/payment-status/${year}/${month}`);
+            if (response.ok) {
+              const paymentData = await response.json();
+              const studentPayment = paymentData.find((record: any) => 
+                record.studentId === studentId && record.studentType === studentType
+              );
+              return { monthKey, payment: studentPayment };
+            }
+            return { monthKey, payment: null };
+          });
+          
+          const paymentResults = await Promise.all(paymentPromises);
+          const paymentsByMonth: {[key: string]: any} = {};
+          paymentResults.forEach(result => {
+            paymentsByMonth[result.monthKey] = result.payment;
+          });
+          setPaymentStatusByMonth(paymentsByMonth);
+          
+          // Set current payment status for the selected month
+          const currentDate = new Date();
+          const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+          setPaymentStatus(paymentsByMonth[currentMonthKey]);
         }
       } catch (error) {
         console.error('Error fetching group data:', error);
@@ -183,6 +226,13 @@ function GroupAttendanceTable({
 
     fetchGroupData();
   }, [groupId, studentId, studentType]);
+
+  // Update payment status when month changes
+  useEffect(() => {
+    if (currentMonthKey && paymentStatusByMonth[currentMonthKey] !== undefined) {
+      setPaymentStatus(paymentStatusByMonth[currentMonthKey]);
+    }
+  }, [currentMonthKey, paymentStatusByMonth]);
 
   if (isLoading) {
     return (
@@ -265,16 +315,34 @@ function GroupAttendanceTable({
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
                   <div className="flex flex-col items-center space-y-1">
-                    <span className={`px-3 py-1 rounded text-sm font-medium ${
-                      paymentStatus?.isPaid
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {paymentStatus?.isPaid ? '✅' : '❌'}
-                    </span>
-                    <span className="text-xs text-gray-600">
-                      {paymentStatus?.isPaid ? 'مدفوع' : 'غير مدفوع'}
-                    </span>
+                    {(() => {
+                      const currentMonthPayment = paymentStatusByMonth[currentMonthKey];
+                      
+                      // If it's a virtual record with no payment requirement
+                      if (currentMonthPayment?.isVirtual && !currentMonthPayment?.mustPay) {
+                        return (
+                          <span className="px-2 py-1 rounded text-xs text-gray-500 bg-gray-50">
+                            {currentMonthPayment?.paymentNote || 'لا توجد دفعة'}
+                          </span>
+                        );
+                      }
+                      
+                      // Show payment status for actual payment records
+                      return (
+                        <>
+                          <span className={`px-3 py-1 rounded text-sm font-medium ${
+                            currentMonthPayment?.isPaid
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {currentMonthPayment?.isPaid ? '✅' : '❌'}
+                          </span>
+                          <span className="text-xs text-gray-600">
+                            {currentMonthPayment?.isPaid ? 'مدفوع' : 'غير مدفوع'}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </td>
                 {currentMonthDates.map((date) => {
