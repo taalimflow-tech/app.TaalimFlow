@@ -1046,7 +1046,14 @@ export default function DesktopQRScanner() {
   };
 
   const generatePaymentTicket = async () => {
+    console.log('=== PAYMENT TICKET GENERATION START ===');
+    console.log('Scanned Profile:', scannedProfile);
+    console.log('Payment Amount:', paymentAmount);
+    console.log('Selected Groups:', selectedGroups);
+    console.log('User Role:', user?.role);
+    
     if (!scannedProfile || !paymentAmount || Object.keys(selectedGroups).length === 0) {
+      console.log('❌ Validation failed: Missing basic requirements');
       toast({
         title: "معلومات ناقصة",
         description: "يرجى تحديد المجموعات والأشهر والمبلغ",
@@ -1057,7 +1064,10 @@ export default function DesktopQRScanner() {
 
     // Validate that at least one month is selected
     const hasSelectedMonths = Object.values(selectedGroups).some(group => group.months.length > 0);
+    console.log('Has selected months:', hasSelectedMonths);
+    
     if (!hasSelectedMonths) {
+      console.log('❌ Validation failed: No months selected');
       toast({
         title: "معلومات ناقصة", 
         description: "يرجى تحديد الأشهر المراد دفعها",
@@ -1855,14 +1865,42 @@ export default function DesktopQRScanner() {
                             <p>لا توجد مجموعات متاحة لهذا الطالب</p>
                             
                             {user?.role === 'admin' && (
-                              <div className="mt-4">
+                              <div className="mt-4 space-y-2">
                                 <Button 
                                   onClick={createTestStudent}
                                   variant="outline" 
                                   size="sm"
-                                  className="text-xs"
+                                  className="text-xs block"
                                 >
                                   إنشاء طالب تجريبي مع مجموعة
+                                </Button>
+                                <Button 
+                                  onClick={async () => {
+                                    try {
+                                      const response = await fetch('/api/test-payment', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                      });
+                                      const result = await response.json();
+                                      console.log('API Test Result:', result);
+                                      toast({
+                                        title: result.success ? "API يعمل" : "API لا يعمل",
+                                        description: result.message
+                                      });
+                                    } catch (error) {
+                                      console.error('API Test Error:', error);
+                                      toast({
+                                        title: "خطأ في الاتصال",
+                                        description: "فشل في الاتصال بالخادم",
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }}
+                                  variant="secondary" 
+                                  size="sm"
+                                  className="text-xs block"
+                                >
+                                  اختبار الاتصال
                                 </Button>
                               </div>
                             )}

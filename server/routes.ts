@@ -4045,6 +4045,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint to verify API is working
+  app.post("/api/test-payment", async (req, res) => {
+    console.log('🧪 Test payment endpoint called');
+    console.log('Session:', req.session?.user ? 'Valid' : 'None');
+    res.json({ success: true, message: 'API is working', session: !!req.session?.user });
+  });
+
   // Create ticket-based payment with multiple groups and months
   app.post("/api/scan-student-qr/create-ticket-payment", async (req, res) => {
     console.log('🎫 Payment ticket creation request received');
