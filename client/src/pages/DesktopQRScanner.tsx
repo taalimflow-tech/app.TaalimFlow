@@ -1948,6 +1948,50 @@ export default function DesktopQRScanner() {
                       />
                     </div>
 
+                    {/* Test Button for Payment */}
+                    {user?.role === 'admin' && (
+                      <div className="mb-4">
+                        <Button 
+                          onClick={() => {
+                            // Create mock test data for payment testing
+                            const mockProfile = {
+                              id: 1,
+                              name: 'طالب تجريبي',
+                              type: 'student'
+                            };
+                            
+                            const mockGroups = {
+                              1: {
+                                groupName: 'مجموعة الرياضيات',
+                                subjectName: 'رياضيات',
+                                months: [1, 2, 3]
+                              },
+                              2: {
+                                groupName: 'مجموعة العلوم',
+                                subjectName: 'علوم طبيعية',
+                                months: [1, 2]
+                              }
+                            };
+                            
+                            // Set test data
+                            setScannedProfile(mockProfile);
+                            setSelectedGroups(mockGroups);
+                            setPaymentAmount('2500');
+                            
+                            toast({
+                              title: "تم تحميل البيانات التجريبية",
+                              description: "يمكنك الآن اختبار إنشاء الإيصال"
+                            });
+                          }}
+                          variant="secondary" 
+                          size="sm"
+                          className="w-full"
+                        >
+                          🧪 بيانات تجريبية للاختبار
+                        </Button>
+                      </div>
+                    )}
+
                     <Button 
                       onClick={generatePaymentTicket}
                       disabled={!paymentAmount || Object.keys(selectedGroups).length === 0 || getTotalSelectedMonths() === 0 || isProcessing}
