@@ -1776,10 +1776,11 @@ export default function DesktopQRScanner() {
                             <p className="text-sm text-gray-500 mt-2">جاري تحميل المجموعات...</p>
                           </div>
                         ) : availableGroups.length > 0 ? (
-                          [<div key="debug" className="mb-2 p-2 bg-blue-50 rounded text-sm">
-                            <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
-                          </div>].concat(
-                          availableGroups.map((group) => (
+                          <>
+                            <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
+                              <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
+                            </div>
+                            {availableGroups.map((group) => (
                             <div key={group.id} className="border rounded-lg p-4">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center space-x-3">
@@ -1825,7 +1826,8 @@ export default function DesktopQRScanner() {
                                 </div>
                               )}
                             </div>
-                          ))))
+                            ))}
+                          </>
                         ) : (
                           <div className="text-center py-6 text-gray-500">
                             <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded">
