@@ -3957,11 +3957,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         testGroup = await storage.createGroup({
           name: 'مجموعة الرياضيات التجريبية',
           description: 'مجموعة تجريبية للاختبار',
-          educationLevel: 'المتوسط',
-          subjectId: 1, // Assuming math subject exists
-          teacherId: req.session.user.id,
-          schoolId: schoolId,
-          capacity: 30
+          category: 'المتوسط',
+          maxMembers: 30,
+          schoolId: schoolId
         });
         console.log('Created test group:', testGroup);
       } else {
@@ -3970,28 +3968,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if test student exists
-      const existingStudent = await storage.getStudent(1);
-      if (!existingStudent) {
-        // Create test student
-        const testStudent = await storage.createStudent({
+      const existingUsers = await storage.searchUsers('طالب تجريبي', schoolId);
+      let testUserId = 1;
+      
+      if (existingUsers.length === 0) {
+        // Create test user/student
+        const testUser = await storage.createUser({
+          username: 'test-student-1',
+          email: 'test@student.com',
+          password: 'password123', 
+          role: 'user',
           name: 'طالب تجريبي',
           phone: '0123456789',
-          gender: 'male',
           educationLevel: 'المتوسط',
           grade: 'الأولى متوسط',
-          selectedSubjects: [1],
-          schoolId: schoolId,
+          selectedSubjects: [],
+          schoolId: schoolId.toString(),
           verified: true
         });
-        console.log('Created test student:', testStudent);
+        testUserId = testUser.id;
+        console.log('Created test student:', testUser);
+      } else {
+        testUserId = existingUsers[0].id;
       }
 
       // Create group assignment
-      const assignment = await storage.assignUserToGroup({
-        userId: 1, // Test student user ID
-        groupId: testGroup.id,
-        schoolId: schoolId
-      });
+      const assignment = await storage.assignStudentToGroup(
+        testUserId,
+        testGroup.id,
+        schoolId
+      );
 
       res.json({
         message: 'تم إنشاء طالب تجريبي مع تخصيص مجموعة',
