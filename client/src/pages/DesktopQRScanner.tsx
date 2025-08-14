@@ -34,7 +34,9 @@ import {
   RotateCcw,
   Search,
   Filter,
-  CreditCard
+  CreditCard,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface StudentProfile {
@@ -102,6 +104,40 @@ function GroupAttendanceTable({
   const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
   const [paymentStatus, setPaymentStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+
+  // Group dates by month similar to Groups page
+  const monthGroups = scheduledDates.reduce((acc: { [key: string]: string[] }, date: string) => {
+    const monthKey = date.substring(0, 7); // YYYY-MM format
+    if (!acc[monthKey]) acc[monthKey] = [];
+    acc[monthKey].push(date);
+    return acc;
+  }, {});
+
+  const monthKeys = Object.keys(monthGroups).sort().reverse();
+  const currentMonthKey = monthKeys[currentMonthIndex];
+  const currentMonthDates = currentMonthKey ? monthGroups[currentMonthKey].sort() : [];
+
+  const getMonthDisplayName = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const monthNames = [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ];
+    return `${monthNames[parseInt(month) - 1]} ${year}`;
+  };
+
+  const goToPreviousMonth = () => {
+    if (currentMonthIndex > 0) {
+      setCurrentMonthIndex(currentMonthIndex - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (currentMonthIndex < monthKeys.length - 1) {
+      setCurrentMonthIndex(currentMonthIndex + 1);
+    }
+  };
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -156,10 +192,7 @@ function GroupAttendanceTable({
     );
   }
 
-  // Get current month dates (last 6 scheduled dates)
-  const currentMonthDates = scheduledDates.slice(-6);
-
-  if (currentMonthDates.length === 0) {
+  if (scheduledDates.length === 0) {
     return (
       <div className="text-center py-4">
         <p className="text-gray-600">لا توجد مواعيد مجدولة لهذه المجموعة</p>
@@ -168,98 +201,144 @@ function GroupAttendanceTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse border border-gray-300" dir="rtl">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
-            <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">حالة الدفع</th>
-            {currentMonthDates.map((date) => (
-              <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
-                <div className="text-xs">
-                  {new Date(date).toLocaleDateString('en-US', { 
-                    day: 'numeric', 
-                    month: 'numeric'
-                  })}
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="hover:bg-gray-50">
-            <td className="border border-gray-300 p-3 font-medium">
-              <div className="font-medium">{studentName}</div>
-            </td>
-            <td className="border border-gray-300 p-2 text-center">
-              <div className="flex flex-col items-center space-y-1">
-                <span className={`px-3 py-1 rounded text-sm font-medium ${
-                  paymentStatus?.isPaid
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {paymentStatus?.isPaid ? '✅' : '❌'}
-                </span>
-                <span className="text-xs text-gray-600">
-                  {paymentStatus?.isPaid ? 'مدفوع' : 'غير مدفوع'}
-                </span>
+    <div className="bg-white rounded-lg border p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="font-semibold text-gray-800">جدول الحضور الشهري - المواعيد المجدولة</h4>
+        
+        {monthKeys.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPreviousMonth}
+              disabled={currentMonthIndex === 0}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-medium px-3 py-1 bg-blue-50 rounded-lg text-blue-700">
+                {currentMonthKey ? getMonthDisplayName(currentMonthKey) : ''}
               </div>
-            </td>
-            {currentMonthDates.map((date) => {
-              const attendanceRecord = attendanceHistory.find((record: any) => 
-                record.attendanceDate?.split('T')[0] === date
-              );
-              
-              return (
-                <td key={date} className="border border-gray-300 p-1 text-center">
-                  <div className={`w-8 h-8 rounded text-xs font-bold mx-auto flex items-center justify-center ${
-                    attendanceRecord?.status === 'present' 
-                      ? 'bg-green-500 text-white' 
-                      : attendanceRecord?.status === 'absent'
-                      ? 'bg-red-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {attendanceRecord?.status === 'present' ? '✓' : 
-                     attendanceRecord?.status === 'absent' ? '✗' : '?'}
+              <div className="text-xs text-gray-500">
+                {currentMonthIndex + 1} / {monthKeys.length}
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNextMonth}
+              disabled={currentMonthIndex === monthKeys.length - 1}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {monthKeys.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300" dir="rtl">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
+                <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">حالة الدفع</th>
+                {currentMonthDates.map((date) => (
+                  <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                    <div className="text-xs">
+                      {new Date(date).toLocaleDateString('en-US', { 
+                        day: 'numeric', 
+                        month: 'numeric'
+                      })}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="hover:bg-gray-50">
+                <td className="border border-gray-300 p-3 font-medium">
+                  <div className="font-medium">{studentName}</div>
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  <div className="flex flex-col items-center space-y-1">
+                    <span className={`px-3 py-1 rounded text-sm font-medium ${
+                      paymentStatus?.isPaid
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {paymentStatus?.isPaid ? '✅' : '❌'}
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      {paymentStatus?.isPaid ? 'مدفوع' : 'غير مدفوع'}
+                    </span>
                   </div>
                 </td>
-              );
-            })}
-          </tr>
-        </tbody>
-      </table>
+                {currentMonthDates.map((date) => {
+                  const attendanceRecord = attendanceHistory.find((record: any) => 
+                    record.attendanceDate?.split('T')[0] === date
+                  );
+                  
+                  return (
+                    <td key={date} className="border border-gray-300 p-1 text-center">
+                      <div className={`w-8 h-8 rounded text-xs font-bold mx-auto flex items-center justify-center ${
+                        attendanceRecord?.status === 'present' 
+                          ? 'bg-green-500 text-white' 
+                          : attendanceRecord?.status === 'absent'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {attendanceRecord?.status === 'present' ? '✓' : 
+                         attendanceRecord?.status === 'absent' ? '✗' : '?'}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            </tbody>
+          </table>
 
-      {/* Monthly Statistics */}
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-green-100 rounded-lg p-3 text-center">
-          <h5 className="font-medium text-green-800">حضور الشهر</h5>
-          <p className="text-xl font-bold text-green-900">
-            {attendanceHistory.filter(r => 
-              r.status === 'present' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
-            ).length}
-          </p>
+          {/* Monthly Statistics */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-green-100 rounded-lg p-3 text-center">
+              <h5 className="font-medium text-green-800">حضور الشهر</h5>
+              <p className="text-xl font-bold text-green-900">
+                {attendanceHistory.filter(r => 
+                  r.status === 'present' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+                ).length}
+              </p>
+            </div>
+            <div className="bg-red-100 rounded-lg p-3 text-center">
+              <h5 className="font-medium text-red-800">غياب الشهر</h5>
+              <p className="text-xl font-bold text-red-900">
+                {attendanceHistory.filter(r => 
+                  r.status === 'absent' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+                ).length}
+              </p>
+            </div>
+            <div className="bg-blue-100 rounded-lg p-3 text-center">
+              <h5 className="font-medium text-blue-800">نسبة حضور الشهر</h5>
+              <p className="text-xl font-bold text-blue-900">
+                {(() => {
+                  const monthRecords = attendanceHistory.filter(r => 
+                    currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+                  );
+                  const presentCount = monthRecords.filter(r => r.status === 'present').length;
+                  return monthRecords.length > 0 ? Math.round((presentCount / monthRecords.length) * 100) : 0;
+                })()}%
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="bg-red-100 rounded-lg p-3 text-center">
-          <h5 className="font-medium text-red-800">غياب الشهر</h5>
-          <p className="text-xl font-bold text-red-900">
-            {attendanceHistory.filter(r => 
-              r.status === 'absent' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
-            ).length}
-          </p>
+      ) : (
+        <div className="text-center py-8">
+          <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-600">لا توجد مواعيد مجدولة متاحة</p>
         </div>
-        <div className="bg-blue-100 rounded-lg p-3 text-center">
-          <h5 className="font-medium text-blue-800">نسبة حضور الشهر</h5>
-          <p className="text-xl font-bold text-blue-900">
-            {(() => {
-              const monthRecords = attendanceHistory.filter(r => 
-                currentMonthDates.includes(r.attendanceDate?.split('T')[0])
-              );
-              const presentCount = monthRecords.filter(r => r.status === 'present').length;
-              return monthRecords.length > 0 ? Math.round((presentCount / monthRecords.length) * 100) : 0;
-            })()}%
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
