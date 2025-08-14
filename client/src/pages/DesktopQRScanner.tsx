@@ -1164,7 +1164,197 @@ export default function DesktopQRScanner() {
   };
 
   const printTicket = () => {
-    window.print();
+    if (!generatedTicket) return;
+    
+    // Create receipt HTML content
+    const receiptHTML = `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>إيصال دفع - ${generatedTicket.receiptId}</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Noto Sans Arabic', Arial, sans-serif;
+          background: white;
+          color: #333;
+          line-height: 1.6;
+          direction: rtl;
+          text-align: right;
+        }
+        .receipt-container {
+          max-width: 400px;
+          margin: 20px auto;
+          padding: 20px;
+          border: 2px solid #ddd;
+          border-radius: 8px;
+          background: white;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 2px solid #eee;
+          padding-bottom: 15px;
+          margin-bottom: 15px;
+        }
+        .title {
+          font-size: 24px;
+          font-weight: bold;
+          margin-bottom: 8px;
+          color: #333;
+        }
+        .school-name {
+          font-size: 18px;
+          font-weight: 600;
+          color: #2563eb;
+          margin-bottom: 8px;
+        }
+        .receipt-id {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 4px;
+        }
+        .section {
+          margin-bottom: 15px;
+        }
+        .section-title {
+          font-weight: 600;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+        .info-box {
+          background: #f8f9fa;
+          padding: 10px;
+          border-radius: 4px;
+          margin-bottom: 8px;
+        }
+        .group-item {
+          background: #eff6ff;
+          padding: 10px;
+          border-radius: 4px;
+          margin-bottom: 8px;
+          border-left: 3px solid #2563eb;
+        }
+        .group-name {
+          font-weight: 600;
+          color: #1e40af;
+          margin-bottom: 2px;
+        }
+        .subject-name {
+          font-size: 12px;
+          color: #2563eb;
+          margin-bottom: 4px;
+        }
+        .months {
+          font-size: 12px;
+          color: #666;
+        }
+        .summary {
+          border-top: 2px solid #eee;
+          padding-top: 15px;
+          margin-top: 15px;
+        }
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        .total-amount {
+          font-size: 20px;
+          font-weight: bold;
+          color: #16a34a;
+        }
+        .payment-method {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          color: #666;
+        }
+        .footer {
+          text-align: center;
+          font-size: 10px;
+          color: #999;
+          border-top: 1px solid #eee;
+          padding-top: 10px;
+          margin-top: 15px;
+        }
+        @media print {
+          body { margin: 0; }
+          .receipt-container { 
+            max-width: 100%; 
+            margin: 0; 
+            border: none; 
+            box-shadow: none; 
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="receipt-container">
+        <div class="header">
+          <div class="title">إيصال دفع</div>
+          <div class="school-name">مؤسسة تعليمية</div>
+          <div class="receipt-id">رقم الإيصال: ${generatedTicket.receiptId}</div>
+          <div class="receipt-id">تاريخ الدفع: ${generatedTicket.paymentDate}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">معلومات الطالب:</div>
+          <div class="info-box">
+            الاسم: ${generatedTicket.studentName}
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">تفاصيل الدفع:</div>
+          ${generatedTicket.groups.map(group => `
+            <div class="group-item">
+              <div class="group-name">${group.groupName}</div>
+              <div class="subject-name">${group.subjectName}</div>
+              <div class="months">الأشهر المدفوعة: ${group.months.join(', ')}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="summary">
+          <div class="total-row">
+            <span>المبلغ الإجمالي:</span>
+            <span class="total-amount">${generatedTicket.amount.toFixed(2)} دج</span>
+          </div>
+          <div class="payment-method">
+            <span>طريقة الدفع:</span>
+            <span>نقدي</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          شكراً لكم على دفع الرسوم في الوقت المحدد
+        </div>
+      </div>
+    </body>
+    </html>`;
+
+    // Open in new window for printing
+    const printWindow = window.open('', '_blank', 'width=600,height=800');
+    if (printWindow) {
+      printWindow.document.write(receiptHTML);
+      printWindow.document.close();
+      
+      // Wait for content to load, then print
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+        
+        // Optional: close window after printing (uncomment if desired)
+        // printWindow.onafterprint = () => printWindow.close();
+      };
+    }
   };
 
   return (
