@@ -1995,8 +1995,18 @@ export default function Groups() {
                 {/* Available Students */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    الطلاب المتاحين ({availableStudents.filter(s => !selectedStudents.includes(s.id)).length})
+                    الطلاب المتاحين ({availableStudents.filter(s => !selectedStudents.includes(s.id)).length}) - Total API: {availableStudents.length}
                   </label>
+                  
+                  {/* Debug: Show raw API data */}
+                  {availableStudents.length > 0 && (
+                    <div className="text-xs bg-yellow-50 p-2 mb-2 border border-yellow-200 rounded">
+                      <strong>DEBUG - Raw API Data:</strong>
+                      <pre className="mt-1 text-xs overflow-x-auto">
+                        {JSON.stringify(availableStudents.slice(0, 3), null, 2)}
+                      </pre>
+                    </div>
+                  )}
                   <div className="max-h-60 overflow-y-auto border border-blue-300 rounded-md p-2 bg-blue-50">
                     {availableStudents.filter(s => !selectedStudents.includes(s.id)).length === 0 ? (
                       <p className="text-gray-500 text-center py-4">جميع الطلاب المتاحين مسجلين بالفعل</p>
@@ -2004,27 +2014,6 @@ export default function Groups() {
                       <div className="space-y-2">
                         {availableStudents
                           .filter(student => !selectedStudents.includes(student.id))
-                          .filter(student => {
-                            // Simple filtering: just match education level
-                            const groupLevel = selectedAdminGroup.educationLevel;
-                            
-                            // Always allow if no education level specified
-                            if (!groupLevel) return true;
-                            
-                            // Allow if group is for all levels
-                            if (groupLevel === 'جميع المستويات') return true;
-                            
-                            // Match education level from student.educationLevel field first
-                            if (student.educationLevel === groupLevel) return true;
-                            
-                            // Fallback: check if grade text contains the education level
-                            const studentGrade = student.grade || '';
-                            if (groupLevel === 'الابتدائي' && studentGrade.includes('ابتدائي')) return true;
-                            if (groupLevel === 'المتوسط' && studentGrade.includes('متوسط')) return true;
-                            if (groupLevel === 'الثانوي' && studentGrade.includes('ثانوي')) return true;
-                            
-                            return false;
-                          })
                           .map(student => (
                             <div key={student.id} className="flex items-center space-x-2 p-2 bg-white rounded border hover:bg-blue-50 border-blue-200">
                               <input
