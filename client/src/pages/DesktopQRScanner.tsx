@@ -1902,6 +1902,39 @@ export default function DesktopQRScanner() {
                                 >
                                   اختبار الاتصال
                                 </Button>
+                                <Button 
+                                  onClick={async () => {
+                                    // Create mock test data for payment testing
+                                    const mockProfile = {
+                                      id: 1,
+                                      name: 'طالب تجريبي',
+                                      type: 'student'
+                                    };
+                                    
+                                    const mockGroups = {
+                                      1: {
+                                        groupName: 'مجموعة الرياضيات',
+                                        subjectName: 'رياضيات',
+                                        months: [1, 2]
+                                      }
+                                    };
+                                    
+                                    // Set test data
+                                    setScannedProfile(mockProfile);
+                                    setSelectedGroups(mockGroups);
+                                    setPaymentAmount('1000');
+                                    
+                                    toast({
+                                      title: "تم تحديد بيانات تجريبية",
+                                      description: "يمكنك الآن اختبار إنشاء الإيصال"
+                                    });
+                                  }}
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-xs block"
+                                >
+                                  بيانات تجريبية للاختبار
+                                </Button>
                               </div>
                             )}
                           </div>
