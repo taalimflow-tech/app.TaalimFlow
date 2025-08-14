@@ -3936,6 +3936,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a test student with group assignments for debugging
+  app.post("/api/debug/create-test-student", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+      
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة" });
+      }
+
+      // Create a test group first if none exist
+      const existingGroups = await storage.getGroupsBySchool(schoolId);
+      let testGroup;
+      
+      if (existingGroups.length === 0) {
+        // Create a test group
+        testGroup = await storage.createGroup({
+          name: 'مجموعة الرياضيات التجريبية',
+          description: 'مجموعة تجريبية للاختبار',
+          educationLevel: 'المتوسط',
+          subjectId: 1, // Assuming math subject exists
+          teacherId: req.session.user.id,
+          schoolId: schoolId,
+          capacity: 30
+        });
+        console.log('Created test group:', testGroup);
+      } else {
+        testGroup = existingGroups[0];
+        console.log('Using existing group:', testGroup);
+      }
+
+      // Check if test student exists
+      const existingStudent = await storage.getStudent(1);
+      if (!existingStudent) {
+        // Create test student
+        const testStudent = await storage.createStudent({
+          name: 'طالب تجريبي',
+          phone: '0123456789',
+          gender: 'male',
+          educationLevel: 'المتوسط',
+          grade: 'الأولى متوسط',
+          selectedSubjects: [1],
+          schoolId: schoolId,
+          verified: true
+        });
+        console.log('Created test student:', testStudent);
+      }
+
+      // Create group assignment
+      const assignment = await storage.assignUserToGroup({
+        userId: 1, // Test student user ID
+        groupId: testGroup.id,
+        schoolId: schoolId
+      });
+
+      res.json({
+        message: 'تم إنشاء طالب تجريبي مع تخصيص مجموعة',
+        testGroup,
+        assignment,
+        studentId: 1
+      });
+
+    } catch (error) {
+      console.error('Error creating test student:', error);
+      res.status(500).json({ error: "فشل في إنشاء البيانات التجريبية" });
+    }
+  });
+
   // Debug endpoint to check student group assignments
   app.get("/api/debug/student/:studentId/groups", async (req, res) => {
     try {
@@ -3950,14 +4020,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "لم يتم تحديد المدرسة" });
       }
 
-      // Use the existing storage method to get groups
+      // Get detailed debug information
+      const studentProfile = await storage.getStudentCompleteProfile(parseInt(studentId), 'student', schoolId);
       const enrolledGroups = await storage.getStudentEnrolledGroups(parseInt(studentId), schoolId);
-
+      
       res.json({
         studentId: parseInt(studentId),
         schoolId,
+        studentProfile,
         enrolledGroups,
-        totalGroups: enrolledGroups.length
+        totalGroups: enrolledGroups.length,
+        profileHasGroups: studentProfile?.enrolledGroups?.length || 0
       });
 
     } catch (error) {

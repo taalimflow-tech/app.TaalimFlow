@@ -1006,6 +1006,45 @@ export default function DesktopQRScanner() {
     }));
   };
 
+  const createTestStudent = async () => {
+    try {
+      setIsProcessing(true);
+      const response = await fetch('/api/debug/create-test-student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "تم إنشاء الطالب التجريبي",
+          description: result.message
+        });
+        
+        // Refresh the current profile if it's student ID 1
+        if (scannedProfile && scannedProfile.id === 1) {
+          fetchStudentGroups();
+        }
+      } else {
+        const error = await response.json();
+        toast({
+          title: "فشل في الإنشاء",
+          description: error.error,
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('Error creating test student:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في إنشاء الطالب التجريبي",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const generatePaymentTicket = async () => {
     if (!scannedProfile || !paymentAmount || Object.keys(selectedGroups).length === 0) {
       toast({
@@ -1737,6 +1776,9 @@ export default function DesktopQRScanner() {
                             <p className="text-sm text-gray-500 mt-2">جاري تحميل المجموعات...</p>
                           </div>
                         ) : availableGroups.length > 0 ? (
+                          [<div key="debug" className="mb-2 p-2 bg-blue-50 rounded text-sm">
+                            <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
+                          </div>].concat(
                           availableGroups.map((group) => (
                             <div key={group.id} className="border rounded-lg p-4">
                               <div className="flex items-center justify-between mb-3">
@@ -1783,11 +1825,32 @@ export default function DesktopQRScanner() {
                                 </div>
                               )}
                             </div>
-                          ))
+                          ))))
                         ) : (
                           <div className="text-center py-6 text-gray-500">
+                            <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded">
+                              <strong>Debug Info:</strong><br/>
+                              Available groups: {availableGroups.length}<br/>
+                              Loading: {loadingGroups ? 'Yes' : 'No'}<br/>
+                              Profile ID: {scannedProfile?.id}<br/>
+                              Profile type: {scannedProfile?.type}<br/>
+                              Has enrolledGroups: {scannedProfile?.enrolledGroups ? scannedProfile.enrolledGroups.length : 'undefined'}
+                            </div>
                             <Users className="h-8 w-8 mx-auto mb-2 opacity-20" />
                             <p>لا توجد مجموعات متاحة لهذا الطالب</p>
+                            
+                            {user?.role === 'admin' && (
+                              <div className="mt-4">
+                                <Button 
+                                  onClick={createTestStudent}
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-xs"
+                                >
+                                  إنشاء طالب تجريبي مع مجموعة
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
