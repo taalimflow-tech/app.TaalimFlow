@@ -86,6 +86,189 @@ interface StudentProfile {
   }>;
 }
 
+// Component to show attendance table for a specific group
+function GroupAttendanceTable({ 
+  groupId, 
+  studentId, 
+  studentType, 
+  studentName 
+}: { 
+  groupId: number;
+  studentId: number;
+  studentType: 'student' | 'child';
+  studentName: string;
+}) {
+  const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+  const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
+  const [paymentStatus, setPaymentStatus] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGroupData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch scheduled dates for the group
+        const scheduledResponse = await fetch(`/api/groups/${groupId}/scheduled-dates`);
+        if (scheduledResponse.ok) {
+          const scheduledData = await scheduledResponse.json();
+          const dates = scheduledData.dates || [];
+          setScheduledDates(dates);
+        }
+
+        // Fetch attendance history for the group
+        const attendanceResponse = await fetch(`/api/groups/${groupId}/attendance-history`);
+        if (attendanceResponse.ok) {
+          const attendanceData = await attendanceResponse.json();
+          // Filter for this specific student
+          const studentAttendance = attendanceData.filter((record: any) => 
+            record.studentId === studentId && record.studentType === studentType
+          );
+          setAttendanceHistory(studentAttendance);
+        }
+
+        // Fetch payment status for current month
+        const currentDate = new Date();
+        const paymentResponse = await fetch(`/api/groups/${groupId}/payment-status/${currentDate.getFullYear()}/${currentDate.getMonth() + 1}`);
+        if (paymentResponse.ok) {
+          const paymentData = await paymentResponse.json();
+          // Find payment status for this student
+          const studentPayment = paymentData.find((record: any) => 
+            record.studentId === studentId && record.studentType === studentType
+          );
+          setPaymentStatus(studentPayment);
+        }
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGroupData();
+  }, [groupId, studentId, studentType]);
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-gray-600">جاري تحميل بيانات الحضور...</p>
+      </div>
+    );
+  }
+
+  // Get current month dates (last 6 scheduled dates)
+  const currentMonthDates = scheduledDates.slice(-6);
+
+  if (currentMonthDates.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-gray-600">لا توجد مواعيد مجدولة لهذه المجموعة</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse border border-gray-300" dir="rtl">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
+            <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">حالة الدفع</th>
+            {currentMonthDates.map((date) => (
+              <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                <div className="text-xs">
+                  {new Date(date).toLocaleDateString('en-US', { 
+                    day: 'numeric', 
+                    month: 'numeric'
+                  })}
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="hover:bg-gray-50">
+            <td className="border border-gray-300 p-3 font-medium">
+              <div className="font-medium">{studentName}</div>
+            </td>
+            <td className="border border-gray-300 p-2 text-center">
+              <div className="flex flex-col items-center space-y-1">
+                <span className={`px-3 py-1 rounded text-sm font-medium ${
+                  paymentStatus?.isPaid
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {paymentStatus?.isPaid ? '✅' : '❌'}
+                </span>
+                <span className="text-xs text-gray-600">
+                  {paymentStatus?.isPaid ? 'مدفوع' : 'غير مدفوع'}
+                </span>
+              </div>
+            </td>
+            {currentMonthDates.map((date) => {
+              const attendanceRecord = attendanceHistory.find((record: any) => 
+                record.attendanceDate?.split('T')[0] === date
+              );
+              
+              return (
+                <td key={date} className="border border-gray-300 p-1 text-center">
+                  <div className={`w-8 h-8 rounded text-xs font-bold mx-auto flex items-center justify-center ${
+                    attendanceRecord?.status === 'present' 
+                      ? 'bg-green-500 text-white' 
+                      : attendanceRecord?.status === 'absent'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {attendanceRecord?.status === 'present' ? '✓' : 
+                     attendanceRecord?.status === 'absent' ? '✗' : '?'}
+                  </div>
+                </td>
+              );
+            })}
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Monthly Statistics */}
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-green-100 rounded-lg p-3 text-center">
+          <h5 className="font-medium text-green-800">حضور الشهر</h5>
+          <p className="text-xl font-bold text-green-900">
+            {attendanceHistory.filter(r => 
+              r.status === 'present' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+            ).length}
+          </p>
+        </div>
+        <div className="bg-red-100 rounded-lg p-3 text-center">
+          <h5 className="font-medium text-red-800">غياب الشهر</h5>
+          <p className="text-xl font-bold text-red-900">
+            {attendanceHistory.filter(r => 
+              r.status === 'absent' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+            ).length}
+          </p>
+        </div>
+        <div className="bg-blue-100 rounded-lg p-3 text-center">
+          <h5 className="font-medium text-blue-800">نسبة حضور الشهر</h5>
+          <p className="text-xl font-bold text-blue-900">
+            {(() => {
+              const monthRecords = attendanceHistory.filter(r => 
+                currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+              );
+              const presentCount = monthRecords.filter(r => r.status === 'present').length;
+              return monthRecords.length > 0 ? Math.round((presentCount / monthRecords.length) * 100) : 0;
+            })()}%
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const months = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+];
+
 export default function DesktopQRScanner() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -951,76 +1134,32 @@ export default function DesktopQRScanner() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {scannedProfile.enrolledGroups?.length > 0 ? (
                   scannedProfile.enrolledGroups.map((group) => (
-                    <div key={group.id} className="border rounded-lg p-4 bg-gray-50">
+                    <div key={group.id} className="bg-white rounded-lg border">
                       {/* Group Header */}
-                      <div className="flex justify-between items-start mb-4 pb-3 border-b border-gray-200">
-                        <div>
-                          <h4 className="font-semibold text-lg">{group.name}</h4>
-                          <p className="text-sm text-gray-600">{group.subjectName}</p>
-                          <p className="text-sm text-gray-500">{group.educationLevel}</p>
-                        </div>
-                        <div className="text-sm text-gray-500 text-right">
-                          <div>المعلم: {group.teacherName}</div>
+                      <div className="p-4 border-b bg-gray-50">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-lg">{group.name}</h4>
+                            <p className="text-sm text-gray-600">{group.subjectName}</p>
+                            <p className="text-sm text-gray-500">{group.educationLevel}</p>
+                          </div>
+                          <div className="text-sm text-gray-500 text-right">
+                            <div>المعلم: {group.teacherName}</div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Group Statistics */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                        <div className="text-center bg-white rounded-lg p-3 border">
-                          <div className="text-lg font-bold text-green-600">
-                            {(group as any).stats?.presentCount || 0}
-                          </div>
-                          <div className="text-xs text-gray-600">حضور</div>
-                        </div>
-                        <div className="text-center bg-white rounded-lg p-3 border">
-                          <div className="text-lg font-bold text-red-600">
-                            {(group as any).stats?.absentCount || 0}
-                          </div>
-                          <div className="text-xs text-gray-600">غياب</div>
-                        </div>
-                        <div className="text-center bg-white rounded-lg p-3 border">
-                          <div className="text-lg font-bold text-yellow-600">
-                            {(group as any).stats?.lateCount || 0}
-                          </div>
-                          <div className="text-xs text-gray-600">متأخر</div>
-                        </div>
-                        <div className="text-center bg-white rounded-lg p-3 border">
-                          <div className="text-lg font-bold text-purple-600">
-                            {(group as any).stats?.attendanceRate || 0}%
-                          </div>
-                          <div className="text-xs text-gray-600">نسبة الحضور</div>
-                        </div>
-                      </div>
-
-                      {/* Payment Status */}
-                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <CreditCard className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium">حالة الدفع</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            (group as any).paymentStatus === 'paid' 
-                              ? 'bg-green-100 text-green-800' 
-                              : (group as any).paymentStatus === 'partial'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {(group as any).paymentStatus === 'paid' 
-                              ? 'مدفوع بالكامل' 
-                              : (group as any).paymentStatus === 'partial'
-                              ? 'مدفوع جزئياً'
-                              : 'غير مدفوع'}
-                          </span>
-                          {(group as any).totalAmount && (
-                            <span className="text-sm text-gray-600">
-                              {(group as any).paidAmount || 0} / {(group as any).totalAmount} دج
-                            </span>
-                          )}
-                        </div>
+                      {/* Attendance Table */}
+                      <div className="p-4">
+                        <GroupAttendanceTable 
+                          groupId={group.id}
+                          studentId={scannedProfile.id}
+                          studentType={scannedProfile.type}
+                          studentName={scannedProfile.name}
+                        />
                       </div>
                     </div>
                   ))
