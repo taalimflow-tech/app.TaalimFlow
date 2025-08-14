@@ -531,9 +531,22 @@ export default function Groups() {
   });
 
   const { data: availableStudents = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/groups/students', selectedAdminGroup?.educationLevel, selectedAdminGroup?.subjectId],
+    queryKey: [`/api/admin/groups/students/${selectedAdminGroup?.educationLevel}/${selectedAdminGroup?.subjectId}`],
     enabled: !!user && user.role === 'admin' && !!selectedAdminGroup?.educationLevel && !!selectedAdminGroup?.subjectId,
   });
+
+  // Debug logging to see what's happening
+  React.useEffect(() => {
+    if (selectedAdminGroup?.educationLevel && selectedAdminGroup?.subjectId) {
+      console.log('[DEBUG] Query conditions met:', {
+        userRole: user?.role,
+        educationLevel: selectedAdminGroup.educationLevel,
+        subjectId: selectedAdminGroup.subjectId,
+        availableStudentsCount: availableStudents.length,
+        availableStudents: availableStudents
+      });
+    }
+  }, [selectedAdminGroup, availableStudents, user]);
 
 
 
