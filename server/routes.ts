@@ -3936,6 +3936,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check student group assignments
+  app.get("/api/debug/student/:studentId/groups", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const { studentId } = req.params;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({ error: "لم يتم تحديد المدرسة" });
+      }
+
+      // Use the existing storage method to get groups
+      const enrolledGroups = await storage.getStudentEnrolledGroups(parseInt(studentId), schoolId);
+
+      res.json({
+        studentId: parseInt(studentId),
+        schoolId,
+        enrolledGroups,
+        totalGroups: enrolledGroups.length
+      });
+
+    } catch (error) {
+      console.error('Debug error:', error);
+      res.status(500).json({ error: "حدث خطأ في التحقق من المجموعات" });
+    }
+  });
+
   // Create ticket-based payment with multiple groups and months
   app.post("/api/scan-student-qr/create-ticket-payment", async (req, res) => {
     try {

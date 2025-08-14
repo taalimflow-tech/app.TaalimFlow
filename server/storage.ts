@@ -3902,8 +3902,8 @@ export class DatabaseStorage implements IStorage {
       let enrolledGroups: any[] = [];
       
       try {
-        // Get group assignments from mixed assignments table
-        const groupAssignments = await db
+        // Get group assignments from both mixed assignments table and user assignments table
+        const mixedGroupAssignments = await db
           .select({
             groupId: groupMixedAssignments.groupId
           })
@@ -3913,6 +3913,23 @@ export class DatabaseStorage implements IStorage {
             eq(groupMixedAssignments.studentType, studentType),
             eq(groupMixedAssignments.schoolId, schoolId)
           ));
+
+        // Also check regular user assignments if this is a student
+        let userGroupAssignments: any[] = [];
+        if (studentType === 'student' && studentProfile.userId) {
+          userGroupAssignments = await db
+            .select({
+              groupId: groupUserAssignments.groupId
+            })
+            .from(groupUserAssignments)
+            .where(and(
+              eq(groupUserAssignments.userId, studentProfile.userId),
+              eq(groupUserAssignments.schoolId, schoolId)
+            ));
+        }
+
+        // Combine all group assignments
+        const groupAssignments = [...mixedGroupAssignments, ...userGroupAssignments];
         
         console.log('🔍 Found group assignments:', groupAssignments);
 

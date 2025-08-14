@@ -799,6 +799,7 @@ export default function DesktopQRScanner() {
 
       const profile = await response.json();
       console.log('✅ Profile received:', profile);
+      console.log('✅ Profile enrolled groups:', profile.enrolledGroups);
       setScannedProfile(profile);
       stopScanning();
       
@@ -937,25 +938,34 @@ export default function DesktopQRScanner() {
     
     setLoadingGroups(true);
     try {
+      console.log('🔄 Fetching groups for student:', scannedProfile.id, 'type:', scannedProfile.type);
       const response = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`);
+      console.log('🔄 API response status:', response.status);
+      
       if (response.ok) {
         const groups = await response.json();
-        console.log('Fetched student groups:', groups);
+        console.log('✅ Fetched student groups from API:', groups);
         setAvailableGroups(groups);
       } else {
-        console.error('Failed to fetch student groups, status:', response.status);
+        console.error('❌ Failed to fetch student groups, status:', response.status);
         // Use the already loaded groups from the profile
-        if (scannedProfile.enrolledGroups) {
-          console.log('Using enrolled groups from profile:', scannedProfile.enrolledGroups);
+        if (scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0) {
+          console.log('🔄 Using enrolled groups from profile:', scannedProfile.enrolledGroups);
           setAvailableGroups(scannedProfile.enrolledGroups);
+        } else {
+          console.log('⚠️ No enrolled groups found in profile');
+          setAvailableGroups([]);
         }
       }
     } catch (error) {
-      console.error('Error fetching groups:', error);
+      console.error('❌ Error fetching groups:', error);
       // Fallback to enrolled groups from the profile
-      if (scannedProfile.enrolledGroups) {
-        console.log('Fallback to enrolled groups:', scannedProfile.enrolledGroups);
+      if (scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0) {
+        console.log('🔄 Fallback to enrolled groups:', scannedProfile.enrolledGroups);
         setAvailableGroups(scannedProfile.enrolledGroups);
+      } else {
+        console.log('⚠️ No enrolled groups available as fallback');
+        setAvailableGroups([]);
       }
     } finally {
       setLoadingGroups(false);
