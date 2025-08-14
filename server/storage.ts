@@ -3837,20 +3837,8 @@ export class DatabaseStorage implements IStorage {
       if (studentType === 'student') {
         console.log('🔍 Querying students table for student...');
         // Get student from students table using student ID, not user ID
-        const [student] = await db
-          .select({
-            id: students.id,
-            userId: users.id,
-            name: users.name,
-            email: users.email,
-            phone: users.phone,
-            role: users.role,
-            educationLevel: students.educationLevel,
-            selectedSubjects: students.selectedSubjects,
-            profilePicture: users.profilePicture,
-            verified: students.verified,
-            type: sql<string>`'student'`
-          })
+        const [result] = await db
+          .select()
           .from(students)
           .leftJoin(users, eq(students.userId, users.id))
           .where(and(
@@ -3858,12 +3846,45 @@ export class DatabaseStorage implements IStorage {
             eq(students.schoolId, schoolId)
           ));
           
-        console.log('🔍 Student query result:', student);
-        if (!student) {
+        console.log('🔍 Student query result:', result);
+        if (!result || !result.students) {
           console.log('❌ No student found with the given criteria');
           return null;
         }
-        studentProfile = student;
+        
+        const student = result.students;
+        const user = result.users;
+        
+        // Handle case where student exists but no user account (verified children without Firebase auth)
+        if (!user) {
+          studentProfile = {
+            id: student.id,
+            userId: null,
+            name: student.name || 'طالب غير محدد', // Use student name from students table
+            email: '',
+            phone: student.phone || '',
+            role: 'student',
+            educationLevel: student.educationLevel,
+            selectedSubjects: student.selectedSubjects,
+            profilePicture: null,
+            verified: student.verified,
+            type: 'student'
+          };
+        } else {
+          studentProfile = {
+            id: student.id,
+            userId: user.id,
+            name: user.name || student.name || 'طالب غير محدد', // Prefer user name, fallback to student name
+            email: user.email,
+            phone: user.phone || student.phone,
+            role: user.role,
+            educationLevel: student.educationLevel,
+            selectedSubjects: student.selectedSubjects,
+            profilePicture: user.profilePicture,
+            verified: student.verified,
+            type: 'student'
+          };
+        }
         
       } else {
         // Get child from children table
