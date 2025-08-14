@@ -535,18 +535,7 @@ export default function Groups() {
     enabled: !!user && user.role === 'admin' && !!selectedAdminGroup?.educationLevel && !!selectedAdminGroup?.subjectId,
   });
 
-  // Debug logging to see what's happening
-  React.useEffect(() => {
-    if (selectedAdminGroup?.educationLevel && selectedAdminGroup?.subjectId) {
-      console.log('[DEBUG] Query conditions met:', {
-        userRole: user?.role,
-        educationLevel: selectedAdminGroup.educationLevel,
-        subjectId: selectedAdminGroup.subjectId,
-        availableStudentsCount: availableStudents.length,
-        availableStudents: availableStudents
-      });
-    }
-  }, [selectedAdminGroup, availableStudents, user]);
+
 
 
 
@@ -1995,18 +1984,8 @@ export default function Groups() {
                 {/* Available Students */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    الطلاب المتاحين ({availableStudents.filter(s => !selectedStudents.includes(s.id)).length}) - Total API: {availableStudents.length}
+                    الطلاب المتاحين ({availableStudents.filter(s => !selectedStudents.includes(s.id)).length})
                   </label>
-                  
-                  {/* Debug: Show raw API data */}
-                  {availableStudents.length > 0 && (
-                    <div className="text-xs bg-yellow-50 p-2 mb-2 border border-yellow-200 rounded">
-                      <strong>DEBUG - Raw API Data:</strong>
-                      <pre className="mt-1 text-xs overflow-x-auto">
-                        {JSON.stringify(availableStudents.slice(0, 3), null, 2)}
-                      </pre>
-                    </div>
-                  )}
                   <div className="max-h-60 overflow-y-auto border border-blue-300 rounded-md p-2 bg-blue-50">
                     {availableStudents.filter(s => !selectedStudents.includes(s.id)).length === 0 ? (
                       <p className="text-gray-500 text-center py-4">جميع الطلاب المتاحين مسجلين بالفعل</p>
