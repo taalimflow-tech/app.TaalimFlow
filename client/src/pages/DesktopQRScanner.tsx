@@ -33,7 +33,8 @@ import {
   UserCheck,
   RotateCcw,
   Search,
-  Filter
+  Filter,
+  CreditCard
 } from 'lucide-react';
 
 interface StudentProfile {
@@ -941,45 +942,94 @@ export default function DesktopQRScanner() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
+          {/* Assigned Groups with Attendance/Payment Status */}
           <Card>
             <CardHeader>
-              <CardTitle>إجراءات سريعة</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                المجموعات المسجل فيها
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <Button 
-                  onClick={() => handleMarkAttendance('present')}
-                  disabled={isProcessing}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="h-4 w-4 ml-2" />
-                  حاضر
-                </Button>
-                <Button 
-                  onClick={() => handleMarkAttendance('late')}
-                  disabled={isProcessing}
-                  className="bg-yellow-600 hover:bg-yellow-700"
-                >
-                  <Clock className="h-4 w-4 ml-2" />
-                  متأخر
-                </Button>
-                <Button 
-                  onClick={() => handleMarkAttendance('absent')}
-                  disabled={isProcessing}
-                  variant="destructive"
-                >
-                  <XCircle className="h-4 w-4 ml-2" />
-                  غائب
-                </Button>
-                <Button 
-                  onClick={() => handleMarkAttendance('excused')}
-                  disabled={isProcessing}
-                  variant="outline"
-                >
-                  <AlertCircle className="h-4 w-4 ml-2" />
-                  عذر
-                </Button>
+              <div className="space-y-4">
+                {scannedProfile.enrolledGroups?.length > 0 ? (
+                  scannedProfile.enrolledGroups.map((group) => (
+                    <div key={group.id} className="border rounded-lg p-4 bg-gray-50">
+                      {/* Group Header */}
+                      <div className="flex justify-between items-start mb-4 pb-3 border-b border-gray-200">
+                        <div>
+                          <h4 className="font-semibold text-lg">{group.name}</h4>
+                          <p className="text-sm text-gray-600">{group.subjectName}</p>
+                          <p className="text-sm text-gray-500">{group.educationLevel}</p>
+                        </div>
+                        <div className="text-sm text-gray-500 text-right">
+                          <div>المعلم: {group.teacherName}</div>
+                        </div>
+                      </div>
+
+                      {/* Group Statistics */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        <div className="text-center bg-white rounded-lg p-3 border">
+                          <div className="text-lg font-bold text-green-600">
+                            {(group as any).stats?.presentCount || 0}
+                          </div>
+                          <div className="text-xs text-gray-600">حضور</div>
+                        </div>
+                        <div className="text-center bg-white rounded-lg p-3 border">
+                          <div className="text-lg font-bold text-red-600">
+                            {(group as any).stats?.absentCount || 0}
+                          </div>
+                          <div className="text-xs text-gray-600">غياب</div>
+                        </div>
+                        <div className="text-center bg-white rounded-lg p-3 border">
+                          <div className="text-lg font-bold text-yellow-600">
+                            {(group as any).stats?.lateCount || 0}
+                          </div>
+                          <div className="text-xs text-gray-600">متأخر</div>
+                        </div>
+                        <div className="text-center bg-white rounded-lg p-3 border">
+                          <div className="text-lg font-bold text-purple-600">
+                            {(group as any).stats?.attendanceRate || 0}%
+                          </div>
+                          <div className="text-xs text-gray-600">نسبة الحضور</div>
+                        </div>
+                      </div>
+
+                      {/* Payment Status */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <CreditCard className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium">حالة الدفع</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            (group as any).paymentStatus === 'paid' 
+                              ? 'bg-green-100 text-green-800' 
+                              : (group as any).paymentStatus === 'partial'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {(group as any).paymentStatus === 'paid' 
+                              ? 'مدفوع بالكامل' 
+                              : (group as any).paymentStatus === 'partial'
+                              ? 'مدفوع جزئياً'
+                              : 'غير مدفوع'}
+                          </span>
+                          {(group as any).totalAmount && (
+                            <span className="text-sm text-gray-600">
+                              {(group as any).paidAmount || 0} / {(group as any).totalAmount} دج
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                    <p>لا توجد مجموعات مسجل فيها</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
