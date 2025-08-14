@@ -1342,8 +1342,8 @@ export class DatabaseStorage implements IStorage {
   async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]> {
     console.log(`[DEBUG] getAvailableStudentsByLevelAndSubject called with: educationLevel=${educationLevel}, subjectId=${subjectId}, schoolId=${schoolId}`);
     
-    // Get direct students (users with 'student' role) - ensure each user appears only once
-    // by selecting the most recent student record for each user
+    // Get direct students (users with student records) - include any user role that has student data
+    // This includes regular students, teachers, and admins who also have student records
     let directStudentsQuery = db
       .select({
         id: users.id,
@@ -1358,7 +1358,8 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(students, eq(users.id, students.userId))
       .where(
         and(
-          eq(users.role, 'student'),
+          // Include any user role that has student data, not just 'student' role
+          eq(students.verified, true), // Only include verified student records
           educationLevel === 'جميع المستويات' ? sql`1=1` : eq(students.educationLevel, educationLevel),
           schoolId ? eq(users.schoolId, schoolId) : sql`1=1`
         )

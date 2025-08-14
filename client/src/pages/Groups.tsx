@@ -2131,15 +2131,15 @@ export default function Groups() {
                             // IMPORTANT: Only show students with same education level WITHOUT restricting by year
                             // unless there's specific year information in group name/description
                             if (groupLevel === 'الابتدائي') {
-                              // Check both the grade field and education level field
+                              // Primary match: prioritize education level field, fallback to grade text
                               return student.educationLevel === 'الابتدائي' || studentGrade.includes('ابتدائي');
                             }
                             if (groupLevel === 'المتوسط') {
+                              // Middle match: prioritize education level field, fallback to grade text
                               return student.educationLevel === 'المتوسط' || studentGrade.includes('متوسط');
                             }
                             if (groupLevel === 'الثانوي') {
-                              // For general secondary subjects, allow all secondary years
-                              // but specialized subjects should have been caught above
+                              // Secondary match: prioritize education level field, fallback to grade text
                               return student.educationLevel === 'الثانوي' || studentGrade.includes('ثانوي');
                             }
                             
