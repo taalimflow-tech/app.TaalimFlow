@@ -1957,7 +1957,21 @@ export default function DesktopQRScanner() {
                             const mockProfile = {
                               id: 1,
                               name: 'طالب تجريبي',
-                              type: 'student'
+                              type: 'student',
+                              enrolledGroups: [
+                                {
+                                  id: 1,
+                                  name: 'مجموعة الرياضيات',
+                                  subjectName: 'رياضيات',
+                                  teacherName: 'أستاذ محمد'
+                                },
+                                {
+                                  id: 2,
+                                  name: 'مجموعة العلوم',
+                                  subjectName: 'علوم طبيعية',
+                                  teacherName: 'أستاذة فاطمة'
+                                }
+                              ]
                             };
                             
                             const mockGroups = {
