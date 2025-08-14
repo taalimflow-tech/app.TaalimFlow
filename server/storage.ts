@@ -3885,8 +3885,91 @@ export class DatabaseStorage implements IStorage {
         studentProfile = { ...child, type: 'child' };
       }
       
-      // For now, return basic student info without complex statistics to avoid SQL syntax errors
-      console.log('✅ Student found, returning basic profile');
+      console.log('✅ Student found, now fetching enrolled groups...');
+      
+      // Fetch enrolled groups
+      let enrolledGroups: any[] = [];
+      
+      try {
+        // Get group assignments from mixed assignments table
+        const groupAssignments = await db
+          .select({
+            groupId: groupMixedAssignments.groupId
+          })
+          .from(groupMixedAssignments)
+          .where(and(
+            eq(groupMixedAssignments.studentId, studentId),
+            eq(groupMixedAssignments.studentType, studentType),
+            eq(groupMixedAssignments.schoolId, schoolId)
+          ));
+        
+        console.log('🔍 Found group assignments:', groupAssignments);
+
+        if (groupAssignments.length > 0) {
+          const groupIds = groupAssignments.map(a => a.groupId);
+          
+          // Fetch group details with teacher and subject information
+          const groupsData = await db
+            .select({
+              id: groups.id,
+              name: groups.name,
+              educationLevel: groups.educationLevel,
+              subjectId: groups.subjectId,
+              teacherId: groups.teacherId,
+              description: groups.description
+            })
+            .from(groups)
+            .where(and(
+              inArray(groups.id, groupIds),
+              eq(groups.schoolId, schoolId)
+            ));
+
+          // Enrich groups with teacher and subject names
+          for (const group of groupsData) {
+            let teacherName = null;
+            let subjectName = null;
+
+            // Get teacher name
+            if (group.teacherId) {
+              const teacher = await db
+                .select({ name: users.name })
+                .from(users)
+                .where(eq(users.id, group.teacherId))
+                .limit(1);
+              if (teacher.length > 0) {
+                teacherName = teacher[0].name;
+              }
+            }
+
+            // Get subject name
+            if (group.subjectId) {
+              const subject = await db
+                .select({ name: teachingModules.name, nameAr: teachingModules.nameAr })
+                .from(teachingModules)
+                .where(eq(teachingModules.id, group.subjectId))
+                .limit(1);
+              if (subject.length > 0) {
+                subjectName = subject[0].nameAr || subject[0].name;
+              }
+            }
+
+            enrolledGroups.push({
+              id: group.id,
+              name: group.name,
+              educationLevel: group.educationLevel,
+              subjectName: subjectName,
+              teacherName: teacherName,
+              description: group.description
+            });
+          }
+        }
+        
+        console.log('✅ Fetched enrolled groups:', enrolledGroups.length);
+        
+      } catch (error) {
+        console.error('Error fetching enrolled groups:', error);
+        enrolledGroups = [];
+      }
       
       return {
         ...studentProfile,
@@ -3902,7 +3985,7 @@ export class DatabaseStorage implements IStorage {
           unpaidCount: 0,
           totalAmount: 0
         },
-        enrolledGroups: [],
+        enrolledGroups: enrolledGroups,
         recentAttendance: []
       };
       
