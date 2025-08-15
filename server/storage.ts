@@ -3961,7 +3961,8 @@ export class DatabaseStorage implements IStorage {
           eq(groupMixedAssignments.studentId, studentMonthlyPayments.studentId),
           eq(studentMonthlyPayments.schoolId, schoolId),
           eq(studentMonthlyPayments.isPaid, true),
-          dateFilters
+          eq(studentMonthlyPayments.year, year),
+          ...(month ? [eq(studentMonthlyPayments.month, month)] : [])
         ))
         .where(eq(groups.schoolId, schoolId))
         .groupBy(groups.id, groups.name, groups.subjectName)
