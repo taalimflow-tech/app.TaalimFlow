@@ -1048,17 +1048,24 @@ export default function DesktopQRScanner() {
             });
 
             let paidMonths = [];
+            let paymentStatus = {};
             if (paymentsResponse.ok) {
               const paymentData = await paymentsResponse.json();
               paidMonths = paymentData.paidMonths || [];
-              console.log(`✅ Found ${paidMonths.length} paid months for group ${group.id}:`, paidMonths);
+              paymentStatus = paymentData.paymentStatusByMonth || {};
+              console.log(`✅ Found ${paidMonths.length} paid months and payment status for group ${group.id}:`, {
+                paidMonths,
+                paymentStatus,
+                augustStatus: paymentStatus['2025-08']
+              });
             } else {
               console.log(`⚠️ No payment data available for group ${group.id}`);
             }
 
             return {
               ...group,
-              paidMonths
+              paidMonths,
+              paymentStatus // Add the same payment status data that attendance table uses
             };
           } catch (error) {
             console.error(`❌ Error fetching payments for group ${group.id}:`, error);
@@ -2129,37 +2136,55 @@ export default function DesktopQRScanner() {
                                   </Label>
                                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
-                                      // Primary check: group payment data with extra safety checks
-                                      const paidMonthsArray = group.paidMonths || [];
-                                      const isPaid = Array.isArray(paidMonthsArray) && paidMonthsArray.includes(month);
+                                      // FIXED: Use authentic payment data from attendance table instead of separate paidMonths arrays
+                                      // Extract payment status from the same source as attendance table (paymentStatusByMonth)
+                                      const currentYear = new Date().getFullYear();
+                                      const monthKey = `${currentYear}-${month.toString().padStart(2, '0')}`;
+                                      
+                                      // Check if group has paymentStatus data (from attendance table's source)
+                                      const groupPaymentData = group.paymentStatus || {};
+                                      const monthPaymentData = groupPaymentData[monthKey];
+                                      
+                                      // Primary check: Use attendance table's payment data (authentic source)
+                                      let isPaid = false;
+                                      if (monthPaymentData) {
+                                        isPaid = monthPaymentData.isPaid || false;
+                                      } else {
+                                        // Fallback: Use group.paidMonths array if attendance data not available
+                                        const paidMonthsArray = group.paidMonths || [];
+                                        isPaid = Array.isArray(paidMonthsArray) && paidMonthsArray.includes(month);
+                                      }
+                                      
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
                                       
-                                      // Debug logging for payment status
+                                      // Debug logging for payment status  
                                       if (month === 8) { // Focus on August
                                         console.log(`🔍 August (month 8) for group ${group.id} "${group.name}":`, {
                                           monthNumber: month,
+                                          monthKey: monthKey,
                                           groupId: group.id,
                                           groupName: group.name,
-                                          paidMonthsRaw: group.paidMonths,
-                                          paidMonthsType: typeof group.paidMonths,
-                                          paidMonthsIsArray: Array.isArray(group.paidMonths),
-                                          includesAugustTest: group.paidMonths?.includes(8),
-                                          includesAugustStrict: group.paidMonths ? group.paidMonths.includes(8) : false,
+                                          groupPaymentData: groupPaymentData,
+                                          monthPaymentData: monthPaymentData,
+                                          attendanceSourceIsPaid: monthPaymentData?.isPaid,
+                                          fallbackPaidMonths: group.paidMonths,
+                                          fallbackIsPaid: group.paidMonths?.includes(8),
                                           finalIsPaidValue: isPaid,
-                                          paidMonthsArrayValue: paidMonthsArray,
-                                          calculatedIsPaid: Array.isArray(paidMonthsArray) && paidMonthsArray.includes(month),
-                                          fullGroupObject: JSON.stringify(group, null, 2)
+                                          dataSource: monthPaymentData ? 'attendance-table-source' : 'fallback-paidMonths'
                                         });
                                       }
                                       
                                       // Additional debug for any month that should be paid
-                                      if (group.paidMonths && group.paidMonths.includes(month)) {
-                                        console.log(`✅ Month ${month} (${getMonthName(month)}) should be PAID for group ${group.id}:`, {
+                                      if (isPaid) {
+                                        console.log(`✅ Month ${month} (${getMonthName(month)}) is PAID for group ${group.id}:`, {
                                           month,
                                           monthName: getMonthName(month),
+                                          monthKey,
                                           group: group.name,
-                                          paidMonths: group.paidMonths,
-                                          isPaidCalculation: isPaid
+                                          dataSource: monthPaymentData ? 'attendance-table-source' : 'fallback-paidMonths',
+                                          attendanceData: monthPaymentData,
+                                          fallbackData: group.paidMonths,
+                                          finalIsPaid: isPaid
                                         });
                                       }
                                       
@@ -2203,22 +2228,49 @@ export default function DesktopQRScanner() {
                                   
                                   {/* Payment Status Summary */}
                                   <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
-                                    <div className="flex justify-between items-center mb-1">
-                                      <span>الأشهر المدفوعة:</span>
-                                      <span className="text-green-600 font-medium">
-                                        {group.paidMonths?.length || 0} من 12
-                                      </span>
-                                    </div>
-                                    {group.paidMonths && group.paidMonths.length > 0 && (
-                                      <div className="text-green-700">
-                                        {group.paidMonths.map(m => getMonthName(m)).join(', ')}
-                                      </div>
-                                    )}
-                                    {/* Debug Display */}
-                                    <div className="mt-2 p-1 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                                      <strong>Debug:</strong> paidMonths = [{(group.paidMonths || []).join(', ')}]<br/>
-                                      Type: {typeof group.paidMonths}, Is Array: {Array.isArray(group.paidMonths) ? 'Yes' : 'No'}
-                                    </div>
+                                    {(() => {
+                                      // Calculate paid months from both sources
+                                      const currentYear = new Date().getFullYear();
+                                      const paidMonthsFromAttendance = [];
+                                      
+                                      // Extract paid months from attendance table source (primary)
+                                      if (group.paymentStatus) {
+                                        for (let m = 1; m <= 12; m++) {
+                                          const monthKey = `${currentYear}-${m.toString().padStart(2, '0')}`;
+                                          if (group.paymentStatus[monthKey]?.isPaid) {
+                                            paidMonthsFromAttendance.push(m);
+                                          }
+                                        }
+                                      }
+                                      
+                                      // Use attendance source if available, otherwise fallback
+                                      const activePaidMonths = paidMonthsFromAttendance.length > 0 
+                                        ? paidMonthsFromAttendance 
+                                        : (group.paidMonths || []);
+                                      
+                                      return (
+                                        <>
+                                          <div className="flex justify-between items-center mb-1">
+                                            <span>الأشهر المدفوعة:</span>
+                                            <span className="text-green-600 font-medium">
+                                              {activePaidMonths.length} من 12
+                                            </span>
+                                          </div>
+                                          {activePaidMonths.length > 0 && (
+                                            <div className="text-green-700 mb-2">
+                                              {activePaidMonths.map(m => getMonthName(m)).join(', ')}
+                                            </div>
+                                          )}
+                                          {/* Enhanced Debug Display */}
+                                          <div className="mt-2 p-1 bg-blue-50 border border-blue-200 rounded text-xs">
+                                            <strong>Data Source:</strong> {paidMonthsFromAttendance.length > 0 ? 'Attendance Table (Authentic)' : 'Fallback Array'}<br/>
+                                            <strong>Attendance Paid:</strong> [{paidMonthsFromAttendance.join(', ')}]<br/>
+                                            <strong>Fallback Paid:</strong> [{(group.paidMonths || []).join(', ')}]<br/>
+                                            <strong>Active Paid:</strong> [{activePaidMonths.join(', ')}]
+                                          </div>
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                   {selectedGroups[group.id]?.months.length > 0 && (
                                     <div className="mt-2 text-sm text-blue-600">
