@@ -2301,6 +2301,10 @@ export default function DesktopQRScanner() {
                       <div className="mb-4">
                         <Button 
                           onClick={() => {
+                            // First, clear all previous data
+                            setScannedProfile(null);
+                            setAvailableGroups([]);
+                            setSelectedGroups({});
                             // Create mock test data for payment testing
                             const mockProfile = {
                               id: 1,
@@ -2337,16 +2341,33 @@ export default function DesktopQRScanner() {
                               }
                             };
                             
-                            // Set test data - make sure availableGroups has the same payment data as scannedProfile
-                            setScannedProfile(mockProfile);
-                            setSelectedGroups(mockGroups);
-                            setPaymentAmount('2500');
-                            setAvailableGroups(mockProfile.enrolledGroups); // This includes the paidMonths data
-                            
-                            toast({
-                              title: "تم تحميل البيانات التجريبية",
-                              description: "الآن يمكنك رؤية الأشهر المدفوعة باللون الأخضر والعلامات ✓"
+                            // Debug log the data being set
+                            console.log('Setting test data with payment info:', {
+                              mockProfile: mockProfile,
+                              availableGroups: mockProfile.enrolledGroups,
+                              paidMonthsGroup1: mockProfile.enrolledGroups[0].paidMonths,
+                              paidMonthsGroup2: mockProfile.enrolledGroups[1].paidMonths
                             });
+                            
+                            // Set test data with proper sequencing
+                            setTimeout(() => {
+                              setScannedProfile(mockProfile);
+                              setAvailableGroups(mockProfile.enrolledGroups); // This includes the paidMonths data
+                              setSelectedGroups(mockGroups);
+                              setPaymentAmount('2500');
+                            }, 50);
+                            
+                            // Force a re-render by adding a small delay
+                            setTimeout(() => {
+                              console.log('Available groups after state update:', availableGroups);
+                            }, 100);
+                            
+                            setTimeout(() => {
+                              toast({
+                                title: "تم تحميل البيانات التجريبية",
+                                description: "أغسطس يجب أن يظهر الآن كمدفوع للمجموعتين"
+                              });
+                            }, 200);
                           }}
                           variant="secondary" 
                           size="sm"
