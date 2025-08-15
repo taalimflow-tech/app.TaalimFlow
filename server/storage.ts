@@ -237,8 +237,6 @@ export interface IStorage {
   // Financial Entries interface methods (for manual gains and losses)
   createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry>;
   getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]>;
-  getFinancialBalance(schoolId: number): Promise<{ totalGains: number; totalLosses: number; netBalance: number; }>;
-  resetFinancialBalance(schoolId: number): Promise<void>;
   
   // Child-specific queries for parent access
   getChildById(childId: number): Promise<Child | undefined>;
@@ -4492,59 +4490,6 @@ export class DatabaseStorage implements IStorage {
       return await query.orderBy(desc(financialEntries.createdAt));
     } catch (error) {
       console.error('Error fetching financial entries:', error);
-      throw error;
-    }
-  }
-
-  async getFinancialBalance(schoolId: number): Promise<{ totalGains: number; totalLosses: number; netBalance: number; }> {
-    try {
-      // Get total gains
-      const gainsResult = await db
-        .select({
-          totalGains: sql<number>`COALESCE(SUM(${financialEntries.amount}), 0)`,
-        })
-        .from(financialEntries)
-        .where(and(
-          eq(financialEntries.schoolId, schoolId),
-          eq(financialEntries.type, 'gain')
-        ));
-
-      // Get total losses
-      const lossesResult = await db
-        .select({
-          totalLosses: sql<number>`COALESCE(SUM(${financialEntries.amount}), 0)`,
-        })
-        .from(financialEntries)
-        .where(and(
-          eq(financialEntries.schoolId, schoolId),
-          eq(financialEntries.type, 'loss')
-        ));
-
-      const totalGains = Number(gainsResult[0]?.totalGains || 0);
-      const totalLosses = Number(lossesResult[0]?.totalLosses || 0);
-      const netBalance = totalGains - totalLosses;
-
-      return {
-        totalGains,
-        totalLosses,
-        netBalance
-      };
-    } catch (error) {
-      console.error('Error calculating financial balance:', error);
-      throw error;
-    }
-  }
-
-  async resetFinancialBalance(schoolId: number): Promise<void> {
-    try {
-      // Delete all financial entries for this school
-      await db
-        .delete(financialEntries)
-        .where(eq(financialEntries.schoolId, schoolId));
-      
-      console.log(`✅ Reset financial balance for school ${schoolId}`);
-    } catch (error) {
-      console.error('Error resetting financial balance:', error);
       throw error;
     }
   }

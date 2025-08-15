@@ -3,23 +3,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Calculator, Plus, Minus, RotateCcw, DollarSign } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, DollarSign, Users, BookOpen, Calculator, Plus, Minus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
-interface FinancialBalance {
-  totalGains: number;
-  totalLosses: number;
-  netBalance: number;
+interface FinancialData {
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
+  totalStudents: number;
+  totalGroups: number;
+  averageRevenuePerStudent: number;
+  monthlyBreakdown: {
+    month: number;
+    revenue: number;
+    expenses: number;
+    profit: number;
+  }[];
+  groupPerformance: {
+    groupId: number;
+    groupName: string;
+    subjectName: string;
+    totalStudents: number;
+    totalRevenue: number;
+    averagePerStudent: number;
+  }[];
 }
 
 export default function FinancialReports() {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [balance, setBalance] = useState<FinancialBalance>({ totalGains: 0, totalLosses: 0, netBalance: 0 });
+  const [financialData, setFinancialData] = useState<FinancialData | null>(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState('all');
   
   // States for gains and losses inputs
   const [gainAmount, setGainAmount] = useState('');
@@ -28,35 +49,60 @@ export default function FinancialReports() {
   const [lossRemarks, setLossRemarks] = useState('');
   const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
 
-  // Fetch current financial balance
-  const fetchBalance = async () => {
+  const months = [
+    { value: 'all', label: 'جميع الأشهر' },
+    { value: '1', label: 'يناير' },
+    { value: '2', label: 'فبراير' },
+    { value: '3', label: 'مارس' },
+    { value: '4', label: 'أبريل' },
+    { value: '5', label: 'مايو' },
+    { value: '6', label: 'يونيو' },
+    { value: '7', label: 'يوليو' },
+    { value: '8', label: 'أغسطس' },
+    { value: '9', label: 'سبتمبر' },
+    { value: '10', label: 'أكتوبر' },
+    { value: '11', label: 'نوفمبر' },
+    { value: '12', label: 'ديسمبر' }
+  ];
+
+  const years = Array.from({ length: 5 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { value: year.toString(), label: year.toString() };
+  });
+
+  const fetchFinancialData = async () => {
+    // Prevent API calls if user is not properly authenticated as admin
     if (loading || user?.role !== 'admin') {
-      console.log('Skipping balance fetch - user not authenticated as admin');
+      console.log('Skipping financial data fetch - user not authenticated as admin');
       return;
     }
 
     try {
       setIsLoading(true);
       
-      const response = await apiRequest('GET', '/api/financial-balance');
+      const response = await apiRequest('POST', '/api/financial-reports', {
+        year: parseInt(selectedYear),
+        month: selectedMonth === 'all' ? null : parseInt(selectedMonth)
+      });
 
       if (response.ok) {
         const data = await response.json();
-        setBalance(data);
+        setFinancialData(data);
       } else {
         const error = await response.json();
         toast({
-          title: "خطأ في تحميل الرصيد",
-          description: error.error || "تعذر تحميل الرصيد المالي",
+          title: "خطأ في تحميل البيانات المالية",
+          description: error.error || "تعذر تحميل التقرير المالي",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error('Error fetching balance:', error);
+      console.error('Error fetching financial data:', error);
+      // Only show toast if we're still authenticated - avoid showing errors during logout/auth transitions
       if (!loading && user?.role === 'admin') {
         toast({
           title: "خطأ في الاتصال",
-          description: "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى",
+          description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
           variant: "destructive"
         });
       }
@@ -80,20 +126,20 @@ export default function FinancialReports() {
       const response = await apiRequest('POST', '/api/financial-entries', {
         type: 'gain',
         amount: parseFloat(gainAmount),
-        remarks: gainRemarks || 'ربح',
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1
+        remarks: gainRemarks,
+        year: parseInt(selectedYear),
+        month: selectedMonth === 'all' ? new Date().getMonth() + 1 : parseInt(selectedMonth)
       });
 
       if (response.ok) {
         toast({
           title: "تم إضافة الربح",
-          description: `تم تسجيل ربح بقيمة ${gainAmount} دج`,
+          description: "تم تسجيل الربح بنجاح",
           variant: "default"
         });
         setGainAmount('');
         setGainRemarks('');
-        fetchBalance(); // Refresh the balance
+        fetchFinancialData(); // Refresh the data
       } else {
         const error = await response.json();
         toast({
@@ -106,7 +152,7 @@ export default function FinancialReports() {
       console.error('Error submitting gain entry:', error);
       toast({
         title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى",
+        description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
         variant: "destructive"
       });
     } finally {
@@ -129,20 +175,20 @@ export default function FinancialReports() {
       const response = await apiRequest('POST', '/api/financial-entries', {
         type: 'loss',
         amount: parseFloat(lossAmount),
-        remarks: lossRemarks || 'خسارة',
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1
+        remarks: lossRemarks,
+        year: parseInt(selectedYear),
+        month: selectedMonth === 'all' ? new Date().getMonth() + 1 : parseInt(selectedMonth)
       });
 
       if (response.ok) {
         toast({
           title: "تم إضافة الخسارة",
-          description: `تم تسجيل خسارة بقيمة ${lossAmount} دج`,
+          description: "تم تسجيل الخسارة بنجاح",
           variant: "default"
         });
         setLossAmount('');
         setLossRemarks('');
-        fetchBalance(); // Refresh the balance
+        fetchFinancialData(); // Refresh the data
       } else {
         const error = await response.json();
         toast({
@@ -154,8 +200,8 @@ export default function FinancialReports() {
     } catch (error) {
       console.error('Error submitting loss entry:', error);
       toast({
-        title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى",
+        title: "خطأ في الاتصال", 
+        description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
         variant: "destructive"
       });
     } finally {
@@ -163,123 +209,120 @@ export default function FinancialReports() {
     }
   };
 
-  const handleResetBalance = async () => {
-    if (!confirm('هل أنت متأكد من إعادة تعيين الرصيد المالي؟ سيتم حذف جميع الإدخالات المالية.')) {
-      return;
+  useEffect(() => {
+    // Only fetch data if authentication is complete and user is an admin
+    if (!loading && user?.role === 'admin') {
+      fetchFinancialData();
     }
+  }, [selectedYear, selectedMonth, user, loading]);
 
-    try {
-      setIsLoading(true);
-      const response = await apiRequest('POST', '/api/financial-balance/reset');
-
-      if (response.ok) {
-        toast({
-          title: "تم إعادة تعيين الرصيد",
-          description: "تم إعادة تعيين الرصيد المالي إلى الصفر",
-          variant: "default"
-        });
-        setBalance({ totalGains: 0, totalLosses: 0, netBalance: 0 });
-      } else {
-        const error = await response.json();
-        toast({
-          title: "خطأ في إعادة التعيين",
-          description: error.error || "تعذر إعادة تعيين الرصيد",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error resetting balance:', error);
-      toast({
-        title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ar-DZ', {
+      style: 'currency',
+      currency: 'DZD',
+      minimumFractionDigits: 0
+    }).format(amount);
   };
 
-  useEffect(() => {
-    fetchBalance();
-  }, [loading, user]);
+  const getMonthName = (monthNumber: number) => {
+    const month = months.find(m => m.value === monthNumber.toString());
+    return month ? month.label : monthNumber.toString();
+  };
 
-  // Auth guards
+  // Show loading state while authentication is being checked
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">جاري التحميل...</div>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">جاري التحميل...</h2>
+            <p className="text-gray-600">يرجى الانتظار</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  // Show access denied if user is not admin
+  if (user?.role !== 'admin') {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-600">يجب تسجيل الدخول كمدير للوصول إلى التقارير المالية</div>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">غير مصرح لك</h2>
+            <p className="text-gray-600">هذه الصفحة متاحة للمديرين فقط</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6" dir="rtl">
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Calculator className="h-8 w-8" />
-          الحاسبة المالية
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">التقارير المالية</h1>
+          <p className="text-gray-600 mt-2">تحليل الأرباح والخسائر والأداء المالي</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="year">السنة:</Label>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map(year => (
+                  <SelectItem key={year.value} value={year.value}>
+                    {year.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Label htmlFor="month">الشهر:</Label>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(month => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Button onClick={fetchFinancialData} disabled={isLoading}>
+            <Calculator className="w-4 h-4 mr-2" />
+            {isLoading ? 'جاري التحميل...' : 'تحديث التقرير'}
+          </Button>
+        </div>
       </div>
 
-      {/* Current Balance Display */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-6 w-6" />
-            الرصيد الحالي
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-green-100 dark:bg-green-900 rounded-lg">
-              <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                {balance.totalGains.toLocaleString()} دج
-              </div>
-              <div className="text-sm text-green-600 dark:text-green-400">إجمالي الأرباح</div>
-            </div>
-            
-            <div className="text-center p-4 bg-red-100 dark:bg-red-900 rounded-lg">
-              <div className="text-2xl font-bold text-red-700 dark:text-red-300">
-                {balance.totalLosses.toLocaleString()} دج
-              </div>
-              <div className="text-sm text-red-600 dark:text-red-400">إجمالي الخسائر</div>
-            </div>
-            
-            <div className="text-center p-4 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <div className={`text-2xl font-bold ${balance.netBalance >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                {balance.netBalance.toLocaleString()} دج
-              </div>
-              <div className="text-sm text-blue-600 dark:text-blue-400">الرصيد الصافي</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* Manual Gains and Losses Entry Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Add Gain */}
+        {/* Gains Entry */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600">
-              <Plus className="h-5 w-5" />
-              إضافة ربح
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-green-600" />
+              إضافة أرباح إضافية
             </CardTitle>
             <CardDescription>
-              تسجيل دخل إيجابي (مكاسب)
+              تسجيل الأرباح الإضافية والدخل الخارج عن نطاق الدراسة
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="gainAmount">المبلغ (دج)</Label>
+              <Label htmlFor="gain-amount">المبلغ (دج)</Label>
               <Input
-                id="gainAmount"
+                id="gain-amount"
                 type="number"
                 placeholder="أدخل مبلغ الربح"
                 value={gainAmount}
@@ -289,10 +332,10 @@ export default function FinancialReports() {
               />
             </div>
             <div>
-              <Label htmlFor="gainRemarks">ملاحظات (اختياري)</Label>
+              <Label htmlFor="gain-remarks">ملاحظات الربح</Label>
               <Textarea
-                id="gainRemarks"
-                placeholder="تفاصيل الربح..."
+                id="gain-remarks"
+                placeholder="اكتب تفاصيل مصدر الربح..."
                 value={gainRemarks}
                 onChange={(e) => setGainRemarks(e.target.value)}
                 rows={3}
@@ -301,30 +344,31 @@ export default function FinancialReports() {
             <Button 
               onClick={handleSubmitGainEntry}
               disabled={isSubmittingEntry || !gainAmount}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full"
+              variant="default"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              {isSubmittingEntry ? 'جاري الحفظ...' : 'إضافة الربح'}
+              <Plus className="w-4 h-4 mr-2" />
+              {isSubmittingEntry ? 'جاري التسجيل...' : 'تسجيل الربح'}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Add Loss */}
+        {/* Losses Entry */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <Minus className="h-5 w-5" />
-              إضافة خسارة
+            <CardTitle className="flex items-center gap-2">
+              <Minus className="w-5 h-5 text-red-600" />
+              إضافة خسائر ومصاريف
             </CardTitle>
             <CardDescription>
-              تسجيل مصروف أو خسارة
+              تسجيل الخسائر والمصاريف الإضافية خارج نطاق التشغيل
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="lossAmount">المبلغ (دج)</Label>
+              <Label htmlFor="loss-amount">المبلغ (دج)</Label>
               <Input
-                id="lossAmount"
+                id="loss-amount"
                 type="number"
                 placeholder="أدخل مبلغ الخسارة"
                 value={lossAmount}
@@ -334,10 +378,10 @@ export default function FinancialReports() {
               />
             </div>
             <div>
-              <Label htmlFor="lossRemarks">ملاحظات (اختياري)</Label>
+              <Label htmlFor="loss-remarks">ملاحظات الخسارة</Label>
               <Textarea
-                id="lossRemarks"
-                placeholder="تفاصيل الخسارة..."
+                id="loss-remarks"
+                placeholder="اكتب تفاصيل سبب الخسارة..."
                 value={lossRemarks}
                 onChange={(e) => setLossRemarks(e.target.value)}
                 rows={3}
@@ -346,38 +390,191 @@ export default function FinancialReports() {
             <Button 
               onClick={handleSubmitLossEntry}
               disabled={isSubmittingEntry || !lossAmount}
-              className="w-full bg-red-600 hover:bg-red-700"
+              className="w-full"
+              variant="destructive"
             >
-              <Minus className="h-4 w-4 mr-2" />
-              {isSubmittingEntry ? 'جاري الحفظ...' : 'إضافة الخسارة'}
+              <Minus className="w-4 h-4 mr-2" />
+              {isSubmittingEntry ? 'جاري التسجيل...' : 'تسجيل الخسارة'}
             </Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* Reset Balance */}
-      <Card className="border-red-200 dark:border-red-800">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
-            <RotateCcw className="h-5 w-5" />
-            إعادة تعيين الرصيد
-          </CardTitle>
-          <CardDescription>
-            حذف جميع الإدخالات المالية وإعادة تعيين الرصيد إلى الصفر
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button 
-            onClick={handleResetBalance}
-            disabled={isLoading}
-            variant="destructive"
-            className="w-full"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            {isLoading ? 'جاري إعادة التعيين...' : 'إعادة تعيين الرصيد'}
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Summary Cards */}
+      {financialData && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {formatCurrency(financialData.totalRevenue)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  متوسط لكل طالب: {formatCurrency(financialData.averageRevenuePerStudent)}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">إجمالي المصروفات</CardTitle>
+                <TrendingDown className="h-4 w-4 text-red-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {formatCurrency(financialData.totalExpenses)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  نسبة من الإيرادات: {((financialData.totalExpenses / financialData.totalRevenue) * 100).toFixed(1)}%
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">صافي الربح</CardTitle>
+                <TrendingUp className={`h-4 w-4 ${financialData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${financialData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(financialData.netProfit)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  هامش الربح: {((financialData.netProfit / financialData.totalRevenue) * 100).toFixed(1)}%
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">إحصائيات عامة</CardTitle>
+                <Users className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-sm">الطلاب:</span>
+                    <span className="font-medium">{financialData.totalStudents}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">المجموعات:</span>
+                    <span className="font-medium">{financialData.totalGroups}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Monthly Breakdown */}
+          {financialData.monthlyBreakdown && financialData.monthlyBreakdown.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>التحليل الشهري</CardTitle>
+                <CardDescription>تفصيل الإيرادات والمصروفات والأرباح لكل شهر</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {financialData.monthlyBreakdown.map((monthData) => (
+                    <div key={monthData.month} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-semibold">{getMonthName(monthData.month)}</h3>
+                        <Badge variant={monthData.profit >= 0 ? "default" : "destructive"}>
+                          {monthData.profit >= 0 ? "ربح" : "خسارة"}: {formatCurrency(Math.abs(monthData.profit))}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">الإيرادات:</span>
+                          <div className="font-medium text-green-600">{formatCurrency(monthData.revenue)}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">المصروفات:</span>
+                          <div className="font-medium text-red-600">{formatCurrency(monthData.expenses)}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">الهامش:</span>
+                          <div className="font-medium">
+                            {monthData.revenue > 0 ? ((monthData.profit / monthData.revenue) * 100).toFixed(1) : 0}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Group Performance */}
+          {financialData.groupPerformance && financialData.groupPerformance.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>أداء المجموعات</CardTitle>
+                <CardDescription>تحليل الإيرادات لكل مجموعة دراسية</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {financialData.groupPerformance.map((group) => (
+                    <div key={group.groupId} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-semibold">{group.groupName}</h3>
+                          <p className="text-sm text-gray-600">{group.subjectName}</p>
+                        </div>
+                        <Badge variant="outline">
+                          <BookOpen className="w-3 h-3 mr-1" />
+                          {group.totalStudents} طالب
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">إجمالي الإيرادات:</span>
+                          <div className="font-medium text-green-600">{formatCurrency(group.totalRevenue)}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">متوسط لكل طالب:</span>
+                          <div className="font-medium">{formatCurrency(group.averagePerStudent)}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">نسبة من الإيرادات:</span>
+                          <div className="font-medium">
+                            {financialData.totalRevenue > 0 ? ((group.totalRevenue / financialData.totalRevenue) * 100).toFixed(1) : 0}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+
+      {/* No Data State */}
+      {!financialData && !isLoading && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد بيانات مالية</h3>
+            <p className="text-gray-600">اختر فترة زمنية وانقر على "تحديث التقرير" لعرض البيانات المالية</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">جاري تحميل التقرير المالي...</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
