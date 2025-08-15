@@ -93,12 +93,14 @@ function GroupAttendanceTable({
   groupId, 
   studentId, 
   studentType, 
-  studentName 
+  studentName,
+  paidMonths 
 }: { 
   groupId: number;
   studentId: number;
   studentType: 'student' | 'child';
   studentName: string;
+  paidMonths?: number[];
 }) {
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
@@ -191,26 +193,55 @@ function GroupAttendanceTable({
             return acc;
           }, {});
 
-          // Fetch payment status for all months that have scheduled dates
-          const paymentPromises = Object.keys(monthGroups).map(async (monthKey) => {
-            const [year, month] = monthKey.split('-');
-            const response = await fetch(`/api/groups/${groupId}/payment-status/${year}/${month}`);
-            if (response.ok) {
-              const paymentData = await response.json();
-              const studentPayment = paymentData.find((record: any) => 
-                record.studentId === studentId && record.studentType === studentType
-              );
-              return { monthKey, payment: studentPayment };
-            }
-            return { monthKey, payment: null };
-          });
+          // Use provided paidMonths if available, otherwise fetch from API
+          let paymentsByMonth: {[key: string]: any} = {};
           
-          const paymentResults = await Promise.all(paymentPromises);
-          const paymentsByMonth: {[key: string]: any} = {};
-          paymentResults.forEach(result => {
-            paymentsByMonth[result.monthKey] = result.payment;
-          });
-          setPaymentStatusByMonth(paymentsByMonth);
+          if (paidMonths && Array.isArray(paidMonths)) {
+            // Create payment status from provided paidMonths array
+            console.log('🔄 Using provided paidMonths for payment status:', paidMonths);
+            Object.keys(monthGroups).forEach(monthKey => {
+              const [year, month] = monthKey.split('-');
+              const monthNumber = parseInt(month);
+              const isPaid = paidMonths.includes(monthNumber);
+              
+              paymentsByMonth[monthKey] = {
+                studentId: studentId,
+                studentType: studentType,
+                isPaid: isPaid,
+                mustPay: true,
+                isVirtual: false,
+                paymentNote: isPaid ? 'مدفوع' : 'غير مدفوع'
+              };
+              
+              console.log(`🔍 Payment status for ${monthKey} (month ${monthNumber}):`, {
+                monthKey,
+                monthNumber,
+                isPaid,
+                paidMonthsArray: paidMonths
+              });
+            });
+            setPaymentStatusByMonth(paymentsByMonth);
+          } else {
+            // Fallback to API fetch when no paidMonths provided
+            const paymentPromises = Object.keys(monthGroups).map(async (monthKey) => {
+              const [year, month] = monthKey.split('-');
+              const response = await fetch(`/api/groups/${groupId}/payment-status/${year}/${month}`);
+              if (response.ok) {
+                const paymentData = await response.json();
+                const studentPayment = paymentData.find((record: any) => 
+                  record.studentId === studentId && record.studentType === studentType
+                );
+                return { monthKey, payment: studentPayment };
+              }
+              return { monthKey, payment: null };
+            });
+            
+            const paymentResults = await Promise.all(paymentPromises);
+            paymentResults.forEach(result => {
+              paymentsByMonth[result.monthKey] = result.payment;
+            });
+            setPaymentStatusByMonth(paymentsByMonth);
+          }
           
           // Set current payment status for the selected month
           const currentDate = new Date();
@@ -1838,6 +1869,7 @@ export default function DesktopQRScanner() {
                           studentId={scannedProfile.id}
                           studentType={scannedProfile.type}
                           studentName={scannedProfile.name}
+                          paidMonths={group.paidMonths}
                         />
                       </div>
                     </div>
@@ -2327,7 +2359,12 @@ export default function DesktopQRScanner() {
                                 absentCount: 3, 
                                 lateCount: 0 
                               },
-                              paymentStats: { paid: 5, unpaid: 7, total: 12 },
+                              paymentStats: { 
+                                totalDue: 12000, 
+                                paidCount: 5, 
+                                unpaidCount: 7, 
+                                totalAmount: 5000 
+                              },
                               recentAttendance: [],
                               recentPayments: [],
                               enrolledGroups: [] as any[] // Will be populated after processing
@@ -2418,7 +2455,7 @@ export default function DesktopQRScanner() {
                               finalProfile: mockProfile
                             });
                             
-                            // Set test data with proper sequencing
+                            // Set test data with proper sequencing and data synchronization
                             setTimeout(() => {
                               console.log('💾 Setting profile and groups with payment data:', {
                                 profileGroupsCount: mockProfile.enrolledGroups.length,
@@ -2428,10 +2465,17 @@ export default function DesktopQRScanner() {
                                 augustInGroup2: mockProfile.enrolledGroups[1]?.paidMonths.includes(8)
                               });
                               
+                              // Set scanned profile first
                               setScannedProfile(mockProfile);
-                              setAvailableGroups([...processedGroups]); // Use processed groups directly
+                              
+                              // Set available groups for payment form
+                              setAvailableGroups([...processedGroups]);
+                              
+                              // Set default payment selections
                               setSelectedGroups(mockGroups);
                               setPaymentAmount('2500');
+                              
+                              console.log('🔄 Test data has been synchronized across all components');
                             }, 50);
                             
                             // Force a re-render by adding a small delay
