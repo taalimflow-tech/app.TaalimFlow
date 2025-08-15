@@ -4052,6 +4052,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: 'API is working', session: !!req.session?.user });
   });
 
+  // Get payment history for a student in a specific group
+  app.post("/api/scan-student-qr/get-payments", async (req, res) => {
+    console.log('💰 Getting payment history');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      const { studentId, studentType, groupId, year } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId || !studentId || !groupId || !year) {
+        return res.status(400).json({ error: "بيانات ناقصة" });
+      }
+      
+      console.log('Fetching payments for:', {
+        studentId,
+        studentType,
+        groupId,
+        year,
+        schoolId
+      });
+      
+      // Get payment records for this student/group/year
+      const payments = await storage.getStudentGroupPayments(studentId, groupId, year, schoolId);
+      console.log('Found payments:', payments.length);
+      
+      // Extract paid months from payment records
+      const paidMonths = payments.map(payment => payment.month).sort((a, b) => a - b);
+      
+      console.log('✅ Paid months for student:', paidMonths);
+      
+      res.json({ 
+        paidMonths,
+        payments: payments.map(p => ({
+          month: p.month,
+          year: p.year,
+          amount: p.amount,
+          paidDate: p.paidDate,
+          notes: p.notes
+        }))
+      });
+      
+    } catch (error) {
+      console.error('❌ Error fetching payments:', error);
+      res.status(500).json({ error: "حدث خطأ في جلب سجل المدفوعات" });
+    }
+  });
+
   // Create ticket-based payment with multiple groups and months
   app.post("/api/scan-student-qr/create-ticket-payment", async (req, res) => {
     console.log('🎫 Payment ticket creation request received');

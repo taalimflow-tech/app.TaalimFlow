@@ -800,6 +800,45 @@ export default function DesktopQRScanner() {
       const profile = await response.json();
       console.log('✅ Profile received:', profile);
       console.log('✅ Profile enrolled groups:', profile.enrolledGroups);
+      
+      // Fetch payment data for each group if groups exist
+      if (profile.enrolledGroups && profile.enrolledGroups.length > 0) {
+        const groupsWithPayments = await Promise.all(
+          profile.enrolledGroups.map(async (group: any) => {
+            try {
+              const paymentResponse = await fetch('/api/scan-student-qr/get-payments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  studentId: profile.id,
+                  studentType: profile.type,
+                  groupId: group.id,
+                  year: 2025 // Current year
+                })
+              });
+              
+              if (paymentResponse.ok) {
+                const paymentData = await paymentResponse.json();
+                return {
+                  ...group,
+                  paidMonths: paymentData.paidMonths || []
+                };
+              }
+            } catch (error) {
+              console.error('Error fetching payments for group', group.id, error);
+            }
+            
+            return {
+              ...group,
+              paidMonths: []
+            };
+          })
+        );
+        
+        profile.enrolledGroups = groupsWithPayments;
+        setAvailableGroups(groupsWithPayments);
+      }
+      
       setScannedProfile(profile);
       stopScanning();
       
@@ -938,31 +977,81 @@ export default function DesktopQRScanner() {
     
     setLoadingGroups(true);
     try {
-      console.log('🔄 Fetching groups for student:', scannedProfile.id, 'type:', scannedProfile.type);
-      const response = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`);
-      console.log('🔄 API response status:', response.status);
+      console.log('🔄 Fetching groups and payments for student:', scannedProfile.id, 'type:', scannedProfile.type);
       
-      if (response.ok) {
-        const groups = await response.json();
+      // First fetch groups
+      const groupsResponse = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`);
+      console.log('🔄 Groups API response status:', groupsResponse.status);
+      
+      let groups = [];
+      if (groupsResponse.ok) {
+        groups = await groupsResponse.json();
         console.log('✅ Fetched student groups from API:', groups);
-        setAvailableGroups(groups);
       } else {
-        console.error('❌ Failed to fetch student groups, status:', response.status);
-        // Use the already loaded groups from the profile
+        // Use enrolled groups from profile as fallback
         if (scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0) {
           console.log('🔄 Using enrolled groups from profile:', scannedProfile.enrolledGroups);
-          setAvailableGroups(scannedProfile.enrolledGroups);
+          groups = scannedProfile.enrolledGroups;
         } else {
-          console.log('⚠️ No enrolled groups found in profile');
+          console.log('⚠️ No groups available');
           setAvailableGroups([]);
+          return;
         }
       }
+
+      // Now fetch payment data for each group
+      const groupsWithPayments = await Promise.all(
+        groups.map(async (group) => {
+          try {
+            console.log(`🔄 Fetching payments for group ${group.id}`);
+            const paymentsResponse = await fetch('/api/scan-student-qr/get-payments', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                studentId: scannedProfile.id,
+                studentType: scannedProfile.type,
+                groupId: group.id,
+                year: new Date().getFullYear()
+              })
+            });
+
+            let paidMonths = [];
+            if (paymentsResponse.ok) {
+              const paymentData = await paymentsResponse.json();
+              paidMonths = paymentData.paidMonths || [];
+              console.log(`✅ Found ${paidMonths.length} paid months for group ${group.id}:`, paidMonths);
+            } else {
+              console.log(`⚠️ No payment data available for group ${group.id}`);
+            }
+
+            return {
+              ...group,
+              paidMonths
+            };
+          } catch (error) {
+            console.error(`❌ Error fetching payments for group ${group.id}:`, error);
+            return {
+              ...group,
+              paidMonths: []
+            };
+          }
+        })
+      );
+      
+      setAvailableGroups(groupsWithPayments);
+      console.log('✅ Final groups with payment data:', groupsWithPayments);
+      
     } catch (error) {
       console.error('❌ Error fetching groups:', error);
       // Fallback to enrolled groups from the profile
       if (scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0) {
         console.log('🔄 Fallback to enrolled groups:', scannedProfile.enrolledGroups);
-        setAvailableGroups(scannedProfile.enrolledGroups);
+        const groupsWithEmptyPayments = scannedProfile.enrolledGroups.map(group => ({
+          ...group,
+          paidMonths: []
+        }));
+        setAvailableGroups(groupsWithEmptyPayments);
       } else {
         console.log('⚠️ No enrolled groups available as fallback');
         setAvailableGroups([]);
@@ -1999,17 +2088,48 @@ export default function DesktopQRScanner() {
                                     الأشهر المراد دفعها:
                                   </Label>
                                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                                    {Array.from({length: 12}, (_, i) => i + 1).map((month) => (
-                                      <label key={month} className="flex items-center space-x-2 cursor-pointer">
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedGroups[group.id]?.months.includes(month) || false}
-                                          onChange={() => handleMonthToggle(group.id, month)}
-                                          className="ml-1"
-                                        />
-                                        <span className="text-sm">{getMonthName(month)}</span>
-                                      </label>
-                                    ))}
+                                    {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
+                                      const isPaid = group.paidMonths?.includes(month) || false;
+                                      const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
+                                      
+                                      return (
+                                        <label 
+                                          key={month} 
+                                          className={`flex items-center space-x-2 cursor-pointer p-2 rounded text-sm transition-colors ${
+                                            isPaid 
+                                              ? 'bg-green-100 text-green-800 border border-green-200' 
+                                              : 'bg-gray-50 hover:bg-gray-100'
+                                          } ${isSelected && !isPaid ? 'ring-2 ring-blue-400' : ''}`}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={() => handleMonthToggle(group.id, month)}
+                                            className="ml-1"
+                                            disabled={isPaid}
+                                          />
+                                          <span className={`${isPaid ? 'font-medium' : ''}`}>
+                                            {getMonthName(month)}
+                                            {isPaid && <span className="mr-1 text-green-600">✓</span>}
+                                          </span>
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                  
+                                  {/* Payment Status Summary */}
+                                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span>الأشهر المدفوعة:</span>
+                                      <span className="text-green-600 font-medium">
+                                        {group.paidMonths?.length || 0} من 12
+                                      </span>
+                                    </div>
+                                    {group.paidMonths && group.paidMonths.length > 0 && (
+                                      <div className="text-green-700">
+                                        {group.paidMonths.map(m => getMonthName(m)).join(', ')}
+                                      </div>
+                                    )}
                                   </div>
                                   {selectedGroups[group.id]?.months.length > 0 && (
                                     <div className="mt-2 text-sm text-blue-600">
@@ -2157,13 +2277,15 @@ export default function DesktopQRScanner() {
                                   id: 1,
                                   name: 'مجموعة الرياضيات',
                                   subjectName: 'رياضيات',
-                                  teacherName: 'أستاذ محمد'
+                                  teacherName: 'أستاذ محمد',
+                                  paidMonths: [1, 2, 3, 4] // January to April already paid
                                 },
                                 {
                                   id: 2,
                                   name: 'مجموعة العلوم',
                                   subjectName: 'علوم طبيعية',
-                                  teacherName: 'أستاذة فاطمة'
+                                  teacherName: 'أستاذة فاطمة',
+                                  paidMonths: [1, 2] // January to February already paid
                                 }
                               ]
                             };
@@ -2185,10 +2307,11 @@ export default function DesktopQRScanner() {
                             setScannedProfile(mockProfile);
                             setSelectedGroups(mockGroups);
                             setPaymentAmount('2500');
+                            setAvailableGroups(mockProfile.enrolledGroups);
                             
                             toast({
                               title: "تم تحميل البيانات التجريبية",
-                              description: "يمكنك الآن اختبار إنشاء الإيصال"
+                              description: "الآن يمكنك رؤية الأشهر المدفوعة باللون الأخضر والعلامات ✓"
                             });
                           }}
                           variant="secondary" 

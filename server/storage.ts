@@ -230,6 +230,7 @@ export interface IStorage {
   getStudentEnrolledGroups(studentId: number, schoolId: number): Promise<any[]>;
   getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]>;
   getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]>;
+  getStudentGroupPayments(studentId: number, groupId: number, year: number, schoolId: number): Promise<any[]>;
   getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]>;
   
   // Child-specific queries for parent access
@@ -3826,6 +3827,35 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error fetching student payment records:', error);
       throw error;
+    }
+  }
+
+  async getStudentGroupPayments(studentId: number, groupId: number, year: number, schoolId: number): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: studentMonthlyPayments.id,
+          studentId: studentMonthlyPayments.studentId,
+          month: studentMonthlyPayments.month,
+          year: studentMonthlyPayments.year,
+          amount: studentMonthlyPayments.amount,
+          paidDate: studentMonthlyPayments.paidDate,
+          notes: studentMonthlyPayments.notes,
+          paidBy: studentMonthlyPayments.paidBy,
+        })
+        .from(studentMonthlyPayments)
+        .where(and(
+          eq(studentMonthlyPayments.studentId, studentId),
+          eq(studentMonthlyPayments.year, year),
+          eq(studentMonthlyPayments.schoolId, schoolId),
+          eq(studentMonthlyPayments.isPaid, true)
+        ))
+        .orderBy(studentMonthlyPayments.month);
+        
+      return result;
+    } catch (error) {
+      console.error('Error in getStudentGroupPayments:', error);
+      return [];
     }
   }
 
