@@ -237,6 +237,7 @@ export interface IStorage {
   // Financial Entries interface methods (for manual gains and losses)
   createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry>;
   getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]>;
+  resetFinancialEntries(schoolId: number): Promise<void>;
   
   // Child-specific queries for parent access
   getChildById(childId: number): Promise<Child | undefined>;
@@ -4490,6 +4491,17 @@ export class DatabaseStorage implements IStorage {
       return await query.orderBy(desc(financialEntries.createdAt));
     } catch (error) {
       console.error('Error fetching financial entries:', error);
+      throw error;
+    }
+  }
+
+  async resetFinancialEntries(schoolId: number): Promise<void> {
+    try {
+      await db
+        .delete(financialEntries)
+        .where(eq(financialEntries.schoolId, schoolId));
+    } catch (error) {
+      console.error('Error resetting financial entries:', error);
       throw error;
     }
   }

@@ -4144,6 +4144,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gain/Loss Calculator Routes
+  app.get("/api/gain-loss-entries", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const entries = await storage.getFinancialEntries(schoolId);
+      res.json(entries);
+    } catch (error) {
+      console.error('❌ Error fetching gain/loss entries:', error);
+      res.status(500).json({ error: "فشل في جلب البيانات" });
+    }
+  });
+
+  app.post("/api/gain-loss-entries", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const entryData = insertFinancialEntrySchema.parse({
+        ...req.body,
+        schoolId,
+        recordedBy: req.session.user.id
+      });
+
+      const entry = await storage.createFinancialEntry(entryData);
+      res.json(entry);
+    } catch (error) {
+      console.error('❌ Error creating gain/loss entry:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "بيانات غير صحيحة: " + error.errors.map(e => e.message).join(", ") });
+      }
+      res.status(500).json({ error: "فشل في إضافة العملية" });
+    }
+  });
+
+  app.post("/api/gain-loss-entries/reset", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      await storage.resetFinancialEntries(schoolId);
+      res.json({ success: true, message: "تم إعادة تعيين الرصيد بنجاح" });
+    } catch (error) {
+      console.error('❌ Error resetting balance:', error);
+      res.status(500).json({ error: "فشل في إعادة تعيين الرصيد" });
+    }
+  });
+
   // Get payment history for a student in a specific group
   app.post("/api/scan-student-qr/get-payments", async (req, res) => {
     console.log('💰 Getting payment history');
