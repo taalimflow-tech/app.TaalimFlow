@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +35,22 @@ export default function GainLossCalculator() {
           <CardContent className="p-8 text-center">
             <div className="text-red-500 text-lg mb-2">صلاحيات المدير مطلوبة</div>
             <div className="text-gray-600">تحتاج إلى صلاحيات المدير لاستخدام حاسبة الأرباح والخسائر</div>
+            <div className="text-sm text-gray-500 mt-4">
+              الحالة: {loading ? 'جاري التحميل...' : !user ? 'غير مسجل دخول' : `الدور: ${user.role}`}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="text-gray-600">جاري التحميل...</div>
           </CardContent>
         </Card>
       </div>
@@ -50,12 +66,30 @@ export default function GainLossCalculator() {
   const { data: entries = [], isLoading, error } = useQuery<FinancialEntry[]>({
     queryKey: ['/api', 'gain-loss-entries'],
     enabled: !!user && !loading && user.role === 'admin',
+    retry: (failureCount, error: any) => {
+      // Don't retry on auth errors
+      if (error?.message?.includes('401') || error?.message?.includes('403')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 
   // Log any query errors
   if (error) {
     console.error('Query error:', error);
   }
+
+  // Check if user needs to log in again
+  React.useEffect(() => {
+    if (error && error.message.includes('401')) {
+      toast({
+        title: "انتهت جلسة العمل",
+        description: "يرجى تسجيل الدخول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  }, [error]);
 
   // Calculate current balance
   const currentBalance = (entries as FinancialEntry[]).reduce((total: number, entry: FinancialEntry) => {
@@ -67,8 +101,16 @@ export default function GainLossCalculator() {
   const createEntryMutation = useMutation({
     mutationFn: async (entryData: any) => {
       console.log('Creating entry with data:', entryData);
-      const response = await apiRequest('POST', '/api/gain-loss-entries', entryData);
-      return response.json();
+      console.log('User session:', user);
+      try {
+        const response = await apiRequest('POST', '/api/gain-loss-entries', entryData);
+        const result = await response.json();
+        console.log('Success response:', result);
+        return result;
+      } catch (error) {
+        console.error('Error in mutation:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api', 'gain-loss-entries'] });
@@ -79,10 +121,11 @@ export default function GainLossCalculator() {
         description: `تم إضافة ${entryType === 'gain' ? 'الربح' : 'الخسارة'} بنجاح`,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Mutation error:', error);
       toast({
         title: "خطأ",
-        description: "حدث خطأ أثناء حفظ البيانات",
+        description: `حدث خطأ أثناء حفظ البيانات: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -268,6 +311,13 @@ export default function GainLossCalculator() {
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8 text-gray-500">جاري التحميل...</div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <div className="text-red-500 mb-2">خطأ في تحميل البيانات</div>
+                <div className="text-sm text-gray-500">
+                  {error.message.includes('401') ? 'يرجى تسجيل الدخول مرة أخرى' : 'تحقق من الاتصال'}
+                </div>
+              </div>
             ) : (entries as FinancialEntry[]).length === 0 ? (
               <div className="text-center py-8 text-gray-500">لا توجد عمليات</div>
             ) : (
