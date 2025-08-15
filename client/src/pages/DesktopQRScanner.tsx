@@ -2129,8 +2129,9 @@ export default function DesktopQRScanner() {
                                   </Label>
                                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
-                                      // Primary check: group payment data
-                                      const isPaid = group.paidMonths?.includes(month) || false;
+                                      // Primary check: group payment data with extra safety checks
+                                      const paidMonthsArray = group.paidMonths || [];
+                                      const isPaid = Array.isArray(paidMonthsArray) && paidMonthsArray.includes(month);
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
                                       
                                       // Debug logging for payment status
@@ -2468,8 +2469,22 @@ export default function DesktopQRScanner() {
                               // Set scanned profile first
                               setScannedProfile(mockProfile);
                               
-                              // Set available groups for payment form
-                              setAvailableGroups([...processedGroups]);
+                              // Set available groups for payment form with complete data structure
+                              const completeGroups = processedGroups.map(group => ({
+                                ...group,
+                                educationLevel: 'متوسط',
+                                nameAr: group.subjectName
+                              }));
+                              
+                              console.log('🔧 Setting available groups with payment data:', {
+                                completeGroups: completeGroups,
+                                group1PaidMonths: completeGroups[0].paidMonths,
+                                group2PaidMonths: completeGroups[1].paidMonths,
+                                augustInGroup1: completeGroups[0].paidMonths.includes(8),
+                                augustInGroup2: completeGroups[1].paidMonths.includes(8)
+                              });
+                              
+                              setAvailableGroups(completeGroups);
                               
                               // Set default payment selections
                               setSelectedGroups(mockGroups);
@@ -2478,26 +2493,18 @@ export default function DesktopQRScanner() {
                               console.log('🔄 Test data has been synchronized across all components');
                             }, 50);
                             
-                            // Force a re-render by adding a small delay
+                            // Force a re-render by adding a small delay to check state
                             setTimeout(() => {
-                              console.log('✅ State update verification at 100ms:', {
-                                availableGroupsLength: availableGroups.length,
-                                group1Details: availableGroups[0] ? {
-                                  id: availableGroups[0].id,
-                                  name: availableGroups[0].name,
-                                  paidMonths: availableGroups[0].paidMonths,
-                                  augustPaid: availableGroups[0].paidMonths?.includes(8)
-                                } : 'not found',
-                                group2Details: availableGroups[1] ? {
-                                  id: availableGroups[1].id,
-                                  name: availableGroups[1].name,
-                                  paidMonths: availableGroups[1].paidMonths,
-                                  augustPaid: availableGroups[1].paidMonths?.includes(8)
-                                } : 'not found',
-                                stateSnapshot: {
-                                  scannedProfileHasGroups: !!scannedProfile?.enrolledGroups,
-                                  totalAvailableGroups: availableGroups.length
-                                }
+                              // Force component re-render by updating available groups again
+                              setAvailableGroups(prev => {
+                                console.log('🔄 Force re-render check:', {
+                                  prevGroups: prev,
+                                  group1HasPaidMonths: prev[0]?.paidMonths ? 'YES' : 'NO',
+                                  group2HasPaidMonths: prev[1]?.paidMonths ? 'YES' : 'NO',
+                                  group1AugustPaid: prev[0]?.paidMonths?.includes(8) ? 'YES' : 'NO',
+                                  group2AugustPaid: prev[1]?.paidMonths?.includes(8) ? 'YES' : 'NO'
+                                });
+                                return [...prev]; // Force re-render with same data
                               });
                             }, 100);
                             
