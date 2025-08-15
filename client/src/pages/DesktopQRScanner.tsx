@@ -2097,19 +2097,17 @@ export default function DesktopQRScanner() {
                                   </Label>
                                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
+                                      // Primary check: group payment data
                                       const isPaid = group.paidMonths?.includes(month) || false;
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
                                       
                                       // Debug logging for payment status
-                                      if (month <= 3 || month === 8) { // January, February, March, August
-                                        console.log(`Month ${month} (${getMonthName(month)}) for group ${group.id}:`, {
-                                          month,
-                                          groupName: group.name,
+                                      if (month === 8) { // Focus on August
+                                        console.log(`🔍 August (month 8) for group ${group.id} "${group.name}":`, {
                                           paidMonths: group.paidMonths,
-                                          paidMonthsType: typeof group.paidMonths,
-                                          includesCheck: group.paidMonths?.includes(month),
+                                          includesAugust: group.paidMonths?.includes(8),
                                           isPaid,
-                                          isArray: Array.isArray(group.paidMonths)
+                                          groupData: group
                                         });
                                       }
                                       
@@ -2342,11 +2340,13 @@ export default function DesktopQRScanner() {
                             };
                             
                             // Debug log the data being set
-                            console.log('Setting test data with payment info:', {
+                            console.log('🚀 Setting test data with payment info:', {
                               mockProfile: mockProfile,
                               availableGroups: mockProfile.enrolledGroups,
                               paidMonthsGroup1: mockProfile.enrolledGroups[0].paidMonths,
-                              paidMonthsGroup2: mockProfile.enrolledGroups[1].paidMonths
+                              paidMonthsGroup2: mockProfile.enrolledGroups[1].paidMonths,
+                              augustInGroup1: mockProfile.enrolledGroups[0].paidMonths.includes(8),
+                              augustInGroup2: mockProfile.enrolledGroups[1].paidMonths.includes(8)
                             });
                             
                             // Set test data with proper sequencing
@@ -2359,7 +2359,13 @@ export default function DesktopQRScanner() {
                             
                             // Force a re-render by adding a small delay
                             setTimeout(() => {
-                              console.log('Available groups after state update:', availableGroups);
+                              console.log('✅ State update verification at 100ms:', {
+                                availableGroupsLength: availableGroups.length,
+                                group1PaidMonths: availableGroups[0]?.paidMonths,
+                                group2PaidMonths: availableGroups[1]?.paidMonths,
+                                group1AugustPaid: availableGroups[0]?.paidMonths?.includes(8),
+                                group2AugustPaid: availableGroups[1]?.paidMonths?.includes(8)
+                              });
                             }, 100);
                             
                             setTimeout(() => {
