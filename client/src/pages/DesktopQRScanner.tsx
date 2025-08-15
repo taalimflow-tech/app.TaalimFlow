@@ -2104,10 +2104,16 @@ export default function DesktopQRScanner() {
                                       // Debug logging for payment status
                                       if (month === 8) { // Focus on August
                                         console.log(`🔍 August (month 8) for group ${group.id} "${group.name}":`, {
-                                          paidMonths: group.paidMonths,
-                                          includesAugust: group.paidMonths?.includes(8),
-                                          isPaid,
-                                          groupData: group
+                                          monthNumber: month,
+                                          groupId: group.id,
+                                          groupName: group.name,
+                                          paidMonthsRaw: group.paidMonths,
+                                          paidMonthsType: typeof group.paidMonths,
+                                          paidMonthsIsArray: Array.isArray(group.paidMonths),
+                                          includesAugustTest: group.paidMonths?.includes(8),
+                                          includesAugustStrict: group.paidMonths ? group.paidMonths.includes(8) : false,
+                                          finalIsPaidValue: isPaid,
+                                          fullGroupObject: JSON.stringify(group, null, 2)
                                         });
                                       }
                                       
@@ -2230,7 +2236,13 @@ export default function DesktopQRScanner() {
                                     const mockProfile = {
                                       id: 1,
                                       name: 'طالب تجريبي',
-                                      type: 'student'
+                                      type: 'student' as const,
+                                      verified: true,
+                                      attendanceStats: { present: 0, absent: 0, total: 0 },
+                                      paymentStats: { paid: 0, unpaid: 12, total: 12 },
+                                      recentAttendance: [],
+                                      recentPayments: [],
+                                      enrolledGroups: []
                                     };
                                     
                                     const mockGroups = {
@@ -2307,7 +2319,12 @@ export default function DesktopQRScanner() {
                             const mockProfile = {
                               id: 1,
                               name: 'طالب تجريبي',
-                              type: 'student',
+                              type: 'student' as const,
+                              verified: true,
+                              attendanceStats: { present: 15, absent: 3, total: 18 },
+                              paymentStats: { paid: 5, unpaid: 7, total: 12 },
+                              recentAttendance: [],
+                              recentPayments: [],
                               enrolledGroups: [
                                 {
                                   id: 1,
