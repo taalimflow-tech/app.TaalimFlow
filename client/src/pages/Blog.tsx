@@ -3,10 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BlogPost } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Blog() {
+  const { user, loading: authLoading } = useAuth();
+  
   const { data: posts = [], isLoading: loading } = useQuery<BlogPost[]>({
     queryKey: ['/api/blog-posts'],
+    enabled: !!user && !authLoading,
   });
 
   if (loading) {

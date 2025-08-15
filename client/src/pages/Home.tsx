@@ -9,10 +9,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   const { data: allAnnouncements = [], isLoading: loading } = useQuery<Announcement[]>({
     queryKey: ['/api/announcements'],
+    enabled: !!user && !authLoading,
   });
 
   // Get the latest 3 announcements

@@ -8,12 +8,13 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Formations() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const { data: formations = [], isLoading: loading } = useQuery<Formation[]>({
     queryKey: ['/api/formations'],
+    enabled: !!user && !authLoading,
   });
 
   const [selectedFormation, setSelectedFormation] = useState<Formation | null>(null);
