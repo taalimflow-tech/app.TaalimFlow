@@ -231,6 +231,7 @@ export interface IStorage {
   getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]>;
   getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]>;
   getStudentGroupPayments(studentId: number, groupId: number, year: number, schoolId: number): Promise<any[]>;
+  getFinancialReportData(schoolId: number, year: number, month?: number): Promise<any>;
   getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]>;
   
   // Child-specific queries for parent access
@@ -3856,6 +3857,144 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error in getStudentGroupPayments:', error);
       return [];
+    }
+  }
+
+  async getFinancialReportData(schoolId: number, year: number, month?: number): Promise<any> {
+    try {
+      console.log('📊 Generating financial report for school:', schoolId, 'year:', year, 'month:', month);
+
+      // Base date filters
+      const yearFilter = eq(studentMonthlyPayments.year, year);
+      const monthFilter = month ? eq(studentMonthlyPayments.month, month) : undefined;
+      const dateFilters = monthFilter ? and(yearFilter, monthFilter) : yearFilter;
+
+      // Get total revenue from payments
+      const revenueResult = await db
+        .select({
+          totalRevenue: sql<number>`COALESCE(SUM(${studentMonthlyPayments.amount}), 0)`,
+        })
+        .from(studentMonthlyPayments)
+        .where(and(
+          eq(studentMonthlyPayments.schoolId, schoolId),
+          eq(studentMonthlyPayments.isPaid, true),
+          dateFilters
+        ));
+
+      const totalRevenue = revenueResult[0]?.totalRevenue || 0;
+
+      // Get student and group counts
+      const studentCountResult = await db
+        .select({
+          totalStudents: sql<number>`COUNT(DISTINCT ${studentMonthlyPayments.studentId})`,
+        })
+        .from(studentMonthlyPayments)
+        .where(and(
+          eq(studentMonthlyPayments.schoolId, schoolId),
+          eq(studentMonthlyPayments.isPaid, true),
+          dateFilters
+        ));
+
+      const totalStudents = studentCountResult[0]?.totalStudents || 0;
+
+      // Get total groups in school
+      const groupCountResult = await db
+        .select({
+          totalGroups: sql<number>`COUNT(*)`,
+        })
+        .from(groups)
+        .where(eq(groups.schoolId, schoolId));
+
+      const totalGroups = groupCountResult[0]?.totalGroups || 0;
+
+      // For now, set expenses to 20% of revenue as placeholder
+      // In a real system, you would track actual expenses
+      const totalExpenses = Math.round(totalRevenue * 0.2);
+      const netProfit = totalRevenue - totalExpenses;
+      const averageRevenuePerStudent = totalStudents > 0 ? Math.round(totalRevenue / totalStudents) : 0;
+
+      // Get monthly breakdown if viewing all months
+      let monthlyBreakdown: any[] = [];
+      if (!month) {
+        for (let m = 1; m <= 12; m++) {
+          const monthlyRevenueResult = await db
+            .select({
+              revenue: sql<number>`COALESCE(SUM(${studentMonthlyPayments.amount}), 0)`,
+            })
+            .from(studentMonthlyPayments)
+            .where(and(
+              eq(studentMonthlyPayments.schoolId, schoolId),
+              eq(studentMonthlyPayments.isPaid, true),
+              eq(studentMonthlyPayments.year, year),
+              eq(studentMonthlyPayments.month, m)
+            ));
+
+          const monthRevenue = monthlyRevenueResult[0]?.revenue || 0;
+          if (monthRevenue > 0) {
+            const monthExpenses = Math.round(monthRevenue * 0.2);
+            monthlyBreakdown.push({
+              month: m,
+              revenue: monthRevenue,
+              expenses: monthExpenses,
+              profit: monthRevenue - monthExpenses
+            });
+          }
+        }
+      }
+
+      // Get group performance
+      const groupPerformanceResult = await db
+        .select({
+          groupId: groups.id,
+          groupName: groups.name,
+          subjectName: groups.subjectName,
+          totalRevenue: sql<number>`COALESCE(SUM(${studentMonthlyPayments.amount}), 0)`,
+          totalStudents: sql<number>`COUNT(DISTINCT ${studentMonthlyPayments.studentId})`,
+        })
+        .from(groups)
+        .leftJoin(groupMixedAssignments, eq(groups.id, groupMixedAssignments.groupId))
+        .leftJoin(studentMonthlyPayments, and(
+          eq(groupMixedAssignments.studentId, studentMonthlyPayments.studentId),
+          eq(studentMonthlyPayments.schoolId, schoolId),
+          eq(studentMonthlyPayments.isPaid, true),
+          dateFilters
+        ))
+        .where(eq(groups.schoolId, schoolId))
+        .groupBy(groups.id, groups.name, groups.subjectName)
+        .having(sql`COUNT(DISTINCT ${studentMonthlyPayments.studentId}) > 0`);
+
+      const groupPerformance = groupPerformanceResult.map(group => ({
+        groupId: group.groupId,
+        groupName: group.groupName,
+        subjectName: group.subjectName,
+        totalStudents: group.totalStudents,
+        totalRevenue: group.totalRevenue,
+        averagePerStudent: group.totalStudents > 0 ? Math.round(group.totalRevenue / group.totalStudents) : 0
+      }));
+
+      const financialData = {
+        totalRevenue,
+        totalExpenses,
+        netProfit,
+        totalStudents,
+        totalGroups,
+        averageRevenuePerStudent,
+        monthlyBreakdown,
+        groupPerformance
+      };
+
+      console.log('✅ Financial report generated:', {
+        totalRevenue,
+        totalStudents,
+        totalGroups,
+        monthlyBreakdownCount: monthlyBreakdown.length,
+        groupPerformanceCount: groupPerformance.length
+      });
+
+      return financialData;
+    } catch (error) {
+      console.error('Error generating financial report:', error);
+      throw error;
     }
   }
 

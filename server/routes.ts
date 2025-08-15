@@ -4052,6 +4052,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: 'API is working', session: !!req.session?.user });
   });
 
+  // Financial reports endpoint for gains/losses calculation
+  app.post("/api/financial-reports", async (req, res) => {
+    console.log('💰 Financial reports request received');
+    
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+      
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "غير مسموح لك بعرض التقارير المالية" });
+      }
+      
+      const { year, month } = req.body;
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId || !year) {
+        return res.status(400).json({ error: "بيانات ناقصة" });
+      }
+      
+      console.log('Generating financial report for:', {
+        year,
+        month,
+        schoolId
+      });
+      
+      // Get financial data from storage
+      const financialData = await storage.getFinancialReportData(schoolId, year, month);
+      
+      console.log('✅ Financial report generated successfully');
+      res.json(financialData);
+      
+    } catch (error) {
+      console.error('❌ Error generating financial report:', error);
+      res.status(500).json({ error: "حدث خطأ في إنشاء التقرير المالي" });
+    }
+  });
+
   // Get payment history for a student in a specific group
   app.post("/api/scan-student-qr/get-payments", async (req, res) => {
     console.log('💰 Getting payment history');
