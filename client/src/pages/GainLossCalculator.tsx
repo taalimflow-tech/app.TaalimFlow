@@ -26,16 +26,48 @@ export default function GainLossCalculator() {
   const [amount, setAmount] = useState('');
   const [remarks, setRemarks] = useState('');
 
+  // Check if user is admin
+  if (!loading && (!user || user.role !== 'admin')) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="text-red-500 text-lg mb-2">صلاحيات المدير مطلوبة</div>
+            <div className="text-gray-600">تحتاج إلى صلاحيات المدير لاستخدام حاسبة الأرباح والخسائر</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Get current date for entries
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
 
   // Fetch financial entries
-  const { data: entries = [], isLoading } = useQuery<FinancialEntry[]>({
+  const { data: entries = [], isLoading, error } = useQuery<FinancialEntry[]>({
     queryKey: ['/api/gain-loss-entries'],
     enabled: !!user && !loading,
+    queryFn: async () => {
+      console.log('Fetching entries for user:', user?.role);
+      const response = await fetch('/api/gain-loss-entries', {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Fetch Error Response:', errorText);
+        throw new Error(`Failed to fetch entries: ${response.status}`);
+      }
+      return response.json();
+    },
   });
+
+  // Log any query errors
+  if (error) {
+    console.error('Query error:', error);
+  }
 
   // Calculate current balance
   const currentBalance = (entries as FinancialEntry[]).reduce((total: number, entry: FinancialEntry) => {
@@ -46,12 +78,19 @@ export default function GainLossCalculator() {
   // Create entry mutation
   const createEntryMutation = useMutation({
     mutationFn: async (entryData: any) => {
+      console.log('Creating entry with data:', entryData);
       const response = await fetch('/api/gain-loss-entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(entryData),
       });
-      if (!response.ok) throw new Error('Failed to create entry');
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`Failed to create entry: ${response.status}`);
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -78,8 +117,13 @@ export default function GainLossCalculator() {
       const response = await fetch('/api/gain-loss-entries/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
-      if (!response.ok) throw new Error('Failed to reset balance');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Reset Error Response:', errorText);
+        throw new Error(`Failed to reset balance: ${response.status}`);
+      }
       return response.json();
     },
     onSuccess: () => {
