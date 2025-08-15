@@ -94,7 +94,7 @@ export default function FinancialReports() {
       console.error('Error fetching financial data:', error);
       toast({
         title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم",
+        description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
         variant: "destructive"
       });
     } finally {
@@ -140,9 +140,10 @@ export default function FinancialReports() {
         });
       }
     } catch (error) {
+      console.error('Error submitting gain entry:', error);
       toast({
         title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم",
+        description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
         variant: "destructive"
       });
     } finally {
@@ -188,9 +189,10 @@ export default function FinancialReports() {
         });
       }
     } catch (error) {
+      console.error('Error submitting loss entry:', error);
       toast({
-        title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم",
+        title: "خطأ في الاتصال", 
+        description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
         variant: "destructive"
       });
     } finally {

@@ -11,6 +11,7 @@ This Progressive Web App (PWA) is a React-based mobile portal for private school
 - **Attendance System Fixes**: Corrected field name issues in group attendance system (attendanceDate vs date)
 - **Type Safety Improvements**: Resolved major TypeScript errors across server-side components
 - **Manual Financial Entries System**: Added comprehensive gains and losses tracking functionality with new `financialEntries` database table, API routes, and frontend forms for manual financial record management (August 15, 2025)
+- **Error Handling Improvements**: Enhanced error message formatting and user guidance in Financial Reports section, replacing concatenated error messages with descriptive ones that guide users to proper authentication steps (August 15, 2025)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language in English. User prefers English communication over other languages.
