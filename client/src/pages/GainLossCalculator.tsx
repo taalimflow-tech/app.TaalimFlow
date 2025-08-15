@@ -156,7 +156,8 @@ export default function GainLossCalculator() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!amount || parseFloat(amount) <= 0) {
+    const numericAmount = parseFloat(amount);
+    if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
       toast({
         title: "خطأ في البيانات",
         description: "يرجى إدخال مبلغ صحيح",
@@ -176,7 +177,7 @@ export default function GainLossCalculator() {
 
     createEntryMutation.mutate({
       type: entryType,
-      amount: parseFloat(amount),
+      amount: amount.trim(), // Send as string for decimal field
       remarks: remarks.trim(),
       year: currentYear,
       month: currentMonth,
