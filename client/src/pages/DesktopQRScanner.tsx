@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import TestQRCode from '@/components/TestQRCode';
 import { 
   QrCode, 
@@ -419,6 +420,7 @@ const months = [
 export default function DesktopQRScanner() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isScanning, setIsScanning] = useState(false);
   const [scannedProfile, setScannedProfile] = useState<StudentProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -1225,22 +1227,34 @@ export default function DesktopQRScanner() {
 
         if (gainResponse.ok) {
           console.log('✅ Automatic gain entry created successfully');
+          // Invalidate gain-loss cache to refresh the data
+          queryClient.invalidateQueries({ queryKey: ['/api', 'gain-loss-entries'] });
           toast({
             title: "تم إنشاء إيصال الدفع بنجاح",
             description: `إيصال رقم: ${ticket.receiptId} - تم إضافة المبلغ للأرباح تلقائياً`
           });
         } else {
-          console.error('❌ Failed to create automatic gain entry');
-          toast({
-            title: "تم إنشاء إيصال الدفع بنجاح",
-            description: `إيصال رقم: ${ticket.receiptId} - تعذر إضافة المبلغ للأرباح تلقائياً`
-          });
+          const errorData = await gainResponse.json().catch(() => ({}));
+          console.error('❌ Failed to create automatic gain entry. Status:', gainResponse.status, 'Error:', errorData);
+          
+          // Show different messages based on error type
+          if (gainResponse.status === 401 || gainResponse.status === 403) {
+            toast({
+              title: "تم إنشاء إيصال الدفع بنجاح",
+              description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر وأضف المبلغ يدوياً`
+            });
+          } else {
+            toast({
+              title: "تم إنشاء إيصال الدفع بنجاح",
+              description: `إيصال رقم: ${ticket.receiptId} - تعذر إضافة المبلغ للأرباح تلقائياً: ${errorData.error || 'خطأ غير معروف'}`
+            });
+          }
         }
       } catch (gainError) {
         console.error('❌ Error creating automatic gain entry:', gainError);
         toast({
           title: "تم إنشاء إيصال الدفع بنجاح",
-          description: `إيصال رقم: ${ticket.receiptId} - اضغط طباعة لطباعة الإيصال`
+          description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر`
         });
       }
 
