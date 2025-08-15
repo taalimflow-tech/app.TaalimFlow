@@ -71,6 +71,12 @@ export default function FinancialReports() {
   });
 
   const fetchFinancialData = async () => {
+    // Prevent API calls if user is not properly authenticated as admin
+    if (loading || user?.role !== 'admin') {
+      console.log('Skipping financial data fetch - user not authenticated as admin');
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -92,11 +98,14 @@ export default function FinancialReports() {
       }
     } catch (error) {
       console.error('Error fetching financial data:', error);
-      toast({
-        title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
-        variant: "destructive"
-      });
+      // Only show toast if we're still authenticated - avoid showing errors during logout/auth transitions
+      if (!loading && user?.role === 'admin') {
+        toast({
+          title: "خطأ في الاتصال",
+          description: "تعذر الاتصال بالخادم. يرجى التأكد من تسجيل الدخول والمحاولة مرة أخرى",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
