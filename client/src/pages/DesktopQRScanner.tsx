@@ -2087,7 +2087,7 @@ export default function DesktopQRScanner() {
                                   <Label className="text-sm font-medium text-gray-700 mb-2 block">
                                     الأشهر المراد دفعها:
                                   </Label>
-                                  <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
                                       const isPaid = group.paidMonths?.includes(month) || false;
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
@@ -2095,23 +2095,36 @@ export default function DesktopQRScanner() {
                                       return (
                                         <label 
                                           key={month} 
-                                          className={`flex items-center space-x-2 cursor-pointer p-2 rounded text-sm transition-colors ${
+                                          className={`flex flex-col cursor-pointer p-2 rounded text-xs transition-colors border-2 ${
                                             isPaid 
-                                              ? 'bg-green-100 text-green-800 border border-green-200' 
-                                              : 'bg-gray-50 hover:bg-gray-100'
-                                          } ${isSelected && !isPaid ? 'ring-2 ring-blue-400' : ''}`}
+                                              ? 'bg-green-100 text-green-800 border-green-300' 
+                                              : isSelected 
+                                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                              : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                          }`}
                                         >
-                                          <input
-                                            type="checkbox"
-                                            checked={isSelected}
-                                            onChange={() => handleMonthToggle(group.id, month)}
-                                            className="ml-1"
-                                            disabled={isPaid}
-                                          />
-                                          <span className={`${isPaid ? 'font-medium' : ''}`}>
-                                            {getMonthName(month)}
-                                            {isPaid && <span className="mr-1 text-green-600">✓</span>}
-                                          </span>
+                                          <div className="flex items-center justify-center mb-1">
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={() => handleMonthToggle(group.id, month)}
+                                              className="ml-1"
+                                              disabled={isPaid}
+                                            />
+                                            <span className={`font-medium ${isPaid ? 'text-green-700' : ''}`}>
+                                              {getMonthName(month)}
+                                            </span>
+                                          </div>
+                                          <div className="text-center">
+                                            <div className="text-xs text-gray-500 mb-1">2025</div>
+                                            <div className={`text-xs px-1 py-0.5 rounded ${
+                                              isPaid 
+                                                ? 'bg-green-200 text-green-800' 
+                                                : 'bg-red-100 text-red-700'
+                                            }`}>
+                                              {isPaid ? '✓ مدفوع' : '✗ غير مدفوع'}
+                                            </div>
+                                          </div>
                                         </label>
                                       );
                                     })}
