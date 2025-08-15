@@ -2278,14 +2278,14 @@ export default function DesktopQRScanner() {
                                   name: 'مجموعة الرياضيات',
                                   subjectName: 'رياضيات',
                                   teacherName: 'أستاذ محمد',
-                                  paidMonths: [1, 2, 3, 4] // January to April already paid
+                                  paidMonths: [1, 2, 3, 4, 8] // January to April and August already paid
                                 },
                                 {
                                   id: 2,
                                   name: 'مجموعة العلوم',
                                   subjectName: 'علوم طبيعية',
                                   teacherName: 'أستاذة فاطمة',
-                                  paidMonths: [1, 2] // January to February already paid
+                                  paidMonths: [1, 2, 8] // January, February and August already paid
                                 }
                               ]
                             };
@@ -2294,12 +2294,12 @@ export default function DesktopQRScanner() {
                               1: {
                                 groupName: 'مجموعة الرياضيات',
                                 subjectName: 'رياضيات',
-                                months: [1, 2, 3]
+                                months: [5, 6, 8] // May, June, August (8 is paid, so August shows as already paid with checkmark)
                               },
                               2: {
                                 groupName: 'مجموعة العلوم',
                                 subjectName: 'علوم طبيعية',
-                                months: [1, 2]
+                                months: [7, 8] // July, August (8 is paid, so August shows as already paid with checkmark)
                               }
                             };
                             
