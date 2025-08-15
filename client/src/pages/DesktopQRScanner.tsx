@@ -2413,158 +2413,44 @@ export default function DesktopQRScanner() {
                     {user?.role === 'admin' && (
                       <div className="mb-4">
                         <Button 
-                          onClick={() => {
-                            // First, clear all previous data
+                          onClick={async () => {
+                            // Clear previous data first
                             setScannedProfile(null);
                             setAvailableGroups([]);
                             setSelectedGroups({});
-                            // Create mock test data that matches real database structure
-                            const mockProfile = {
-                              id: 1,
-                              name: 'طالب تجريبي',
-                              type: 'student' as const,
-                              verified: true,
-                              attendanceStats: { 
-                                totalClasses: 18, 
-                                presentCount: 15, 
-                                absentCount: 3, 
-                                lateCount: 0 
-                              },
-                              paymentStats: { 
-                                totalDue: 12000, 
-                                paidCount: 5, 
-                                unpaidCount: 7, 
-                                totalAmount: 5000 
-                              },
-                              recentAttendance: [],
-                              recentPayments: [],
-                              enrolledGroups: [] as any[] // Will be populated after processing
-                            };
-
-                            // Simulate real payment data from database - August should be paid
-                            const mockPaymentData = {
-                              1: { // Group 1 - Math
-                                paymentMonths: [
-                                  { month: 1, isPaid: true },
-                                  { month: 2, isPaid: true },
-                                  { month: 3, isPaid: true },
-                                  { month: 4, isPaid: true },
-                                  { month: 5, isPaid: false },
-                                  { month: 6, isPaid: false },
-                                  { month: 7, isPaid: false },
-                                  { month: 8, isPaid: true }, // AUGUST IS PAID!
-                                  { month: 9, isPaid: false },
-                                  { month: 10, isPaid: false },
-                                  { month: 11, isPaid: false },
-                                  { month: 12, isPaid: false }
-                                ]
-                              },
-                              2: { // Group 2 - Science  
-                                paymentMonths: [
-                                  { month: 1, isPaid: true },
-                                  { month: 2, isPaid: true },
-                                  { month: 3, isPaid: false },
-                                  { month: 4, isPaid: false },
-                                  { month: 5, isPaid: false },
-                                  { month: 6, isPaid: false },
-                                  { month: 7, isPaid: false },
-                                  { month: 8, isPaid: true }, // AUGUST IS PAID!
-                                  { month: 9, isPaid: false },
-                                  { month: 10, isPaid: false },
-                                  { month: 11, isPaid: false },
-                                  { month: 12, isPaid: false }
-                                ]
-                              }
-                            };
-
-                            // Process payment data to create paidMonths arrays (like real system)
-                            const processedGroups = [
-                              {
+                            
+                            try {
+                              console.log('🔄 Loading authentic student data...');
+                              
+                              // Create a minimal test profile that will trigger real API calls
+                              const testProfile = {
                                 id: 1,
-                                name: 'مجموعة الرياضيات',
-                                subjectName: 'رياضيات',
-                                teacherName: 'أستاذ محمد',
-                                paidMonths: mockPaymentData[1].paymentMonths
-                                  .filter(p => p.isPaid)
-                                  .map(p => p.month) // Results in [1,2,3,4,8]
-                              },
-                              {
-                                id: 2,
-                                name: 'مجموعة العلوم',
-                                subjectName: 'علوم طبيعية',
-                                teacherName: 'أستاذة فاطمة',
-                                paidMonths: mockPaymentData[2].paymentMonths
-                                  .filter(p => p.isPaid)
-                                  .map(p => p.month) // Results in [1,2,8]
-                              }
-                            ];
-
-                            // Add processed groups to profile
-                            mockProfile.enrolledGroups = processedGroups;
-                            
-                            const mockGroups = {
-                              1: {
-                                groupName: 'مجموعة الرياضيات',
-                                subjectName: 'رياضيات',
-                                months: [5, 6, 8] // May, June, August (8 is paid, so August shows as already paid with checkmark)
-                              },
-                              2: {
-                                groupName: 'مجموعة العلوم',
-                                subjectName: 'علوم طبيعية',
-                                months: [7, 8] // July, August (8 is paid, so August shows as already paid with checkmark)
-                              }
-                            };
-                            
-                            // Debug log the processed payment data
-                            console.log('🚀 Setting test data with processed payment info:', {
-                              rawPaymentData: mockPaymentData,
-                              processedGroups: processedGroups,
-                              group1PaidMonths: processedGroups[0].paidMonths,
-                              group2PaidMonths: processedGroups[1].paidMonths,
-                              augustPaidGroup1: processedGroups[0].paidMonths.includes(8),
-                              augustPaidGroup2: processedGroups[1].paidMonths.includes(8),
-                              finalProfile: mockProfile
-                            });
-                            
-                            // Set data synchronously - React batching will handle updates efficiently
-                            console.log('💾 Setting profile and groups with payment data:', {
-                              profileGroupsCount: mockProfile.enrolledGroups.length,
-                              group1Months: mockProfile.enrolledGroups[0]?.paidMonths,
-                              group2Months: mockProfile.enrolledGroups[1]?.paidMonths,
-                              augustInGroup1: mockProfile.enrolledGroups[0]?.paidMonths.includes(8),
-                              augustInGroup2: mockProfile.enrolledGroups[1]?.paidMonths.includes(8)
-                            });
-                            
-                            // Set available groups for payment form with complete data structure
-                            const completeGroups = processedGroups.map(group => ({
-                              ...group,
-                              educationLevel: 'متوسط',
-                              nameAr: group.subjectName
-                            }));
-                            
-                            console.log('🔧 Setting available groups with payment data:', {
-                              completeGroups: completeGroups,
-                              group1PaidMonths: completeGroups[0].paidMonths,
-                              group2PaidMonths: completeGroups[1].paidMonths,
-                              augustInGroup1: completeGroups[0].paidMonths.includes(8),
-                              augustInGroup2: completeGroups[1].paidMonths.includes(8)
-                            });
-                            
-                            // Set all state simultaneously
-                            setScannedProfile(mockProfile);
-                            setAvailableGroups(completeGroups);
-                            setSelectedGroups(mockGroups);
-                            setPaymentAmount('2500');
-                            
-                            console.log('🔄 Test data has been synchronized across all components');
-                            
-                            // Immediate verification and user feedback
-                            setTimeout(() => {
+                                name: 'طالب تجريبي',
+                                type: 'student' as const,
+                                verified: true,
+                                attendanceStats: { totalClasses: 0, presentCount: 0, absentCount: 0, lateCount: 0 },
+                                paymentStats: { totalDue: 0, paidCount: 0, unpaidCount: 0, totalAmount: 0 },
+                                recentAttendance: [],
+                                recentPayments: [],
+                                enrolledGroups: []
+                              };
+                              
+                              // Set the profile which will trigger fetchStudentGroups with real API data
+                              setScannedProfile(testProfile);
+                              
                               toast({
-                                title: "تم تحميل البيانات التجريبية",
-                                description: "أغسطس يجب أن يظهر الآن كمدفوع للمجموعتين - تحقق من console للتفاصيل"
+                                title: "تم تحميل ملف الطالب",
+                                description: "سيتم جلب بيانات الدفع الحقيقية من قاعدة البيانات..."
                               });
-                            }, 100);
+                              
+                            } catch (error) {
+                              console.error('❌ Error loading test profile:', error);
+                              toast({
+                                title: "خطأ في تحميل البيانات",
+                                description: "فشل في تحميل بيانات الطالب",
+                                variant: "destructive"
+                              });
+                            }
                           }}
                           variant="secondary" 
                           size="sm"
