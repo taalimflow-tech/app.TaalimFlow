@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Plus, Minus, RotateCcw, Calculator, TrendingUp, TrendingDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface FinancialEntry {
   id: number;
@@ -47,21 +48,8 @@ export default function GainLossCalculator() {
 
   // Fetch financial entries
   const { data: entries = [], isLoading, error } = useQuery<FinancialEntry[]>({
-    queryKey: ['/api/gain-loss-entries'],
-    enabled: !!user && !loading,
-    queryFn: async () => {
-      console.log('Fetching entries for user:', user?.role);
-      const response = await fetch('/api/gain-loss-entries', {
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Fetch Error Response:', errorText);
-        throw new Error(`Failed to fetch entries: ${response.status}`);
-      }
-      return response.json();
-    },
+    queryKey: ['/api', 'gain-loss-entries'],
+    enabled: !!user && !loading && user.role === 'admin',
   });
 
   // Log any query errors
@@ -79,22 +67,11 @@ export default function GainLossCalculator() {
   const createEntryMutation = useMutation({
     mutationFn: async (entryData: any) => {
       console.log('Creating entry with data:', entryData);
-      const response = await fetch('/api/gain-loss-entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(entryData),
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`Failed to create entry: ${response.status}`);
-      }
+      const response = await apiRequest('POST', '/api/gain-loss-entries', entryData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gain-loss-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['/api', 'gain-loss-entries'] });
       setAmount('');
       setRemarks('');
       toast({
@@ -114,20 +91,11 @@ export default function GainLossCalculator() {
   // Reset balance mutation
   const resetBalanceMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/gain-loss-entries/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Reset Error Response:', errorText);
-        throw new Error(`Failed to reset balance: ${response.status}`);
-      }
+      const response = await apiRequest('POST', '/api/gain-loss-entries/reset');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gain-loss-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['/api', 'gain-loss-entries'] });
       toast({
         title: "تم إعادة التعيين",
         description: "تم إعادة تعيين الرصيد بنجاح",
