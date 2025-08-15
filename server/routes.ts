@@ -4145,9 +4145,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Gain/Loss Calculator Routes
-  app.get("/api/gain-loss-entries", async (req, res) => {
+  app.get("/api/gain-loss-entries", requireAuth, async (req, res) => {
     try {
-      if (!req.session?.user || req.session.user.role !== 'admin') {
+      if (req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
@@ -4164,9 +4164,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/gain-loss-entries", async (req, res) => {
+  app.post("/api/gain-loss-entries", requireAuth, async (req, res) => {
     try {
-      if (!req.session?.user || req.session.user.role !== 'admin') {
+      if (req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
@@ -4192,9 +4192,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/gain-loss-entries/reset", async (req, res) => {
+  app.post("/api/gain-loss-entries/reset", requireAuth, async (req, res) => {
     try {
-      if (!req.session?.user || req.session.user.role !== 'admin') {
+      if (req.session.user.role !== 'admin') {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
