@@ -2146,7 +2146,20 @@ export default function DesktopQRScanner() {
                                           includesAugustTest: group.paidMonths?.includes(8),
                                           includesAugustStrict: group.paidMonths ? group.paidMonths.includes(8) : false,
                                           finalIsPaidValue: isPaid,
+                                          paidMonthsArrayValue: paidMonthsArray,
+                                          calculatedIsPaid: Array.isArray(paidMonthsArray) && paidMonthsArray.includes(month),
                                           fullGroupObject: JSON.stringify(group, null, 2)
+                                        });
+                                      }
+                                      
+                                      // Additional debug for any month that should be paid
+                                      if (group.paidMonths && group.paidMonths.includes(month)) {
+                                        console.log(`✅ Month ${month} (${getMonthName(month)}) should be PAID for group ${group.id}:`, {
+                                          month,
+                                          monthName: getMonthName(month),
+                                          group: group.name,
+                                          paidMonths: group.paidMonths,
+                                          isPaidCalculation: isPaid
                                         });
                                       }
                                       
@@ -2201,6 +2214,11 @@ export default function DesktopQRScanner() {
                                         {group.paidMonths.map(m => getMonthName(m)).join(', ')}
                                       </div>
                                     )}
+                                    {/* Debug Display */}
+                                    <div className="mt-2 p-1 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                                      <strong>Debug:</strong> paidMonths = [{(group.paidMonths || []).join(', ')}]<br/>
+                                      Type: {typeof group.paidMonths}, Is Array: {Array.isArray(group.paidMonths) ? 'Yes' : 'No'}
+                                    </div>
                                   </div>
                                   {selectedGroups[group.id]?.months.length > 0 && (
                                     <div className="mt-2 text-sm text-blue-600">
@@ -2456,64 +2474,45 @@ export default function DesktopQRScanner() {
                               finalProfile: mockProfile
                             });
                             
-                            // Set test data with proper sequencing and data synchronization
-                            setTimeout(() => {
-                              console.log('💾 Setting profile and groups with payment data:', {
-                                profileGroupsCount: mockProfile.enrolledGroups.length,
-                                group1Months: mockProfile.enrolledGroups[0]?.paidMonths,
-                                group2Months: mockProfile.enrolledGroups[1]?.paidMonths,
-                                augustInGroup1: mockProfile.enrolledGroups[0]?.paidMonths.includes(8),
-                                augustInGroup2: mockProfile.enrolledGroups[1]?.paidMonths.includes(8)
-                              });
-                              
-                              // Set scanned profile first
-                              setScannedProfile(mockProfile);
-                              
-                              // Set available groups for payment form with complete data structure
-                              const completeGroups = processedGroups.map(group => ({
-                                ...group,
-                                educationLevel: 'متوسط',
-                                nameAr: group.subjectName
-                              }));
-                              
-                              console.log('🔧 Setting available groups with payment data:', {
-                                completeGroups: completeGroups,
-                                group1PaidMonths: completeGroups[0].paidMonths,
-                                group2PaidMonths: completeGroups[1].paidMonths,
-                                augustInGroup1: completeGroups[0].paidMonths.includes(8),
-                                augustInGroup2: completeGroups[1].paidMonths.includes(8)
-                              });
-                              
-                              setAvailableGroups(completeGroups);
-                              
-                              // Set default payment selections
-                              setSelectedGroups(mockGroups);
-                              setPaymentAmount('2500');
-                              
-                              console.log('🔄 Test data has been synchronized across all components');
-                            }, 50);
+                            // Set data synchronously - React batching will handle updates efficiently
+                            console.log('💾 Setting profile and groups with payment data:', {
+                              profileGroupsCount: mockProfile.enrolledGroups.length,
+                              group1Months: mockProfile.enrolledGroups[0]?.paidMonths,
+                              group2Months: mockProfile.enrolledGroups[1]?.paidMonths,
+                              augustInGroup1: mockProfile.enrolledGroups[0]?.paidMonths.includes(8),
+                              augustInGroup2: mockProfile.enrolledGroups[1]?.paidMonths.includes(8)
+                            });
                             
-                            // Force a re-render by adding a small delay to check state
-                            setTimeout(() => {
-                              // Force component re-render by updating available groups again
-                              setAvailableGroups(prev => {
-                                console.log('🔄 Force re-render check:', {
-                                  prevGroups: prev,
-                                  group1HasPaidMonths: prev[0]?.paidMonths ? 'YES' : 'NO',
-                                  group2HasPaidMonths: prev[1]?.paidMonths ? 'YES' : 'NO',
-                                  group1AugustPaid: prev[0]?.paidMonths?.includes(8) ? 'YES' : 'NO',
-                                  group2AugustPaid: prev[1]?.paidMonths?.includes(8) ? 'YES' : 'NO'
-                                });
-                                return [...prev]; // Force re-render with same data
-                              });
-                            }, 100);
+                            // Set available groups for payment form with complete data structure
+                            const completeGroups = processedGroups.map(group => ({
+                              ...group,
+                              educationLevel: 'متوسط',
+                              nameAr: group.subjectName
+                            }));
                             
+                            console.log('🔧 Setting available groups with payment data:', {
+                              completeGroups: completeGroups,
+                              group1PaidMonths: completeGroups[0].paidMonths,
+                              group2PaidMonths: completeGroups[1].paidMonths,
+                              augustInGroup1: completeGroups[0].paidMonths.includes(8),
+                              augustInGroup2: completeGroups[1].paidMonths.includes(8)
+                            });
+                            
+                            // Set all state simultaneously
+                            setScannedProfile(mockProfile);
+                            setAvailableGroups(completeGroups);
+                            setSelectedGroups(mockGroups);
+                            setPaymentAmount('2500');
+                            
+                            console.log('🔄 Test data has been synchronized across all components');
+                            
+                            // Immediate verification and user feedback
                             setTimeout(() => {
                               toast({
                                 title: "تم تحميل البيانات التجريبية",
-                                description: "أغسطس يجب أن يظهر الآن كمدفوع للمجموعتين"
+                                description: "أغسطس يجب أن يظهر الآن كمدفوع للمجموعتين - تحقق من console للتفاصيل"
                               });
-                            }, 200);
+                            }, 100);
                           }}
                           variant="secondary" 
                           size="sm"
