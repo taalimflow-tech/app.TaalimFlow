@@ -253,19 +253,7 @@ export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Manual Financial Entries table for gains and losses tracking
-export const financialEntries = pgTable("financial_entries", {
-  id: serial("id").primaryKey(),
-  schoolId: integer("school_id").references(() => schools.id).notNull(),
-  type: text("type", { enum: ["gain", "loss"] }).notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  remarks: text("remarks").notNull(),
-  year: integer("year").notNull(),
-  month: integer("month").notNull(), // 1-12
-  recordedBy: integer("recorded_by").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+
 
 export const formationRegistrations = pgTable("formation_registrations", {
   id: serial("id").primaryKey(),
@@ -698,15 +686,7 @@ export const insertStudentMonthlyPaymentSchema = createInsertSchema(studentMonth
   schoolId: true,
 });
 
-export const insertFinancialEntrySchema = createInsertSchema(financialEntries).pick({
-  schoolId: true,
-  type: true,
-  amount: true,
-  remarks: true,
-  year: true,
-  month: true,
-  recordedBy: true,
-});
+
 
 // Push notification schemas
 export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({
@@ -771,8 +751,7 @@ export type GroupTransaction = typeof groupTransactions.$inferSelect;
 export type InsertGroupTransaction = z.infer<typeof insertGroupTransactionSchema>;
 export type StudentMonthlyPayment = typeof studentMonthlyPayments.$inferSelect;
 export type InsertStudentMonthlyPayment = z.infer<typeof insertStudentMonthlyPaymentSchema>;
-export type FinancialEntry = typeof financialEntries.$inferSelect;
-export type InsertFinancialEntry = z.infer<typeof insertFinancialEntrySchema>;
+
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
 export type NotificationLog = typeof notificationLogs.$inferSelect;
