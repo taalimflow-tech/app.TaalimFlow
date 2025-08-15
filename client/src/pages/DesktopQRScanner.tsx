@@ -1205,13 +1205,47 @@ export default function DesktopQRScanner() {
         }))
       };
 
+      // 🆕 AUTOMATIC GAIN ENTRY: Add receipt amount to financial gains
+      try {
+        console.log('🔄 Creating automatic gain entry for receipt:', ticket.receiptId);
+        
+        const currentDate = new Date();
+        const gainResponse = await fetch('/api/gain-loss-entries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            type: 'gain',
+            amount: paymentAmount.trim(),
+            remarks: `إيصال دفع رقم: ${ticket.receiptId} - الطالب: ${scannedProfile.name}`,
+            year: currentDate.getFullYear(),
+            month: currentDate.getMonth() + 1
+          })
+        });
+
+        if (gainResponse.ok) {
+          console.log('✅ Automatic gain entry created successfully');
+          toast({
+            title: "تم إنشاء إيصال الدفع بنجاح",
+            description: `إيصال رقم: ${ticket.receiptId} - تم إضافة المبلغ للأرباح تلقائياً`
+          });
+        } else {
+          console.error('❌ Failed to create automatic gain entry');
+          toast({
+            title: "تم إنشاء إيصال الدفع بنجاح",
+            description: `إيصال رقم: ${ticket.receiptId} - تعذر إضافة المبلغ للأرباح تلقائياً`
+          });
+        }
+      } catch (gainError) {
+        console.error('❌ Error creating automatic gain entry:', gainError);
+        toast({
+          title: "تم إنشاء إيصال الدفع بنجاح",
+          description: `إيصال رقم: ${ticket.receiptId} - اضغط طباعة لطباعة الإيصال`
+        });
+      }
+
       setGeneratedTicket(ticket);
       setShowTicket(true);
-
-      toast({
-        title: "تم إنشاء إيصال الدفع بنجاح",
-        description: `إيصال رقم: ${ticket.receiptId} - اضغط طباعة لطباعة الإيصال`
-      });
 
       // Reset form
       setPaymentAmount('');
