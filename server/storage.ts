@@ -4458,13 +4458,16 @@ export class DatabaseStorage implements IStorage {
   // Financial Entries implementation methods
   async createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry> {
     try {
+      console.log('🔄 Attempting to create financial entry:', entry);
       const [result] = await db
         .insert(financialEntries)
         .values(entry)
         .returning();
+      console.log('✅ Financial entry created successfully:', result);
       return result;
     } catch (error) {
-      console.error('Error creating financial entry:', error);
+      console.error('❌ Error creating financial entry:', error);
+      console.error('❌ Entry data that failed:', entry);
       throw error;
     }
   }
