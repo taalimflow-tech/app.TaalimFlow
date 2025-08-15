@@ -2060,10 +2060,13 @@ export default function DesktopQRScanner() {
                         ) : availableGroups.length > 0 ? (
                           <>
                             <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
-                              <strong>Debug:</strong> Found {availableGroups.length} groups with payment data:<br/>
+                              <strong>Debug Payment Data:</strong><br/>
+                              Available Groups: {availableGroups.length}<br/>
                               {availableGroups.map(g => (
-                                <div key={g.id}>
-                                  • {g.name}: paid months = [{g.paidMonths?.join(', ') || 'none'}]
+                                <div key={g.id} className="mt-1 p-1 bg-white rounded text-xs">
+                                  Group ID: {g.id}, Name: {g.name}<br/>
+                                  Paid Months: [{(g.paidMonths || []).join(', ')}]<br/>
+                                  Type: {typeof g.paidMonths}, Is Array: {Array.isArray(g.paidMonths)}
                                 </div>
                               ))}
                             </div>
@@ -2096,6 +2099,19 @@ export default function DesktopQRScanner() {
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
                                       const isPaid = group.paidMonths?.includes(month) || false;
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
+                                      
+                                      // Debug logging for payment status
+                                      if (month <= 3 || month === 8) { // January, February, March, August
+                                        console.log(`Month ${month} (${getMonthName(month)}) for group ${group.id}:`, {
+                                          month,
+                                          groupName: group.name,
+                                          paidMonths: group.paidMonths,
+                                          paidMonthsType: typeof group.paidMonths,
+                                          includesCheck: group.paidMonths?.includes(month),
+                                          isPaid,
+                                          isArray: Array.isArray(group.paidMonths)
+                                        });
+                                      }
                                       
                                       return (
                                         <label 
