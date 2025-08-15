@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema, insertChildSchema, insertStudentDataSchema, insertGroupAttendanceSchema, insertGroupTransactionSchema } from "@shared/schema";
+import { insertAnnouncementSchema, insertBlogPostSchema, insertTeacherSchema, insertMessageSchema, insertSuggestionSchema, insertGroupSchema, insertFormationSchema, insertGroupRegistrationSchema, insertFormationRegistrationSchema, insertUserSchema, insertAdminSchema, insertTeacherUserSchema, insertStudentSchema, loginSchema, insertTeachingModuleSchema, insertTeacherSpecializationSchema, insertScheduleTableSchema, insertScheduleCellSchema, insertBlockedUserSchema, insertUserReportSchema, insertSuperAdminSchema, insertSchoolSchema, schoolSelectionSchema, insertChildSchema, insertStudentDataSchema, insertGroupAttendanceSchema, insertGroupTransactionSchema, insertFinancialEntrySchema } from "@shared/schema";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -4090,7 +4090,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Financial Entries Routes (for manual gains and losses)
+  app.post("/api/financial-entries", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لإضافة الإدخالات المالية" });
+      }
 
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const entryData = insertFinancialEntrySchema.parse({
+        ...req.body,
+        schoolId,
+        recordedBy: req.session.user.id
+      });
+
+      const entry = await storage.createFinancialEntry(entryData);
+      res.json(entry);
+    } catch (error) {
+      console.error('❌ Error creating financial entry:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "بيانات غير صحيحة: " + error.errors.map(e => e.message).join(", ") });
+      }
+      res.status(500).json({ error: "فشل في إضافة الإدخال المالي" });
+    }
+  });
+
+  // Get Financial Balance - Simple gains/losses calculator
+  app.get("/api/financial-balance", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لعرض الرصيد المالي" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const balance = await storage.getFinancialBalance(schoolId);
+      res.json(balance);
+    } catch (error) {
+      console.error('❌ Error fetching financial balance:', error);
+      res.status(500).json({ error: "فشل في تحميل الرصيد المالي" });
+    }
+  });
+
+  // Reset Financial Balance - Clear all financial entries
+  app.post("/api/financial-balance/reset", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لإعادة تعيين الرصيد" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      await storage.resetFinancialBalance(schoolId);
+      res.json({ message: "تم إعادة تعيين الرصيد المالي بنجاح" });
+    } catch (error) {
+      console.error('❌ Error resetting financial balance:', error);
+      res.status(500).json({ error: "فشل في إعادة تعيين الرصيد المالي" });
+    }
+  });
+
+  app.get("/api/financial-entries", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لعرض الإدخالات المالية" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const { year, month } = req.query;
+      const entries = await storage.getFinancialEntries(
+        schoolId, 
+        year ? parseInt(year as string) : undefined,
+        month ? parseInt(month as string) : undefined
+      );
+      
+      res.json(entries);
+    } catch (error) {
+      console.error('❌ Error fetching financial entries:', error);
+      res.status(500).json({ error: "فشل في جلب الإدخالات المالية" });
+    }
+  });
 
   // Get payment history for a student in a specific group
   app.post("/api/scan-student-qr/get-payments", async (req, res) => {

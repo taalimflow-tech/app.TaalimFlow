@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, moduleYears, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, moduleYears, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, financialEntries, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type FinancialEntry, type InsertFinancialEntry, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray, isNull } from "drizzle-orm";
 
@@ -234,7 +234,11 @@ export interface IStorage {
   getFinancialReportData(schoolId: number, year: number, month?: number): Promise<any>;
   getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]>;
 
-
+  // Financial Entries interface methods (for manual gains and losses)
+  createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry>;
+  getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]>;
+  getFinancialBalance(schoolId: number): Promise<{ totalGains: number; totalLosses: number; netBalance: number; }>;
+  resetFinancialBalance(schoolId: number): Promise<void>;
   
   // Child-specific queries for parent access
   getChildById(childId: number): Promise<Child | undefined>;
@@ -4452,7 +4456,98 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Financial Entries implementation methods
+  async createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry> {
+    try {
+      const [result] = await db
+        .insert(financialEntries)
+        .values(entry)
+        .returning();
+      return result;
+    } catch (error) {
+      console.error('Error creating financial entry:', error);
+      throw error;
+    }
+  }
 
+  async getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]> {
+    try {
+      let query = db
+        .select()
+        .from(financialEntries)
+        .where(eq(financialEntries.schoolId, schoolId));
+
+      if (year) {
+        query = query.where(and(eq(financialEntries.schoolId, schoolId), eq(financialEntries.year, year)));
+      }
+
+      if (month && year) {
+        query = query.where(and(
+          eq(financialEntries.schoolId, schoolId),
+          eq(financialEntries.year, year),
+          eq(financialEntries.month, month)
+        ));
+      }
+
+      return await query.orderBy(desc(financialEntries.createdAt));
+    } catch (error) {
+      console.error('Error fetching financial entries:', error);
+      throw error;
+    }
+  }
+
+  async getFinancialBalance(schoolId: number): Promise<{ totalGains: number; totalLosses: number; netBalance: number; }> {
+    try {
+      // Get total gains
+      const gainsResult = await db
+        .select({
+          totalGains: sql<number>`COALESCE(SUM(${financialEntries.amount}), 0)`,
+        })
+        .from(financialEntries)
+        .where(and(
+          eq(financialEntries.schoolId, schoolId),
+          eq(financialEntries.type, 'gain')
+        ));
+
+      // Get total losses
+      const lossesResult = await db
+        .select({
+          totalLosses: sql<number>`COALESCE(SUM(${financialEntries.amount}), 0)`,
+        })
+        .from(financialEntries)
+        .where(and(
+          eq(financialEntries.schoolId, schoolId),
+          eq(financialEntries.type, 'loss')
+        ));
+
+      const totalGains = Number(gainsResult[0]?.totalGains || 0);
+      const totalLosses = Number(lossesResult[0]?.totalLosses || 0);
+      const netBalance = totalGains - totalLosses;
+
+      return {
+        totalGains,
+        totalLosses,
+        netBalance
+      };
+    } catch (error) {
+      console.error('Error calculating financial balance:', error);
+      throw error;
+    }
+  }
+
+  async resetFinancialBalance(schoolId: number): Promise<void> {
+    try {
+      // Delete all financial entries for this school
+      await db
+        .delete(financialEntries)
+        .where(eq(financialEntries.schoolId, schoolId));
+      
+      console.log(`✅ Reset financial balance for school ${schoolId}`);
+    } catch (error) {
+      console.error('Error resetting financial balance:', error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
