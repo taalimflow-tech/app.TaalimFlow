@@ -93,14 +93,12 @@ function GroupAttendanceTable({
   groupId, 
   studentId, 
   studentType, 
-  studentName,
-  paidMonths 
+  studentName 
 }: { 
   groupId: number;
   studentId: number;
   studentType: 'student' | 'child';
   studentName: string;
-  paidMonths?: number[];
 }) {
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
@@ -193,55 +191,26 @@ function GroupAttendanceTable({
             return acc;
           }, {});
 
-          // Use provided paidMonths if available, otherwise fetch from API
-          let paymentsByMonth: {[key: string]: any} = {};
+          // Fetch payment status for all months that have scheduled dates
+          const paymentPromises = Object.keys(monthGroups).map(async (monthKey) => {
+            const [year, month] = monthKey.split('-');
+            const response = await fetch(`/api/groups/${groupId}/payment-status/${year}/${month}`);
+            if (response.ok) {
+              const paymentData = await response.json();
+              const studentPayment = paymentData.find((record: any) => 
+                record.studentId === studentId && record.studentType === studentType
+              );
+              return { monthKey, payment: studentPayment };
+            }
+            return { monthKey, payment: null };
+          });
           
-          if (paidMonths && Array.isArray(paidMonths)) {
-            // Create payment status from provided paidMonths array
-            console.log('🔄 Using provided paidMonths for payment status:', paidMonths);
-            Object.keys(monthGroups).forEach(monthKey => {
-              const [year, month] = monthKey.split('-');
-              const monthNumber = parseInt(month);
-              const isPaid = paidMonths.includes(monthNumber);
-              
-              paymentsByMonth[monthKey] = {
-                studentId: studentId,
-                studentType: studentType,
-                isPaid: isPaid,
-                mustPay: true,
-                isVirtual: false,
-                paymentNote: isPaid ? 'مدفوع' : 'غير مدفوع'
-              };
-              
-              console.log(`🔍 Payment status for ${monthKey} (month ${monthNumber}):`, {
-                monthKey,
-                monthNumber,
-                isPaid,
-                paidMonthsArray: paidMonths
-              });
-            });
-            setPaymentStatusByMonth(paymentsByMonth);
-          } else {
-            // Fallback to API fetch when no paidMonths provided
-            const paymentPromises = Object.keys(monthGroups).map(async (monthKey) => {
-              const [year, month] = monthKey.split('-');
-              const response = await fetch(`/api/groups/${groupId}/payment-status/${year}/${month}`);
-              if (response.ok) {
-                const paymentData = await response.json();
-                const studentPayment = paymentData.find((record: any) => 
-                  record.studentId === studentId && record.studentType === studentType
-                );
-                return { monthKey, payment: studentPayment };
-              }
-              return { monthKey, payment: null };
-            });
-            
-            const paymentResults = await Promise.all(paymentPromises);
-            paymentResults.forEach(result => {
-              paymentsByMonth[result.monthKey] = result.payment;
-            });
-            setPaymentStatusByMonth(paymentsByMonth);
-          }
+          const paymentResults = await Promise.all(paymentPromises);
+          const paymentsByMonth: {[key: string]: any} = {};
+          paymentResults.forEach(result => {
+            paymentsByMonth[result.monthKey] = result.payment;
+          });
+          setPaymentStatusByMonth(paymentsByMonth);
           
           // Set current payment status for the selected month
           const currentDate = new Date();
@@ -1048,24 +1017,17 @@ export default function DesktopQRScanner() {
             });
 
             let paidMonths = [];
-            let paymentStatus = {};
             if (paymentsResponse.ok) {
               const paymentData = await paymentsResponse.json();
               paidMonths = paymentData.paidMonths || [];
-              paymentStatus = paymentData.paymentStatusByMonth || {};
-              console.log(`✅ Found ${paidMonths.length} paid months and payment status for group ${group.id}:`, {
-                paidMonths,
-                paymentStatus,
-                augustStatus: paymentStatus['2025-08']
-              });
+              console.log(`✅ Found ${paidMonths.length} paid months for group ${group.id}:`, paidMonths);
             } else {
               console.log(`⚠️ No payment data available for group ${group.id}`);
             }
 
             return {
               ...group,
-              paidMonths,
-              paymentStatus // Add the same payment status data that attendance table uses
+              paidMonths
             };
           } catch (error) {
             console.error(`❌ Error fetching payments for group ${group.id}:`, error);
@@ -1876,7 +1838,6 @@ export default function DesktopQRScanner() {
                           studentId={scannedProfile.id}
                           studentType={scannedProfile.type}
                           studentName={scannedProfile.name}
-                          paidMonths={group.paidMonths}
                         />
                       </div>
                     </div>
@@ -2079,11 +2040,11 @@ export default function DesktopQRScanner() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <CreditCard className="h-5 w-5" />
-                      حالة الدفع الشهرية
+                      <Printer className="h-5 w-5" />
+                      طابعة إيصال الدفع
                     </CardTitle>
                     <CardDescription>
-                      عرض حالة الدفع لكل شهر حسب المجموعة
+                      تحديد المجموعات والأشهر لإنشاء إيصال دفع شامل
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -2099,15 +2060,7 @@ export default function DesktopQRScanner() {
                         ) : availableGroups.length > 0 ? (
                           <>
                             <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
-                              <strong>Debug Payment Data:</strong><br/>
-                              Available Groups: {availableGroups.length}<br/>
-                              {availableGroups.map(g => (
-                                <div key={g.id} className="mt-1 p-1 bg-white rounded text-xs">
-                                  Group ID: {g.id}, Name: {g.name}<br/>
-                                  Paid Months: [{(g.paidMonths || []).join(', ')}]<br/>
-                                  Type: {typeof g.paidMonths}, Is Array: {Array.isArray(g.paidMonths)}
-                                </div>
-                              ))}
+                              <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
                             </div>
                             {availableGroups.map((group) => (
                             <div key={group.id} className="border rounded-lg p-4">
@@ -2131,43 +2084,58 @@ export default function DesktopQRScanner() {
                               
                               {selectedGroups[group.id] && (
                                 <div className="border-t pt-3">
-                                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
-                                    حالة الدفع الشهرية:
+                                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                                    الأشهر المراد دفعها:
                                   </Label>
-                                  <div className="space-y-2">
+                                  <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
-                                      // Get payment status from the same source as attendance table
-                                      const currentYear = new Date().getFullYear();
-                                      const monthKey = `${currentYear}-${month.toString().padStart(2, '0')}`;
-                                      const groupPaymentData = group.paymentStatus || {};
-                                      const monthPaymentData = groupPaymentData[monthKey];
-                                      
-                                      // Use attendance table's payment data (same source as above)
-                                      let isPaid = false;
-                                      if (monthPaymentData) {
-                                        isPaid = monthPaymentData.isPaid || false;
-                                      } else {
-                                        // Fallback to paidMonths array
-                                        const paidMonthsArray = group.paidMonths || [];
-                                        isPaid = Array.isArray(paidMonthsArray) && paidMonthsArray.includes(month);
-                                      }
+                                      const isPaid = group.paidMonths?.includes(month) || false;
+                                      const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
                                       
                                       return (
-                                        <div key={month} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
-                                          <div className="font-medium text-gray-800">
-                                            {getMonthName(month)} 2025
-                                          </div>
-                                          <div className={`px-3 py-1 rounded text-sm font-medium ${
+                                        <label 
+                                          key={month} 
+                                          className={`flex items-center space-x-2 cursor-pointer p-2 rounded text-sm transition-colors ${
                                             isPaid 
-                                              ? 'bg-green-100 text-green-800' 
-                                              : 'bg-red-100 text-red-800'
-                                          }`}>
-                                            {isPaid ? '✓ مدفوع' : '✗ غير مدفوع'}
-                                          </div>
-                                        </div>
+                                              ? 'bg-green-100 text-green-800 border border-green-200' 
+                                              : 'bg-gray-50 hover:bg-gray-100'
+                                          } ${isSelected && !isPaid ? 'ring-2 ring-blue-400' : ''}`}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={() => handleMonthToggle(group.id, month)}
+                                            className="ml-1"
+                                            disabled={isPaid}
+                                          />
+                                          <span className={`${isPaid ? 'font-medium' : ''}`}>
+                                            {getMonthName(month)}
+                                            {isPaid && <span className="mr-1 text-green-600">✓</span>}
+                                          </span>
+                                        </label>
                                       );
                                     })}
                                   </div>
+                                  
+                                  {/* Payment Status Summary */}
+                                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span>الأشهر المدفوعة:</span>
+                                      <span className="text-green-600 font-medium">
+                                        {group.paidMonths?.length || 0} من 12
+                                      </span>
+                                    </div>
+                                    {group.paidMonths && group.paidMonths.length > 0 && (
+                                      <div className="text-green-700">
+                                        {group.paidMonths.map(m => getMonthName(m)).join(', ')}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {selectedGroups[group.id]?.months.length > 0 && (
+                                    <div className="mt-2 text-sm text-blue-600">
+                                      الأشهر المحددة: {selectedGroups[group.id].months.map(m => getMonthName(m)).join(', ')}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -2230,13 +2198,7 @@ export default function DesktopQRScanner() {
                                     const mockProfile = {
                                       id: 1,
                                       name: 'طالب تجريبي',
-                                      type: 'student' as const,
-                                      verified: true,
-                                      attendanceStats: { present: 0, absent: 0, total: 0 },
-                                      paymentStats: { paid: 0, unpaid: 12, total: 12 },
-                                      recentAttendance: [],
-                                      recentPayments: [],
-                                      enrolledGroups: []
+                                      type: 'student'
                                     };
                                     
                                     const mockGroups = {
@@ -2270,57 +2232,106 @@ export default function DesktopQRScanner() {
                       </div>
                     </div>
 
-                    {/* Test Button for Payment Status */}
+                    {/* Payment Details */}
+                    <Separator />
+                    <div>
+                      <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="text-lg font-medium"
+                      />
+                      {getTotalSelectedMonths() > 0 && (
+                        <div className="text-sm text-gray-500 mt-1">
+                          إجمالي {getTotalSelectedMonths()} شهر - متوسط {paymentAmount ? (parseFloat(paymentAmount) / getTotalSelectedMonths()).toFixed(2) : '0'} دج/شهر
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="notes">ملاحظات</Label>
+                      <Textarea
+                        id="notes"
+                        value={paymentNotes}
+                        onChange={(e) => setPaymentNotes(e.target.value)}
+                        placeholder="ملاحظات إضافية..."
+                        rows={2}
+                      />
+                    </div>
+
+                    {/* Test Button for Payment */}
                     {user?.role === 'admin' && (
-                      <div className="mt-4">
+                      <div className="mb-4">
                         <Button 
-                          onClick={async () => {
-                            // Clear previous data first
-                            setScannedProfile(null);
-                            setAvailableGroups([]);
-                            setSelectedGroups({});
+                          onClick={() => {
+                            // Create mock test data for payment testing
+                            const mockProfile = {
+                              id: 1,
+                              name: 'طالب تجريبي',
+                              type: 'student',
+                              enrolledGroups: [
+                                {
+                                  id: 1,
+                                  name: 'مجموعة الرياضيات',
+                                  subjectName: 'رياضيات',
+                                  teacherName: 'أستاذ محمد',
+                                  paidMonths: [1, 2, 3, 4] // January to April already paid
+                                },
+                                {
+                                  id: 2,
+                                  name: 'مجموعة العلوم',
+                                  subjectName: 'علوم طبيعية',
+                                  teacherName: 'أستاذة فاطمة',
+                                  paidMonths: [1, 2] // January to February already paid
+                                }
+                              ]
+                            };
                             
-                            try {
-                              console.log('🔄 Loading test student data...');
-                              
-                              // Create a minimal test profile that will trigger real API calls
-                              const testProfile = {
-                                id: 1,
-                                name: 'طالب تجريبي',
-                                type: 'student' as const,
-                                verified: true,
-                                attendanceStats: { totalClasses: 0, presentCount: 0, absentCount: 0, lateCount: 0 },
-                                paymentStats: { totalDue: 0, paidCount: 0, unpaidCount: 0, totalAmount: 0 },
-                                recentAttendance: [],
-                                recentPayments: [],
-                                enrolledGroups: []
-                              };
-                              
-                              // Set the profile which will trigger fetchStudentGroups with real API data
-                              setScannedProfile(testProfile);
-                              
-                              toast({
-                                title: "تم تحميل ملف الطالب",
-                                description: "سيتم عرض حالة الدفع الشهرية أدناه"
-                              });
-                              
-                            } catch (error) {
-                              console.error('❌ Error loading test profile:', error);
-                              toast({
-                                title: "خطأ في تحميل البيانات",
-                                description: "فشل في تحميل بيانات الطالب",
-                                variant: "destructive"
-                              });
-                            }
+                            const mockGroups = {
+                              1: {
+                                groupName: 'مجموعة الرياضيات',
+                                subjectName: 'رياضيات',
+                                months: [1, 2, 3]
+                              },
+                              2: {
+                                groupName: 'مجموعة العلوم',
+                                subjectName: 'علوم طبيعية',
+                                months: [1, 2]
+                              }
+                            };
+                            
+                            // Set test data
+                            setScannedProfile(mockProfile);
+                            setSelectedGroups(mockGroups);
+                            setPaymentAmount('2500');
+                            setAvailableGroups(mockProfile.enrolledGroups);
+                            
+                            toast({
+                              title: "تم تحميل البيانات التجريبية",
+                              description: "الآن يمكنك رؤية الأشهر المدفوعة باللون الأخضر والعلامات ✓"
+                            });
                           }}
                           variant="secondary" 
                           size="sm"
                           className="w-full"
                         >
-                          تحميل بيانات تجريبية
+                          🧪 بيانات تجريبية للاختبار
                         </Button>
                       </div>
                     )}
+
+                    <Button 
+                      onClick={generatePaymentTicket}
+                      disabled={!paymentAmount || Object.keys(selectedGroups).length === 0 || getTotalSelectedMonths() === 0 || isProcessing}
+                      className="w-full"
+                      size="lg"
+                    >
+                      <Printer className="h-4 w-4 ml-2" />
+                      {isProcessing ? 'جاري الإنشاء...' : 'إنشاء وطباعة إيصال الدفع'}
+                    </Button>
                   </CardContent>
                 </Card>
               </TabsContent>

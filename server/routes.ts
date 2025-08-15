@@ -4084,39 +4084,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract paid months from payment records
       const paidMonths = payments.map(payment => payment.month).sort((a, b) => a - b);
       
-      // FIXED: Create paymentStatusByMonth to match attendance table data structure
-      const paymentStatusByMonth: Record<string, any> = {};
-      for (let month = 1; month <= 12; month++) {
-        const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
-        const paymentRecord = payments.find(p => p.month === month);
-        
-        if (paymentRecord) {
-          paymentStatusByMonth[monthKey] = {
-            isPaid: true,
-            amount: paymentRecord.amount,
-            paidDate: paymentRecord.paidDate,
-            notes: paymentRecord.notes || null,
-            paymentMethod: paymentRecord.paymentMethod || 'cash'
-          };
-        } else {
-          paymentStatusByMonth[monthKey] = {
-            isPaid: false,
-            amount: 0,
-            paidDate: null,
-            notes: null,
-            paymentMethod: null
-          };
-        }
-      }
-      
-      console.log('✅ Payment data for student:', { 
-        paidMonths,
-        augustStatus: paymentStatusByMonth['2025-08']
-      });
+      console.log('✅ Paid months for student:', paidMonths);
       
       res.json({ 
         paidMonths,
-        paymentStatusByMonth, // Add the same data structure as attendance table
         payments: payments.map(p => ({
           month: p.month,
           year: p.year,
