@@ -479,9 +479,6 @@ export default function Profile() {
           </div>
         </div>
       )}
-          </TabsContent>
-        )}
-      </Tabs>
     </div>
   );
 }

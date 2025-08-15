@@ -4312,7 +4312,8 @@ export class DatabaseStorage implements IStorage {
     schoolId: number
   ): Promise<any> {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date();
+      const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       
       // Get student's enrolled groups to mark attendance for all
       const enrolledGroups = await db
@@ -4336,7 +4337,7 @@ export class DatabaseStorage implements IStorage {
             eq(groupAttendance.studentId, studentId),
             eq(groupAttendance.studentType, studentType),
             eq(groupAttendance.groupId, group.groupId),
-            eq(groupAttendance.date, today)
+            eq(groupAttendance.attendanceDate, todayDateOnly)
           ))
           .limit(1);
         
@@ -4360,7 +4361,7 @@ export class DatabaseStorage implements IStorage {
               studentId,
               studentType,
               groupId: group.groupId,
-              date: today,
+              attendanceDate: todayDateOnly,
               status,
               markedBy,
               schoolId

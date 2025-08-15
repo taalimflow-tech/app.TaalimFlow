@@ -457,6 +457,7 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
 });
 
 export const insertTeacherSchema = createInsertSchema(teachers).pick({
+  schoolId: true,
   name: true,
   subject: true,
   bio: true,
@@ -467,6 +468,7 @@ export const insertTeacherSchema = createInsertSchema(teachers).pick({
 });
 
 export const insertMessageSchema = createInsertSchema(messages).pick({
+  schoolId: true,
   senderId: true,
   receiverId: true,
   teacherId: true,
@@ -477,6 +479,7 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
 });
 
 export const insertSuggestionSchema = createInsertSchema(suggestions).pick({
+  schoolId: true,
   userId: true,
   title: true,
   content: true,
@@ -484,6 +487,7 @@ export const insertSuggestionSchema = createInsertSchema(suggestions).pick({
 });
 
 export const insertGroupSchema = createInsertSchema(groups).pick({
+  schoolId: true,
   name: true,
   description: true,
   category: true,
