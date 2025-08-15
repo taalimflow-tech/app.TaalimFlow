@@ -2079,11 +2079,11 @@ export default function DesktopQRScanner() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Printer className="h-5 w-5" />
-                      طابعة إيصال الدفع
+                      <CreditCard className="h-5 w-5" />
+                      حالة الدفع الشهرية
                     </CardTitle>
                     <CardDescription>
-                      تحديد المجموعات والأشهر لإنشاء إيصال دفع شامل
+                      عرض حالة الدفع لكل شهر حسب المجموعة
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -2131,152 +2131,43 @@ export default function DesktopQRScanner() {
                               
                               {selectedGroups[group.id] && (
                                 <div className="border-t pt-3">
-                                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                                    الأشهر المراد دفعها:
+                                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                                    حالة الدفع الشهرية:
                                   </Label>
-                                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                                  <div className="space-y-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
-                                      // FIXED: Use authentic payment data from attendance table instead of separate paidMonths arrays
-                                      // Extract payment status from the same source as attendance table (paymentStatusByMonth)
+                                      // Get payment status from the same source as attendance table
                                       const currentYear = new Date().getFullYear();
                                       const monthKey = `${currentYear}-${month.toString().padStart(2, '0')}`;
-                                      
-                                      // Check if group has paymentStatus data (from attendance table's source)
                                       const groupPaymentData = group.paymentStatus || {};
                                       const monthPaymentData = groupPaymentData[monthKey];
                                       
-                                      // Primary check: Use attendance table's payment data (authentic source)
+                                      // Use attendance table's payment data (same source as above)
                                       let isPaid = false;
                                       if (monthPaymentData) {
                                         isPaid = monthPaymentData.isPaid || false;
                                       } else {
-                                        // Fallback: Use group.paidMonths array if attendance data not available
+                                        // Fallback to paidMonths array
                                         const paidMonthsArray = group.paidMonths || [];
                                         isPaid = Array.isArray(paidMonthsArray) && paidMonthsArray.includes(month);
                                       }
                                       
-                                      const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
-                                      
-                                      // Debug logging for payment status  
-                                      if (month === 8) { // Focus on August
-                                        console.log(`🔍 August (month 8) for group ${group.id} "${group.name}":`, {
-                                          monthNumber: month,
-                                          monthKey: monthKey,
-                                          groupId: group.id,
-                                          groupName: group.name,
-                                          groupPaymentData: groupPaymentData,
-                                          monthPaymentData: monthPaymentData,
-                                          attendanceSourceIsPaid: monthPaymentData?.isPaid,
-                                          fallbackPaidMonths: group.paidMonths,
-                                          fallbackIsPaid: group.paidMonths?.includes(8),
-                                          finalIsPaidValue: isPaid,
-                                          dataSource: monthPaymentData ? 'attendance-table-source' : 'fallback-paidMonths'
-                                        });
-                                      }
-                                      
-                                      // Additional debug for any month that should be paid
-                                      if (isPaid) {
-                                        console.log(`✅ Month ${month} (${getMonthName(month)}) is PAID for group ${group.id}:`, {
-                                          month,
-                                          monthName: getMonthName(month),
-                                          monthKey,
-                                          group: group.name,
-                                          dataSource: monthPaymentData ? 'attendance-table-source' : 'fallback-paidMonths',
-                                          attendanceData: monthPaymentData,
-                                          fallbackData: group.paidMonths,
-                                          finalIsPaid: isPaid
-                                        });
-                                      }
-                                      
                                       return (
-                                        <label 
-                                          key={month} 
-                                          className={`flex flex-col cursor-pointer p-2 rounded text-xs transition-colors border-2 ${
+                                        <div key={month} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
+                                          <div className="font-medium text-gray-800">
+                                            {getMonthName(month)} 2025
+                                          </div>
+                                          <div className={`px-3 py-1 rounded text-sm font-medium ${
                                             isPaid 
-                                              ? 'bg-green-100 text-green-800 border-green-300' 
-                                              : isSelected 
-                                              ? 'bg-blue-100 text-blue-800 border-blue-300'
-                                              : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                          }`}
-                                        >
-                                          <div className="flex items-center justify-center mb-1">
-                                            <input
-                                              type="checkbox"
-                                              checked={isSelected}
-                                              onChange={() => handleMonthToggle(group.id, month)}
-                                              className="ml-1"
-                                              disabled={isPaid}
-                                            />
-                                            <span className={`font-medium ${isPaid ? 'text-green-700' : ''}`}>
-                                              {getMonthName(month)}
-                                            </span>
+                                              ? 'bg-green-100 text-green-800' 
+                                              : 'bg-red-100 text-red-800'
+                                          }`}>
+                                            {isPaid ? '✓ مدفوع' : '✗ غير مدفوع'}
                                           </div>
-                                          <div className="text-center">
-                                            <div className="text-xs text-gray-500 mb-1">2025</div>
-                                            <div className={`text-xs px-1 py-0.5 rounded ${
-                                              isPaid 
-                                                ? 'bg-green-200 text-green-800' 
-                                                : 'bg-red-100 text-red-700'
-                                            }`}>
-                                              {isPaid ? '✓ مدفوع' : '✗ غير مدفوع'}
-                                            </div>
-                                          </div>
-                                        </label>
+                                        </div>
                                       );
                                     })}
                                   </div>
-                                  
-                                  {/* Payment Status Summary */}
-                                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
-                                    {(() => {
-                                      // Calculate paid months from both sources
-                                      const currentYear = new Date().getFullYear();
-                                      const paidMonthsFromAttendance = [];
-                                      
-                                      // Extract paid months from attendance table source (primary)
-                                      if (group.paymentStatus) {
-                                        for (let m = 1; m <= 12; m++) {
-                                          const monthKey = `${currentYear}-${m.toString().padStart(2, '0')}`;
-                                          if (group.paymentStatus[monthKey]?.isPaid) {
-                                            paidMonthsFromAttendance.push(m);
-                                          }
-                                        }
-                                      }
-                                      
-                                      // Use attendance source if available, otherwise fallback
-                                      const activePaidMonths = paidMonthsFromAttendance.length > 0 
-                                        ? paidMonthsFromAttendance 
-                                        : (group.paidMonths || []);
-                                      
-                                      return (
-                                        <>
-                                          <div className="flex justify-between items-center mb-1">
-                                            <span>الأشهر المدفوعة:</span>
-                                            <span className="text-green-600 font-medium">
-                                              {activePaidMonths.length} من 12
-                                            </span>
-                                          </div>
-                                          {activePaidMonths.length > 0 && (
-                                            <div className="text-green-700 mb-2">
-                                              {activePaidMonths.map(m => getMonthName(m)).join(', ')}
-                                            </div>
-                                          )}
-                                          {/* Enhanced Debug Display */}
-                                          <div className="mt-2 p-1 bg-blue-50 border border-blue-200 rounded text-xs">
-                                            <strong>Data Source:</strong> {paidMonthsFromAttendance.length > 0 ? 'Attendance Table (Authentic)' : 'Fallback Array'}<br/>
-                                            <strong>Attendance Paid:</strong> [{paidMonthsFromAttendance.join(', ')}]<br/>
-                                            <strong>Fallback Paid:</strong> [{(group.paidMonths || []).join(', ')}]<br/>
-                                            <strong>Active Paid:</strong> [{activePaidMonths.join(', ')}]
-                                          </div>
-                                        </>
-                                      );
-                                    })()}
-                                  </div>
-                                  {selectedGroups[group.id]?.months.length > 0 && (
-                                    <div className="mt-2 text-sm text-blue-600">
-                                      الأشهر المحددة: {selectedGroups[group.id].months.map(m => getMonthName(m)).join(', ')}
-                                    </div>
-                                  )}
                                 </div>
                               )}
                             </div>
@@ -2379,39 +2270,9 @@ export default function DesktopQRScanner() {
                       </div>
                     </div>
 
-                    {/* Payment Details */}
-                    <Separator />
-                    <div>
-                      <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
-                      <Input
-                        id="amount"
-                        type="number"
-                        value={paymentAmount}
-                        onChange={(e) => setPaymentAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="text-lg font-medium"
-                      />
-                      {getTotalSelectedMonths() > 0 && (
-                        <div className="text-sm text-gray-500 mt-1">
-                          إجمالي {getTotalSelectedMonths()} شهر - متوسط {paymentAmount ? (parseFloat(paymentAmount) / getTotalSelectedMonths()).toFixed(2) : '0'} دج/شهر
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="notes">ملاحظات</Label>
-                      <Textarea
-                        id="notes"
-                        value={paymentNotes}
-                        onChange={(e) => setPaymentNotes(e.target.value)}
-                        placeholder="ملاحظات إضافية..."
-                        rows={2}
-                      />
-                    </div>
-
-                    {/* Test Button for Payment */}
+                    {/* Test Button for Payment Status */}
                     {user?.role === 'admin' && (
-                      <div className="mb-4">
+                      <div className="mt-4">
                         <Button 
                           onClick={async () => {
                             // Clear previous data first
@@ -2420,7 +2281,7 @@ export default function DesktopQRScanner() {
                             setSelectedGroups({});
                             
                             try {
-                              console.log('🔄 Loading authentic student data...');
+                              console.log('🔄 Loading test student data...');
                               
                               // Create a minimal test profile that will trigger real API calls
                               const testProfile = {
@@ -2440,7 +2301,7 @@ export default function DesktopQRScanner() {
                               
                               toast({
                                 title: "تم تحميل ملف الطالب",
-                                description: "سيتم جلب بيانات الدفع الحقيقية من قاعدة البيانات..."
+                                description: "سيتم عرض حالة الدفع الشهرية أدناه"
                               });
                               
                             } catch (error) {
@@ -2456,20 +2317,10 @@ export default function DesktopQRScanner() {
                           size="sm"
                           className="w-full"
                         >
-                          🧪 بيانات تجريبية للاختبار
+                          تحميل بيانات تجريبية
                         </Button>
                       </div>
                     )}
-
-                    <Button 
-                      onClick={generatePaymentTicket}
-                      disabled={!paymentAmount || Object.keys(selectedGroups).length === 0 || getTotalSelectedMonths() === 0 || isProcessing}
-                      className="w-full"
-                      size="lg"
-                    >
-                      <Printer className="h-4 w-4 ml-2" />
-                      {isProcessing ? 'جاري الإنشاء...' : 'إنشاء وطباعة إيصال الدفع'}
-                    </Button>
                   </CardContent>
                 </Card>
               </TabsContent>
