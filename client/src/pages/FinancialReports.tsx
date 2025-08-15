@@ -35,7 +35,7 @@ interface FinancialData {
 }
 
 export default function FinancialReports() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
@@ -201,10 +201,11 @@ export default function FinancialReports() {
   };
 
   useEffect(() => {
-    if (user?.role === 'admin') {
+    // Only fetch data if authentication is complete and user is an admin
+    if (!loading && user?.role === 'admin') {
       fetchFinancialData();
     }
-  }, [selectedYear, selectedMonth, user]);
+  }, [selectedYear, selectedMonth, user, loading]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-DZ', {
@@ -219,6 +220,21 @@ export default function FinancialReports() {
     return month ? month.label : monthNumber.toString();
   };
 
+  // Show loading state while authentication is being checked
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">جاري التحميل...</h2>
+            <p className="text-gray-600">يرجى الانتظار</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show access denied if user is not admin
   if (user?.role !== 'admin') {
     return (
       <div className="container mx-auto px-4 py-8">
