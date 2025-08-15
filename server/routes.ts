@@ -4185,9 +4185,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(entry);
     } catch (error) {
       console.error('❌ Error creating gain/loss entry:', error);
+      console.error('❌ Error details:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "بيانات غير صحيحة: " + error.errors.map(e => e.message).join(", ") });
       }
+      // Include more detailed error information for debugging
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ Database error details:', errorMessage);
       res.status(500).json({ error: "فشل في إضافة العملية" });
     }
   });
