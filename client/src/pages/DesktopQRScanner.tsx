@@ -2060,7 +2060,12 @@ export default function DesktopQRScanner() {
                         ) : availableGroups.length > 0 ? (
                           <>
                             <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
-                              <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
+                              <strong>Debug:</strong> Found {availableGroups.length} groups with payment data:<br/>
+                              {availableGroups.map(g => (
+                                <div key={g.id}>
+                                  • {g.name}: paid months = [{g.paidMonths?.join(', ') || 'none'}]
+                                </div>
+                              ))}
                             </div>
                             {availableGroups.map((group) => (
                             <div key={group.id} className="border rounded-lg p-4">
@@ -2316,11 +2321,11 @@ export default function DesktopQRScanner() {
                               }
                             };
                             
-                            // Set test data
+                            // Set test data - make sure availableGroups has the same payment data as scannedProfile
                             setScannedProfile(mockProfile);
                             setSelectedGroups(mockGroups);
                             setPaymentAmount('2500');
-                            setAvailableGroups(mockProfile.enrolledGroups);
+                            setAvailableGroups(mockProfile.enrolledGroups); // This includes the paidMonths data
                             
                             toast({
                               title: "تم تحميل البيانات التجريبية",
