@@ -2315,33 +2315,84 @@ export default function DesktopQRScanner() {
                             setScannedProfile(null);
                             setAvailableGroups([]);
                             setSelectedGroups({});
-                            // Create mock test data for payment testing
+                            // Create mock test data that matches real database structure
                             const mockProfile = {
                               id: 1,
                               name: 'طالب تجريبي',
                               type: 'student' as const,
                               verified: true,
-                              attendanceStats: { present: 15, absent: 3, total: 18 },
+                              attendanceStats: { 
+                                totalClasses: 18, 
+                                presentCount: 15, 
+                                absentCount: 3, 
+                                lateCount: 0 
+                              },
                               paymentStats: { paid: 5, unpaid: 7, total: 12 },
                               recentAttendance: [],
                               recentPayments: [],
-                              enrolledGroups: [
-                                {
-                                  id: 1,
-                                  name: 'مجموعة الرياضيات',
-                                  subjectName: 'رياضيات',
-                                  teacherName: 'أستاذ محمد',
-                                  paidMonths: [1, 2, 3, 4, 8] // January to April and August already paid
-                                },
-                                {
-                                  id: 2,
-                                  name: 'مجموعة العلوم',
-                                  subjectName: 'علوم طبيعية',
-                                  teacherName: 'أستاذة فاطمة',
-                                  paidMonths: [1, 2, 8] // January, February and August already paid
-                                }
-                              ]
+                              enrolledGroups: [] as any[] // Will be populated after processing
                             };
+
+                            // Simulate real payment data from database - August should be paid
+                            const mockPaymentData = {
+                              1: { // Group 1 - Math
+                                paymentMonths: [
+                                  { month: 1, isPaid: true },
+                                  { month: 2, isPaid: true },
+                                  { month: 3, isPaid: true },
+                                  { month: 4, isPaid: true },
+                                  { month: 5, isPaid: false },
+                                  { month: 6, isPaid: false },
+                                  { month: 7, isPaid: false },
+                                  { month: 8, isPaid: true }, // AUGUST IS PAID!
+                                  { month: 9, isPaid: false },
+                                  { month: 10, isPaid: false },
+                                  { month: 11, isPaid: false },
+                                  { month: 12, isPaid: false }
+                                ]
+                              },
+                              2: { // Group 2 - Science  
+                                paymentMonths: [
+                                  { month: 1, isPaid: true },
+                                  { month: 2, isPaid: true },
+                                  { month: 3, isPaid: false },
+                                  { month: 4, isPaid: false },
+                                  { month: 5, isPaid: false },
+                                  { month: 6, isPaid: false },
+                                  { month: 7, isPaid: false },
+                                  { month: 8, isPaid: true }, // AUGUST IS PAID!
+                                  { month: 9, isPaid: false },
+                                  { month: 10, isPaid: false },
+                                  { month: 11, isPaid: false },
+                                  { month: 12, isPaid: false }
+                                ]
+                              }
+                            };
+
+                            // Process payment data to create paidMonths arrays (like real system)
+                            const processedGroups = [
+                              {
+                                id: 1,
+                                name: 'مجموعة الرياضيات',
+                                subjectName: 'رياضيات',
+                                teacherName: 'أستاذ محمد',
+                                paidMonths: mockPaymentData[1].paymentMonths
+                                  .filter(p => p.isPaid)
+                                  .map(p => p.month) // Results in [1,2,3,4,8]
+                              },
+                              {
+                                id: 2,
+                                name: 'مجموعة العلوم',
+                                subjectName: 'علوم طبيعية',
+                                teacherName: 'أستاذة فاطمة',
+                                paidMonths: mockPaymentData[2].paymentMonths
+                                  .filter(p => p.isPaid)
+                                  .map(p => p.month) // Results in [1,2,8]
+                              }
+                            ];
+
+                            // Add processed groups to profile
+                            mockProfile.enrolledGroups = processedGroups;
                             
                             const mockGroups = {
                               1: {
@@ -2356,20 +2407,29 @@ export default function DesktopQRScanner() {
                               }
                             };
                             
-                            // Debug log the data being set
-                            console.log('🚀 Setting test data with payment info:', {
-                              mockProfile: mockProfile,
-                              availableGroups: mockProfile.enrolledGroups,
-                              paidMonthsGroup1: mockProfile.enrolledGroups[0].paidMonths,
-                              paidMonthsGroup2: mockProfile.enrolledGroups[1].paidMonths,
-                              augustInGroup1: mockProfile.enrolledGroups[0].paidMonths.includes(8),
-                              augustInGroup2: mockProfile.enrolledGroups[1].paidMonths.includes(8)
+                            // Debug log the processed payment data
+                            console.log('🚀 Setting test data with processed payment info:', {
+                              rawPaymentData: mockPaymentData,
+                              processedGroups: processedGroups,
+                              group1PaidMonths: processedGroups[0].paidMonths,
+                              group2PaidMonths: processedGroups[1].paidMonths,
+                              augustPaidGroup1: processedGroups[0].paidMonths.includes(8),
+                              augustPaidGroup2: processedGroups[1].paidMonths.includes(8),
+                              finalProfile: mockProfile
                             });
                             
                             // Set test data with proper sequencing
                             setTimeout(() => {
+                              console.log('💾 Setting profile and groups with payment data:', {
+                                profileGroupsCount: mockProfile.enrolledGroups.length,
+                                group1Months: mockProfile.enrolledGroups[0]?.paidMonths,
+                                group2Months: mockProfile.enrolledGroups[1]?.paidMonths,
+                                augustInGroup1: mockProfile.enrolledGroups[0]?.paidMonths.includes(8),
+                                augustInGroup2: mockProfile.enrolledGroups[1]?.paidMonths.includes(8)
+                              });
+                              
                               setScannedProfile(mockProfile);
-                              setAvailableGroups(mockProfile.enrolledGroups); // This includes the paidMonths data
+                              setAvailableGroups([...processedGroups]); // Use processed groups directly
                               setSelectedGroups(mockGroups);
                               setPaymentAmount('2500');
                             }, 50);
@@ -2378,10 +2438,22 @@ export default function DesktopQRScanner() {
                             setTimeout(() => {
                               console.log('✅ State update verification at 100ms:', {
                                 availableGroupsLength: availableGroups.length,
-                                group1PaidMonths: availableGroups[0]?.paidMonths,
-                                group2PaidMonths: availableGroups[1]?.paidMonths,
-                                group1AugustPaid: availableGroups[0]?.paidMonths?.includes(8),
-                                group2AugustPaid: availableGroups[1]?.paidMonths?.includes(8)
+                                group1Details: availableGroups[0] ? {
+                                  id: availableGroups[0].id,
+                                  name: availableGroups[0].name,
+                                  paidMonths: availableGroups[0].paidMonths,
+                                  augustPaid: availableGroups[0].paidMonths?.includes(8)
+                                } : 'not found',
+                                group2Details: availableGroups[1] ? {
+                                  id: availableGroups[1].id,
+                                  name: availableGroups[1].name,
+                                  paidMonths: availableGroups[1].paidMonths,
+                                  augustPaid: availableGroups[1].paidMonths?.includes(8)
+                                } : 'not found',
+                                stateSnapshot: {
+                                  scannedProfileHasGroups: !!scannedProfile?.enrolledGroups,
+                                  totalAvailableGroups: availableGroups.length
+                                }
                               });
                             }, 100);
                             
