@@ -10,6 +10,7 @@ This Progressive Web App (PWA) is a React-based mobile portal for private school
 - **Multi-tenancy Compliance**: Added missing `schoolId` fields to suggestion, group, teacher, and message schemas for proper data isolation
 - **Attendance System Fixes**: Corrected field name issues in group attendance system (attendanceDate vs date)
 - **Type Safety Improvements**: Resolved major TypeScript errors across server-side components
+- **Manual Financial Entries System**: Added comprehensive gains and losses tracking functionality with new `financialEntries` database table, API routes, and frontend forms for manual financial record management (August 15, 2025)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language in English. User prefers English communication over other languages.
@@ -47,7 +48,7 @@ Interface preference: Phone verification functionality removed from Profile page
 - **Subject Management**: Complete Algerian education curriculum with proper Arabic subject names organized by education level (الابتدائي, المتوسط, الثانوي), totaling 28 specialized teaching modules covering all standard subjects from primary through secondary education including engineering specializations.
 - **Desktop QR Scanner**: Real-time student profile lookup system for admins and teachers using webcam or USB scanner integration. Features comprehensive student information display, quick attendance marking, payment recording capabilities, and integrated test QR code generation for development. Fully operational with support for both students and children QR codes (August 2025).
 - **Payment Ticket Printer System**: Comprehensive receipt generation system integrated with desktop QR scanner allowing admins to select multiple enrolled groups, choose payment months per group, enter amounts, and generate professional printed receipts. Includes school name, student information, detailed payment breakdown by group/subject/months, receipt ID, payment date, and automatic payment record creation across database tables. Features real-time payment tracking with visual indicators showing paid/unpaid months with green highlighting and checkmarks for authentic database-sourced payment status (August 2025).
-- **Financial Reports & Analytics**: Complete gains/losses calculation system for school financial analysis. Features comprehensive revenue tracking, expense estimation, profit margins, monthly breakdowns, and group performance analytics. Provides detailed insights including total revenue, net profit calculations, average revenue per student, monthly financial trends, and individual group profitability analysis for data-driven decision making (August 2025).
+- **Financial Reports & Analytics**: Complete gains/losses calculation system for school financial analysis. Features comprehensive revenue tracking, expense estimation, profit margins, monthly breakdowns, and group performance analytics. Provides detailed insights including total revenue, net profit calculations, average revenue per student, monthly financial trends, and individual group profitability analysis for data-driven decision making. Includes manual financial entries system for recording additional gains and losses with detailed remarks and multi-tenancy support (August 2025).
 
 ## External Dependencies
 

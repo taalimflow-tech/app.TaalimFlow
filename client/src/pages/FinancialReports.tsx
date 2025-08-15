@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, TrendingUp, TrendingDown, DollarSign, Users, BookOpen, Calculator } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar, TrendingUp, TrendingDown, DollarSign, Users, BookOpen, Calculator, Plus, Minus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +41,13 @@ export default function FinancialReports() {
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState('all');
+  
+  // States for gains and losses inputs
+  const [gainAmount, setGainAmount] = useState('');
+  const [gainRemarks, setGainRemarks] = useState('');
+  const [lossAmount, setLossAmount] = useState('');
+  const [lossRemarks, setLossRemarks] = useState('');
+  const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
 
   const months = [
     { value: 'all', label: 'جميع الأشهر' },
@@ -91,6 +99,102 @@ export default function FinancialReports() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSubmitGainEntry = async () => {
+    if (!gainAmount || parseFloat(gainAmount) <= 0) {
+      toast({
+        title: "خطأ في المبلغ",
+        description: "يرجى إدخال مبلغ صحيح للأرباح",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsSubmittingEntry(true);
+      const response = await apiRequest('POST', '/api/financial-entries', {
+        type: 'gain',
+        amount: parseFloat(gainAmount),
+        remarks: gainRemarks,
+        year: parseInt(selectedYear),
+        month: selectedMonth === 'all' ? new Date().getMonth() + 1 : parseInt(selectedMonth)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "تم إضافة الربح",
+          description: "تم تسجيل الربح بنجاح",
+          variant: "default"
+        });
+        setGainAmount('');
+        setGainRemarks('');
+        fetchFinancialData(); // Refresh the data
+      } else {
+        const error = await response.json();
+        toast({
+          title: "خطأ في تسجيل الربح",
+          description: error.error || "تعذر تسجيل الربح",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ في الاتصال",
+        description: "تعذر الاتصال بالخادم",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmittingEntry(false);
+    }
+  };
+
+  const handleSubmitLossEntry = async () => {
+    if (!lossAmount || parseFloat(lossAmount) <= 0) {
+      toast({
+        title: "خطأ في المبلغ",
+        description: "يرجى إدخال مبلغ صحيح للخسائر",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsSubmittingEntry(true);
+      const response = await apiRequest('POST', '/api/financial-entries', {
+        type: 'loss',
+        amount: parseFloat(lossAmount),
+        remarks: lossRemarks,
+        year: parseInt(selectedYear),
+        month: selectedMonth === 'all' ? new Date().getMonth() + 1 : parseInt(selectedMonth)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "تم إضافة الخسارة",
+          description: "تم تسجيل الخسارة بنجاح",
+          variant: "default"
+        });
+        setLossAmount('');
+        setLossRemarks('');
+        fetchFinancialData(); // Refresh the data
+      } else {
+        const error = await response.json();
+        toast({
+          title: "خطأ في تسجيل الخسارة",
+          description: error.error || "تعذر تسجيل الخسارة",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ في الاتصال",
+        description: "تعذر الاتصال بالخادم",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmittingEntry(false);
     }
   };
 
@@ -172,6 +276,101 @@ export default function FinancialReports() {
             {isLoading ? 'جاري التحميل...' : 'تحديث التقرير'}
           </Button>
         </div>
+      </div>
+
+      {/* Manual Gains and Losses Entry Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Gains Entry */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-green-600" />
+              إضافة أرباح إضافية
+            </CardTitle>
+            <CardDescription>
+              تسجيل الأرباح الإضافية والدخل الخارج عن نطاق الدراسة
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="gain-amount">المبلغ (دج)</Label>
+              <Input
+                id="gain-amount"
+                type="number"
+                placeholder="أدخل مبلغ الربح"
+                value={gainAmount}
+                onChange={(e) => setGainAmount(e.target.value)}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <Label htmlFor="gain-remarks">ملاحظات الربح</Label>
+              <Textarea
+                id="gain-remarks"
+                placeholder="اكتب تفاصيل مصدر الربح..."
+                value={gainRemarks}
+                onChange={(e) => setGainRemarks(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <Button 
+              onClick={handleSubmitGainEntry}
+              disabled={isSubmittingEntry || !gainAmount}
+              className="w-full"
+              variant="default"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {isSubmittingEntry ? 'جاري التسجيل...' : 'تسجيل الربح'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Losses Entry */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Minus className="w-5 h-5 text-red-600" />
+              إضافة خسائر ومصاريف
+            </CardTitle>
+            <CardDescription>
+              تسجيل الخسائر والمصاريف الإضافية خارج نطاق التشغيل
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="loss-amount">المبلغ (دج)</Label>
+              <Input
+                id="loss-amount"
+                type="number"
+                placeholder="أدخل مبلغ الخسارة"
+                value={lossAmount}
+                onChange={(e) => setLossAmount(e.target.value)}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <Label htmlFor="loss-remarks">ملاحظات الخسارة</Label>
+              <Textarea
+                id="loss-remarks"
+                placeholder="اكتب تفاصيل سبب الخسارة..."
+                value={lossRemarks}
+                onChange={(e) => setLossRemarks(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <Button 
+              onClick={handleSubmitLossEntry}
+              disabled={isSubmittingEntry || !lossAmount}
+              className="w-full"
+              variant="destructive"
+            >
+              <Minus className="w-4 h-4 mr-2" />
+              {isSubmittingEntry ? 'جاري التسجيل...' : 'تسجيل الخسارة'}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Summary Cards */}

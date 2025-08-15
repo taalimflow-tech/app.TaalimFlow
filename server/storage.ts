@@ -1,4 +1,4 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, moduleYears, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
+import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, moduleYears, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, financialEntries, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type FinancialEntry, type InsertFinancialEntry, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray, isNull } from "drizzle-orm";
 
@@ -233,6 +233,10 @@ export interface IStorage {
   getStudentGroupPayments(studentId: number, groupId: number, year: number, schoolId: number): Promise<any[]>;
   getFinancialReportData(schoolId: number, year: number, month?: number): Promise<any>;
   getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]>;
+
+  // Financial Entries interface methods (for manual gains and losses)
+  createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry>;
+  getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]>;
   
   // Child-specific queries for parent access
   getChildById(childId: number): Promise<Child | undefined>;
@@ -4445,6 +4449,46 @@ export class DatabaseStorage implements IStorage {
       
     } catch (error) {
       console.error('Error recording student payment:', error);
+      throw error;
+    }
+  }
+
+  // Financial Entries implementation methods
+  async createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry> {
+    try {
+      const [result] = await db
+        .insert(financialEntries)
+        .values(entry)
+        .returning();
+      return result;
+    } catch (error) {
+      console.error('Error creating financial entry:', error);
+      throw error;
+    }
+  }
+
+  async getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]> {
+    try {
+      let query = db
+        .select()
+        .from(financialEntries)
+        .where(eq(financialEntries.schoolId, schoolId));
+
+      if (year) {
+        query = query.where(and(eq(financialEntries.schoolId, schoolId), eq(financialEntries.year, year)));
+      }
+
+      if (month && year) {
+        query = query.where(and(
+          eq(financialEntries.schoolId, schoolId),
+          eq(financialEntries.year, year),
+          eq(financialEntries.month, month)
+        ));
+      }
+
+      return await query.orderBy(desc(financialEntries.createdAt));
+    } catch (error) {
+      console.error('Error fetching financial entries:', error);
       throw error;
     }
   }
