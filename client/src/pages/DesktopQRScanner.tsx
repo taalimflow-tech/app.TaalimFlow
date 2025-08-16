@@ -158,6 +158,62 @@ function GroupAttendanceTable({
     }
   };
 
+  // Add payment status sync effect to ensure attendance table updates immediately
+  useEffect(() => {
+    // Force refresh payment data when refreshTrigger changes
+    if (refreshTrigger && refreshTrigger > 0) {
+      console.log(`🔄 Attendance table refresh triggered (trigger: ${refreshTrigger}) for group ${groupId}`);
+      
+      // Re-fetch payment data for all relevant months immediately
+      const currentYear = new Date().getFullYear();
+      const monthsToCheck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // All months
+      
+      const refreshPaymentStatus = async () => {
+        try {
+          const paymentPromises = monthsToCheck.map(async (month) => {
+            const monthKey = `${currentYear}-${String(month).padStart(2, '0')}`;
+            try {
+              const response = await fetch(`/api/groups/${groupId}/payment-status/${currentYear}/${month}`);
+              if (response.ok) {
+                const paymentData = await response.json();
+                const studentPayment = paymentData.find((record: any) => 
+                  record.studentId === studentId && record.studentType === studentType
+                );
+                console.log(`🔍 Refreshed payment status for ${monthKey}:`, studentPayment?.isPaid ? 'PAID' : 'NOT PAID');
+                return { monthKey, payment: studentPayment };
+              }
+            } catch (error) {
+              console.error(`Error fetching payment for ${monthKey}:`, error);
+            }
+            return { monthKey, payment: null };
+          });
+          
+          const refreshResults = await Promise.all(paymentPromises);
+          const refreshedPayments: {[key: string]: any} = {};
+          
+          refreshResults.forEach(result => {
+            if (result.payment) {
+              refreshedPayments[result.monthKey] = result.payment;
+            }
+          });
+          
+          if (Object.keys(refreshedPayments).length > 0) {
+            console.log(`✅ Updating attendance table with refreshed payment data:`, refreshedPayments);
+            setPaymentStatusByMonth(prev => ({
+              ...prev,
+              ...refreshedPayments
+            }));
+          }
+        } catch (error) {
+          console.error('Error refreshing payment status:', error);
+        }
+      };
+      
+      // Delay the refresh slightly to ensure database has been updated
+      setTimeout(refreshPaymentStatus, 500);
+    }
+  }, [refreshTrigger, groupId, studentId, studentType]);
+
   // Fetch all group data once and on refresh trigger
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -1012,7 +1068,7 @@ export default function DesktopQRScanner() {
       // Now fetch comprehensive payment data for each group using unified API approach
       const unifiedPaymentStatus: {[groupId: number]: {[month: number]: boolean}} = {};
       const groupsWithPayments = await Promise.all(
-        groups.map(async (group) => {
+        groups.map(async (group: any) => {
           try {
             console.log(`🔄 Fetching unified payment status for group ${group.id}`);
             
@@ -1355,8 +1411,13 @@ export default function DesktopQRScanner() {
           }));
         }
         
-        // Force attendance table refresh by incrementing refresh trigger multiple times
-        setAttendanceRefreshTrigger(prev => prev + 10); // Increment by 10 to force refresh
+        // Force attendance table refresh by incrementing refresh trigger significantly
+        console.log('🔄 Triggering attendance table refresh...');
+        setAttendanceRefreshTrigger(prev => {
+          const newTrigger = prev + 100; // Large increment to ensure refresh
+          console.log(`🔄 Attendance refresh trigger updated: ${prev} -> ${newTrigger}`);
+          return newTrigger;
+        });
         
         // Additional verification: Double-check payment status via API after local update
         setTimeout(async () => {
@@ -2239,7 +2300,7 @@ export default function DesktopQRScanner() {
                             <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
                               <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
                             </div>
-                            {availableGroups.map((group) => (
+                            {availableGroups.map((group: any) => (
                             <div key={group.id} className="border rounded-lg p-4">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center space-x-3">
@@ -2361,7 +2422,7 @@ export default function DesktopQRScanner() {
                                             const data = await response.json();
                                             const studentPayment = data.find(p => p.studentId === 1 && p.studentType === 'student');
                                             if (studentPayment?.isPaid) {
-                                              testResults.push(`${month}月 - مدفوع`);
+                                              testResults.push(`${month} - مدفوع`);
                                             }
                                           }
                                         } catch (err) {
@@ -2377,7 +2438,7 @@ export default function DesktopQRScanner() {
                                         description: `الأشهر المدفوعة فعلياً: ${paidMonths}`,
                                         duration: 5000
                                       });
-                                    } catch (error) {
+                                    } catch (error: any) {
                                       console.error('Payment status check error:', error);
                                       toast({
                                         title: "خطأ في فحص حالة الدفع",
@@ -2441,7 +2502,7 @@ export default function DesktopQRScanner() {
                                           variant: "destructive"
                                         });
                                       }
-                                    } catch (error) {
+                                    } catch (error: any) {
                                       console.error('❌ Test payment error:', error);
                                       toast({
                                         title: "خطأ في إنشاء الدفعة التجريبية",
@@ -2595,10 +2656,26 @@ export default function DesktopQRScanner() {
                                 <Button 
                                   onClick={async () => {
                                     // Create mock test data for payment testing
-                                    const mockProfile = {
+                                    const mockProfile: StudentProfile = {
                                       id: 1,
                                       name: 'طالب تجريبي',
-                                      type: 'student'
+                                      type: 'student',
+                                      verified: true,
+                                      attendanceStats: {
+                                        totalClasses: 0,
+                                        presentCount: 0,
+                                        absentCount: 0,
+                                        lateCount: 0
+                                      },
+                                      paymentStats: {
+                                        totalDue: 0,
+                                        paidCount: 0,
+                                        unpaidCount: 0,
+                                        totalAmount: 0
+                                      },
+                                      enrolledGroups: [],
+                                      recentAttendance: [],
+                                      recentPayments: []
                                     };
                                     
                                     const mockGroups = {
@@ -2668,28 +2745,41 @@ export default function DesktopQRScanner() {
                         <Button 
                           onClick={() => {
                             // Create realistic test data without fake payment status
-                            const mockProfile = {
+                            const mockProfile: StudentProfile = {
                               id: 1,
                               name: 'طالب تجريبي',
                               type: 'student',
+                              verified: true,
+                              attendanceStats: {
+                                totalClasses: 0,
+                                presentCount: 0,
+                                absentCount: 0,
+                                lateCount: 0
+                              },
+                              paymentStats: {
+                                totalDue: 0,
+                                paidCount: 0,
+                                unpaidCount: 0,
+                                totalAmount: 0
+                              },
                               enrolledGroups: [
                                 {
                                   id: 1,
                                   name: 'مجموعة العربية والرياضيات',
                                   subjectName: 'العربية والرياضيات',
                                   teacherName: 'أستاذ محمد',
-                                  educationLevel: 'الابتدائي',
-                                  paidMonths: [] // Let the real API determine payment status
+                                  educationLevel: 'الابتدائي'
                                 },
                                 {
                                   id: 2,
                                   name: 'مجموعة العلوم',
                                   subjectName: 'علوم طبيعية',
                                   teacherName: 'أستاذة فاطمة',
-                                  educationLevel: 'المتوسط',
-                                  paidMonths: [] // Let the real API determine payment status
+                                  educationLevel: 'المتوسط'
                                 }
-                              ]
+                              ],
+                              recentAttendance: [],
+                              recentPayments: []
                             };
                             
                             // Set profile and trigger real data fetch

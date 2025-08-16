@@ -4348,12 +4348,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log('🔍 Payment verification check result:', {
                 found: verificationCheck ? 'YES' : 'NO',
                 isPaid: verificationCheck?.isPaid || false,
-                amount: verificationCheck?.amount || 'N/A'
+                amount: verificationCheck?.amount || 'N/A',
+                studentId: verificationCheck?.studentId,
+                month: verificationCheck?.month,
+                year: verificationCheck?.year
               });
+              
+              // Also verify via group payment status API
+              const groupResponse = await fetch(`http://localhost:5000/api/groups/${transaction.groupId}/payment-status/${transaction.year}/${transaction.month}`, {
+                headers: { 'Cookie': req.headers.cookie || '' }
+              });
+              
+              if (groupResponse.ok) {
+                const groupPaymentData = await groupResponse.json();
+                const groupStudentPayment = groupPaymentData.find((record: any) => 
+                  record.studentId === transaction.studentId
+                );
+                console.log('🔍 Group API verification check:', {
+                  found: groupStudentPayment ? 'YES' : 'NO',
+                  isPaid: groupStudentPayment?.isPaid || false,
+                  totalRecords: groupPaymentData.length
+                });
+              }
             } catch (verifyError) {
               console.error('❌ Verification check failed:', verifyError);
             }
-          }, 100);
+          }, 200);
           
           // Create transaction record
           const transactionRecord = await storage.createTransaction({
