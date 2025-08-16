@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus, Minus, RotateCcw, Calculator, TrendingUp, TrendingDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Minus, RotateCcw, Calculator, TrendingUp, TrendingDown, Filter } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -26,6 +27,7 @@ export default function GainLossCalculator() {
   const [entryType, setEntryType] = useState<'gain' | 'loss'>('gain');
   const [amount, setAmount] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
 
   // Check if user is admin
   if (!loading && (!user || user.role !== 'admin')) {
@@ -91,8 +93,43 @@ export default function GainLossCalculator() {
     }
   }, [error]);
 
-  // Calculate current balance
+  // Filter entries based on time filter
+  const filteredEntries = React.useMemo(() => {
+    if (timeFilter === 'all') return entries as FinancialEntry[];
+    
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+    
+    return (entries as FinancialEntry[]).filter((entry: FinancialEntry) => {
+      const entryDate = new Date(entry.createdAt);
+      
+      switch (timeFilter) {
+        case 'today':
+          return entryDate >= todayStart;
+        case 'week':
+          return entryDate >= weekStart;
+        case 'month':
+          return entryDate >= monthStart;
+        case 'year':
+          return entryDate >= yearStart;
+        default:
+          return true;
+      }
+    });
+  }, [entries, timeFilter]);
+
+  // Calculate current balance from all entries (not just filtered)
   const currentBalance = (entries as FinancialEntry[]).reduce((total: number, entry: FinancialEntry) => {
+    const entryAmount = parseFloat(entry.amount);
+    return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
+  }, 0);
+
+  // Calculate filtered balance
+  const filteredBalance = filteredEntries.reduce((total: number, entry: FinancialEntry) => {
     const entryAmount = parseFloat(entry.amount);
     return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
   }, 0);
@@ -152,6 +189,17 @@ export default function GainLossCalculator() {
       });
     },
   });
+
+  // Helper function to get filter label
+  const getFilterLabel = () => {
+    switch (timeFilter) {
+      case 'today': return 'اليوم';
+      case 'week': return 'هذا الأسبوع';
+      case 'month': return 'هذا الشهر';
+      case 'year': return 'هذا العام';
+      default: return 'جميع العمليات';
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,16 +346,31 @@ export default function GainLossCalculator() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>العمليات الأخيرة</CardTitle>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleReset}
-              disabled={resetBalanceMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              إعادة تعيين
-            </Button>
+            <div className="flex items-center gap-2">
+              <Select value={timeFilter} onValueChange={(value: 'all' | 'today' | 'week' | 'month' | 'year') => setTimeFilter(value)}>
+                <SelectTrigger className="w-[140px]">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع العمليات</SelectItem>
+                  <SelectItem value="today">اليوم</SelectItem>
+                  <SelectItem value="week">هذا الأسبوع</SelectItem>
+                  <SelectItem value="month">هذا الشهر</SelectItem>
+                  <SelectItem value="year">هذا العام</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleReset}
+                disabled={resetBalanceMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                إعادة تعيين
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -319,11 +382,23 @@ export default function GainLossCalculator() {
                   {error.message.includes('401') ? 'يرجى تسجيل الدخول مرة أخرى' : 'تحقق من الاتصال'}
                 </div>
               </div>
-            ) : (entries as FinancialEntry[]).length === 0 ? (
-              <div className="text-center py-8 text-gray-500">لا توجد عمليات</div>
+            ) : filteredEntries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                {timeFilter === 'all' ? 'لا توجد عمليات' : `لا توجد عمليات في ${getFilterLabel()}`}
+              </div>
             ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {(entries as FinancialEntry[]).slice(0, 10).map((entry: FinancialEntry) => (
+              <>
+                {/* Show filtered balance if different from total */}
+                {timeFilter !== 'all' && (
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-sm text-blue-600 mb-1">الرصيد لفترة: {getFilterLabel()}</div>
+                    <div className={`text-lg font-bold ${filteredBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {filteredBalance >= 0 ? '+' : ''}{filteredBalance.toLocaleString('ar-DZ')} دج
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {filteredEntries.slice(0, 10).map((entry: FinancialEntry) => (
                   <div
                     key={entry.id}
                     className={`p-3 rounded-lg border ${
@@ -351,8 +426,9 @@ export default function GainLossCalculator() {
                     </div>
                     <p className="text-sm text-gray-600 mt-1">{entry.remarks}</p>
                   </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
