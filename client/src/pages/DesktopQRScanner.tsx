@@ -2208,7 +2208,7 @@ export default function DesktopQRScanner() {
                                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
                                       // Use unified payment status for consistent data across components
-                                      const isPaid = groupPaymentStatus[group.id]?.[month] || group.paidMonths?.includes(month) || false;
+                                      const isPaid = groupPaymentStatus[group.id]?.[month] === true;
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
                                       
                                       return (
@@ -2241,14 +2241,21 @@ export default function DesktopQRScanner() {
                                     <div className="flex justify-between items-center mb-1">
                                       <span>الأشهر المدفوعة:</span>
                                       <span className="text-green-600 font-medium">
-                                        {group.paidMonths?.length || 0} من 12
+                                        {Object.values(groupPaymentStatus[group.id] || {}).filter(Boolean).length} من 12
                                       </span>
                                     </div>
-                                    {group.paidMonths && group.paidMonths.length > 0 && (
-                                      <div className="text-green-700">
-                                        {group.paidMonths.map(m => getMonthName(m)).join(', ')}
-                                      </div>
-                                    )}
+                                    {(() => {
+                                      const unifiedPaidMonths = Object.entries(groupPaymentStatus[group.id] || {})
+                                        .filter(([_, isPaid]) => isPaid)
+                                        .map(([month, _]) => parseInt(month))
+                                        .sort((a, b) => a - b);
+                                      
+                                      return unifiedPaidMonths.length > 0 && (
+                                        <div className="text-green-700">
+                                          {unifiedPaidMonths.map(m => getMonthName(m)).join(', ')}
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                   {selectedGroups[group.id]?.months.length > 0 && (
                                     <div className="mt-2 text-sm text-blue-600">
@@ -2389,6 +2396,51 @@ export default function DesktopQRScanner() {
                                   className="text-xs block"
                                 >
                                   🧪 إنشاء دفعة أكتوبر تجريبية
+                                </Button>
+                                <Button 
+                                  onClick={async () => {
+                                    try {
+                                      // Direct database check for October payment
+                                      console.log('🔍 Checking October payment status directly...');
+                                      const response = await fetch('/api/groups/1/payment-status/2025/10');
+                                      
+                                      if (response.ok) {
+                                        const paymentData = await response.json();
+                                        const student1Payment = paymentData.find(p => p.studentId === 1 && p.studentType === 'student');
+                                        
+                                        console.log('October payment data:', paymentData);
+                                        console.log('Student 1 October payment:', student1Payment);
+                                        
+                                        const statusMsg = student1Payment?.isPaid ? 
+                                          `✅ أكتوبر مدفوع - المبلغ: ${student1Payment.amount} دج` :
+                                          '❌ أكتوبر غير مدفوع';
+                                        
+                                        toast({
+                                          title: "حالة دفع أكتوبر",
+                                          description: statusMsg,
+                                          duration: 5000
+                                        });
+                                      } else {
+                                        toast({
+                                          title: "فشل فحص أكتوبر",
+                                          description: "لا يمكن الوصول لبيانات الدفع",
+                                          variant: "destructive"
+                                        });
+                                      }
+                                    } catch (error) {
+                                      console.error('Payment check error:', error);
+                                      toast({
+                                        title: "خطأ في فحص الدفع",
+                                        description: "حدث خطأ في الاتصال",
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }}
+                                  variant="secondary" 
+                                  size="sm"
+                                  className="text-xs block"
+                                >
+                                  🔍 فحص أكتوبر مباشرة
                                 </Button>
                                 <Button 
                                   onClick={async () => {
