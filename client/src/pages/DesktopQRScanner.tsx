@@ -95,13 +95,15 @@ function GroupAttendanceTable({
   studentId, 
   studentType, 
   studentName,
-  refreshTrigger
+  refreshTrigger,
+  groupPaymentStatus
 }: { 
   groupId: number;
   studentId: number;
   studentType: 'student' | 'child';
   studentName: string;
   refreshTrigger?: number; // Add optional refresh trigger prop
+  groupPaymentStatus: {[groupId: number]: {[month: number]: boolean}}; // Payment status shared from parent
 }) {
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
@@ -375,29 +377,26 @@ function GroupAttendanceTable({
                 <td className="border border-gray-300 p-2 text-center">
                   <div className="flex flex-col items-center space-y-1">
                     {(() => {
-                      const currentMonthPayment = paymentStatusByMonth[currentMonthKey];
+                      // Extract month number from currentMonthKey (YYYY-MM format)
+                      const currentMonth = parseInt(currentMonthKey.split('-')[1]);
+                      const currentYear = parseInt(currentMonthKey.split('-')[0]);
                       
-                      // If it's a virtual record with no payment requirement
-                      if (currentMonthPayment?.isVirtual && !currentMonthPayment?.mustPay) {
-                        return (
-                          <span className="px-2 py-1 rounded text-xs text-gray-500 bg-gray-50">
-                            {currentMonthPayment?.paymentNote || 'لا توجد دفعة'}
-                          </span>
-                        );
-                      }
+                      // Check payment status using the same format as payment section
+                      const isMonthPaid = groupPaymentStatus[groupId]?.[currentMonth] || false;
                       
-                      // Show payment status for actual payment records
+                      console.log(`🔍 Attendance table month check: Group ${groupId}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
+                      
                       return (
                         <>
                           <span className={`px-3 py-1 rounded text-sm font-medium ${
-                            currentMonthPayment?.isPaid
+                            isMonthPaid
                               ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                           }`}>
-                            {currentMonthPayment?.isPaid ? '✅' : '❌'}
+                            {isMonthPaid ? '✅' : '❌'}
                           </span>
                           <span className="text-xs text-gray-600">
-                            {currentMonthPayment?.isPaid ? 'مدفوع' : 'غير مدفوع'}
+                            {isMonthPaid ? 'مدفوع' : 'غير مدفوع'}
                           </span>
                         </>
                       );
@@ -1411,12 +1410,28 @@ export default function DesktopQRScanner() {
           }));
         }
         
-        // Force attendance table refresh by incrementing refresh trigger significantly
-        console.log('🔄 Triggering attendance table refresh...');
+        // Force attendance table refresh by updating the shared payment status
+        console.log('🔄 Triggering attendance table refresh with updated payment status...');
         setAttendanceRefreshTrigger(prev => {
           const newTrigger = prev + 100; // Large increment to ensure refresh
           console.log(`🔄 Attendance refresh trigger updated: ${prev} -> ${newTrigger}`);
           return newTrigger;
+        });
+        
+        // Update shared groupPaymentStatus to ensure attendance table sees the changes
+        console.log('🔄 Updating shared groupPaymentStatus for real-time sync...');
+        setGroupPaymentStatus(prev => {
+          const updated = { ...prev };
+          // Update all groups that were involved in this payment
+          Object.entries(selectedGroups).forEach(([groupIdStr, groupData]) => {
+            const groupId = parseInt(groupIdStr);
+            if (!updated[groupId]) updated[groupId] = {};
+            groupData.months.forEach(month => {
+              updated[groupId][month] = true;
+              console.log(`✅ Marked Group ${groupId} Month ${month} as PAID in shared state`);
+            });
+          });
+          return updated;
         });
         
         // Additional verification: Double-check payment status via API after local update
@@ -2076,6 +2091,7 @@ export default function DesktopQRScanner() {
                           studentType={scannedProfile.type}
                           studentName={scannedProfile.name}
                           refreshTrigger={attendanceRefreshTrigger}
+                          groupPaymentStatus={groupPaymentStatus}
                         />
                       </div>
                     </div>
