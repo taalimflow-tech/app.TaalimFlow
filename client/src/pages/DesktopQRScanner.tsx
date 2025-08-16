@@ -1322,9 +1322,41 @@ export default function DesktopQRScanner() {
       // 🔄 REFRESH PAID MONTHS DATA: Re-fetch student's payment data to update the payment form
       console.log('🔄 Refreshing student payment data after successful payment...');
       try {
-        await fetchStudentGroups(); // This will refresh both groups and their paidMonths
-        setAttendanceRefreshTrigger(prev => prev + 1); // Trigger attendance table refresh
-        console.log('✅ Student payment data refreshed successfully');
+        // Force refresh the payment status by clearing the cache first
+        console.log('🔄 Clearing payment cache and refreshing data...');
+        setGroupPaymentStatus({});
+        setAvailableGroups([]);
+        
+        // Wait for database to propagate changes
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Refresh the student groups which will fetch latest payment data
+        await fetchStudentGroups();
+        setAttendanceRefreshTrigger(prev => prev + 1);
+        
+        // Immediately update local state with the new payment information
+        const paymentDetails = Object.entries(selectedGroups);
+        for (const [groupIdStr, groupData] of paymentDetails) {
+          const groupId = parseInt(groupIdStr);
+          const updatedGroupPaymentStatus: {[month: number]: boolean} = {};
+          
+          // Mark all the paid months as true in local state
+          for (const month of groupData.months) {
+            updatedGroupPaymentStatus[month] = true;
+            console.log(`✅ Marking group ${groupId} month ${month} as PAID in local state`);
+          }
+          
+          setGroupPaymentStatus(prev => ({
+            ...prev,
+            [groupId]: {
+              ...prev[groupId],
+              ...updatedGroupPaymentStatus
+            }
+          }));
+        }
+        
+        console.log('✅ Student payment data refreshed and local state updated');
+        
       } catch (refreshError) {
         console.error('⚠️ Error refreshing student payment data:', refreshError);
         // Still proceed even if refresh fails - user can manually refresh
@@ -2441,6 +2473,97 @@ export default function DesktopQRScanner() {
                                   className="text-xs block"
                                 >
                                   🔍 فحص أكتوبر مباشرة
+                                </Button>
+                                <Button 
+                                  onClick={async () => {
+                                    try {
+                                      // Step 1: First create the October payment directly via API
+                                      console.log('🔧 Creating October payment and checking immediately...');
+                                      
+                                      const createResponse = await fetch('/api/scan-student-qr/create-ticket-payment', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                          transactions: [{
+                                            studentId: 1,
+                                            studentType: 'student',
+                                            groupId: 1,
+                                            amount: 150000, // 1500 DZD in cents
+                                            month: 10, // October
+                                            year: 2025,
+                                            notes: 'Direct October test payment',
+                                            paymentMethod: 'cash'
+                                          }],
+                                          totalAmount: 1500,
+                                          receiptId: `DIRECT-OCT-${Date.now()}`,
+                                          studentName: 'طالب مباشر'
+                                        })
+                                      });
+
+                                      if (!createResponse.ok) {
+                                        const errorText = await createResponse.text();
+                                        throw new Error(`Payment creation failed: ${errorText}`);
+                                      }
+
+                                      const creationResult = await createResponse.json();
+                                      console.log('✅ October payment created:', creationResult);
+
+                                      // Step 2: Immediately check if payment shows in API
+                                      await new Promise(resolve => setTimeout(resolve, 500)); // Brief wait
+                                      const checkResponse = await fetch('/api/groups/1/payment-status/2025/10');
+                                      
+                                      if (checkResponse.ok) {
+                                        const paymentData = await checkResponse.json();
+                                        console.log('📊 Full October payment API response:', paymentData);
+                                        
+                                        const student1Payment = paymentData.find(p => p.studentId === 1 && p.studentType === 'student');
+                                        console.log('🎯 Student 1 October specific data:', student1Payment);
+                                        
+                                        // Step 3: Update the frontend state immediately
+                                        if (student1Payment?.isPaid) {
+                                          setGroupPaymentStatus(prev => ({
+                                            ...prev,
+                                            1: {
+                                              ...prev[1],
+                                              10: true // Mark October as paid for group 1
+                                            }
+                                          }));
+
+                                          // Also refresh the full data to be safe
+                                          if (scannedProfile) {
+                                            await fetchStudentGroups();
+                                          }
+
+                                          toast({
+                                            title: "✅ أكتوبر تم إنشاؤه وتحديثه",
+                                            description: `المبلغ: ${student1Payment.amount} دج - يجب أن يظهر أخضر الآن`,
+                                            duration: 5000
+                                          });
+                                        } else {
+                                          toast({
+                                            title: "⚠️ تم إنشاء الدفع لكن لم يُحدث",
+                                            description: "الدفع موجود في النظام لكن الواجهة لم تتحديث",
+                                            variant: "destructive",
+                                            duration: 5000
+                                          });
+                                        }
+                                      }
+                                      
+                                    } catch (error) {
+                                      console.error('❌ Direct payment test error:', error);
+                                      toast({
+                                        title: "خطأ في الاختبار المباشر",
+                                        description: error.message,
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }}
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-xs block"
+                                >
+                                  🔧 إنشاء وتحديث أكتوبر مباشرة
                                 </Button>
                                 <Button 
                                   onClick={async () => {
