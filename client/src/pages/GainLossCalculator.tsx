@@ -344,22 +344,9 @@ export default function GainLossCalculator() {
 
         {/* Recent Entries */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>العمليات الأخيرة</CardTitle>
-            <div className="flex items-center gap-2">
-              <Select value={timeFilter} onValueChange={(value: 'all' | 'today' | 'week' | 'month' | 'year') => setTimeFilter(value)}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع العمليات</SelectItem>
-                  <SelectItem value="today">اليوم</SelectItem>
-                  <SelectItem value="week">هذا الأسبوع</SelectItem>
-                  <SelectItem value="month">هذا الشهر</SelectItem>
-                  <SelectItem value="year">هذا العام</SelectItem>
-                </SelectContent>
-              </Select>
+          <CardHeader className="space-y-4">
+            <div className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-semibold">العمليات الأخيرة</CardTitle>
               <Button
                 variant="destructive"
                 size="sm"
@@ -370,6 +357,24 @@ export default function GainLossCalculator() {
                 <RotateCcw className="w-4 h-4" />
                 إعادة تعيين
               </Button>
+            </div>
+            
+            {/* Time Filter Section */}
+            <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">فلترة حسب الفترة:</span>
+              <Select value={timeFilter} onValueChange={(value: 'all' | 'today' | 'week' | 'month' | 'year') => setTimeFilter(value)}>
+                <SelectTrigger className="w-[160px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع العمليات</SelectItem>
+                  <SelectItem value="today">اليوم</SelectItem>
+                  <SelectItem value="week">هذا الأسبوع</SelectItem>
+                  <SelectItem value="month">هذا الشهر</SelectItem>
+                  <SelectItem value="year">هذا العام</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>
@@ -390,41 +395,67 @@ export default function GainLossCalculator() {
               <>
                 {/* Show filtered balance if different from total */}
                 {timeFilter !== 'all' && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-600 mb-1">الرصيد لفترة: {getFilterLabel()}</div>
-                    <div className={`text-lg font-bold ${filteredBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {filteredBalance >= 0 ? '+' : ''}{filteredBalance.toLocaleString('ar-DZ')} دج
+                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-blue-700 font-medium mb-1">الرصيد لفترة: {getFilterLabel()}</div>
+                        <div className={`text-xl font-bold ${filteredBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {filteredBalance >= 0 ? '+' : ''}{filteredBalance.toLocaleString('ar-DZ')} دج
+                        </div>
+                      </div>
+                      <div className="text-blue-500">
+                        <Calculator className="w-6 h-6" />
+                      </div>
                     </div>
                   </div>
                 )}
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {filteredEntries.slice(0, 10).map((entry: FinancialEntry) => (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {filteredEntries.slice(0, 15).map((entry: FinancialEntry) => (
                   <div
                     key={entry.id}
-                    className={`p-3 rounded-lg border ${
+                    className={`p-4 rounded-lg border ${
                       entry.type === 'gain' 
                         ? 'bg-green-50 border-green-200' 
                         : 'bg-red-50 border-red-200'
                     }`}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        {entry.type === 'gain' ? (
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-red-600" />
-                        )}
-                        <span className={`font-medium ${
-                          entry.type === 'gain' ? 'text-green-700' : 'text-red-700'
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-1.5 rounded-full ${
+                          entry.type === 'gain' ? 'bg-green-100' : 'bg-red-100'
                         }`}>
-                          {entry.type === 'gain' ? '+' : '-'}{parseFloat(entry.amount).toLocaleString('ar-DZ')} دج
-                        </span>
+                          {entry.type === 'gain' ? (
+                            <TrendingUp className="w-3.5 h-3.5 text-green-600" />
+                          ) : (
+                            <TrendingDown className="w-3.5 h-3.5 text-red-600" />
+                          )}
+                        </div>
+                        <div>
+                          <span className={`text-lg font-semibold ${
+                            entry.type === 'gain' ? 'text-green-700' : 'text-red-700'
+                          }`}>
+                            {entry.type === 'gain' ? '+' : '-'}{parseFloat(entry.amount).toLocaleString('ar-DZ')} دج
+                          </span>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {entry.type === 'gain' ? 'ربح' : 'خسارة'}
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(entry.createdAt).toLocaleDateString('ar-DZ')}
-                      </span>
+                      <div className="text-right">
+                        <div className="text-xs text-gray-500">
+                          {new Date(entry.createdAt).toLocaleDateString('ar-DZ')}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5">
+                          {new Date(entry.createdAt).toLocaleTimeString('ar-DZ', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{entry.remarks}</p>
+                    <p className="text-sm text-gray-600 bg-white bg-opacity-50 p-2 rounded border-l-2 border-gray-300">
+                      {entry.remarks}
+                    </p>
                   </div>
                   ))}
                 </div>
