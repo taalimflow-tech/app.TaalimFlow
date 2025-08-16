@@ -197,7 +197,7 @@ export default function GainLossCalculator() {
       case 'week': return 'هذا الأسبوع';
       case 'month': return 'هذا الشهر';
       case 'year': return 'هذا العام';
-      default: return 'جميع العمليات';
+      default: return 'جميع الأوقات';
     }
   };
 
@@ -368,7 +368,7 @@ export default function GainLossCalculator() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">جميع العمليات</SelectItem>
+                  <SelectItem value="all">جميع الأوقات</SelectItem>
                   <SelectItem value="today">اليوم</SelectItem>
                   <SelectItem value="week">هذا الأسبوع</SelectItem>
                   <SelectItem value="month">هذا الشهر</SelectItem>
