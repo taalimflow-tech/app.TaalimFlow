@@ -4375,11 +4375,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }, 200);
           
+          // Determine student type for transaction
+          let studentType: 'student' | 'child' = 'student';
+          
+          // Check if it's a user (direct student)
+          const userStudent = await storage.getUser(transaction.studentId);
+          if (!userStudent || userStudent.schoolId !== schoolId) {
+            // If not found in users, it must be a child
+            studentType = 'child';
+          }
+          
           // Create transaction record
           const transactionRecord = await storage.createTransaction({
             schoolId,
             groupId: transaction.groupId,
             studentId: transaction.studentId,
+            studentType, // Add the required studentType field
             transactionType: 'payment',
             amount: transaction.amount, // Amount in cents
             currency: 'DZD',
@@ -4416,9 +4427,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📤 Sending response:', response);
       res.json(response);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error creating ticket payment:', error);
-      console.error('Error stack:', error.stack);
+      console.error('Error stack:', error?.stack);
+      console.error('Error message:', error?.message);
       res.status(500).json({ error: "حدث خطأ في إنشاء إيصال الدفع" });
     }
   });
