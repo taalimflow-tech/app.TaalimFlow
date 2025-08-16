@@ -28,6 +28,7 @@ export default function GainLossCalculator() {
   const [amount, setAmount] = useState('');
   const [remarks, setRemarks] = useState('');
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
+  const [balanceFilter, setBalanceFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
 
   // Check if user is admin
   if (!loading && (!user || user.role !== 'admin')) {
@@ -122,14 +123,49 @@ export default function GainLossCalculator() {
     });
   }, [entries, timeFilter]);
 
+  // Filter entries for balance calculation
+  const balanceFilteredEntries = React.useMemo(() => {
+    if (balanceFilter === 'all') return entries as FinancialEntry[];
+    
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+    
+    return (entries as FinancialEntry[]).filter((entry: FinancialEntry) => {
+      const entryDate = new Date(entry.createdAt);
+      
+      switch (balanceFilter) {
+        case 'today':
+          return entryDate >= todayStart;
+        case 'week':
+          return entryDate >= weekStart;
+        case 'month':
+          return entryDate >= monthStart;
+        case 'year':
+          return entryDate >= yearStart;
+        default:
+          return true;
+      }
+    });
+  }, [entries, balanceFilter]);
+
   // Calculate current balance from all entries (not just filtered)
   const currentBalance = (entries as FinancialEntry[]).reduce((total: number, entry: FinancialEntry) => {
     const entryAmount = parseFloat(entry.amount);
     return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
   }, 0);
 
-  // Calculate filtered balance
+  // Calculate filtered balance for transactions
   const filteredBalance = filteredEntries.reduce((total: number, entry: FinancialEntry) => {
+    const entryAmount = parseFloat(entry.amount);
+    return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
+  }, 0);
+
+  // Calculate balance for balance card display
+  const displayBalance = balanceFilteredEntries.reduce((total: number, entry: FinancialEntry) => {
     const entryAmount = parseFloat(entry.amount);
     return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
   }, 0);
@@ -201,6 +237,17 @@ export default function GainLossCalculator() {
     }
   };
 
+  // Helper function to get balance filter label
+  const getBalanceFilterLabel = () => {
+    switch (balanceFilter) {
+      case 'today': return 'اليوم';
+      case 'week': return 'هذا الأسبوع';
+      case 'month': return 'هذا الشهر';
+      case 'year': return 'هذا العام';
+      default: return 'جميع الأوقات';
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -258,24 +305,42 @@ export default function GainLossCalculator() {
 
       {/* Current Balance Display */}
       <Card className="border-2 border-primary/20 bg-gradient-to-l from-primary/5 to-primary/10">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">
-            {timeFilter === 'all' ? 'الرصيد الحالي' : `الرصيد لفترة: ${getFilterLabel()}`}
-          </CardTitle>
+        <CardHeader className="space-y-4">
+          <div className="text-center">
+            <CardTitle className="text-2xl font-bold text-primary">
+              {balanceFilter === 'all' ? 'الرصيد الحالي' : `الرصيد لفترة: ${getBalanceFilterLabel()}`}
+            </CardTitle>
+          </div>
+          
+          {/* Balance Filter Section */}
+          <div className="flex items-center justify-center gap-3 pt-2 border-t border-primary/20">
+            <Filter className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-gray-700">فلترة الرصيد:</span>
+            <Select value={balanceFilter} onValueChange={(value: 'all' | 'today' | 'week' | 'month' | 'year') => setBalanceFilter(value)}>
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الأوقات</SelectItem>
+                <SelectItem value="today">اليوم</SelectItem>
+                <SelectItem value="week">هذا الأسبوع</SelectItem>
+                <SelectItem value="month">هذا الشهر</SelectItem>
+                <SelectItem value="year">هذا العام</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent className="text-center">
-          <div className={`text-4xl font-bold ${
-            (timeFilter === 'all' ? currentBalance : filteredBalance) >= 0 ? 'text-green-600' : 'text-red-600'
-          }`}>
-            {(timeFilter === 'all' ? currentBalance : filteredBalance).toLocaleString('ar-DZ')} دج
+          <div className={`text-4xl font-bold ${displayBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {displayBalance.toLocaleString('ar-DZ')} دج
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            {timeFilter === 'all' 
+            {balanceFilter === 'all' 
               ? 'النتيجة الصافية = إجمالي الدخل - إجمالي المصروفات'
-              : `النتيجة الصافية لفترة ${getFilterLabel()}`
+              : `النتيجة الصافية لفترة ${getBalanceFilterLabel()}`
             }
           </p>
-          {timeFilter !== 'all' && (
+          {balanceFilter !== 'all' && (
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-xs text-gray-500">
                 الرصيد الإجمالي: {currentBalance >= 0 ? '+' : ''}{currentBalance.toLocaleString('ar-DZ')} دج
