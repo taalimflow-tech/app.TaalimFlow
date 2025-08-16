@@ -94,12 +94,14 @@ function GroupAttendanceTable({
   groupId, 
   studentId, 
   studentType, 
-  studentName 
+  studentName,
+  refreshTrigger
 }: { 
   groupId: number;
   studentId: number;
   studentType: 'student' | 'child';
   studentName: string;
+  refreshTrigger?: number; // Add optional refresh trigger prop
 }) {
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
@@ -226,7 +228,7 @@ function GroupAttendanceTable({
     };
 
     fetchGroupData();
-  }, [groupId, studentId, studentType]);
+  }, [groupId, studentId, studentType, refreshTrigger]); // Add refreshTrigger to dependency array
 
   // Update payment status when month changes
   useEffect(() => {
@@ -453,6 +455,9 @@ export default function DesktopQRScanner() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showStudentList, setShowStudentList] = useState(false);
+
+  // Refresh trigger for attendance tables
+  const [attendanceRefreshTrigger, setAttendanceRefreshTrigger] = useState(0);
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -1261,6 +1266,17 @@ export default function DesktopQRScanner() {
       setGeneratedTicket(ticket);
       setShowTicket(true);
 
+      // 🔄 REFRESH PAID MONTHS DATA: Re-fetch student's payment data to update the payment form
+      console.log('🔄 Refreshing student payment data after successful payment...');
+      try {
+        await fetchStudentGroups(); // This will refresh both groups and their paidMonths
+        setAttendanceRefreshTrigger(prev => prev + 1); // Trigger attendance table refresh
+        console.log('✅ Student payment data refreshed successfully');
+      } catch (refreshError) {
+        console.error('⚠️ Error refreshing student payment data:', refreshError);
+        // Still proceed even if refresh fails - user can manually refresh
+      }
+
       // Reset form
       setPaymentAmount('');
       setPaymentNotes('');
@@ -1886,6 +1902,7 @@ export default function DesktopQRScanner() {
                           studentId={scannedProfile.id}
                           studentType={scannedProfile.type}
                           studentName={scannedProfile.name}
+                          refreshTrigger={attendanceRefreshTrigger}
                         />
                       </div>
                     </div>
