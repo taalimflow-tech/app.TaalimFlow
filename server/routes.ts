@@ -4313,7 +4313,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('💰 Processing transaction:', transaction);
         
         try {
-          // Mark student payment for this month
+          // Mark student payment for this month with detailed logging
+          console.log(`📝 Creating payment record for student ${transaction.studentId}, month ${transaction.month}/${transaction.year}, amount: ${transaction.amount}`);
           const paymentRecord = await storage.markStudentPayment(
             transaction.studentId,
             transaction.year,
@@ -4321,10 +4322,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             true, // Mark as paid
             schoolId,
             req.session.user.id,
-            transaction.amount / 100, // Convert back from cents
+            transaction.amount, // Keep amount as is - it's already in the right format
             `${transaction.notes || ''} - إيصال: ${receiptId}`.trim()
           );
-          console.log('✅ Payment record created:', paymentRecord.id);
+          console.log('✅ Payment record created successfully:', {
+            id: paymentRecord.id,
+            studentId: paymentRecord.studentId,
+            studentType: paymentRecord.studentType,
+            month: paymentRecord.month,
+            year: paymentRecord.year,
+            isPaid: paymentRecord.isPaid,
+            amount: paymentRecord.amount,
+            schoolId: paymentRecord.schoolId
+          });
+          
+          // Immediate verification: Check if payment can be retrieved
+          setTimeout(async () => {
+            try {
+              const verificationCheck = await storage.getStudentPaymentStatus(
+                transaction.studentId,
+                transaction.year,
+                transaction.month,
+                schoolId
+              );
+              console.log('🔍 Payment verification check result:', {
+                found: verificationCheck ? 'YES' : 'NO',
+                isPaid: verificationCheck?.isPaid || false,
+                amount: verificationCheck?.amount || 'N/A'
+              });
+            } catch (verifyError) {
+              console.error('❌ Verification check failed:', verifyError);
+            }
+          }, 100);
           
           // Create transaction record
           const transactionRecord = await storage.createTransaction({

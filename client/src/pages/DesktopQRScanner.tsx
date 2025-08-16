@@ -158,7 +158,7 @@ function GroupAttendanceTable({
     }
   };
 
-  // Fetch all group data once
+  // Fetch all group data once and on refresh trigger
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
@@ -1354,6 +1354,33 @@ export default function DesktopQRScanner() {
             }
           }));
         }
+        
+        // Force attendance table refresh by incrementing refresh trigger multiple times
+        setAttendanceRefreshTrigger(prev => prev + 10); // Increment by 10 to force refresh
+        
+        // Additional verification: Double-check payment status via API after local update
+        setTimeout(async () => {
+          console.log('🔍 Final verification: checking payment status after 1 second...');
+          for (const [groupIdStr, groupData] of paymentDetails) {
+            const groupId = parseInt(groupIdStr);
+            for (const month of groupData.months) {
+              try {
+                const verifyResponse = await fetch(`/api/groups/${groupId}/payment-status/2025/${month}`);
+                if (verifyResponse.ok) {
+                  const verifyData = await verifyResponse.json();
+                  const studentVerify = verifyData.find((record: any) => 
+                    record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
+                  );
+                  console.log(`🎯 Final check - Group ${groupId} Month ${month}:`, 
+                    studentVerify?.isPaid ? 'PAID ✅' : 'NOT PAID ❌'
+                  );
+                }
+              } catch (verifyError) {
+                console.error(`❌ Final verification failed for group ${groupId} month ${month}:`, verifyError);
+              }
+            }
+          }
+        }, 1000);
         
         console.log('✅ Student payment data refreshed and local state updated');
         
