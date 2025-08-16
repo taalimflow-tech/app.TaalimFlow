@@ -445,6 +445,9 @@ export default function DesktopQRScanner() {
 
   // Unified payment status for all groups and months
   const [groupPaymentStatus, setGroupPaymentStatus] = useState<{[groupId: number]: {[month: number]: boolean}}>({});
+
+  // Refresh trigger for attendance tables
+  const [attendanceRefreshTrigger, setAttendanceRefreshTrigger] = useState(0);
   
   // Ticket state
   const [generatedTicket, setGeneratedTicket] = useState<any>(null);
@@ -1219,11 +1222,31 @@ export default function DesktopQRScanner() {
         }
       }
 
-      console.log('Creating local receipt (API bypass):', transactions);
+      console.log('Creating payment records in database:', transactions);
       
-      // Generate unique receipt ID locally
+      // Create actual payment records in database for each transaction
+      const paymentPromises = transactions.map(async (transaction) => {
+        const response = await fetch('/api/scan-student-qr/record-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(transaction)
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`Payment failed for month ${transaction.month}: ${errorData.error || response.statusText}`);
+        }
+        
+        return await response.json();
+      });
+
+      const paymentResults = await Promise.all(paymentPromises);
+      console.log('✅ All payment records created successfully:', paymentResults);
+      
+      // Generate unique receipt ID
       const receiptId = `REC-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-      const result = { receiptId };
+      const result = { receiptId, paymentResults };
 
       // Generate ticket data
       const ticket = {

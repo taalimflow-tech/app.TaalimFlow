@@ -3879,17 +3879,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "غير مسموح لك بتسجيل الدفعات" });
       }
       
-      const { studentId, studentType, amount, paymentMethod, notes, year, month } = req.body;
+      const { studentId, studentType, groupId, amount, paymentMethod, notes, year, month } = req.body;
       const schoolId = req.session.user.schoolId;
       
-      if (!schoolId || !studentId || !studentType || !amount) {
+      if (!schoolId || !studentId || !studentType || !groupId || !amount) {
         return res.status(400).json({ error: "بيانات ناقصة" });
       }
       
-      // Record payment
+      // Record payment with group information
       const result = await storage.recordStudentPayment({
         studentId,
         studentType: studentType as 'student' | 'child',
+        groupId: parseInt(groupId),
         amount: parseFloat(amount),
         paymentMethod,
         notes,

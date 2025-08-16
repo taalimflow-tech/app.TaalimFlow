@@ -4388,6 +4388,7 @@ export class DatabaseStorage implements IStorage {
   async recordStudentPayment(paymentData: {
     studentId: number;
     studentType: 'student' | 'child';
+    groupId?: number;
     amount: number;
     paymentMethod?: string;
     notes?: string;
@@ -4397,56 +4398,86 @@ export class DatabaseStorage implements IStorage {
     schoolId: number;
   }): Promise<any> {
     try {
-      const { studentId, studentType, amount, paymentMethod, notes, year, month, paidBy, schoolId } = paymentData;
+      const { studentId, studentType, groupId, amount, paymentMethod, notes, year, month, paidBy, schoolId } = paymentData;
       
-      // Check if payment record already exists
-      const existingPayment = await db
-        .select()
-        .from(studentMonthlyPayments)
-        .where(and(
-          eq(studentMonthlyPayments.studentId, studentId),
-          eq(studentMonthlyPayments.studentType, studentType),
-          eq(studentMonthlyPayments.year, year),
-          eq(studentMonthlyPayments.month, month),
-          eq(studentMonthlyPayments.schoolId, schoolId)
-        ))
-        .limit(1);
-      
-      if (existingPayment.length > 0) {
-        // Update existing payment
-        const [updatedPayment] = await db
-          .update(studentMonthlyPayments)
-          .set({
-            isPaid: true,
-            amount: amount.toString(),
-            paidAt: new Date(),
-            paidBy,
-            notes,
-            updatedAt: new Date()
-          })
-          .where(eq(studentMonthlyPayments.id, existingPayment[0].id))
-          .returning();
+      if (groupId) {
+        // Create group-specific transaction record
+        const monthName = [
+          'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+          'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+        ][month - 1] || `الشهر ${month}`;
         
-        return updatedPayment;
-      } else {
-        // Create new payment record
-        const [newPayment] = await db
-          .insert(studentMonthlyPayments)
+        const [newTransaction] = await db
+          .insert(groupTransactions)
           .values({
+            schoolId,
+            groupId,
             studentId,
             studentType,
-            year,
-            month,
-            isPaid: true,
-            amount: amount.toString(),
-            paidAt: new Date(),
-            paidBy,
+            transactionType: 'payment',
+            amount: Math.round(amount * 100), // Convert to cents
+            currency: 'DZD',
+            description: `دفع رسوم شهر ${monthName} ${year}`,
+            paidDate: new Date(),
+            paymentMethod: paymentMethod || 'cash',
+            status: 'paid',
             notes,
-            schoolId
+            recordedBy: paidBy
           })
           .returning();
         
-        return newPayment;
+        return newTransaction;
+      } else {
+        // Fallback to general student monthly payments
+        // Check if payment record already exists
+        const existingPayment = await db
+          .select()
+          .from(studentMonthlyPayments)
+          .where(and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.studentType, studentType),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId)
+          ))
+          .limit(1);
+        
+        if (existingPayment.length > 0) {
+          // Update existing payment
+          const [updatedPayment] = await db
+            .update(studentMonthlyPayments)
+            .set({
+              isPaid: true,
+              amount: amount.toString(),
+              paidAt: new Date(),
+              paidBy,
+              notes,
+              updatedAt: new Date()
+            })
+            .where(eq(studentMonthlyPayments.id, existingPayment[0].id))
+            .returning();
+          
+          return updatedPayment;
+        } else {
+          // Create new payment record
+          const [newPayment] = await db
+            .insert(studentMonthlyPayments)
+            .values({
+              studentId,
+              studentType,
+              year,
+              month,
+              isPaid: true,
+              amount: amount.toString(),
+              paidAt: new Date(),
+              paidBy,
+              notes,
+              schoolId
+            })
+            .returning();
+          
+          return newPayment;
+        }
       }
       
     } catch (error) {
