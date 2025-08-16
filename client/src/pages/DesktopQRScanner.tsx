@@ -107,7 +107,7 @@ function GroupAttendanceTable({
 }) {
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
-  const [paymentStatus, setPaymentStatus] = useState<any>(null);
+  // Remove unused paymentStatus state since we're using shared groupPaymentStatus
   const [isLoading, setIsLoading] = useState(true);
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
   // Removed paymentStatusByMonth - now using shared groupPaymentStatus from parent
@@ -160,8 +160,8 @@ function GroupAttendanceTable({
     }
   };
 
-  // Remove old payment status refresh effect - now using shared groupPaymentStatus
-  // No longer needed since we're using shared state from parent component
+  // Critical Fix: We need to fetch payment status and sync with parent component
+  // This was accidentally removed, causing all payments to show as unpaid
 
   // Fetch all group data once and on refresh trigger
   useEffect(() => {
@@ -218,12 +218,22 @@ function GroupAttendanceTable({
           paymentResults.forEach(result => {
             paymentsByMonth[result.monthKey] = result.payment;
           });
-          // Removed setPaymentStatusByMonth - now using shared state
+          // CRITICAL: Update the shared parent payment status with fetched data
+          console.log(`🔄 Updating parent payment status for group ${groupId}:`, paymentsByMonth);
           
-          // Set current payment status for the selected month
-          const currentDate = new Date();
-          const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-          // Removed individual payment status - now using shared state
+          // Convert from monthKey format (YYYY-MM) to month number format for parent component
+          const parentPaymentData: {[month: number]: boolean} = {};
+          Object.entries(paymentsByMonth).forEach(([monthKey, paymentData]) => {
+            const month = parseInt(monthKey.split('-')[1]); // Extract month number
+            parentPaymentData[month] = paymentData?.isPaid || false;
+            console.log(`💰 Group ${groupId} Month ${month}: ${paymentData?.isPaid ? 'PAID' : 'NOT PAID'}`);
+          });
+          
+          // Update parent component's groupPaymentStatus via a callback mechanism
+          // Since we can't directly call parent setter, we'll create a custom event
+          window.dispatchEvent(new CustomEvent('updateGroupPaymentStatus', {
+            detail: { groupId, paymentData: parentPaymentData }
+          }));
         }
       } catch (error) {
         console.error('Error fetching group data:', error);
@@ -459,10 +469,28 @@ export default function DesktopQRScanner() {
   // Refresh trigger for attendance tables
   const [attendanceRefreshTrigger, setAttendanceRefreshTrigger] = useState(0);
 
-  // Cleanup on component unmount
+  // Event listener to handle payment status updates from child components
   useEffect(() => {
-    return cleanup;
-  }, []);
+    const handlePaymentStatusUpdate = (event: CustomEvent) => {
+      const { groupId, paymentData } = event.detail;
+      console.log(`🎯 Received payment status update for group ${groupId}:`, paymentData);
+      
+      setGroupPaymentStatus(prev => ({
+        ...prev,
+        [groupId]: {
+          ...prev[groupId],
+          ...paymentData
+        }
+      }));
+    };
+
+    window.addEventListener('updateGroupPaymentStatus', handlePaymentStatusUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('updateGroupPaymentStatus', handlePaymentStatusUpdate as EventListener);
+      cleanup();
+    };
+  }, [cleanup]);
 
   // Check if user has permission to use desktop scanner
   if (!user || !['admin', 'teacher'].includes(user.role)) {
