@@ -259,15 +259,29 @@ export default function GainLossCalculator() {
       {/* Current Balance Display */}
       <Card className="border-2 border-primary/20 bg-gradient-to-l from-primary/5 to-primary/10">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">الرصيد الحالي</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">
+            {timeFilter === 'all' ? 'الرصيد الحالي' : `الرصيد لفترة: ${getFilterLabel()}`}
+          </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <div className={`text-4xl font-bold ${currentBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {currentBalance.toLocaleString('ar-DZ')} دج
+          <div className={`text-4xl font-bold ${
+            (timeFilter === 'all' ? currentBalance : filteredBalance) >= 0 ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {(timeFilter === 'all' ? currentBalance : filteredBalance).toLocaleString('ar-DZ')} دج
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            النتيجة الصافية = إجمالي الدخل - إجمالي المصروفات
+            {timeFilter === 'all' 
+              ? 'النتيجة الصافية = إجمالي الدخل - إجمالي المصروفات'
+              : `النتيجة الصافية لفترة ${getFilterLabel()}`
+            }
           </p>
+          {timeFilter !== 'all' && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500">
+                الرصيد الإجمالي: {currentBalance >= 0 ? '+' : ''}{currentBalance.toLocaleString('ar-DZ')} دج
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
