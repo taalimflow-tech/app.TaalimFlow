@@ -1219,11 +1219,38 @@ export default function DesktopQRScanner() {
         }
       }
 
-      console.log('Creating local receipt (API bypass):', transactions);
+      console.log('Creating payment records and receipt:', transactions);
       
-      // Generate unique receipt ID locally
-      const receiptId = `REC-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-      const result = { receiptId };
+      // 🆕 SAVE PAYMENTS TO DATABASE
+      let result = { receiptId: `REC-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}` };
+      
+      try {
+        console.log('🔄 Attempting to save payment records to database...');
+        const paymentResponse = await fetch('/api/scan-student-qr/create-ticket-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            transactions,
+            totalAmount: parseFloat(paymentAmount),
+            receiptId: result.receiptId,
+            studentName: scannedProfile.name
+          })
+        });
+
+        if (paymentResponse.ok) {
+          const paymentData = await paymentResponse.json();
+          console.log('✅ Payment records saved successfully:', paymentData);
+          result = paymentData;
+        } else {
+          const errorText = await paymentResponse.text();
+          console.log('⚠️ Database payment save failed, using local receipt:', errorText);
+          // Continue with local receipt even if database save fails
+        }
+      } catch (dbError) {
+        console.error('⚠️ Database error, using local receipt:', dbError);
+        // Continue with local receipt even if database connection fails
+      }
 
       // Generate ticket data
       const ticket = {
@@ -2298,6 +2325,70 @@ export default function DesktopQRScanner() {
                                   className="text-xs block"
                                 >
                                   فحص حالة الدفع الحقيقية
+                                </Button>
+                                <Button 
+                                  onClick={async () => {
+                                    try {
+                                      // Test payment for October (month 10) for student 1 in group 1
+                                      console.log('🧪 Creating test October payment...');
+                                      const testPayment = await fetch('/api/scan-student-qr/create-ticket-payment', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                          transactions: [{
+                                            studentId: 1,
+                                            studentType: 'student',
+                                            groupId: 1,
+                                            amount: 200000, // 2000 DZD in cents
+                                            month: 10, // October
+                                            year: 2025,
+                                            notes: 'Test October payment',
+                                            paymentMethod: 'cash'
+                                          }],
+                                          totalAmount: 2000,
+                                          receiptId: `TEST-OCT-${Date.now()}`,
+                                          studentName: 'طالب تجريبي'
+                                        })
+                                      });
+
+                                      if (testPayment.ok) {
+                                        const result = await testPayment.json();
+                                        console.log('✅ Test October payment created:', result);
+                                        
+                                        // Refresh the student data
+                                        if (scannedProfile) {
+                                          await fetchStudentGroups();
+                                        }
+                                        
+                                        toast({
+                                          title: "تم إنشاء دفعة أكتوبر تجريبية",
+                                          description: "أكتوبر يجب أن يظهر الآن باللون الأخضر مع علامة ✓",
+                                          duration: 5000
+                                        });
+                                      } else {
+                                        const errorText = await testPayment.text();
+                                        console.error('❌ Test payment failed:', errorText);
+                                        toast({
+                                          title: "فشل إنشاء الدفعة التجريبية",
+                                          description: errorText,
+                                          variant: "destructive"
+                                        });
+                                      }
+                                    } catch (error) {
+                                      console.error('❌ Test payment error:', error);
+                                      toast({
+                                        title: "خطأ في إنشاء الدفعة التجريبية",
+                                        description: error.message,
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }}
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-xs block"
+                                >
+                                  🧪 إنشاء دفعة أكتوبر تجريبية
                                 </Button>
                                 <Button 
                                   onClick={async () => {
