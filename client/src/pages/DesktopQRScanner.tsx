@@ -469,6 +469,24 @@ export default function DesktopQRScanner() {
   // Refresh trigger for attendance tables
   const [attendanceRefreshTrigger, setAttendanceRefreshTrigger] = useState(0);
 
+  // Define cleanup function first
+  const cleanup = useCallback(() => {
+    setIsScanning(false);
+    if (controlsRef.current) {
+      try {
+        controlsRef.current.stop();
+      } catch (err) {
+        console.log('Scanner cleanup error:', err);
+      }
+    }
+    // Also stop all video streams
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
   // Event listener to handle payment status updates from child components
   useEffect(() => {
     const handlePaymentStatusUpdate = (event: CustomEvent) => {
@@ -488,8 +506,12 @@ export default function DesktopQRScanner() {
     
     return () => {
       window.removeEventListener('updateGroupPaymentStatus', handlePaymentStatusUpdate as EventListener);
-      cleanup();
     };
+  }, []); // Remove cleanup dependency since it's not needed here
+
+  // Separate cleanup effect on component unmount
+  useEffect(() => {
+    return cleanup;
   }, [cleanup]);
 
   // Check if user has permission to use desktop scanner
@@ -627,23 +649,6 @@ export default function DesktopQRScanner() {
       setIsProcessing(false);
     }
   };
-
-  const cleanup = useCallback(() => {
-    setIsScanning(false);
-    if (controlsRef.current) {
-      try {
-        controlsRef.current.stop();
-      } catch (err) {
-        console.log('Scanner cleanup error:', err);
-      }
-    }
-    // Also stop all video streams
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-  }, []);
 
   const initializeScanner = useCallback(async () => {
     try {
