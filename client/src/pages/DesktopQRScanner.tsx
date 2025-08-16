@@ -175,7 +175,13 @@ function GroupAttendanceTable({
           const paymentPromises = monthsToCheck.map(async (month) => {
             const monthKey = `${currentYear}-${String(month).padStart(2, '0')}`;
             try {
-              const response = await fetch(`/api/groups/${groupId}/payment-status/${currentYear}/${month}`);
+              const response = await fetch(`/api/groups/${groupId}/payment-status/${currentYear}/${month}`, {
+                method: 'GET',
+                credentials: 'include', // Include session cookies for authentication
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
               if (response.ok) {
                 const paymentData = await response.json();
                 const studentPayment = paymentData.find((record: any) => 
@@ -222,8 +228,14 @@ function GroupAttendanceTable({
       try {
         setIsLoading(true);
         
-        // Fetch scheduled dates for the group
-        const scheduledResponse = await fetch(`/api/groups/${groupId}/scheduled-dates`);
+        // Fetch scheduled dates for the group with authentication
+        const scheduledResponse = await fetch(`/api/groups/${groupId}/scheduled-dates`, {
+          method: 'GET',
+          credentials: 'include', // Include session cookies for authentication
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         let dates: string[] = [];
         if (scheduledResponse.ok) {
           const scheduledData = await scheduledResponse.json();
@@ -231,8 +243,14 @@ function GroupAttendanceTable({
           setScheduledDates(dates);
         }
 
-        // Fetch attendance history for the group
-        const attendanceResponse = await fetch(`/api/groups/${groupId}/attendance-history`);
+        // Fetch attendance history for the group with authentication
+        const attendanceResponse = await fetch(`/api/groups/${groupId}/attendance-history`, {
+          method: 'GET',
+          credentials: 'include', // Include session cookies for authentication
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         if (attendanceResponse.ok) {
           const attendanceData = await attendanceResponse.json();
           // Filter for this specific student
@@ -255,7 +273,13 @@ function GroupAttendanceTable({
           // Fetch payment status for all months that have scheduled dates
           const paymentPromises = Object.keys(monthGroups).map(async (monthKey) => {
             const [year, month] = monthKey.split('-');
-            const response = await fetch(`/api/groups/${groupId}/payment-status/${year}/${month}`);
+            const response = await fetch(`/api/groups/${groupId}/payment-status/${year}/${month}`, {
+              method: 'GET',
+              credentials: 'include', // Include session cookies for authentication
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
             if (response.ok) {
               const paymentData = await response.json();
               const studentPayment = paymentData.find((record: any) => 
@@ -849,6 +873,7 @@ export default function DesktopQRScanner() {
       
       const response = await fetch('/api/scan-student-qr', {
         method: 'POST',
+        credentials: 'include', // Include session cookies for authentication
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrData })
       });
@@ -873,6 +898,7 @@ export default function DesktopQRScanner() {
             try {
               const paymentResponse = await fetch('/api/scan-student-qr/get-payments', {
                 method: 'POST',
+                credentials: 'include', // Include session cookies for authentication
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   studentId: profile.id,
@@ -935,6 +961,7 @@ export default function DesktopQRScanner() {
       setIsProcessing(true);
       const response = await fetch('/api/scan-student-qr/mark-attendance', {
         method: 'POST',
+        credentials: 'include', // Include session cookies for authentication
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           studentId: scannedProfile.id,
@@ -976,6 +1003,7 @@ export default function DesktopQRScanner() {
       setIsProcessing(true);
       const response = await fetch('/api/scan-student-qr/record-payment', {
         method: 'POST',
+        credentials: 'include', // Include session cookies for authentication
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           studentId: scannedProfile.id,
@@ -1044,8 +1072,14 @@ export default function DesktopQRScanner() {
     try {
       console.log('🔄 Fetching groups and payments for student:', scannedProfile.id, 'type:', scannedProfile.type);
       
-      // First fetch groups
-      const groupsResponse = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`);
+      // First fetch groups with authentication
+      const groupsResponse = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`, {
+        method: 'GET',
+        credentials: 'include', // Include session cookies for authentication
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       console.log('🔄 Groups API response status:', groupsResponse.status);
       
       let groups = [];
@@ -1075,17 +1109,36 @@ export default function DesktopQRScanner() {
             const currentYear = new Date().getFullYear();
             const paymentPromises = [];
             
-            // Check payment status for all 12 months using the same API as attendance table
+            // Check payment status for all 12 months using the same API as attendance table with authentication
             for (let month = 1; month <= 12; month++) {
-              const promise = fetch(`/api/groups/${group.id}/payment-status/${currentYear}/${month}`)
-                .then(response => response.ok ? response.json() : [])
+              const promise = fetch(`/api/groups/${group.id}/payment-status/${currentYear}/${month}`, {
+                method: 'GET',
+                credentials: 'include', // Include session cookies for authentication
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              })
+                .then(response => {
+                  if (response.status === 401) {
+                    console.log(`🔐 Authentication required for month ${month} payment status`);
+                    return [];
+                  }
+                  return response.ok ? response.json() : [];
+                })
                 .then(paymentData => {
                   const studentPayment = paymentData.find((record: any) => 
                     record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
                   );
-                  return { month, isPaid: studentPayment?.isPaid || false };
+                  const isPaid = studentPayment?.isPaid || false;
+                  if (isPaid) {
+                    console.log(`✅ Month ${month} confirmed as PAID from API for student ${scannedProfile.id}`);
+                  }
+                  return { month, isPaid };
                 })
-                .catch(() => ({ month, isPaid: false }));
+                .catch((error) => {
+                  console.error(`❌ Error fetching month ${month} payment status:`, error);
+                  return { month, isPaid: false };
+                });
               
               paymentPromises.push(promise);
             }
@@ -1441,7 +1494,13 @@ export default function DesktopQRScanner() {
             const groupId = parseInt(groupIdStr);
             for (const month of groupData.months) {
               try {
-                const verifyResponse = await fetch(`/api/groups/${groupId}/payment-status/2025/${month}`);
+                const verifyResponse = await fetch(`/api/groups/${groupId}/payment-status/2025/${month}`, {
+                  method: 'GET',
+                  credentials: 'include', // Include session cookies for authentication
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                });
                 if (verifyResponse.ok) {
                   const verifyData = await verifyResponse.json();
                   const studentVerify = verifyData.find((record: any) => 
@@ -2433,7 +2492,13 @@ export default function DesktopQRScanner() {
                                       const testResults = [];
                                       for (let month = 1; month <= 12; month++) {
                                         try {
-                                          const response = await fetch(`/api/groups/1/payment-status/2025/${month}`);
+                                          const response = await fetch(`/api/groups/1/payment-status/2025/${month}`, {
+                                            method: 'GET',
+                                            credentials: 'include', // Include session cookies for authentication
+                                            headers: {
+                                              'Content-Type': 'application/json'
+                                            }
+                                          });
                                           if (response.ok) {
                                             const data = await response.json();
                                             const studentPayment = data.find(p => p.studentId === 1 && p.studentType === 'student');
@@ -2538,7 +2603,13 @@ export default function DesktopQRScanner() {
                                     try {
                                       // Direct database check for October payment
                                       console.log('🔍 Checking October payment status directly...');
-                                      const response = await fetch('/api/groups/1/payment-status/2025/10');
+                                      const response = await fetch('/api/groups/1/payment-status/2025/10', {
+                                        method: 'GET',
+                                        credentials: 'include', // Include session cookies for authentication
+                                        headers: {
+                                          'Content-Type': 'application/json'
+                                        }
+                                      });
                                       
                                       if (response.ok) {
                                         const paymentData = await response.json();
@@ -2615,7 +2686,13 @@ export default function DesktopQRScanner() {
 
                                       // Step 2: Immediately check if payment shows in API
                                       await new Promise(resolve => setTimeout(resolve, 500)); // Brief wait
-                                      const checkResponse = await fetch('/api/groups/1/payment-status/2025/10');
+                                      const checkResponse = await fetch('/api/groups/1/payment-status/2025/10', {
+                                        method: 'GET',
+                                        credentials: 'include', // Include session cookies for authentication
+                                        headers: {
+                                          'Content-Type': 'application/json'
+                                        }
+                                      });
                                       
                                       if (checkResponse.ok) {
                                         const paymentData = await checkResponse.json();
