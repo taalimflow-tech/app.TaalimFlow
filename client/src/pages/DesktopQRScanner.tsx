@@ -110,7 +110,7 @@ function GroupAttendanceTable({
   const [paymentStatus, setPaymentStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
-  const [paymentStatusByMonth, setPaymentStatusByMonth] = useState<{[key: string]: any}>({});
+  // Removed paymentStatusByMonth - now using shared groupPaymentStatus from parent
 
   // Group dates by month similar to Groups page
   const monthGroups = scheduledDates.reduce((acc: { [key: string]: string[] }, date: string) => {
@@ -160,61 +160,8 @@ function GroupAttendanceTable({
     }
   };
 
-  // Add payment status sync effect to ensure attendance table updates immediately
-  useEffect(() => {
-    // Force refresh payment data when refreshTrigger changes
-    if (refreshTrigger && refreshTrigger > 0) {
-      console.log(`🔄 Attendance table refresh triggered (trigger: ${refreshTrigger}) for group ${groupId}`);
-      
-      // Re-fetch payment data for all relevant months immediately
-      const currentYear = new Date().getFullYear();
-      const monthsToCheck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // All months
-      
-      const refreshPaymentStatus = async () => {
-        try {
-          const paymentPromises = monthsToCheck.map(async (month) => {
-            const monthKey = `${currentYear}-${String(month).padStart(2, '0')}`;
-            try {
-              const response = await fetch(`/api/groups/${groupId}/payment-status/${currentYear}/${month}`);
-              if (response.ok) {
-                const paymentData = await response.json();
-                const studentPayment = paymentData.find((record: any) => 
-                  record.studentId === studentId && record.studentType === studentType
-                );
-                console.log(`🔍 Refreshed payment status for ${monthKey}:`, studentPayment?.isPaid ? 'PAID' : 'NOT PAID');
-                return { monthKey, payment: studentPayment };
-              }
-            } catch (error) {
-              console.error(`Error fetching payment for ${monthKey}:`, error);
-            }
-            return { monthKey, payment: null };
-          });
-          
-          const refreshResults = await Promise.all(paymentPromises);
-          const refreshedPayments: {[key: string]: any} = {};
-          
-          refreshResults.forEach(result => {
-            if (result.payment) {
-              refreshedPayments[result.monthKey] = result.payment;
-            }
-          });
-          
-          if (Object.keys(refreshedPayments).length > 0) {
-            console.log(`✅ Updating attendance table with refreshed payment data:`, refreshedPayments);
-            setPaymentStatusByMonth(prev => ({
-              ...prev,
-              ...refreshedPayments
-            }));
-          }
-        } catch (error) {
-          console.error('Error refreshing payment status:', error);
-        }
-      };
-      
-      // Delay the refresh slightly to ensure database has been updated
-      setTimeout(refreshPaymentStatus, 500);
-    }
-  }, [refreshTrigger, groupId, studentId, studentType]);
+  // Remove old payment status refresh effect - now using shared groupPaymentStatus
+  // No longer needed since we're using shared state from parent component
 
   // Fetch all group data once and on refresh trigger
   useEffect(() => {
@@ -271,12 +218,12 @@ function GroupAttendanceTable({
           paymentResults.forEach(result => {
             paymentsByMonth[result.monthKey] = result.payment;
           });
-          setPaymentStatusByMonth(paymentsByMonth);
+          // Removed setPaymentStatusByMonth - now using shared state
           
           // Set current payment status for the selected month
           const currentDate = new Date();
           const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-          setPaymentStatus(paymentsByMonth[currentMonthKey]);
+          // Removed individual payment status - now using shared state
         }
       } catch (error) {
         console.error('Error fetching group data:', error);
@@ -288,12 +235,7 @@ function GroupAttendanceTable({
     fetchGroupData();
   }, [groupId, studentId, studentType, refreshTrigger]); // Add refreshTrigger to dependency array
 
-  // Update payment status when month changes
-  useEffect(() => {
-    if (currentMonthKey && paymentStatusByMonth[currentMonthKey] !== undefined) {
-      setPaymentStatus(paymentStatusByMonth[currentMonthKey]);
-    }
-  }, [currentMonthKey, paymentStatusByMonth]);
+  // Removed payment status update effect - now using shared groupPaymentStatus
 
   if (isLoading) {
     return (
@@ -1410,29 +1352,52 @@ export default function DesktopQRScanner() {
           }));
         }
         
-        // Force attendance table refresh by updating the shared payment status
-        console.log('🔄 Triggering attendance table refresh with updated payment status...');
-        setAttendanceRefreshTrigger(prev => {
-          const newTrigger = prev + 100; // Large increment to ensure refresh
-          console.log(`🔄 Attendance refresh trigger updated: ${prev} -> ${newTrigger}`);
-          return newTrigger;
-        });
-        
-        // Update shared groupPaymentStatus to ensure attendance table sees the changes
-        console.log('🔄 Updating shared groupPaymentStatus for real-time sync...');
-        setGroupPaymentStatus(prev => {
-          const updated = { ...prev };
-          // Update all groups that were involved in this payment
-          Object.entries(selectedGroups).forEach(([groupIdStr, groupData]) => {
+        // Wait 2 seconds to ensure database operations are complete, then refresh payment status
+        console.log('💾 Waiting for database operations to complete...');
+        setTimeout(async () => {
+          console.log('🔄 Database operations should be complete, refreshing payment status...');
+          
+          // Update shared groupPaymentStatus by fetching fresh data from database
+          const paymentUpdates: {[groupId: number]: {[month: number]: boolean}} = {};
+          
+          for (const [groupIdStr, groupData] of Object.entries(selectedGroups)) {
             const groupId = parseInt(groupIdStr);
-            if (!updated[groupId]) updated[groupId] = {};
-            groupData.months.forEach(month => {
-              updated[groupId][month] = true;
-              console.log(`✅ Marked Group ${groupId} Month ${month} as PAID in shared state`);
-            });
+            paymentUpdates[groupId] = {};
+            
+            for (const month of groupData.months) {
+              try {
+                const currentYear = new Date().getFullYear();
+                const response = await fetch(`/api/groups/${groupId}/payment-status/${currentYear}/${month}`);
+                if (response.ok) {
+                  const paymentData = await response.json();
+                  const studentPayment = paymentData.find((record: any) => 
+                    record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
+                  );
+                  paymentUpdates[groupId][month] = studentPayment?.isPaid || false;
+                  console.log(`🔍 Database check - Group ${groupId} Month ${month}: ${studentPayment?.isPaid ? 'PAID' : 'NOT PAID'}`);
+                }
+              } catch (error) {
+                console.error(`Error fetching payment status for Group ${groupId} Month ${month}:`, error);
+                paymentUpdates[groupId][month] = false;
+              }
+            }
+          }
+          
+          // Update shared state with fresh database data
+          setGroupPaymentStatus(prev => ({
+            ...prev,
+            ...paymentUpdates
+          }));
+          
+          // Trigger attendance table refresh
+          setAttendanceRefreshTrigger(prev => {
+            const newTrigger = prev + 1000; // Large increment to ensure refresh
+            console.log(`🔄 Attendance refresh trigger updated with DB data: ${prev} -> ${newTrigger}`);
+            return newTrigger;
           });
-          return updated;
-        });
+          
+          console.log('✅ Payment status refresh complete with database verification');
+        }, 2000); // 2-second delay to ensure database consistency
         
         // Additional verification: Double-check payment status via API after local update
         setTimeout(async () => {
