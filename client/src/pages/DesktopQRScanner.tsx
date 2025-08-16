@@ -442,6 +442,9 @@ export default function DesktopQRScanner() {
   const [selectedGroups, setSelectedGroups] = useState<{[key: number]: {months: number[], groupName: string, subjectName: string}}>({});
   const [availableGroups, setAvailableGroups] = useState<any[]>([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
+
+  // Unified payment status for all groups and months
+  const [groupPaymentStatus, setGroupPaymentStatus] = useState<{[groupId: number]: {[month: number]: boolean}}>({});
   
   // Ticket state
   const [generatedTicket, setGeneratedTicket] = useState<any>(null);
@@ -1006,38 +1009,57 @@ export default function DesktopQRScanner() {
         }
       }
 
-      // Now fetch payment data for each group
+      // Now fetch comprehensive payment data for each group using unified API approach
+      const unifiedPaymentStatus: {[groupId: number]: {[month: number]: boolean}} = {};
       const groupsWithPayments = await Promise.all(
         groups.map(async (group) => {
           try {
-            console.log(`🔄 Fetching payments for group ${group.id}`);
-            const paymentsResponse = await fetch('/api/scan-student-qr/get-payments', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({
-                studentId: scannedProfile.id,
-                studentType: scannedProfile.type,
-                groupId: group.id,
-                year: new Date().getFullYear()
-              })
+            console.log(`🔄 Fetching unified payment status for group ${group.id}`);
+            
+            // Use the same API that attendance table uses for consistency
+            const currentYear = new Date().getFullYear();
+            const paymentPromises = [];
+            
+            // Check payment status for all 12 months using the same API as attendance table
+            for (let month = 1; month <= 12; month++) {
+              const promise = fetch(`/api/groups/${group.id}/payment-status/${currentYear}/${month}`)
+                .then(response => response.ok ? response.json() : [])
+                .then(paymentData => {
+                  const studentPayment = paymentData.find((record: any) => 
+                    record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
+                  );
+                  return { month, isPaid: studentPayment?.isPaid || false };
+                })
+                .catch(() => ({ month, isPaid: false }));
+              
+              paymentPromises.push(promise);
+            }
+
+            const paymentResults = await Promise.all(paymentPromises);
+            
+            // Build payment status map for this group
+            const groupPaymentMap: {[month: number]: boolean} = {};
+            const paidMonths: number[] = [];
+            
+            paymentResults.forEach(result => {
+              groupPaymentMap[result.month] = result.isPaid;
+              if (result.isPaid) {
+                paidMonths.push(result.month);
+              }
             });
 
-            let paidMonths = [];
-            if (paymentsResponse.ok) {
-              const paymentData = await paymentsResponse.json();
-              paidMonths = paymentData.paidMonths || [];
-              console.log(`✅ Found ${paidMonths.length} paid months for group ${group.id}:`, paidMonths);
-            } else {
-              console.log(`⚠️ No payment data available for group ${group.id}`);
-            }
+            unifiedPaymentStatus[group.id] = groupPaymentMap;
+            
+            console.log(`✅ Group ${group.id} unified payment status:`, groupPaymentMap);
+            console.log(`✅ Paid months for group ${group.id}:`, paidMonths);
 
             return {
               ...group,
               paidMonths
             };
           } catch (error) {
-            console.error(`❌ Error fetching payments for group ${group.id}:`, error);
+            console.error(`❌ Error fetching unified payments for group ${group.id}:`, error);
+            unifiedPaymentStatus[group.id] = {};
             return {
               ...group,
               paidMonths: []
@@ -1046,8 +1068,12 @@ export default function DesktopQRScanner() {
         })
       );
       
+      // Update both states: availableGroups for the payment form and unified status for sync
       setAvailableGroups(groupsWithPayments);
-      console.log('✅ Final groups with payment data:', groupsWithPayments);
+      setGroupPaymentStatus(unifiedPaymentStatus);
+      
+      console.log('✅ Final groups with unified payment data:', groupsWithPayments);
+      console.log('✅ Unified payment status map:', unifiedPaymentStatus);
       
     } catch (error) {
       console.error('❌ Error fetching groups:', error);
@@ -2154,7 +2180,8 @@ export default function DesktopQRScanner() {
                                   </Label>
                                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                                     {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
-                                      const isPaid = group.paidMonths?.includes(month) || false;
+                                      // Use unified payment status for consistent data across components
+                                      const isPaid = groupPaymentStatus[group.id]?.[month] || group.paidMonths?.includes(month) || false;
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
                                       
                                       return (
