@@ -2259,21 +2259,36 @@ export default function DesktopQRScanner() {
                                 <Button 
                                   onClick={async () => {
                                     try {
-                                      const response = await fetch('/api/test-payment', {
-                                        method: 'POST',
-                                        credentials: 'include'
-                                      });
-                                      const result = await response.json();
-                                      console.log('API Test Result:', result);
+                                      // Check actual payment data in database for student ID 1
+                                      const testResults = [];
+                                      for (let month = 1; month <= 12; month++) {
+                                        try {
+                                          const response = await fetch(`/api/groups/1/payment-status/2025/${month}`);
+                                          if (response.ok) {
+                                            const data = await response.json();
+                                            const studentPayment = data.find(p => p.studentId === 1 && p.studentType === 'student');
+                                            if (studentPayment?.isPaid) {
+                                              testResults.push(`${month}月 - مدفوع`);
+                                            }
+                                          }
+                                        } catch (err) {
+                                          // Skip month if API call fails
+                                        }
+                                      }
+                                      
+                                      const paidMonths = testResults.length > 0 ? testResults.join(', ') : 'لا توجد أشهر مدفوعة';
+                                      console.log('Real payment data for student 1:', paidMonths);
+                                      
                                       toast({
-                                        title: result.success ? "API يعمل" : "API لا يعمل",
-                                        description: result.message
+                                        title: "حالة الدفع الحقيقية",
+                                        description: `الأشهر المدفوعة فعلياً: ${paidMonths}`,
+                                        duration: 5000
                                       });
                                     } catch (error) {
-                                      console.error('API Test Error:', error);
+                                      console.error('Payment status check error:', error);
                                       toast({
-                                        title: "خطأ في الاتصال",
-                                        description: "فشل في الاتصال بالخادم",
+                                        title: "خطأ في فحص حالة الدفع",
+                                        description: "فشل في التحقق من البيانات الفعلية",
                                         variant: "destructive"
                                       });
                                     }
@@ -2282,7 +2297,7 @@ export default function DesktopQRScanner() {
                                   size="sm"
                                   className="text-xs block"
                                 >
-                                  اختبار الاتصال
+                                  فحص حالة الدفع الحقيقية
                                 </Button>
                                 <Button 
                                   onClick={async () => {
@@ -2359,7 +2374,7 @@ export default function DesktopQRScanner() {
                       <div className="mb-4">
                         <Button 
                           onClick={() => {
-                            // Create mock test data for payment testing
+                            // Create realistic test data without fake payment status
                             const mockProfile = {
                               id: 1,
                               name: 'طالب تجريبي',
@@ -2367,43 +2382,38 @@ export default function DesktopQRScanner() {
                               enrolledGroups: [
                                 {
                                   id: 1,
-                                  name: 'مجموعة الرياضيات',
-                                  subjectName: 'رياضيات',
+                                  name: 'مجموعة العربية والرياضيات',
+                                  subjectName: 'العربية والرياضيات',
                                   teacherName: 'أستاذ محمد',
-                                  paidMonths: [1, 2, 3, 4] // January to April already paid
+                                  educationLevel: 'الابتدائي',
+                                  paidMonths: [] // Let the real API determine payment status
                                 },
                                 {
                                   id: 2,
                                   name: 'مجموعة العلوم',
                                   subjectName: 'علوم طبيعية',
                                   teacherName: 'أستاذة فاطمة',
-                                  paidMonths: [1, 2] // January to February already paid
+                                  educationLevel: 'المتوسط',
+                                  paidMonths: [] // Let the real API determine payment status
                                 }
                               ]
                             };
                             
-                            const mockGroups = {
-                              1: {
-                                groupName: 'مجموعة الرياضيات',
-                                subjectName: 'رياضيات',
-                                months: [1, 2, 3]
-                              },
-                              2: {
-                                groupName: 'مجموعة العلوم',
-                                subjectName: 'علوم طبيعية',
-                                months: [1, 2]
-                              }
-                            };
-                            
-                            // Set test data
+                            // Set profile and trigger real data fetch
                             setScannedProfile(mockProfile);
-                            setSelectedGroups(mockGroups);
-                            setPaymentAmount('2500');
-                            setAvailableGroups(mockProfile.enrolledGroups);
+                            setSelectedGroups({});
+                            setPaymentAmount('');
+                            
+                            // This will trigger fetchStudentGroups which fetches real payment data
+                            setTimeout(() => {
+                              if (mockProfile) {
+                                fetchStudentGroups();
+                              }
+                            }, 100);
                             
                             toast({
-                              title: "تم تحميل البيانات التجريبية",
-                              description: "الآن يمكنك رؤية الأشهر المدفوعة باللون الأخضر والعلامات ✓"
+                              title: "تم تحميل طالب تجريبي",
+                              description: "سيتم جلب حالة الدفع الحقيقية من قاعدة البيانات"
                             });
                           }}
                           variant="secondary" 
