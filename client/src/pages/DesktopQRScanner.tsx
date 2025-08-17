@@ -145,7 +145,8 @@ function GroupAttendanceTable({
       'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
-    return `${monthNames[parseInt(month) - 1]} ${year}`;
+    const monthIndex = parseInt(month) - 1;
+    return `${monthNames[monthIndex]} ${year}`;
   };
 
   const goToPreviousMonth = () => {
@@ -1644,12 +1645,13 @@ export default function DesktopQRScanner() {
     return Object.values(selectedGroups).reduce((total, group) => total + group.months.length, 0);
   };
 
-  const getMonthName = (monthNum: number) => {
+  const getMonthName = (monthNum: number, year?: number) => {
     const monthNames = [
       'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
-    return monthNames[monthNum - 1] || `الشهر ${monthNum}`;
+    const monthName = monthNames[monthNum - 1] || `الشهر ${monthNum}`;
+    return year ? `${monthName} ${year}` : monthName;
   };
 
   const getPaymentMethodText = (method: string) => {
@@ -2417,7 +2419,7 @@ export default function DesktopQRScanner() {
                       <div key={payment.id} className="flex justify-between items-center p-3 border rounded">
                         <div>
                           <div className="font-medium">
-                            {getMonthName(payment.month)} {payment.year}
+                            {getMonthName(payment.month, payment.year)}
                           </div>
                           {payment.amount && (
                             <div className="text-sm text-gray-600">{payment.amount} دج</div>
@@ -2504,6 +2506,7 @@ export default function DesktopQRScanner() {
                                       // Use unified payment status for consistent data across components
                                       const isPaid = groupPaymentStatus[group.id]?.[month] === true;
                                       const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
+                                      const currentYear = new Date().getFullYear();
                                       
                                       return (
                                         <label 
@@ -2522,7 +2525,7 @@ export default function DesktopQRScanner() {
                                             disabled={isPaid}
                                           />
                                           <span className={`${isPaid ? 'font-medium' : ''}`}>
-                                            {getMonthName(month)}
+                                            {getMonthName(month, currentYear)}
                                             {isPaid && <span className="mr-1 text-green-600">✓</span>}
                                           </span>
                                         </label>
@@ -2546,14 +2549,14 @@ export default function DesktopQRScanner() {
                                       
                                       return unifiedPaidMonths.length > 0 && (
                                         <div className="text-green-700">
-                                          {unifiedPaidMonths.map(m => getMonthName(m)).join(', ')}
+                                          {unifiedPaidMonths.map(m => getMonthName(m, new Date().getFullYear())).join(', ')}
                                         </div>
                                       );
                                     })()}
                                   </div>
                                   {selectedGroups[group.id]?.months.length > 0 && (
                                     <div className="mt-2 text-sm text-blue-600">
-                                      الأشهر المحددة: {selectedGroups[group.id].months.map(m => getMonthName(m)).join(', ')}
+                                      الأشهر المحددة: {selectedGroups[group.id].months.map(m => getMonthName(m, new Date().getFullYear())).join(', ')}
                                     </div>
                                   )}
                                 </div>

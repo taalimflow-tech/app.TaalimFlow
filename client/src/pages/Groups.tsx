@@ -489,14 +489,12 @@ export default function Groups() {
   // Helper function to get month display name
   const getMonthDisplayName = (monthKey: string) => {
     const [year, month] = monthKey.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-    
     const monthNames = [
       'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
-    
-    return `${monthNames[date.getMonth()]} ${year}`;
+    const monthIndex = parseInt(month) - 1;
+    return `${monthNames[monthIndex]} ${year}`;
   };
 
   // Navigation functions
