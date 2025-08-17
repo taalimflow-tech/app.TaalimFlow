@@ -2578,69 +2578,23 @@ export default function DesktopQRScanner() {
                     <div>
                       <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
                       <Input
-              <div className="mb-4">
-                <div className="font-semibold mb-2">معلومات الطالب:</div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div>الاسم: <span className="font-medium">{generatedTicket.studentName}</span></div>
-                </div>
-              </div>
-
-              {/* Payment Details */}
-              <div className="mb-4">
-                <div className="font-semibold mb-2">تفاصيل الدفع:</div>
-                <div className="space-y-2">
-                  {generatedTicket.groups.map((group: any, index: number) => (
-                    <div key={index} className="bg-blue-50 p-3 rounded">
-                      <div className="font-medium text-blue-800">{group.groupName}</div>
-                      <div className="text-sm text-blue-600">{group.subjectName}</div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        الأشهر المدفوعة: {group.months.join(', ')}
-                      </div>
+                        id="amount"
+                        type="number"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="text-lg font-medium"
+                      />
+                      {getTotalSelectedMonths() > 0 && (
+                        <div className="text-sm text-gray-500 mt-1">
+                          إجمالي {getTotalSelectedMonths()} شهر - متوسط {paymentAmount ? (parseFloat(paymentAmount) / getTotalSelectedMonths()).toFixed(2) : '0'} دج/شهر
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Payment Summary */}
-              <div className="border-t pt-4 mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span>المبلغ الإجمالي:</span>
-                  <span className="text-xl font-bold text-green-600">
-                    {generatedTicket.amount.toFixed(2)} دج
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span>طريقة الدفع:</span>
-                  <span>نقدي</span>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="text-center text-xs text-gray-500 border-t pt-3">
-                شكراً لكم على دفع الرسوم في الوقت المحدد
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 mt-6 print:hidden">
-                <Button 
-                  onClick={printTicket}
-                  className="flex-1"
-                >
-                  <Printer className="h-4 w-4 ml-2" />
-                  طباعة
-                </Button>
-                <Button 
-                  onClick={() => setShowTicket(false)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  إغلاق
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                    <div>
+                      <Label htmlFor="notes">ملاحظات</Label>
+                      <Textarea
+                        id="notes"
+                        value={paymentNotes}
+                        onChange={(e) => setPaymentNotes(e.target.value)}
