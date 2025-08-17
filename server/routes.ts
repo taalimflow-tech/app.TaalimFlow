@@ -1167,18 +1167,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // School code verification endpoint
   app.post("/api/school/verify-code", async (req, res) => {
     try {
+      console.log('School verification request:', req.body);
       const { schoolCode } = req.body;
       
       if (!schoolCode) {
+        console.log('No school code provided');
         return res.status(400).json({ error: "رمز المدرسة مطلوب" });
       }
       
+      console.log('Looking up school with code:', schoolCode);
       const school = await storage.getSchoolByCode(schoolCode);
+      console.log('School lookup result:', school);
       
       if (!school) {
+        console.log('School not found for code:', schoolCode);
         return res.status(404).json({ error: "رمز المدرسة غير صحيح" });
       }
       
+      console.log('School found, returning success');
       res.json({ 
         success: true, 
         school: { 
@@ -1189,6 +1195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error verifying school code:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({ error: "فشل في التحقق من رمز المدرسة" });
     }
   });
