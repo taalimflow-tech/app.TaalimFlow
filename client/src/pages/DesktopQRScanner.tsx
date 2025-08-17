@@ -2578,6 +2578,25 @@ export default function DesktopQRScanner() {
                     <div>
                       <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
                       <Input
+                        id="amount"
+                        type="number"
+                        placeholder="أدخل المبلغ"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Ticket Print Preview */}
+        {showTicket && generatedTicket && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="mb-4">
                 <div className="font-semibold mb-2">معلومات الطالب:</div>
                 <div className="bg-gray-50 p-3 rounded">
@@ -2639,8 +2658,7 @@ export default function DesktopQRScanner() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }
