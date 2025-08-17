@@ -1387,24 +1387,39 @@ export default function Groups() {
             
             {showAdminGroups && (
               <CardContent className="pt-0">
-                {/* Custom Subject Creation Button - Always Visible */}
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-green-800 mb-1">إنشاء مادة مخصصة</h4>
-                      <p className="text-sm text-green-600">أنشئ مواد جديدة خارج المنهج الرسمي</p>
+                {/* Custom Subject Creation Button - Only for School Admins */}
+                {user?.role === 'admin' && (
+                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-green-800 mb-1">إنشاء مادة مخصصة</h4>
+                        <p className="text-sm text-green-600">أنشئ مواد جديدة خارج المنهج الرسمي</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowCustomSubjectModal(true)}
+                        className="border-green-300 text-green-600 hover:bg-green-100"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        إنشاء مادة مخصصة
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCustomSubjectModal(true)}
-                      className="border-green-300 text-green-600 hover:bg-green-100"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      إنشاء مادة مخصصة
-                    </Button>
                   </div>
-                </div>
+                )}
+                
+                {/* Super Admin Info Message */}
+                {user?.role === 'super_admin' && (
+                  <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-orange-600" />
+                      <div>
+                        <h4 className="font-medium text-orange-800 mb-1">عرض المجموعات فقط</h4>
+                        <p className="text-sm text-orange-600">المسؤولين العامين يمكنهم عرض وإدارة المجموعات الموجودة، إنشاء مجموعات جديدة يتم من قبل مدير المدرسة</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {loadingAdminGroups ? (
                   <div className="flex items-center justify-center py-8">
@@ -1413,8 +1428,8 @@ export default function Groups() {
                 ) : user?.role === 'super_admin' && adminGroups.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="w-12 h-12 mx-auto text-orange-400 mb-4" />
-                    <p className="text-orange-600">يرجى اختيار مدرسة لإدارة المجموعات</p>
-                    <p className="text-sm text-orange-500 mt-1">المسؤولين العامين يحتاجون لتحديد المدرسة أولاً</p>
+                    <p className="text-orange-600">لا توجد مجموعات في هذه المدرسة</p>
+                    <p className="text-sm text-orange-500 mt-1">المسؤولين العامين يمكنهم عرض المجموعات فقط، إنشاء المجموعات يتم من قبل مدير المدرسة</p>
                   </div>
                 ) : adminGroups.length === 0 ? (
                   <div className="text-center py-8">
@@ -1504,20 +1519,22 @@ export default function Groups() {
                         
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-semibold text-gray-800">المواد المتاحة</h3>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              // Pre-fill the custom subject modal with the current selection
-                              setCustomSubjectLevel(selectedLevel);
-                              setCustomSubjectGrade(selectedGrade || '');
-                              setShowCustomSubjectModal(true);
-                            }}
-                            className="border-green-300 text-green-600 hover:bg-green-50"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            إنشاء مادة مخصصة
-                          </Button>
+                          {user?.role === 'admin' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Pre-fill the custom subject modal with the current selection
+                                setCustomSubjectLevel(selectedLevel);
+                                setCustomSubjectGrade(selectedGrade || '');
+                                setShowCustomSubjectModal(true);
+                              }}
+                              className="border-green-300 text-green-600 hover:bg-green-50"
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              إنشاء مادة مخصصة
+                            </Button>
+                          )}
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
@@ -1592,6 +1609,133 @@ export default function Groups() {
         </div>
       )}
       
+      {/* Super Admin Read-Only Groups Section */}
+      {user?.role === 'super_admin' && selectedSchoolId && (
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-6 border border-orange-200">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <Users className="h-5 w-5 ml-2 text-orange-600" />
+              المجموعات الموجودة - {schools.find((s: any) => s.id === selectedSchoolId)?.name} (عرض فقط)
+            </h2>
+            
+            {/* Education Level Filter Tabs */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {['الابتدائي', 'المتوسط', 'الثانوي', 'مجموعات مخصصة'].map((level) => (
+                <button
+                  key={level}
+                  onClick={() => {
+                    const filterValue = level === 'مجموعات مخصصة' ? 'custom' : level;
+                    setExistingGroupsFilter(filterValue);
+                    setSelectedYearFilter('');
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    existingGroupsFilter === (level === 'مجموعات مخصصة' ? 'custom' : level)
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-orange-50'
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+
+            {/* Groups Display - Read Only for Super Admin */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+              {existingGroupsFilter && (() => {
+                let filteredGroups = [];
+                const adminCreatedGroups = adminGroups.filter(group => !group.isPlaceholder);
+                
+                if (existingGroupsFilter === 'custom') {
+                  filteredGroups = adminCreatedGroups.filter(group => {
+                    const teachingModule = teachingModules?.find((module: any) => module.id === group.subjectId);
+                    if (!teachingModule || !teachingModule.schoolId) return false;
+                    
+                    const subjectName = (teachingModule.nameAr || teachingModule.name || '').toLowerCase();
+                    const standardSubjects = [
+                      'العربية والرياضيات', 'عربية', 'رياضيات', 'فرنسية', 'انجليزية', 'علوم',
+                      'تاريخ', 'جغرافيا', 'تربية إسلامية', 'فيزياء', 'كيمياء', 'أحياء'
+                    ];
+                    
+                    const isStandardSubject = standardSubjects.some(standard => 
+                      subjectName.includes(standard.toLowerCase())
+                    );
+                    
+                    return !isStandardSubject;
+                  });
+                } else {
+                  filteredGroups = adminCreatedGroups.filter(group => group.educationLevel === existingGroupsFilter);
+                }
+
+                return filteredGroups.length > 0 ? (
+                  filteredGroups.map((group) => {
+                    const getTeacherName = () => {
+                      if (group.teacherId && teachers) {
+                        const teacher = teachers.find((t: any) => t.id === group.teacherId);
+                        return teacher ? teacher.name : 'غير محدد';
+                      }
+                      return 'غير محدد';
+                    };
+
+                    const getBadgeColor = () => {
+                      switch(group.educationLevel) {
+                        case 'الابتدائي': return 'bg-green-100 text-green-800';
+                        case 'المتوسط': return 'bg-blue-100 text-blue-800';
+                        case 'الثانوي': return 'bg-purple-100 text-purple-800';
+                        default: return 'bg-gray-100 text-gray-800';
+                      }
+                    };
+
+                    return (
+                      <Card key={group.id || group.name} className="border border-orange-200 hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <div className="flex justify-start gap-2">
+                              <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
+                                {getSimpleLevelFormat(group)}
+                              </span>
+                              <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-800">
+                                عرض فقط
+                              </span>
+                            </div>
+                            
+                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || group.subjectNameAr || group.name_ar || 'مادة غير محددة'}</h3>
+                            
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">المعلم:</span> {getTeacherName()}
+                            </div>
+                            
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Users className="h-4 w-4 ml-1" />
+                              <span>{group.studentsAssigned?.length || 0} طالب</span>
+                            </div>
+                            
+                            <div className="text-xs text-orange-600 text-center py-2 bg-orange-50 rounded">
+                              المسؤولين العامين يمكنهم عرض المجموعات فقط
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <div className="col-span-full text-center py-8">
+                    <div className="text-gray-500">
+                      <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">
+                        {existingGroupsFilter === 'custom' 
+                          ? 'لا توجد مجموعات مخصصة في هذه المدرسة'
+                          : `لا توجد مجموعات في ${existingGroupsFilter} في هذه المدرسة`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Admin-Created Groups Section */}
       {user?.role === 'admin' && (
         <div className="mb-8">

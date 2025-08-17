@@ -7,6 +7,7 @@ This Progressive Web App (PWA) is a React-based mobile portal for private school
 Preferred communication style: Simple, everyday language in English. User prefers English communication over other languages.
 Security preference: Code-based school access instead of public school directory for enhanced privacy and security.
 Interface preference: Phone verification functionality removed from Profile page for simplified user experience.
+Access control preference: School admins should create groups, super admins should only have read-only access to view groups across schools without creation capabilities.
 
 ## System Architecture
 
@@ -33,7 +34,7 @@ Interface preference: Phone verification functionality removed from Profile page
 - **Data Flow**: TanStack Query for client-side caching, Express routes with Drizzle ORM for server-side data, Firebase Storage for files.
 - **User Management**: Role-based access for students, parents, teachers, and admins. Includes student and child registration, user verification (document-based), and user banning functionality.
 - **Communication & Content**: Announcement and blog systems, messaging between users, and a comprehensive notification system.
-- **Group & Formation Management**: Creation and management of learning groups and training courses, including student assignment, attendance tracking, and financial management per group. Supports mixed assignment of direct students and children. Implements intelligent year-based filtering and standardized teaching module grade format.
+- **Group & Formation Management**: Creation and management of learning groups and training courses, including student assignment, attendance tracking, and financial management per group. Supports mixed assignment of direct students and children. Implements intelligent year-based filtering and standardized teaching module grade format. **Role-based access control**: School admins create and manage groups, super admins have read-only access across schools.
 - **Scheduling System**: Comprehensive schedule management with independent grids per classroom, 30-minute intervals, precise time control, and color-coded displays.
 - **Reporting**: Admin interface for managing user reports and banning users.
 - **Subject Management**: Complete Algerian education curriculum with proper Arabic subject names organized by education level, covering all standard subjects and specializations.
