@@ -1775,17 +1775,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin group management routes
   app.get("/api/admin/groups", async (req, res) => {
     try {
-      if (!req.session.user || req.session.user.role !== 'admin') {
+      console.log('🔍 Admin groups access attempt:', {
+        sessionExists: !!req.session,
+        userExists: !!req.session?.user,
+        userRole: req.session?.user?.role,
+        sessionId: req.session?.id,
+        query: req.query
+      });
+      
+      if (!req.session.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'super_admin')) {
+        console.log('❌ Access denied - role check failed');
         return res.status(403).json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
       }
       
-      // CRITICAL: Prevent access if admin doesn't belong to a school
-      if (!req.session.user.schoolId) {
-        return res.status(403).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+      // Handle super admin vs regular admin
+      if (req.session.user.role === 'super_admin') {
+        // Super admins need to specify a schoolId via query parameter
+        const schoolId = req.query.schoolId ? parseInt(req.query.schoolId as string) : null;
+        if (!schoolId) {
+          // Return empty array for super admin without schoolId context
+          // Frontend should handle school selection for super admins
+          return res.json([]);
+        }
+        const adminGroups = await storage.getAdminGroups(schoolId);
+        res.json(adminGroups);
+      } else {
+        // Regular admin - must have schoolId
+        if (!req.session.user.schoolId) {
+          return res.status(403).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+        }
+        const adminGroups = await storage.getAdminGroups(req.session.user.schoolId);
+        res.json(adminGroups);
       }
-      
-      const adminGroups = await storage.getAdminGroups(req.session.user.schoolId);
-      res.json(adminGroups);
     } catch (error) {
       console.error("Error in /api/admin/groups:", error);
       res.status(500).json({ error: "Failed to fetch admin groups" });

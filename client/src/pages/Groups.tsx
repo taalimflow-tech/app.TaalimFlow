@@ -506,10 +506,27 @@ export default function Groups() {
     setCurrentMonthIndex(prev => Math.min(monthKeys.length - 1, prev + 1));
   };
 
+  // Super admin school selection state
+  const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
+
+  // Fetch schools for super admin
+  const { data: schools = [] } = useQuery<any[]>({
+    queryKey: ['/api/super-admin/schools'],
+    enabled: !!user && user.role === 'super_admin',
+  });
+
   // Admin data queries
   const { data: adminGroups = [], isLoading: loadingAdminGroups } = useQuery<any[]>({
     queryKey: ['/api/admin/groups'],
-    enabled: !!user && user.role === 'admin',
+    queryFn: () => {
+      if (user?.role === 'super_admin' && selectedSchoolId) {
+        return fetch(`/api/admin/groups?schoolId=${selectedSchoolId}`).then(res => res.json());
+      } else if (user?.role === 'admin') {
+        return fetch('/api/admin/groups').then(res => res.json());
+      }
+      return [];
+    },
+    enabled: !!user && ((user.role === 'admin') || (user.role === 'super_admin' && !!selectedSchoolId)),
   });
 
   const { data: teachingModules = [] } = useQuery<any[]>({
@@ -1296,15 +1313,65 @@ export default function Groups() {
         </div>
       </div>
       
+      {/* Super Admin School Selection */}
+      {user?.role === 'super_admin' && (
+        <div className="mb-8">
+          <Card className="border-2 border-orange-200 bg-orange-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-orange-800 flex items-center">
+                <Settings className="h-5 w-5 ml-2" />
+                اختيار المدرسة لإدارة المجموعات
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    اختر المدرسة
+                  </label>
+                  <select
+                    value={selectedSchoolId || ''}
+                    onChange={(e) => setSelectedSchoolId(e.target.value ? parseInt(e.target.value) : null)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="">اختر مدرسة...</option>
+                    {schools.map((school: any) => (
+                      <option key={school.id} value={school.id}>
+                        {school.name} ({school.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  {selectedSchoolId && (
+                    <div className="text-sm text-green-600 flex items-center">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      مدرسة محددة - يمكنك الآن إدارة المجموعات
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Admin Group Management Section */}
-      {user?.role === 'admin' && (
+      {(user?.role === 'admin' || (user?.role === 'super_admin' && selectedSchoolId)) && (
         <div className="mb-8">
           <Card className="border-2 border-blue-200 bg-blue-50">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Settings className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold text-blue-800">إدارة المجموعات الموجودة</h3>
+                  <h3 className="text-lg font-semibold text-blue-800">
+                    إدارة المجموعات الموجودة
+                    {user?.role === 'super_admin' && selectedSchoolId && (
+                      <span className="text-sm text-gray-600 mr-2 font-normal">
+                        - {schools.find((s: any) => s.id === selectedSchoolId)?.name}
+                      </span>
+                    )}
+                  </h3>
                 </div>
                 <Button
                   variant="outline"
@@ -1342,6 +1409,12 @@ export default function Groups() {
                 {loadingAdminGroups ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : user?.role === 'super_admin' && adminGroups.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="w-12 h-12 mx-auto text-orange-400 mb-4" />
+                    <p className="text-orange-600">يرجى اختيار مدرسة لإدارة المجموعات</p>
+                    <p className="text-sm text-orange-500 mt-1">المسؤولين العامين يحتاجون لتحديد المدرسة أولاً</p>
                   </div>
                 ) : adminGroups.length === 0 ? (
                   <div className="text-center py-8">
