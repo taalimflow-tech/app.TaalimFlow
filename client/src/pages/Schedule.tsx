@@ -1087,19 +1087,44 @@ export default function Schedule() {
                     <SelectValue placeholder="اختر المادة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {modules
-                      .filter((module: TeachingModule) => 
-                        cellForm.educationLevel === '' || 
-                        module.educationLevel === cellForm.educationLevel ||
-                        (cellForm.educationLevel === 'الابتدائي' && module.educationLevel === 'Primary') ||
-                        (cellForm.educationLevel === 'المتوسط' && module.educationLevel === 'Middle') ||
-                        (cellForm.educationLevel === 'الثانوي' && module.educationLevel === 'Secondary')
-                      )
-                      .map((module: TeachingModule) => (
-                        <SelectItem key={module.id} value={module.id.toString()}>
-                          {module.nameAr}
-                        </SelectItem>
-                      ))}
+                    {(() => {
+                      // Filter modules by education level and grade
+                      let filteredModules = modules.filter((module: TeachingModule) => {
+                        // Match education level (both Arabic and English formats)
+                        const levelMatch = cellForm.educationLevel === '' || 
+                          module.educationLevel === cellForm.educationLevel ||
+                          (cellForm.educationLevel === 'الابتدائي' && module.educationLevel === 'Primary') ||
+                          (cellForm.educationLevel === 'المتوسط' && module.educationLevel === 'Middle') ||
+                          (cellForm.educationLevel === 'الثانوي' && module.educationLevel === 'Secondary');
+                        
+                        if (!levelMatch) return false;
+                        
+                        // Match grade if selected
+                        if (cellForm.grade && module.grade) {
+                          return module.grade === cellForm.grade || module.grade === 'جميع المستويات';
+                        }
+                        
+                        return true;
+                      });
+                      
+                      // Remove duplicates by Arabic name
+                      const uniqueModules = filteredModules.reduce((acc: TeachingModule[], current: TeachingModule) => {
+                        const existingModule = acc.find(m => m.nameAr === current.nameAr);
+                        if (!existingModule) {
+                          acc.push(current);
+                        }
+                        return acc;
+                      }, []);
+                      
+                      // Sort alphabetically by Arabic name
+                      return uniqueModules
+                        .sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'))
+                        .map((module: TeachingModule) => (
+                          <SelectItem key={module.id} value={module.id.toString()}>
+                            {module.nameAr}
+                          </SelectItem>
+                        ));
+                    })()}
                   </SelectContent>
                 </Select>
               </div>
