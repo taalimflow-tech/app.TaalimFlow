@@ -2671,10 +2671,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Emergency super admin creation endpoint
+  app.post("/api/emergency/create-super-admin", async (req, res) => {
+    try {
+      const { emergencyKey } = req.body;
+      
+      // Safety check
+      if (emergencyKey !== "EMERGENCY_SUPER_ADMIN_CREATE_2024") {
+        return res.status(403).json({ error: "Emergency key required" });
+      }
+      
+      const email = "mou3atheacc@gmail.com";
+      const password = "SUPER_ADMIN_2024_MASTER_KEY";
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        console.log('🔍 Super admin already exists:', {
+          userRole: existingUser.role,
+          userBanned: existingUser.banned,
+          passwordType: existingUser.password.startsWith('$2b$') ? 'bcrypt' : 'plaintext'
+        });
+        return res.json({ 
+          message: "Super admin already exists", 
+          userExists: true,
+          role: existingUser.role,
+          email: existingUser.email 
+        });
+      }
+      
+      // Create new super admin user
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      const newUser = await storage.createUser({
+        email: email,
+        password: hashedPassword,
+        name: "Super Administrator",
+        phone: "0123456789",
+        role: "super_admin",
+        schoolId: null,
+      });
+      
+      console.log('✅ Emergency super admin created:', newUser.email);
+      res.json({ 
+        message: "Super admin created successfully",
+        userCreated: true,
+        email: newUser.email,
+        role: newUser.role
+      });
+    } catch (error) {
+      console.error('Emergency super admin creation error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Super Admin Authentication Routes (Hidden Access)
   app.post("/api/auth/super-admin-login", async (req, res) => {
+    console.log('🔍 Received super admin login request');
+    console.log('Request body:', req.body);
+    console.log('Content-Type:', req.get('Content-Type'));
+    
     try {
       const { email, password } = loginSchema.parse(req.body);
       
@@ -2712,8 +2771,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
     } catch (error) {
-      console.error('❌ Super admin login error:', error);
-      res.status(400).json({ error: "بيانات غير صحيحة" });
+      console.error('❌ Super admin login error details:');
+      console.error('Error message:', error.message);
+      console.error('Error name:', error.name);
+      console.error('Full error:', error);
+      res.status(400).json({ error: "بيانات غير صحيحة", details: error.message });
     }
   });
 
