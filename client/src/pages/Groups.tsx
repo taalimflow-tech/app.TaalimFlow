@@ -1238,11 +1238,12 @@ export default function Groups() {
         return existingGroup;
       } else {
         // Create a placeholder group
+        const arabicName = module.nameAr || module.name_ar || module.subjectNameAr || 'مادة غير محددة';
         return {
           id: null, // No ID means it's a placeholder
-          name: `مجموعة ${module.name_ar || module.name || 'مادة غير محددة'}`,
-          nameAr: module.name_ar || module.name,
-          subjectName: module.name_ar || module.name,
+          name: `مجموعة ${arabicName}`,
+          nameAr: arabicName,
+          subjectName: arabicName,
           subjectId: module.id,
           educationLevel: selectedLevel,
           teacherId: null,
@@ -1454,7 +1455,7 @@ export default function Groups() {
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <h4 className="font-medium text-gray-900">
-                                  {group.nameAr || group.subjectName || group.name || 'مادة غير محددة'}
+                                  {group.nameAr || group.subjectName || group.subjectNameAr || group.name_ar || 'مادة غير محددة'}
                                 </h4>
                                 <span className={`text-xs px-2 py-1 rounded ${group.isPlaceholder ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                                   {group.isPlaceholder ? 'فارغة' : 'نشطة'}
@@ -1774,7 +1775,7 @@ export default function Groups() {
                             </div>
                             
                             {/* Title */}
-                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || group.name || 'مادة غير محددة'}</h3>
+                            <h3 className="font-semibold text-gray-800">{group.nameAr || group.subjectName || group.subjectNameAr || group.name_ar || 'مادة غير محددة'}</h3>
                             
                             {/* Teacher */}
                             <div className="text-sm text-gray-600">
@@ -1901,7 +1902,7 @@ export default function Groups() {
               <div className="text-sm text-gray-600">
                 <p><strong>الاسم:</strong> {selectedAdminGroup.name}</p>
                 <p><strong>المستوى والسنة:</strong> {getSimpleLevelFormat(selectedAdminGroup)}</p>
-                <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName}</p>
+                <p><strong>المادة:</strong> {selectedAdminGroup.nameAr || selectedAdminGroup.subjectName || selectedAdminGroup.subjectNameAr || selectedAdminGroup.name_ar || 'مادة غير محددة'}</p>
               </div>
             </div>
 
