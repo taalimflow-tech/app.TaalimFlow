@@ -499,7 +499,7 @@ const months = [
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
 ];
 
-export default function DesktopQRScanner() {
+function DesktopQRScanner() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -2575,7 +2575,7 @@ export default function DesktopQRScanner() {
 
                     {/* Payment Details */}
                     <Separator />
-                    <div>
+                    <div className="mt-4">
                       <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
                       <Input
                         id="amount"
@@ -2585,6 +2585,15 @@ export default function DesktopQRScanner() {
                         onChange={(e) => setPaymentAmount(e.target.value)}
                         className="mt-1"
                       />
+                      
+                      <Button 
+                        onClick={generatePaymentTicket}
+                        className="mt-4 w-full"
+                        disabled={!paymentAmount || Object.keys(selectedGroups).length === 0}
+                      >
+                        <FileText className="h-4 w-4 ml-2" />
+                        إنشاء إيصال الدفع
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -2662,3 +2671,5 @@ export default function DesktopQRScanner() {
       </div>
     );
   }
+
+export default DesktopQRScanner;
