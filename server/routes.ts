@@ -2678,25 +2678,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
+      console.log('🔍 Super admin login attempt:', {
+        email: email,
+        passwordLength: password.length,
+        timestamp: new Date().toISOString()
+      });
+      
       const user = await storage.authenticateUser(email, password);
       
+      console.log('🔍 Authentication result:', {
+        userFound: !!user,
+        userRole: user?.role,
+        userEmail: user?.email,
+        userBanned: user?.banned
+      });
+      
       if (!user || user.role !== "super_admin") {
+        console.log('❌ Login failed: No user found or not super admin');
         return res.status(401).json({ error: "بيانات اعتماد المسؤول العام غير صحيحة" });
       }
 
       // Check if user is banned
       if (user.banned) {
+        console.log('❌ Login failed: User is banned');
         return res.status(403).json({ 
           error: `تم حظر حسابك من النظام. السبب: ${user.banReason || 'لم يتم تحديد السبب'}` 
         });
       }
 
+      console.log('✅ Super admin login successful:', user.email);
       req.session.user = user;
       req.session.userId = user.id;
       const { password: _, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
     } catch (error) {
-      console.error('Super admin login error:', error);
+      console.error('❌ Super admin login error:', error);
       res.status(400).json({ error: "بيانات غير صحيحة" });
     }
   });
