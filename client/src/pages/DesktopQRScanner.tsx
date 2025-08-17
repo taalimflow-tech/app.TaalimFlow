@@ -1654,6 +1654,19 @@ export default function DesktopQRScanner() {
     return year ? `${monthName} ${year}` : monthName;
   };
 
+  // Generate academic year months starting from a specific month (e.g., August = 8)
+  // Returns array of {month, year} objects for a full academic year
+  const generateAcademicYearMonths = (startMonth: number = 8, academicStartYear: number = new Date().getFullYear()) => {
+    const months = [];
+    for (let i = 0; i < 12; i++) {
+      const monthNum = ((startMonth - 1 + i) % 12) + 1;
+      // If we've gone past December, increment the year
+      const year = (startMonth + i > 12) ? academicStartYear + 1 : academicStartYear;
+      months.push({ month: monthNum, year });
+    }
+    return months;
+  };
+
   const getPaymentMethodText = (method: string) => {
     const methods = {
       'cash': 'نقدي',
@@ -1814,7 +1827,7 @@ export default function DesktopQRScanner() {
 
         <div class="section">
           <div class="section-title">تفاصيل الدفع:</div>
-          ${generatedTicket.groups.map(group => `
+          ${generatedTicket.groups.map((group: any) => `
             <div class="group-item">
               <div class="group-name">${group.groupName}</div>
               <div class="subject-name">${group.subjectName}</div>
@@ -2502,35 +2515,40 @@ export default function DesktopQRScanner() {
                                     الأشهر المراد دفعها:
                                   </Label>
                                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                                    {Array.from({length: 12}, (_, i) => i + 1).map((month) => {
-                                      // Use unified payment status for consistent data across components
-                                      const isPaid = groupPaymentStatus[group.id]?.[month] === true;
-                                      const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
-                                      const currentYear = new Date().getFullYear();
+                                    {(() => {
+                                      // Generate academic year months starting from August 2025 
+                                      // For now, default to August start - in future could be from group.startMonth
+                                      const academicMonths = generateAcademicYearMonths(8, 2025);
                                       
-                                      return (
-                                        <label 
-                                          key={month} 
-                                          className={`flex items-center space-x-2 cursor-pointer p-2 rounded text-sm transition-colors ${
-                                            isPaid 
-                                              ? 'bg-green-100 text-green-800 border border-green-200' 
-                                              : 'bg-gray-50 hover:bg-gray-100'
-                                          } ${isSelected && !isPaid ? 'ring-2 ring-blue-400' : ''}`}
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={isSelected}
-                                            onChange={() => handleMonthToggle(group.id, month)}
-                                            className="ml-1"
-                                            disabled={isPaid}
-                                          />
-                                          <span className={`${isPaid ? 'font-medium' : ''}`}>
-                                            {getMonthName(month, currentYear)}
-                                            {isPaid && <span className="mr-1 text-green-600">✓</span>}
-                                          </span>
-                                        </label>
-                                      );
-                                    })}
+                                      return academicMonths.map(({month, year}) => {
+                                        // Use unified payment status for consistent data across components
+                                        const isPaid = groupPaymentStatus[group.id]?.[month] === true;
+                                        const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
+                                        
+                                        return (
+                                          <label 
+                                            key={`${month}-${year}`} 
+                                            className={`flex items-center space-x-2 cursor-pointer p-2 rounded text-sm transition-colors ${
+                                              isPaid 
+                                                ? 'bg-green-100 text-green-800 border border-green-200' 
+                                                : 'bg-gray-50 hover:bg-gray-100'
+                                            } ${isSelected && !isPaid ? 'ring-2 ring-blue-400' : ''}`}
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={() => handleMonthToggle(group.id, month)}
+                                              className="ml-1"
+                                              disabled={isPaid}
+                                            />
+                                            <span className={`${isPaid ? 'font-medium' : ''}`}>
+                                              {getMonthName(month, year)}
+                                              {isPaid && <span className="mr-1 text-green-600">✓</span>}
+                                            </span>
+                                          </label>
+                                        );
+                                      });
+                                    })()}
                                   </div>
                                   
                                   {/* Payment Status Summary */}
@@ -2549,14 +2567,26 @@ export default function DesktopQRScanner() {
                                       
                                       return unifiedPaidMonths.length > 0 && (
                                         <div className="text-green-700">
-                                          {unifiedPaidMonths.map(m => getMonthName(m, new Date().getFullYear())).join(', ')}
+                                          {unifiedPaidMonths.map(m => {
+                                            // Determine correct year for academic year display
+                                            const academicMonths = generateAcademicYearMonths(8, 2025);
+                                            const academicMonth = academicMonths.find(am => am.month === m);
+                                            const displayYear = academicMonth ? academicMonth.year : new Date().getFullYear();
+                                            return getMonthName(m, displayYear);
+                                          }).join(', ')}
                                         </div>
                                       );
                                     })()}
                                   </div>
                                   {selectedGroups[group.id]?.months.length > 0 && (
                                     <div className="mt-2 text-sm text-blue-600">
-                                      الأشهر المحددة: {selectedGroups[group.id].months.map(m => getMonthName(m, new Date().getFullYear())).join(', ')}
+                                      الأشهر المحددة: {selectedGroups[group.id].months.map(m => {
+                                        // Determine correct year for academic year display
+                                        const academicMonths = generateAcademicYearMonths(8, 2025);
+                                        const academicMonth = academicMonths.find(am => am.month === m);
+                                        const displayYear = academicMonth ? academicMonth.year : new Date().getFullYear();
+                                        return getMonthName(m, displayYear);
+                                      }).join(', ')}
                                     </div>
                                   )}
                                 </div>
@@ -2603,7 +2633,7 @@ export default function DesktopQRScanner() {
                                           });
                                           if (response.ok) {
                                             const data = await response.json();
-                                            const studentPayment = data.find(p => p.studentId === 1 && p.studentType === 'student');
+                                            const studentPayment = data.find((p: any) => p.studentId === 1 && p.studentType === 'student');
                                             if (studentPayment?.isPaid) {
                                               testResults.push(`${month} - مدفوع`);
                                             }
