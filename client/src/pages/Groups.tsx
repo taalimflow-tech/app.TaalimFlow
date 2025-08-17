@@ -1611,10 +1611,6 @@ export default function Groups() {
                       <option value="الأولى ثانوي">الأولى ثانوي</option>
                       <option value="الثانية ثانوي">الثانية ثانوي</option>
                       <option value="الثالثة ثانوي">الثالثة ثانوي</option>
-                      <option value="علمي">علمي</option>
-                      <option value="أدبي">أدبي</option>
-                      <option value="تسيير واقتصاد">تسيير واقتصاد</option>
-                      <option value="تقني رياضي">تقني رياضي</option>
                     </>
                   )}
                 </select>
@@ -1699,18 +1695,6 @@ export default function Groups() {
                             
                             if (isThirdYearSpec) {
                               console.log(`DEBUG: Secondary specialization match for "${group.name}"`);
-                              return true;
-                            }
-                          }
-                          
-                          // Also handle reverse: when specialization is selected, match 3rd year groups
-                          if (existingGroupsFilter === 'الثانوي') {
-                            const selectedSpecializations = ['تسيير واقتصاد', 'علمي', 'أدبي', 'تقني رياضي'];
-                            const isSpecializationSelected = selectedSpecializations.includes(selectedYearFilter);
-                            const isThirdYearModule = moduleGrade === 'الثالثة ثانوي';
-                            
-                            if (isSpecializationSelected && isThirdYearModule) {
-                              console.log(`DEBUG: Specialization-to-year match for "${group.name}"`);
                               return true;
                             }
                           }
