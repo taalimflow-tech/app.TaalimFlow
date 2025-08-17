@@ -55,9 +55,22 @@ interface Teacher {
   id: number;
   name: string;
   gender: string;
-  email?: string;
-  phone?: string;
-  role?: string;
+  specializations: {
+    id: number;
+    name: string;
+    nameAr: string;
+    educationLevel: string;
+    grade: string;
+  }[];
+}
+
+interface Teacher {
+  id: number;
+  name: string;
+  gender: string;
+  email: string;
+  phone: string;
+  role: string;
   specializations: {
     id: number;
     name: string;
@@ -268,34 +281,29 @@ export default function Schedule() {
   // Fetch schedule tables
   const { data: tables = [], isLoading: tablesLoading } = useQuery({
     queryKey: ['/api/schedule-tables']
-  }) as { data: ScheduleTable[]; isLoading: boolean };
+  });
 
   // Fetch schedule cells for selected table
   const { data: cells = [], isLoading: cellsLoading } = useQuery({
     queryKey: [`/api/schedule-cells/${selectedTable}`],
     enabled: selectedTable !== null
-  }) as { data: ScheduleCell[]; isLoading: boolean };
+  });
 
   // Fetch teaching modules
   const { data: modules = [] } = useQuery({
     queryKey: ['/api/teaching-modules']
-  }) as { data: TeachingModule[] };
+  });
 
   // Fetch teachers with specializations
   const { data: teachers = [] } = useQuery({
     queryKey: ['/api/teachers-with-specializations']
-  }) as { data: Teacher[] };
+  });
 
   // Fetch compatible groups for linking
-  const { data: compatibleGroups = [], isError: compatibleGroupsError } = useQuery({
+  const { data: compatibleGroups = [] } = useQuery({
     queryKey: ['/api/groups/compatible', linkingCell?.subject?.id, linkingCell?.teacher?.id, linkingCell?.educationLevel],
     queryFn: async () => {
       if (!linkingCell?.subject?.id || !linkingCell?.teacher?.id || !linkingCell?.educationLevel) {
-        console.warn('Missing parameters for compatible groups:', {
-          subjectId: linkingCell?.subject?.id,
-          teacherId: linkingCell?.teacher?.id,
-          educationLevel: linkingCell?.educationLevel
-        });
         return [];
       }
       
@@ -305,26 +313,17 @@ export default function Schedule() {
         educationLevel: linkingCell.educationLevel
       });
       
-      console.log('Fetching compatible groups with params:', params.toString());
       const response = await apiRequest('GET', `/api/groups/compatible?${params.toString()}`);
-      const result = await response.json();
-      console.log('Compatible groups result:', result);
-      return result;
+      return await response.json();
     },
     enabled: !!linkingCell && !!linkingCell.subject?.id && !!linkingCell.teacher?.id,
   });
-
-  // Fetch all groups as fallback when no compatible groups are found
-  const { data: allGroups = [] } = useQuery({
-    queryKey: ['/api/groups'],
-    enabled: !!linkingCell && compatibleGroups.length === 0,
-  }) as { data: any[] };
 
   // Fetch linked groups for all cells
   const { data: linkedGroups = [] } = useQuery({
     queryKey: ['/api/schedule-cells/linked-groups', selectedTable],
     enabled: selectedTable !== null,
-  }) as { data: any[] };
+  });
 
   // Create schedule table
   const createTableMutation = useMutation({
@@ -1206,61 +1205,42 @@ export default function Schedule() {
 
               {/* Compatible Groups */}
               <div>
-                {linkingCell && (
-                  <div className="mb-3 p-2 bg-blue-50 rounded text-xs">
-                    <strong>Debug Info:</strong> Subject ID: {linkingCell.subject?.id}, 
-                    Teacher ID: {linkingCell.teacher?.id}, 
-                    Education Level: {linkingCell.educationLevel}
-                  </div>
-                )}
-                
-                <h4 className="font-medium text-sm mb-3">
-                  {compatibleGroups.length > 0 ? 'المجموعات المتوافقة:' : 
-                   allGroups.length > 0 ? 'جميع المجموعات المتاحة:' : 'المجموعات:'}
-                </h4>
-                
-                {(compatibleGroups.length > 0 ? compatibleGroups : allGroups).length > 0 ? (
-                  <>
-                    {compatibleGroups.length === 0 && allGroups.length > 0 && (
-                      <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                        لا توجد مجموعات متطابقة تماماً. يتم عرض جميع المجموعات المتاحة.
-                      </div>
-                    )}
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {(compatibleGroups.length > 0 ? compatibleGroups : allGroups).map((group: any) => (
-                        <div
-                          key={group.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                            selectedGroups.includes(group.id)
-                              ? 'border-purple-500 bg-purple-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => handleGroupToggle(group.id)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-sm">{group.name}</div>
-                              <div className="text-xs text-gray-500">
-                                {group.studentsCount || group.studentsAssigned?.length || 0} طالب
-                              </div>
-                            </div>
-                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                              selectedGroups.includes(group.id)
-                                ? 'border-purple-500 bg-purple-500'
-                                : 'border-gray-300'
-                            }`}>
-                              {selectedGroups.includes(group.id) && (
-                                <div className="w-2 h-2 bg-white rounded-full" />
-                              )}
+                <h4 className="font-medium text-sm mb-3">المجموعات المتوافقة:</h4>
+                {compatibleGroups.length > 0 ? (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {compatibleGroups.map((group: any) => (
+                      <div
+                        key={group.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          selectedGroups.includes(group.id)
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleGroupToggle(group.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-sm">{group.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {group.studentsCount || group.studentsAssigned?.length || 0} طالب
                             </div>
                           </div>
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                            selectedGroups.includes(group.id)
+                              ? 'border-purple-500 bg-purple-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedGroups.includes(group.id) && (
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            )}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="text-sm text-gray-500 text-center py-4">
-                    لا توجد مجموعات في النظام. قم بإنشاء مجموعة أولاً.
+                    لا توجد مجموعات متوافقة مع هذه الحصة
                   </div>
                 )}
               </div>
