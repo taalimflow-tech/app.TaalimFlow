@@ -2598,11 +2598,12 @@ function DesktopQRScanner() {
                   </CardContent>
                 </Card>
               </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+            )}
+          </Tabs>
+        </div>
+      )}
 
-        {/* Ticket Print Preview */}
+      {/* Ticket Print Preview */}
         {showTicket && generatedTicket && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
