@@ -1202,130 +1202,6 @@ export default function DesktopQRScanner() {
     }
   };
 
-  // Smart refresh function that preserves local payment updates while fetching fresh API data
-  const smartRefreshPaymentStatus = async () => {
-    if (!scannedProfile) return;
-    
-    try {
-      console.log('🔄 Smart refresh: fetching fresh payment data while preserving local updates...');
-      
-      // Store current payment status to preserve local updates
-      const currentPaymentStatus = { ...groupPaymentStatus };
-      console.log('💾 Preserved current payment status:', currentPaymentStatus);
-      
-      // Fetch fresh groups and payment data
-      const groupsResponse = await fetch(`/api/students/${scannedProfile.id}/groups?type=${scannedProfile.type}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!groupsResponse.ok) {
-        console.log('⚠️ API refresh failed, keeping current state');
-        return;
-      }
-      
-      const groups = await groupsResponse.json();
-      console.log('✅ Fresh groups fetched for smart refresh:', groups);
-      
-      // Fetch fresh payment data for each group
-      const freshPaymentStatus: {[groupId: number]: {[month: number]: boolean}} = {};
-      
-      await Promise.all(
-        groups.map(async (group: any) => {
-          try {
-            const currentYear = new Date().getFullYear();
-            const paymentPromises = [];
-            
-            for (let month = 1; month <= 12; month++) {
-              const promise = fetch(`/api/groups/${group.id}/payment-status/${currentYear}/${month}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              })
-                .then(response => response.ok ? response.json() : [])
-                .then(paymentData => {
-                  const studentPayment = paymentData.find((record: any) => 
-                    record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
-                  );
-                  return { month, isPaid: studentPayment?.isPaid || false };
-                })
-                .catch(() => ({ month, isPaid: false }));
-              
-              paymentPromises.push(promise);
-            }
-            
-            const paymentResults = await Promise.all(paymentPromises);
-            const groupPaymentMap: {[month: number]: boolean} = {};
-            
-            paymentResults.forEach(result => {
-              groupPaymentMap[result.month] = result.isPaid;
-            });
-            
-            freshPaymentStatus[group.id] = groupPaymentMap;
-            
-          } catch (error) {
-            console.error(`❌ Smart refresh failed for group ${group.id}:`, error);
-            freshPaymentStatus[group.id] = {};
-          }
-        })
-      );
-      
-      console.log('📊 Fresh payment status from API:', freshPaymentStatus);
-      
-      // Intelligent merge: if either current OR fresh says paid, then it's paid
-      const mergedPaymentStatus: {[groupId: number]: {[month: number]: boolean}} = {};
-      
-      // Start with fresh data
-      Object.keys(freshPaymentStatus).forEach(groupIdStr => {
-        const groupId = parseInt(groupIdStr);
-        mergedPaymentStatus[groupId] = { ...freshPaymentStatus[groupId] };
-      });
-      
-      // Merge in current local updates (local updates take precedence for paid status)
-      Object.keys(currentPaymentStatus).forEach(groupIdStr => {
-        const groupId = parseInt(groupIdStr);
-        if (!mergedPaymentStatus[groupId]) mergedPaymentStatus[groupId] = {};
-        
-        Object.keys(currentPaymentStatus[groupId]).forEach(monthStr => {
-          const month = parseInt(monthStr);
-          const currentIsPaid = currentPaymentStatus[groupId][month];
-          const freshIsPaid = mergedPaymentStatus[groupId][month] || false;
-          
-          // If either says paid, then it's paid (OR logic for maximum data retention)
-          mergedPaymentStatus[groupId][month] = currentIsPaid || freshIsPaid;
-          
-          if (currentIsPaid && !freshIsPaid) {
-            console.log(`🔄 Preserving local update: Group ${groupId} Month ${month} remains PAID`);
-          } else if (!currentIsPaid && freshIsPaid) {
-            console.log(`✅ API confirmed: Group ${groupId} Month ${month} is PAID`);
-          }
-        });
-      });
-      
-      console.log('🎯 Final merged payment status:', mergedPaymentStatus);
-      
-      // Update state with merged result
-      setGroupPaymentStatus(mergedPaymentStatus);
-      setAvailableGroups(groups.map((group: any) => ({
-        ...group,
-        paidMonths: Object.entries(mergedPaymentStatus[group.id] || {})
-          .filter(([_, isPaid]) => isPaid)
-          .map(([month, _]) => parseInt(month))
-      })));
-      
-      console.log('✅ Smart refresh completed with merged data');
-      
-    } catch (error) {
-      console.error('❌ Smart refresh failed:', error);
-      // Keep current state on error
-    }
-  };
-
   const handleGroupSelection = (groupId: number, selected: boolean) => {
     if (selected) {
       const group = availableGroups.find(g => g.id === groupId);
@@ -1551,13 +1427,52 @@ export default function DesktopQRScanner() {
       setGeneratedTicket(ticket);
       setShowTicket(true);
 
-      // 🔄 SMART STATE UPDATE: Update payment status without losing existing data
-      console.log('🔄 Updating payment status with smart merge strategy...');
+      // 🔄 REFRESH PAID MONTHS DATA: Re-fetch student's payment data to update the payment form
+      console.log('🔄 Refreshing student payment data after successful payment...');
       try {
-        // First, immediately update local state with the new payment information
-        const paymentDetails = Object.entries(selectedGroups);
-        console.log('🔄 Immediately updating local payment state before API refresh...');
+        // Force refresh the payment status by clearing the cache first
+        console.log('🔄 Clearing payment cache and refreshing data...');
+        setGroupPaymentStatus({});
+        setAvailableGroups([]);
         
+        // Wait for database to propagate changes
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Refresh the student groups which will fetch latest payment data
+        await fetchStudentGroups();
+        setAttendanceRefreshTrigger(prev => prev + 1);
+        
+        // Immediately update local state with the new payment information
+        const paymentDetails = Object.entries(selectedGroups);
+        for (const [groupIdStr, groupData] of paymentDetails) {
+          const groupId = parseInt(groupIdStr);
+          const updatedGroupPaymentStatus: {[month: number]: boolean} = {};
+          
+          // Mark all the paid months as true in local state
+          for (const month of groupData.months) {
+            updatedGroupPaymentStatus[month] = true;
+            console.log(`✅ Marking group ${groupId} month ${month} as PAID in local state`);
+          }
+          
+          setGroupPaymentStatus(prev => ({
+            ...prev,
+            [groupId]: {
+              ...prev[groupId],
+              ...updatedGroupPaymentStatus
+            }
+          }));
+        }
+        
+        // Force attendance table refresh by updating the shared payment status
+        console.log('🔄 Triggering attendance table refresh with updated payment status...');
+        setAttendanceRefreshTrigger(prev => {
+          const newTrigger = prev + 100; // Large increment to ensure refresh
+          console.log(`🔄 Attendance refresh trigger updated: ${prev} -> ${newTrigger}`);
+          return newTrigger;
+        });
+        
+        // Update shared groupPaymentStatus to ensure attendance table sees the changes
+        console.log('🔄 Updating shared groupPaymentStatus for real-time sync...');
         setGroupPaymentStatus(prev => {
           const updated = { ...prev };
           // Update all groups that were involved in this payment
@@ -1566,25 +1481,11 @@ export default function DesktopQRScanner() {
             if (!updated[groupId]) updated[groupId] = {};
             groupData.months.forEach(month => {
               updated[groupId][month] = true;
-              console.log(`✅ Immediately marked Group ${groupId} Month ${month} as PAID`);
+              console.log(`✅ Marked Group ${groupId} Month ${month} as PAID in shared state`);
             });
           });
           return updated;
         });
-        
-        // Force attendance table refresh with the updated payment status
-        setAttendanceRefreshTrigger(prev => {
-          const newTrigger = prev + 100; // Large increment to ensure refresh
-          console.log(`🔄 Attendance refresh trigger updated: ${prev} -> ${newTrigger}`);
-          return newTrigger;
-        });
-        
-        // Wait for database to propagate changes, then do a smart refresh
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Fetch fresh data from API but merge intelligently with existing state
-        console.log('🔄 Smart refresh: fetching latest data while preserving local updates...');
-        await smartRefreshPaymentStatus();
         
         // Additional verification: Double-check payment status via API after local update
         setTimeout(async () => {
@@ -2712,7 +2613,7 @@ export default function DesktopQRScanner() {
                                       
                                       if (response.ok) {
                                         const paymentData = await response.json();
-                                        const student1Payment = paymentData.find((p: any) => p.studentId === 1 && p.studentType === 'student');
+                                        const student1Payment = paymentData.find(p => p.studentId === 1 && p.studentType === 'student');
                                         
                                         console.log('October payment data:', paymentData);
                                         console.log('Student 1 October payment:', student1Payment);
@@ -2797,7 +2698,7 @@ export default function DesktopQRScanner() {
                                         const paymentData = await checkResponse.json();
                                         console.log('📊 Full October payment API response:', paymentData);
                                         
-                                        const student1Payment = paymentData.find((p: any) => p.studentId === 1 && p.studentType === 'student');
+                                        const student1Payment = paymentData.find(p => p.studentId === 1 && p.studentType === 'student');
                                         console.log('🎯 Student 1 October specific data:', student1Payment);
                                         
                                         // Step 3: Update the frontend state immediately
@@ -2810,9 +2711,9 @@ export default function DesktopQRScanner() {
                                             }
                                           }));
 
-                                          // Use smart refresh to preserve payment status
+                                          // Also refresh the full data to be safe
                                           if (scannedProfile) {
-                                            await smartRefreshPaymentStatus();
+                                            await fetchStudentGroups();
                                           }
 
                                           toast({
@@ -2830,7 +2731,7 @@ export default function DesktopQRScanner() {
                                         }
                                       }
                                       
-                                    } catch (error: any) {
+                                    } catch (error) {
                                       console.error('❌ Direct payment test error:', error);
                                       toast({
                                         title: "خطأ في الاختبار المباشر",
