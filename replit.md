@@ -37,12 +37,13 @@ Access control preference: School admins should create groups, super admins shou
 - **Group & Formation Management**: Creation and management of learning groups and training courses, including student assignment, attendance tracking, and financial management per group. Supports mixed assignment of direct students and children. Implements intelligent year-based filtering and standardized teaching module grade format. **Role-based access control**: School admins create and manage groups, super admins have read-only access across schools.
 - **Scheduling System**: Comprehensive schedule management with independent grids per classroom, 30-minute intervals, precise time control, and color-coded displays.
 - **Reporting**: Admin interface for managing user reports and banning users.
-- **Subject Management**: Complete Algerian education curriculum with proper Arabic subject names organized by education level, covering all standard subjects and specializations.
+- **Subject Management**: Complete standardized Algerian education curriculum with proper Arabic subject names organized by education level, covering all standard subjects and specializations. All schools now share the same comprehensive curriculum foundation with 260+ standardized subjects.
 - **Desktop QR Scanner**: Real-time student profile lookup system for admins and teachers using webcam or USB scanner. Features student information display, quick attendance marking, and payment recording.
 - **Payment Ticket Printer System**: Comprehensive receipt generation system integrated with desktop QR scanner, allowing admins to select multiple enrolled groups, choose payment months, enter amounts, and generate professional printed receipts. Includes real-time payment tracking.
 - **Financial Reports & Analytics**: Complete gains/losses calculation system for school financial analysis, including revenue tracking, expense estimation, profit margins, monthly breakdowns, and group performance analytics. Provides detailed insights and supports manual financial entries.
 - **Simple Gain/Loss Calculator**: Standalone financial calculator for basic income and expense tracking with real-time balance calculation, transaction history, and admin-only access.
 - **Unified Payment Status System**: Ensures synchronized payment status display across all interfaces by using identical API endpoints for attendance tables and payment forms.
+- **Curriculum Standardization (August 2025)**: Implemented comprehensive standardized Algerian curriculum across all schools with proper Arabic naming conventions. All 260+ global subjects use consistent Arabic names (e.g., "اللغة الإنجليزية" instead of "الإنجليزية") and are available to all schools while maintaining ability for custom school-specific subjects.
 
 ## External Dependencies
 
