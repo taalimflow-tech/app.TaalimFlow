@@ -53,8 +53,17 @@ export function TeacherSpecializationForm({ onSpecializationAdded }: TeacherSpec
   useEffect(() => {
     if (selectedLevel) {
       const filtered = modules.filter(module => module.educationLevel === selectedLevel);
+      
+      // Remove duplicates by keeping only one module per nameAr (prefer global subjects)
+      const uniqueModules = filtered.reduce((acc: TeachingModule[], current) => {
+        const existingModule = acc.find(m => m.nameAr === current.nameAr);
+        if (!existingModule) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
 
-      setFilteredModules(filtered);
+      setFilteredModules(uniqueModules);
     } else {
       setFilteredModules([]);
     }

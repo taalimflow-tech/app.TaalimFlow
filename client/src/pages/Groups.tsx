@@ -1244,7 +1244,16 @@ export default function Groups() {
       grade: m.grade
     })));
     
-    return relevantModules.map((module: any) => {
+    // Remove duplicates by keeping only one module per nameAr (prefer global subjects)
+    const uniqueModules = relevantModules.reduce((acc: any[], current: any) => {
+      const existingModule = acc.find(m => (m.nameAr || m.name_ar) === (current.nameAr || current.name_ar));
+      if (!existingModule) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+    
+    return uniqueModules.map((module: any) => {
       // Check if there's already a group for this module
       const existingGroup = adminGroups.find(group => 
         group.subjectId === module.id && !group.isPlaceholder
