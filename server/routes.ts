@@ -3321,12 +3321,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let paymentRequired = false;
         let paymentNote = "";
         
-        // Apply smart payment logic
-        if (hasAttendanceThisMonth || previousMonthEnded) {
+        // Apply smart payment logic - BUT respect existing payments regardless of attendance
+        if (hasAttendanceThisMonth || previousMonthEnded || existingPayment) {
           paymentRequired = true;
           // Don't set paymentNote here - we'll set it based on payment status
         } else {
-          // Future month with no attendance yet
+          // Future month with no attendance yet AND no existing payment
           paymentNote = "لا يوجد دفع مطلوب"; // Nothing to pay (Arabic)
         }
         
