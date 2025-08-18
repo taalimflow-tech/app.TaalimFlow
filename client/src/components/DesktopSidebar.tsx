@@ -38,8 +38,7 @@ export function DesktopSidebar() {
     ];
   } else if (user?.role === 'teacher') {
     roleSpecificItems = [
-      { icon: BookOpen, label: 'تخصصاتي', path: `${basePath}/teacher-specializations` || '/teacher-specializations' },
-      { icon: QrCode, label: 'الماسح المكتبي', path: `${basePath}/desktop-scanner` || '/desktop-scanner' }
+      { icon: BookOpen, label: 'تخصصاتي', path: `${basePath}/teacher-specializations` || '/teacher-specializations' }
     ];
   } else if (user?.role === 'student' || user?.role === 'parent') {
     roleSpecificItems = [
