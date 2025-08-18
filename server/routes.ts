@@ -2394,7 +2394,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
-      const modules = await storage.getTeachingModulesBySchool(req.session.user.schoolId);
+      // Only return global subjects (schoolId = NULL) - standardized curriculum for all schools
+      const modules = await storage.getGlobalTeachingModules();
       res.json(modules);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch teaching modules" });
