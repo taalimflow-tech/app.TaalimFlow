@@ -43,7 +43,7 @@ Access control preference: School admins should create groups, super admins shou
 - **Financial Reports & Analytics**: Complete gains/losses calculation system for school financial analysis, including revenue tracking, expense estimation, profit margins, monthly breakdowns, and group performance analytics. Provides detailed insights and supports manual financial entries.
 - **Simple Gain/Loss Calculator**: Standalone financial calculator for basic income and expense tracking with real-time balance calculation, transaction history, and admin-only access.
 - **Unified Payment Status System**: Ensures synchronized payment status display across all interfaces by using identical API endpoints for attendance tables and payment forms.
-- **Curriculum Standardization (August 2025)**: Implemented comprehensive standardized Algerian curriculum across all schools with proper Arabic naming conventions. All 260+ global subjects use consistent Arabic names (e.g., "اللغة الإنجليزية" instead of "الإنجليزية") and are available to all schools while maintaining ability for custom school-specific subjects.
+- **Curriculum Standardization (August 2025)**: Implemented clean standardized Algerian curriculum across all schools with exact subject list: Primary (العربية والرياضيات, اللغة الإنجليزية, اللغة الفرنسية), Middle (اللغة العربية, اللغة الإنجليزية, اللغة الفرنسية, التاريخ والجغرافيا, الرياضيات, العلوم الطبيعية, الفيزياء), Secondary (19 subjects including languages, sciences, engineering, law, accounting). All schools share 138 standardized global subjects while maintaining ability for custom school-specific subjects.
 
 ## External Dependencies
 
