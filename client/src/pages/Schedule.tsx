@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -298,6 +298,65 @@ export default function Schedule() {
   const { data: teachers = [] } = useQuery({
     queryKey: ['/api/teachers-with-specializations']
   });
+
+  // Memoized filtered subjects for performance optimization
+  const filteredSubjects = useMemo(() => {
+    if (!modules || modules.length === 0) return [];
+    
+    // Filter modules by education level and grade
+    let filtered = modules.filter((module: TeachingModule) => {
+      // Match education level (both Arabic and English formats)
+      const levelMatch = cellForm.educationLevel === '' || 
+        module.educationLevel === cellForm.educationLevel ||
+        (cellForm.educationLevel === 'الابتدائي' && module.educationLevel === 'Primary') ||
+        (cellForm.educationLevel === 'المتوسط' && module.educationLevel === 'Middle') ||
+        (cellForm.educationLevel === 'الثانوي' && module.educationLevel === 'Secondary');
+      
+      if (!levelMatch) return false;
+      
+      // Match grade if selected
+      if (cellForm.grade && module.grade) {
+        return module.grade === cellForm.grade || module.grade === 'جميع المستويات';
+      }
+      
+      return true;
+    });
+    
+    // Remove duplicates by Arabic name
+    const uniqueModules = filtered.reduce((acc: TeachingModule[], current: TeachingModule) => {
+      const existingModule = acc.find(m => m.nameAr === current.nameAr);
+      if (!existingModule) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+    
+    // Sort alphabetically by Arabic name
+    return uniqueModules.sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'));
+  }, [modules, cellForm.educationLevel, cellForm.grade]);
+
+  // Memoized filtered teachers for performance optimization  
+  const filteredTeachers = useMemo(() => {
+    if (!teachers || teachers.length === 0) return [];
+    
+    return teachers.filter((teacher: Teacher) => 
+      cellForm.educationLevel === '' || 
+      teacher.specializations.some(spec => 
+        spec.educationLevel === cellForm.educationLevel ||
+        (cellForm.educationLevel === 'الابتدائي' && spec.educationLevel === 'Primary') ||
+        (cellForm.educationLevel === 'المتوسط' && spec.educationLevel === 'Middle') ||
+        (cellForm.educationLevel === 'الثانوي' && spec.educationLevel === 'Secondary')
+      )
+    );
+  }, [teachers, cellForm.educationLevel]);
+
+  // Memoized available grades for the selected education level
+  const availableGrades = useMemo(() => {
+    if (!cellForm.educationLevel) return [];
+    
+    const level = educationLevels.find(level => level.level === cellForm.educationLevel);
+    return level ? level.grades : [];
+  }, [cellForm.educationLevel]);
 
   // Fetch compatible groups for linking
   const { data: compatibleGroups = [] } = useQuery({
@@ -1047,13 +1106,11 @@ export default function Schedule() {
                       <SelectValue placeholder="اختر الصف" />
                     </SelectTrigger>
                     <SelectContent>
-                      {educationLevels
-                        .find(level => level.level === cellForm.educationLevel)
-                        ?.grades.map((grade) => (
-                          <SelectItem key={grade} value={grade}>
-                            {grade}
-                          </SelectItem>
-                        ))}
+                      {availableGrades.map((grade) => (
+                        <SelectItem key={grade} value={grade}>
+                          {grade}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1087,44 +1144,11 @@ export default function Schedule() {
                     <SelectValue placeholder="اختر المادة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(() => {
-                      // Filter modules by education level and grade
-                      let filteredModules = modules.filter((module: TeachingModule) => {
-                        // Match education level (both Arabic and English formats)
-                        const levelMatch = cellForm.educationLevel === '' || 
-                          module.educationLevel === cellForm.educationLevel ||
-                          (cellForm.educationLevel === 'الابتدائي' && module.educationLevel === 'Primary') ||
-                          (cellForm.educationLevel === 'المتوسط' && module.educationLevel === 'Middle') ||
-                          (cellForm.educationLevel === 'الثانوي' && module.educationLevel === 'Secondary');
-                        
-                        if (!levelMatch) return false;
-                        
-                        // Match grade if selected
-                        if (cellForm.grade && module.grade) {
-                          return module.grade === cellForm.grade || module.grade === 'جميع المستويات';
-                        }
-                        
-                        return true;
-                      });
-                      
-                      // Remove duplicates by Arabic name
-                      const uniqueModules = filteredModules.reduce((acc: TeachingModule[], current: TeachingModule) => {
-                        const existingModule = acc.find(m => m.nameAr === current.nameAr);
-                        if (!existingModule) {
-                          acc.push(current);
-                        }
-                        return acc;
-                      }, []);
-                      
-                      // Sort alphabetically by Arabic name
-                      return uniqueModules
-                        .sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'))
-                        .map((module: TeachingModule) => (
-                          <SelectItem key={module.id} value={module.id.toString()}>
-                            {module.nameAr}
-                          </SelectItem>
-                        ));
-                    })()}
+                    {filteredSubjects.map((module: TeachingModule) => (
+                      <SelectItem key={module.id} value={module.id.toString()}>
+                        {module.nameAr}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1139,21 +1163,11 @@ export default function Schedule() {
                     <SelectValue placeholder="اختر المعلم" />
                   </SelectTrigger>
                   <SelectContent>
-                    {teachers
-                      .filter((teacher: Teacher) => 
-                        cellForm.educationLevel === '' || 
-                        teacher.specializations.some(spec => 
-                          spec.educationLevel === cellForm.educationLevel ||
-                          (cellForm.educationLevel === 'الابتدائي' && spec.educationLevel === 'Primary') ||
-                          (cellForm.educationLevel === 'المتوسط' && spec.educationLevel === 'Middle') ||
-                          (cellForm.educationLevel === 'الثانوي' && spec.educationLevel === 'Secondary')
-                        )
-                      )
-                      .map((teacher: Teacher) => (
-                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                          {teacher.gender === 'male' ? 'الأستاذ ' : 'الأستاذة '}{teacher.name}
-                        </SelectItem>
-                      ))}
+                    {filteredTeachers.map((teacher: Teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                        {teacher.gender === 'male' ? 'الأستاذ ' : 'الأستاذة '}{teacher.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
