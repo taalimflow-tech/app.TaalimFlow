@@ -35,6 +35,8 @@ import StudentStatus from "@/pages/StudentStatus";
 import DesktopQRScanner from "@/pages/DesktopQRScanner";
 import FinancialReports from "@/pages/FinancialReports";
 import GainLossCalculator from "@/pages/GainLossCalculator";
+import PerformanceAnalytics from "@/pages/PerformanceAnalytics";
+import FileManagement from "@/pages/FileManagement";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -155,6 +157,12 @@ function AppRoutes() {
           
           <Route path="/school/:code/gain-loss-calculator">
             <AuthWrapper><Layout><GainLossCalculator /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/performance-analytics">
+            <AuthWrapper><Layout><PerformanceAnalytics /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/file-management">
+            <AuthWrapper><Layout><FileManagement /></Layout></AuthWrapper>
           </Route>
           
           {/* School Selection Route (must come after specific routes) */}

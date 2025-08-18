@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator, TrendingUp, BarChart3, FileSpreadsheet } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,10 @@ export function DesktopSidebar() {
     roleSpecificItems = [
       { icon: Shield, label: 'لوحة الإدارة', path: `${basePath}/admin` || '/admin' },
       { icon: QrCode, label: 'الماسح المكتبي', path: `${basePath}/desktop-scanner` || '/desktop-scanner' },
-      { icon: Calculator, label: 'الأرباح والخسائر', path: `${basePath}/gain-loss-calculator` || '/gain-loss-calculator' }
+      { icon: Calculator, label: 'حاسبة الأرباح والخسائر', path: `${basePath}/gain-loss-calculator` || '/gain-loss-calculator' },
+      { icon: TrendingUp, label: 'التقارير المالية', path: `${basePath}/financial-reports` || '/financial-reports' },
+      { icon: BarChart3, label: 'تحليلات الأداء', path: `${basePath}/performance-analytics` || '/performance-analytics' },
+      { icon: FileSpreadsheet, label: 'إدارة الملفات', path: `${basePath}/file-management` || '/file-management' }
     ];
   } else if (user?.role === 'teacher') {
     roleSpecificItems = [
