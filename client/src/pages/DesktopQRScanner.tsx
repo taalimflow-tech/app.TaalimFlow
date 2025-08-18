@@ -2424,7 +2424,7 @@ function DesktopQRScanner() {
               </Card>
             </TabsContent>
 
-            {user.role === 'admin' && (
+            {(user.role === 'admin' || user.role === 'teacher') && (
               <TabsContent value="payment-form" className="mt-6">
                 <Card>
                   <CardHeader>
