@@ -5167,12 +5167,30 @@ export class DatabaseStorage implements IStorage {
       let enrolledGroups: any[] = [];
 
       try {
+        // First, let's directly test if any assignments exist for this school
+        console.log("🔍 Testing if ANY assignments exist in school", schoolId);
+        const allSchoolAssignments = await db
+          .select()
+          .from(groupMixedAssignments)
+          .where(eq(groupMixedAssignments.schoolId, schoolId));
+        console.log(`🔍 Found ${allSchoolAssignments.length} total assignments in school ${schoolId}:`, allSchoolAssignments);
+
         // Get group assignments from both mixed assignments table and user assignments table
         console.log("🔍 Executing mixed assignments query with params:", { studentId, studentType, schoolId });
         
+        // Enhanced debugging for mixed assignments query
+        console.log('🔍 Running mixed assignments query with exact conditions:');
+        console.log(`   - eq(groupMixedAssignments.studentId, ${studentId})`);
+        console.log(`   - eq(groupMixedAssignments.studentType, '${studentType}')`);
+        console.log(`   - eq(groupMixedAssignments.schoolId, ${schoolId})`);
+
         const mixedGroupAssignments = await db
           .select({
             groupId: groupMixedAssignments.groupId,
+            studentId: groupMixedAssignments.studentId,
+            studentType: groupMixedAssignments.studentType,
+            schoolId: groupMixedAssignments.schoolId,
+            assignedAt: groupMixedAssignments.assignedAt,
           })
           .from(groupMixedAssignments)
           .where(

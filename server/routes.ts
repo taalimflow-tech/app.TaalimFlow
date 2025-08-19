@@ -4529,12 +4529,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "تعذر قراءة بيانات الرمز" });
       }
 
+      // Add detailed debugging for school ID 8 issues
+      console.log(`🔍 QR Scanner Debug - About to fetch profile:`);
+      console.log(`   - Student ID: ${studentId}`);
+      console.log(`   - Student Type: ${studentType}`);
+      console.log(`   - School ID: ${schoolId}`);
+      console.log(`   - User School ID: ${req.session.user.schoolId}`);
+      console.log(`   - QR Data: ${qrData}`);
+
       // Get complete student profile with attendance and payment data
       const studentProfile = await storage.getStudentCompleteProfile(
         studentId,
         studentType,
         schoolId,
       );
+
+      console.log(`🔍 QR Scanner Debug - Profile returned:`);
+      console.log(`   - Profile exists: ${studentProfile ? 'Yes' : 'No'}`);
+      if (studentProfile) {
+        console.log(`   - Student name: ${studentProfile.name}`);
+        console.log(`   - Enrolled groups count: ${studentProfile.enrolledGroups?.length || 0}`);
+        console.log(`   - Enrolled groups data: ${JSON.stringify(studentProfile.enrolledGroups)}`);
+      }
 
       if (!studentProfile) {
         return res.status(404).json({ error: "لم يتم العثور على الطالب" });
