@@ -32,11 +32,9 @@ export default function Suggestions() {
     setLoading(true);
     try {
       const suggestion = await apiRequest('POST', '/api/suggestions', {
-        userId: user.id,
         title,
         content,
-        category,
-        status: 'pending'
+        category
       });
 
       toast({ 

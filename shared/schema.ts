@@ -496,11 +496,11 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
 });
 
 export const insertSuggestionSchema = createInsertSchema(suggestions).pick({
-  userId: true,
   title: true,
   content: true,
   category: true,
 }).extend({
+  userId: z.number().optional(), // Make userId optional - server will set from session
   status: z.string().optional() // Allow status to be optional from client
 });
 

@@ -1606,6 +1606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Allow all authenticated users (students, teachers, parents) to create suggestions
+      console.log('User role:', req.session.user.role);
       const allowedRoles = ['student', 'user', 'parent', 'teacher', 'admin'];
       if (!allowedRoles.includes(req.session.user.role)) {
         return res.status(403).json({ error: "غير مسموح لك بإرسال الاقتراحات" });
@@ -1616,6 +1617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Validated data:', validatedData);
       const suggestionData = {
         ...validatedData,
+        userId: req.session.user.id, // Set userId from session
         schoolId: req.session.user.schoolId!,
         status: validatedData.status || 'pending' // Default to pending if not provided
       };
