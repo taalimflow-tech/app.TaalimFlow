@@ -892,6 +892,21 @@ function DesktopQRScanner() {
       console.log('✅ Profile received:', profile);
       console.log('✅ Profile enrolled groups:', profile.enrolledGroups);
       
+      // CRITICAL DEBUG: Check the actual enrolled groups data structure
+      if (profile.enrolledGroups && profile.enrolledGroups.length > 0) {
+        profile.enrolledGroups.forEach((group, index) => {
+          console.log(`✅ Enrolled Group ${index + 1}:`, {
+            id: group.id,
+            name: group.name,
+            subjectName: group.subjectName,
+            educationLevel: group.educationLevel,
+            teacherName: group.teacherName
+          });
+        });
+      } else {
+        console.error('❌ NO ENROLLED GROUPS FOUND - This is the problem!');
+      }
+      
       // Fetch payment data for each group if groups exist
       if (profile.enrolledGroups && profile.enrolledGroups.length > 0) {
         const groupsWithPayments = await Promise.all(
@@ -2205,10 +2220,15 @@ function DesktopQRScanner() {
                 {/* Debug Info */}
                 <div className="mb-4 p-3 bg-yellow-50 text-yellow-800 text-sm rounded">
                   <strong>Debug Info:</strong><br/>
+                  Student ID: {scannedProfile.id}, Type: {scannedProfile.type}<br/>
                   Enrolled groups count: {scannedProfile.enrolledGroups?.length || 0}<br/>
                   Available groups count: {availableGroups.length}<br/>
-                  Enrolled groups: {JSON.stringify(scannedProfile.enrolledGroups)}<br/>
-                  Available groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
+                  {scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0 && (
+                    <span>Enrolled: {scannedProfile.enrolledGroups.map(g => `${g.name} (${g.subjectName})`).join(', ')}<br/></span>
+                  )}
+                  {availableGroups.length > 0 && (
+                    <span>Available: {availableGroups.map(g => `${g.name} (${g.subjectName || g.nameAr})`).join(', ')}</span>
+                  )}
                 </div>
                 {scannedProfile.enrolledGroups?.length > 0 ? (
                   scannedProfile.enrolledGroups.map((group) => (
@@ -2237,24 +2257,6 @@ function DesktopQRScanner() {
                           refreshTrigger={attendanceRefreshTrigger}
                           groupPaymentStatus={groupPaymentStatus}
                         />
-                      </div>
-                    </div>
-                  ))
-                ) : availableGroups.length > 0 ? (
-                  availableGroups.map((group) => (
-                    <div key={group.id} className="bg-white rounded-lg border">
-                      <div className="p-4 border-b bg-gray-50">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold text-lg">{group.name}</h4>
-                            <p className="text-sm text-gray-600">{group.subjectName || group.nameAr}</p>
-                            <p className="text-sm text-gray-500">{group.educationLevel}</p>
-                            <p className="text-xs text-blue-600">From availableGroups (fallback)</p>
-                          </div>
-                          <div className="text-sm text-gray-500 text-right">
-                            <div>المعلم: {group.teacherName}</div>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   ))

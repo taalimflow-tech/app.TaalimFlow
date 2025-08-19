@@ -5168,6 +5168,8 @@ export class DatabaseStorage implements IStorage {
 
       try {
         // Get group assignments from both mixed assignments table and user assignments table
+        console.log("🔍 Executing mixed assignments query with params:", { studentId, studentType, schoolId });
+        
         const mixedGroupAssignments = await db
           .select({
             groupId: groupMixedAssignments.groupId,
@@ -5180,6 +5182,8 @@ export class DatabaseStorage implements IStorage {
               eq(groupMixedAssignments.schoolId, schoolId),
             ),
           );
+          
+        console.log("🔍 Raw mixed assignments query result:", mixedGroupAssignments);
 
         // Also check regular user assignments if this is a student
         let userGroupAssignments: any[] = [];
@@ -5204,6 +5208,9 @@ export class DatabaseStorage implements IStorage {
         ];
 
         console.log("🔍 Found group assignments:", groupAssignments);
+        console.log("🔍 Mixed assignments query for student:", studentId, "type:", studentType, "school:", schoolId);
+        console.log("🔍 Mixed assignments result:", mixedGroupAssignments);
+        console.log("🔍 User assignments result:", userGroupAssignments);
 
         if (groupAssignments.length > 0) {
           const groupIds = groupAssignments.map((a) => a.groupId);
@@ -5264,9 +5271,14 @@ export class DatabaseStorage implements IStorage {
               description: group.description,
             });
           }
+          
+          console.log("✅ Groups data fetched from database:", groupsData);
+          console.log("✅ Final enrolled groups array:", enrolledGroups);
+        } else {
+          console.log("⚠️ No group assignments found - student not enrolled in any groups");
         }
 
-        console.log("✅ Fetched enrolled groups:", enrolledGroups.length);
+        console.log("✅ Total fetched enrolled groups:", enrolledGroups.length);
       } catch (error) {
         console.error("Error fetching enrolled groups:", error);
         enrolledGroups = [];
