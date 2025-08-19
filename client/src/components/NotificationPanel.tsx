@@ -79,9 +79,37 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
       markAsReadMutation.mutate(notification.id);
     }
 
-    // Navigate to notifications page
+    // Navigate based on notification type
     const schoolCode = sessionStorage.getItem('schoolCode');
-    navigate(schoolCode ? `/school/${schoolCode}/notifications` : '/notifications');
+    const basePath = schoolCode ? `/school/${schoolCode}` : '';
+    
+    switch (notification.type) {
+      case 'blog':
+        navigate(`${basePath}/blog`);
+        break;
+      case 'announcement':
+        navigate(`${basePath}/announcements`);
+        break;
+      case 'group_update':
+        navigate(`${basePath}/groups`);
+        break;
+      case 'formation_update':
+        navigate(`${basePath}/formations`);
+        break;
+      case 'message':
+        navigate(`${basePath}/messages`);
+        break;
+      case 'suggestion':
+        if (user?.role === 'admin') {
+          navigate(`${basePath}/admin/suggestions`);
+        } else {
+          navigate(`${basePath}/suggestions`);
+        }
+        break;
+      default:
+        // For unknown types, stay in notifications
+        break;
+    }
     
     // Close the panel
     onClose();
