@@ -69,6 +69,7 @@ export interface IStorage {
   
   // Suggestion methods
   getSuggestions(schoolId?: number): Promise<any[]>;
+  getUserSuggestions(userId: number, schoolId?: number): Promise<any[]>;
   createSuggestion(suggestion: InsertSuggestion): Promise<Suggestion>;
   
   // Group methods
@@ -1033,6 +1034,33 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(suggestions.userId, users.id))
       .where(and(
         eq(suggestions.schoolId, schoolId),
+        eq(users.schoolId, schoolId)
+      ))
+      .orderBy(desc(suggestions.createdAt));
+  }
+
+  async getUserSuggestions(userId: number, schoolId?: number): Promise<any[]> {
+    if (!schoolId) {
+      console.warn('getUserSuggestions called without schoolId - returning empty array for security');
+      return [];
+    }
+    
+    return await db
+      .select({
+        id: suggestions.id,
+        userId: suggestions.userId,
+        title: suggestions.title,
+        content: suggestions.content,
+        category: suggestions.category,
+        status: suggestions.status,
+        createdAt: suggestions.createdAt,
+        userName: users.name,
+      })
+      .from(suggestions)
+      .leftJoin(users, eq(suggestions.userId, users.id))
+      .where(and(
+        eq(suggestions.schoolId, schoolId),
+        eq(suggestions.userId, userId),
         eq(users.schoolId, schoolId)
       ))
       .orderBy(desc(suggestions.createdAt));
