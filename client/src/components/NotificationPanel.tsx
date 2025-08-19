@@ -128,7 +128,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end lg:justify-center lg:items-center">
-      <div className="bg-white w-full max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-white w-full lg:w-full lg:max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden">
         <div className="h-full flex flex-col">
           <div className="flex flex-row items-center justify-between border-b bg-purple-50 p-4 flex-shrink-0">
             <h2 className="text-lg font-semibold text-purple-800">
@@ -169,18 +169,18 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 <p>لا توجد إشعارات</p>
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-0">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer ${
+                    className={`p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer min-h-[120px] ${
                       !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
                           <span className="text-lg">
                             {getNotificationIcon(notification.type)}
                           </span>
@@ -200,11 +200,11 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                           )}
                         </div>
                         
-                        <h4 className="font-medium text-gray-900 mb-1">
+                        <h4 className="font-medium text-gray-900 mb-2 text-base leading-6">
                           {notification.title}
                         </h4>
                         
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-gray-600 mb-3 leading-5">
                           {notification.message}
                         </p>
                         
