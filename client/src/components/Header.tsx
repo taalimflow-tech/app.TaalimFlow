@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { Bell, Menu, LogOut, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
