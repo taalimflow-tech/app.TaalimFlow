@@ -2155,6 +2155,14 @@ export default function Groups() {
                 )}
               </div>
 
+              {/* DEBUG INFO - Remove after fixing */}
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+                <p><strong>Debug Info:</strong></p>
+                <p>Available Students: {availableStudents.length} - IDs: [{availableStudents.map(s => s.id).join(', ')}]</p>
+                <p>Selected Students: {selectedStudents.length} - IDs: [{selectedStudents.join(', ')}]</p>
+                <p>Group StudentsAssigned: {selectedAdminGroup?.studentsAssigned?.length || 0} - IDs: [{selectedAdminGroup?.studentsAssigned?.map((s: any) => s.id).join(', ') || ''}]</p>
+              </div>
+
               {/* Student Assignment Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Currently Assigned Students */}
