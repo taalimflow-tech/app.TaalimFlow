@@ -128,13 +128,13 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end lg:justify-center lg:items-center">
-      <div className="bg-white w-full max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden flex flex-col">
-        <Card className="h-full rounded-none lg:rounded-xl border-none flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between border-b bg-purple-50">
-            <CardTitle className="text-lg font-semibold text-purple-800">
+      <div className="bg-white w-full max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden">
+        <div className="h-full flex flex-col">
+          <div className="flex flex-row items-center justify-between border-b bg-purple-50 p-4 flex-shrink-0">
+            <h2 className="text-lg font-semibold text-purple-800">
               <Bell className="w-5 h-5 inline-block mr-2" />
               الإشعارات
-            </CardTitle>
+            </h2>
             <div className="flex items-center gap-2">
               {notifications.some((n) => !n.read) && (
                 <Button
@@ -156,9 +156,9 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 <X className="w-4 h-4" />
               </Button>
             </div>
-          </CardHeader>
+          </div>
           
-          <CardContent className="p-0 overflow-y-auto flex-1">
+          <div className="p-0 overflow-y-auto flex-1 min-h-0">
             {isLoading ? (
               <div className="p-4 text-center text-gray-500">
                 جاري تحميل الإشعارات...
@@ -238,8 +238,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
