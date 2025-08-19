@@ -3,12 +3,12 @@ import { Bell, Menu, LogOut, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { NotificationPanel } from './NotificationPanel';
+
 
 export function Header() {
   const { user, logout } = useAuth();
   const [location, navigate] = useLocation();
-  const [showNotifications, setShowNotifications] = useState(false);
+
 
   // Get school context from storage
   const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || 'null');
@@ -72,7 +72,7 @@ export function Header() {
         
         <div className="flex items-center space-x-reverse space-x-2">
           <button 
-            onClick={() => setShowNotifications(true)}
+            onClick={() => navigate(schoolCode ? `/school/${schoolCode}/notifications` : '/notifications')}
             className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Bell className="w-6 h-6 text-gray-600" />
@@ -116,10 +116,7 @@ export function Header() {
         </div>
       </div>
       
-      <NotificationPanel 
-        isOpen={showNotifications}
-        onClose={() => setShowNotifications(false)}
-      />
+
     </header>
   );
 }
