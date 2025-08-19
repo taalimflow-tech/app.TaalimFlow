@@ -5310,7 +5310,12 @@ export class DatabaseStorage implements IStorage {
         enrolledGroups = [];
       }
 
-      return {
+      // Final debug before returning
+      console.log("🎯 FINAL RETURN - About to return profile with:");
+      console.log(`   - enrolledGroups.length: ${enrolledGroups.length}`);
+      console.log(`   - enrolledGroups content: ${JSON.stringify(enrolledGroups)}`);
+      
+      const finalProfile = {
         ...studentProfile,
         attendanceStats: {
           totalClasses: 0,
@@ -5326,7 +5331,11 @@ export class DatabaseStorage implements IStorage {
         },
         enrolledGroups: enrolledGroups,
         recentAttendance: [],
+        recentPayments: [], // Add this missing field
       };
+      
+      console.log("🎯 FINAL PROFILE OBJECT:", JSON.stringify(finalProfile, null, 2));
+      return finalProfile;
     } catch (error) {
       console.error("Error getting student complete profile:", error);
       return null;
