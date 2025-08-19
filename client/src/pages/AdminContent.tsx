@@ -32,6 +32,11 @@ export default function AdminContent() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+
+  // Debug user authentication state
+  console.log('AdminContent: Component loaded');
+  console.log('AdminContent: Current user:', user);
+  console.log('AdminContent: User role:', user?.role);
   
   const [activeTab, setActiveTab] = useState<'announcement' | 'blog' | 'group' | 'formation' | 'teacher'>('announcement');
   const [showForm, setShowForm] = useState(false);
@@ -58,16 +63,28 @@ export default function AdminContent() {
   // Announcement creation mutation
   const createAnnouncementMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Creating announcement with data:', data);
       const response = await apiRequest('POST', '/api/announcements', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Announcement creation failed:', errorData);
+        throw new Error(errorData.error || 'Failed to create announcement');
+      }
       return await response.json();
     },
     onSuccess: () => {
+      console.log('Announcement created successfully');
       toast({ title: 'تم إنشاء الإعلان بنجاح' });
       resetForm();
       queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
     },
-    onError: () => {
-      toast({ title: 'خطأ في إنشاء الإعلان', variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('Announcement creation error:', error);
+      toast({ 
+        title: 'خطأ في إنشاء الإعلان', 
+        description: error.message || 'حدث خطأ غير متوقع',
+        variant: 'destructive' 
+      });
     }
   });
 
@@ -298,18 +315,29 @@ export default function AdminContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission started');
+    console.log('Current user:', user);
+    console.log('Form data:', formData);
+    console.log('Active tab:', activeTab);
     
     // Upload image first if provided
     let imageUrl = '';
     if (imageFile) {
+      console.log('Uploading image:', imageFile.name);
       imageUrl = await uploadImage();
       if (!imageUrl && imageFile) {
-        // Upload failed, don't proceed
+        console.log('Image upload failed, stopping submission');
         return;
       }
+      console.log('Image uploaded successfully:', imageUrl);
     }
     
     if (activeTab === 'announcement') {
+      console.log('Creating announcement with:', {
+        title: formData.title,
+        content: formData.content,
+        imageUrl: imageUrl || null
+      });
       createAnnouncementMutation.mutate({
         title: formData.title,
         content: formData.content,
