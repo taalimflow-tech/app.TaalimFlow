@@ -125,12 +125,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           name: user.name,
           role: user.role,
-          schoolId: user.schoolId,
+          schoolId: user.schoolId || undefined,
           phone: user.phone,
           gender: user.gender
         };
         req.session.userId = user.id;
-        req.session.schoolId = user.schoolId;
+        req.session.schoolId = user.schoolId || undefined;
         // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
         res.json({ user: userWithoutPassword });
@@ -1574,15 +1574,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Suggestion routes
   app.get("/api/suggestions", requireAuth, async (req, res) => {
     try {
-      
       // CRITICAL: Prevent access if user doesn't belong to a school
       if (!req.session.user.schoolId) {
         return res.status(403).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
       }
       
-      const suggestions = await storage.getSuggestions(req.session.user.schoolId);
+      // Only admins can view all suggestions, others see their own
+      let suggestions;
+      if (req.session.user.role === 'admin') {
+        suggestions = await storage.getSuggestions(req.session.user.schoolId);
+      } else {
+        // Students, teachers, parents can only see their own suggestions
+        suggestions = await storage.getUserSuggestions(req.session.user.id, req.session.user.schoolId);
+      }
       res.json(suggestions);
     } catch (error) {
+      console.error('Error fetching suggestions:', error);
       res.status(500).json({ error: "Failed to fetch suggestions" });
     }
   });
@@ -1598,12 +1605,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
       }
       
+      // Allow all authenticated users (students, teachers, parents) to create suggestions
+      const allowedRoles = ['student', 'user', 'parent', 'teacher', 'admin'];
+      if (!allowedRoles.includes(req.session.user.role)) {
+        return res.status(403).json({ error: "غير مسموح لك بإرسال الاقتراحات" });
+      }
+      
       console.log('Suggestion request body:', req.body);
       const validatedData = insertSuggestionSchema.parse(req.body);
       console.log('Validated data:', validatedData);
       const suggestionData = {
         ...validatedData,
-        schoolId: req.session.user.schoolId
+        schoolId: req.session.user.schoolId!,
+        status: validatedData.status || 'pending' // Default to pending if not provided
       };
       console.log('Suggestion data with school:', suggestionData);
       const suggestion = await storage.createSuggestion(suggestionData);

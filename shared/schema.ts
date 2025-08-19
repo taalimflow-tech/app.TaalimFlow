@@ -496,11 +496,12 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
 });
 
 export const insertSuggestionSchema = createInsertSchema(suggestions).pick({
-  schoolId: true,
   userId: true,
   title: true,
   content: true,
   category: true,
+}).extend({
+  status: z.string().optional() // Allow status to be optional from client
 });
 
 export const insertGroupSchema = createInsertSchema(groups).pick({
