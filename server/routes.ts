@@ -1612,21 +1612,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "غير مسموح لك بإرسال الاقتراحات" });
       }
       
-      console.log('Suggestion request body:', req.body);
-      console.log('Schema fields:', Object.keys(insertSuggestionSchema.shape));
-      
-      // Try to validate and catch specific errors
-      try {
-        const validatedData = insertSuggestionSchema.parse(req.body);
-        console.log('Validated data:', validatedData);
-      } catch (validationError: any) {
-        console.error('Validation error details:', validationError);
-        if (validationError.errors) {
-          console.error('Specific field errors:', validationError.errors);
-        }
-        throw validationError;
-      }
-      
+      console.log('Request body:', req.body);
+      console.log('Body type:', typeof req.body);
+      console.log('Body keys:', Object.keys(req.body || {}));
+      console.log('Title:', req.body?.title, 'Type:', typeof req.body?.title);
+      console.log('Content:', req.body?.content, 'Type:', typeof req.body?.content);
+      console.log('Category:', req.body?.category, 'Type:', typeof req.body?.category);
+
       const validatedData = insertSuggestionSchema.parse(req.body);
       const suggestionData = {
         ...validatedData,
