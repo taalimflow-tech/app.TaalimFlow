@@ -1,7 +1,10 @@
-import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator, Bell } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { NotificationPanel } from './NotificationPanel';
 
 interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -12,6 +15,14 @@ interface NavItem {
 export function DesktopSidebar() {
   const [location, navigate] = useLocation();
   const { user, logout } = useAuth();
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Fetch unread notification count
+  const { data: unreadCount = { count: 0 } } = useQuery<{ count: number }>({
+    queryKey: ['/api/notifications/unread-count'],
+    enabled: !!user,
+    refetchInterval: 30000 // Refetch every 30 seconds
+  });
 
   // Get school context for school-specific routes
   const schoolCode = sessionStorage.getItem('schoolCode');
@@ -109,6 +120,22 @@ export function DesktopSidebar() {
               </button>
             );
           })}
+          
+          {/* Notifications Button */}
+          <button
+            onClick={() => setShowNotifications(true)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-right transition-all duration-200 text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-md relative"
+          >
+            <div className="relative">
+              <Bell className="w-5 h-5" />
+              {unreadCount.count > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                  {unreadCount.count > 9 ? '9+' : unreadCount.count}
+                </span>
+              )}
+            </div>
+            <span className="font-medium">الإشعارات</span>
+          </button>
         </div>
       </nav>
 
@@ -151,6 +178,12 @@ export function DesktopSidebar() {
           </Button>
         </div>
       </div>
+      
+      {/* Notification Panel */}
+      <NotificationPanel 
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </aside>
   );
 }

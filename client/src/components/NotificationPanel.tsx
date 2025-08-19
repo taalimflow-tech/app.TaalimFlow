@@ -54,7 +54,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   const [, navigate] = useLocation();
 
   // Fetch notifications
-  const { data: notifications = [], isLoading } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
     enabled: isOpen && !!user
   });
@@ -125,16 +125,16 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="bg-white w-full max-w-md h-full shadow-lg overflow-hidden">
-        <Card className="h-full rounded-none border-none">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end lg:justify-center lg:items-center">
+      <div className="bg-white w-full max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden lg:relative">
+        <Card className="h-full rounded-none lg:rounded-xl border-none">
           <CardHeader className="flex flex-row items-center justify-between border-b bg-purple-50">
             <CardTitle className="text-lg font-semibold text-purple-800">
               <Bell className="w-5 h-5 inline-block mr-2" />
               الإشعارات
             </CardTitle>
             <div className="flex items-center gap-2">
-              {notifications.some((n: Notification) => !n.read) && (
+              {notifications.some((n) => !n.read) && (
                 <Button
                   onClick={() => markAllAsReadMutation.mutate()}
                   disabled={markAllAsReadMutation.isPending}
@@ -168,7 +168,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
               </div>
             ) : (
               <div className="space-y-1">
-                {notifications.map((notification: Notification) => (
+                {notifications.map((notification) => (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
