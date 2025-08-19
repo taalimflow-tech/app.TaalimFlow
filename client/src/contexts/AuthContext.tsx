@@ -139,27 +139,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(null);
       
-      // Get current school context
-      const schoolCode = sessionStorage.getItem('schoolCode');
+      // Clear all school context on logout
+      localStorage.removeItem('selectedSchool');
+      sessionStorage.removeItem('currentSchoolId');
+      sessionStorage.removeItem('schoolCode');
       
-      // Redirect to school selection page if we have school context, otherwise to public home
-      if (schoolCode) {
-        window.location.href = `/school/${schoolCode}`;
-      } else {
-        window.location.href = '/';
-      }
+      // Always redirect to public home page
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      // Always clear user state even if logout fails
+      // Always clear user state and school context even if logout fails
       setUser(null);
+      localStorage.removeItem('selectedSchool');
+      sessionStorage.removeItem('currentSchoolId');
+      sessionStorage.removeItem('schoolCode');
       
-      // Fallback redirect
-      const schoolCode = sessionStorage.getItem('schoolCode');
-      if (schoolCode) {
-        window.location.href = `/school/${schoolCode}`;
-      } else {
-        window.location.href = '/';
-      }
+      // Always redirect to public home page
+      window.location.href = '/';
     }
   };
 

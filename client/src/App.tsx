@@ -42,11 +42,17 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
   
   React.useEffect(() => {
+    // Clear school context when switching between schools or logging out
+    if (location === '/') {
+      localStorage.removeItem('selectedSchool');
+      sessionStorage.removeItem('currentSchoolId');
+      sessionStorage.removeItem('schoolCode');
+    }
+    
     // If user is authenticated and on a school selection route without a subpage,
     // redirect to the home page within that school
     if (user && location.match(/^\/school\/[^/]+$/)) {
       const schoolCode = location.split('/')[2];
-
       navigate(`/school/${schoolCode}/home`);
     }
   }, [user, location, navigate]);
@@ -59,7 +65,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     );
   }
   
-  // Show login page if user is not authenticated
+  // Show login page if user is not authenticated and we're in a school context
+  if (!user && location.includes('/school/')) {
+    return <Login />;
+  }
+  
+  // Show public pages if user is not authenticated and not in school context
   if (!user) {
     return <Login />;
   }

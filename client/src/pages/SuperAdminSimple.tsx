@@ -255,7 +255,7 @@ export default function SuperAdminSimple() {
         }
         
         const uploadResult = await uploadResponse.json();
-        logoUrl = uploadResult.url;
+        logoUrl = uploadResult.url || uploadResult.imageUrl;
       }
       
       // Create school with logo URL

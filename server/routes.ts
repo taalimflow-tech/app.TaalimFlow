@@ -859,6 +859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ 
         message: "تم رفع الصورة بنجاح", 
+        url: fileUrl,
         imageUrl: fileUrl
       });
     } catch (error) {

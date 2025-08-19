@@ -56,12 +56,17 @@ export default function SchoolSelection({ schoolCode }: SchoolSelectionProps) {
     setError("");
     
     try {
-      // Set school context in session storage and local storage
+      // Clear any existing school context first
+      localStorage.removeItem('selectedSchool');
+      sessionStorage.removeItem('currentSchoolId');
+      sessionStorage.removeItem('schoolCode');
+      
+      // Set new school context
       localStorage.setItem('selectedSchool', JSON.stringify(school));
       sessionStorage.setItem('currentSchoolId', school.id.toString());
       sessionStorage.setItem('schoolCode', school.code);
       
-      // Navigate to school home page - AuthWrapper will handle login if needed
+      // Navigate to school home page - this will trigger login if needed
       setLocation(`/school/${school.code}/home`);
     } catch (err) {
       setError("حدث خطأ في الوصول إلى المدرسة");
