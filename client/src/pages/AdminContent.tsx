@@ -207,27 +207,27 @@ export default function AdminContent() {
   });
 
   // Fetch existing content
-  const { data: announcements = [] } = useQuery({
+  const { data: announcements = [] } = useQuery<any[]>({
     queryKey: ['/api/announcements'],
     enabled: activeTab === 'announcement'
   });
 
-  const { data: blogPosts = [] } = useQuery({
+  const { data: blogPosts = [] } = useQuery<any[]>({
     queryKey: ['/api/blog-posts'],
     enabled: activeTab === 'blog'
   });
 
-  const { data: groups = [] } = useQuery({
+  const { data: groups = [] } = useQuery<any[]>({
     queryKey: ['/api/groups'],
     enabled: activeTab === 'group'
   });
 
-  const { data: formations = [] } = useQuery({
+  const { data: formations = [] } = useQuery<any[]>({
     queryKey: ['/api/formations'],
     enabled: activeTab === 'formation'
   });
 
-  const { data: teachers = [] } = useQuery({
+  const { data: teachers = [] } = useQuery<any[]>({
     queryKey: ['/api/teachers'],
     enabled: activeTab === 'teacher'
   });
