@@ -1765,6 +1765,8 @@ export class DatabaseStorage implements IStorage {
 
       // Add new mixed assignments
       if (studentIds.length > 0) {
+        console.log(`🔧 Creating assignments for ${studentIds.length} students:`, studentIds);
+        
         const mixedAssignments = studentIds
           .map((studentId) => {
             const studentInfo = availableStudents.find(
@@ -1779,10 +1781,17 @@ export class DatabaseStorage implements IStorage {
               return null;
             }
 
+            console.log(`🔧 Creating assignment for student ${studentId}:`, {
+              studentId: studentId,
+              studentType: studentInfo.type,
+              studentName: studentInfo.name,
+              userId: studentInfo.userId || 'N/A'
+            });
+
             return {
               schoolId: schoolId!,
               groupId: actualGroupId,
-              studentId: studentId,
+              studentId: studentId, // This now correctly uses student.id from the fixed query
               studentType: studentInfo.type as "student" | "child",
               assignedBy: adminId || null,
             };
@@ -1790,7 +1799,12 @@ export class DatabaseStorage implements IStorage {
           .filter((assignment) => assignment !== null); // Remove null assignments
 
         if (mixedAssignments.length > 0) {
-          await db.insert(groupMixedAssignments).values(mixedAssignments);
+          console.log(`🔧 Inserting ${mixedAssignments.length} assignments into database:`, mixedAssignments);
+          const insertedAssignments = await db
+            .insert(groupMixedAssignments)
+            .values(mixedAssignments)
+            .returning();
+          console.log(`✅ Successfully inserted assignments:`, insertedAssignments);
         }
       }
 
@@ -1817,19 +1831,29 @@ export class DatabaseStorage implements IStorage {
     const result = [];
     for (const assignment of assignments) {
       if (assignment.studentType === "student") {
+        // FIXED: Look up student data using student ID, then get user info
         const studentData = await db
           .select({
-            id: users.id,
+            studentId: students.id,
+            userId: users.id,
             name: users.name,
             email: users.email,
             phone: users.phone,
           })
-          .from(users)
-          .where(eq(users.id, assignment.studentId!))
+          .from(students)
+          .leftJoin(users, eq(students.userId, users.id))
+          .where(eq(students.id, assignment.studentId!))
           .limit(1);
 
         if (studentData[0]) {
-          result.push({ ...studentData[0], type: "student" });
+          result.push({ 
+            id: studentData[0].studentId, // Use student ID, not user ID
+            userId: studentData[0].userId,
+            name: studentData[0].name,
+            email: studentData[0].email,
+            phone: studentData[0].phone,
+            type: "student" 
+          });
         }
       } else if (assignment.studentType === "child") {
         const childData = await db
@@ -1866,9 +1890,11 @@ export class DatabaseStorage implements IStorage {
 
     // Get direct students (users with student records) - include any user role that has student data
     // This includes regular students, teachers, and admins who also have student records
+    // FIXED: Use students.id instead of users.id for consistent assignment logic
     let directStudentsQuery = db
       .select({
-        id: users.id,
+        id: students.id, // FIX: Use student ID not user ID
+        userId: users.id, // Keep user ID for reference
         name: users.name,
         email: users.email,
         phone: users.phone,
