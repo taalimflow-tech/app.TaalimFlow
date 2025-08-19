@@ -1601,13 +1601,12 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
-      // Get all students in one query - For attendance display: use user.id with school verification
+      // Get all students in one query - FIXED: Filter by schoolId and use student IDs
       const allStudentsData =
         allStudentIds.size > 0
           ? await db
               .select({
-                id: users.id, // Use user.id for attendance display
-                studentId: students.id, // Keep student ID for reference
+                id: students.id, // Use student.id to match assignments
                 name: users.name,
                 educationLevel: students.educationLevel,
                 grade: students.grade,
@@ -1617,17 +1616,16 @@ export class DatabaseStorage implements IStorage {
               .leftJoin(users, eq(students.userId, users.id))
               .where(and(
                 inArray(students.id, Array.from(allStudentIds)), // Filter by student IDs
-                eq(students.schoolId, schoolId), // CRITICAL: Filter by school
-                eq(users.schoolId, schoolId) // CRITICAL: Verify user also belongs to same school
+                eq(students.schoolId, schoolId) // CRITICAL: Filter by school
               ))
           : [];
 
-      // Get all children in one query - For attendance display: keep child.id with school verification
+      // Get all children in one query - FIXED: Filter by schoolId
       const allChildrenData =
         allChildIds.size > 0
           ? await db
               .select({
-                id: children.id, // Use child.id directly for children
+                id: children.id,
                 name: children.name,
                 educationLevel: children.educationLevel,
                 grade: children.grade,
@@ -1643,9 +1641,9 @@ export class DatabaseStorage implements IStorage {
               ))
           : [];
 
-      // Create lookup maps for quick access - Use studentId as key for assignments
+      // Create lookup maps for quick access
       const studentsMap = new Map(
-        allStudentsData.map((s) => [s.studentId, { ...s, type: "student" }]),
+        allStudentsData.map((s) => [s.id, { ...s, type: "student" }]),
       );
       const childrenMap = new Map(
         allChildrenData.map((c) => [c.id, { ...c, type: "child" }]),

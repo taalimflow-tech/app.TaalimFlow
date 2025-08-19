@@ -48,21 +48,21 @@ async function testSchoolIsolation() {
       console.log(`Group "${groupWithStudents.name}" (ID: ${groupWithStudents.id}) has ${groupWithStudents.studentsAssigned.length} assigned students:`);
       
       groupWithStudents.studentsAssigned.forEach(student => {
-        console.log(`   - Display ID: ${student.id}, Student ID: ${student.studentId}, Name: ${student.name}`);
+        console.log(`   - Student ID: ${student.id}, Name: ${student.name}`);
         
-        // Check if the user belongs to School 8 (for attendance display)
-        const userBelongsToSchool8 = allStudents.find(s => 
-          s.userId === student.id && s.schoolId === 8
+        // Check if this student actually belongs to School 8
+        const studentBelongsToSchool8 = allStudents.find(s => 
+          s.studentId === student.id && s.schoolId === 8
         );
         
-        if (userBelongsToSchool8) {
-          console.log(`     ✅ CORRECT: User belongs to School 8 (display uses user.id = ${student.id})`);
+        if (studentBelongsToSchool8) {
+          console.log(`     ✅ CORRECT: Student belongs to School 8`);
         } else {
-          const userActualSchool = allStudents.find(s => s.userId === student.id);
-          if (userActualSchool) {
-            console.log(`     ❌ WRONG: User belongs to School ${userActualSchool.schoolId}, not School 8!`);
+          const studentActualSchool = allStudents.find(s => s.studentId === student.id);
+          if (studentActualSchool) {
+            console.log(`     ❌ WRONG: Student belongs to School ${studentActualSchool.schoolId}, not School 8!`);
           } else {
-            console.log(`     ❓ UNKNOWN: User not found in any school`);
+            console.log(`     ❓ UNKNOWN: Student not found in any school`);
           }
         }
       });
@@ -84,21 +84,21 @@ async function testSchoolIsolation() {
         console.log(`Group "${otherGroupWithStudents.name}" (ID: ${otherGroupWithStudents.id}) has ${otherGroupWithStudents.studentsAssigned.length} assigned students:`);
         
         otherGroupWithStudents.studentsAssigned.forEach(student => {
-          console.log(`   - Display ID: ${student.id}, Student ID: ${student.studentId}, Name: ${student.name}`);
+          console.log(`   - Student ID: ${student.id}, Name: ${student.name}`);
           
-          // Check if the user belongs to the correct school (for attendance display)
-          const userBelongsToCorrectSchool = allStudents.find(s => 
-            s.userId === student.id && s.schoolId === otherSchoolId
+          // Check if this student actually belongs to the correct school
+          const studentBelongsToCorrectSchool = allStudents.find(s => 
+            s.studentId === student.id && s.schoolId === otherSchoolId
           );
           
-          if (userBelongsToCorrectSchool) {
-            console.log(`     ✅ CORRECT: User belongs to School ${otherSchoolId}`);
+          if (studentBelongsToCorrectSchool) {
+            console.log(`     ✅ CORRECT: Student belongs to School ${otherSchoolId}`);
           } else {
-            const userActualSchool = allStudents.find(s => s.userId === student.id);
-            if (userActualSchool) {
-              console.log(`     ❌ WRONG: User belongs to School ${userActualSchool.schoolId}, not School ${otherSchoolId}!`);
+            const studentActualSchool = allStudents.find(s => s.studentId === student.id);
+            if (studentActualSchool) {
+              console.log(`     ❌ WRONG: Student belongs to School ${studentActualSchool.schoolId}, not School ${otherSchoolId}!`);
             } else {
-              console.log(`     ❓ UNKNOWN: User not found in any school`);
+              console.log(`     ❓ UNKNOWN: Student not found in any school`);
             }
           }
         });
