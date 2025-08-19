@@ -1601,26 +1601,23 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
-      // Get all students in one query - FIXED: Filter by schoolId and use student IDs
+      // Get all students in one query
       const allStudentsData =
         allStudentIds.size > 0
           ? await db
               .select({
-                id: students.id, // Use student.id to match assignments
+                id: users.id,
                 name: users.name,
                 educationLevel: students.educationLevel,
                 grade: students.grade,
                 email: users.email,
               })
-              .from(students)
-              .leftJoin(users, eq(students.userId, users.id))
-              .where(and(
-                inArray(students.id, Array.from(allStudentIds)), // Filter by student IDs
-                eq(students.schoolId, schoolId) // CRITICAL: Filter by school
-              ))
+              .from(users)
+              .leftJoin(students, eq(users.id, students.userId))
+              .where(inArray(users.id, Array.from(allStudentIds)))
           : [];
 
-      // Get all children in one query - FIXED: Filter by schoolId
+      // Get all children in one query
       const allChildrenData =
         allChildIds.size > 0
           ? await db
@@ -1635,10 +1632,7 @@ export class DatabaseStorage implements IStorage {
                   ),
               })
               .from(children)
-              .where(and(
-                inArray(children.id, Array.from(allChildIds)),
-                eq(children.schoolId, schoolId) // CRITICAL: Filter by school
-              ))
+              .where(inArray(children.id, Array.from(allChildIds)))
           : [];
 
       // Create lookup maps for quick access
@@ -1825,7 +1819,7 @@ export class DatabaseStorage implements IStorage {
     throw new Error("Failed to create or update group");
   }
 
-  async getGroupAssignments(groupId: number, schoolId?: number): Promise<any[]> {
+  async getGroupAssignments(groupId: number): Promise<any[]> {
     const assignments = await db
       .select({
         studentId: groupMixedAssignments.studentId,
@@ -1837,7 +1831,7 @@ export class DatabaseStorage implements IStorage {
     const result = [];
     for (const assignment of assignments) {
       if (assignment.studentType === "student") {
-        // FIXED: Look up student data using student ID, then get user info + school filter
+        // FIXED: Look up student data using student ID, then get user info
         const studentData = await db
           .select({
             studentId: students.id,
@@ -1848,10 +1842,7 @@ export class DatabaseStorage implements IStorage {
           })
           .from(students)
           .leftJoin(users, eq(students.userId, users.id))
-          .where(and(
-            eq(students.id, assignment.studentId!),
-            schoolId ? eq(students.schoolId, schoolId) : sql`1=1`
-          ))
+          .where(eq(students.id, assignment.studentId!))
           .limit(1);
 
         if (studentData[0]) {
@@ -1876,10 +1867,7 @@ export class DatabaseStorage implements IStorage {
             phone: sql<string>`''`.as("phone"),
           })
           .from(children)
-          .where(and(
-            eq(children.id, assignment.studentId!),
-            schoolId ? eq(children.schoolId, schoolId) : sql`1=1`
-          ))
+          .where(eq(children.id, assignment.studentId!))
           .limit(1);
 
         if (childData[0]) {
