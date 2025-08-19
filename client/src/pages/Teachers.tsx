@@ -104,8 +104,11 @@ export default function Teachers() {
         receiverId: teacher.id, // Teacher's user ID (same as teacher.id in getTeachersWithSpecializations)
         teacherId: null, // Set to null since we're using user-to-user messaging
         subject: data.subject,
-        content: data.content
+        content: data.content,
+        schoolId: user?.schoolId // Add required schoolId field
       };
+      
+      console.log('Sending teacher message with payload:', payload);
       
       const response = await fetch('/api/messages', {
         method: 'POST',
@@ -113,10 +116,20 @@ export default function Teachers() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
+        credentials: 'include', // Ensure session cookies are sent
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Teacher message send failed:', errorText);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
       
       return response.json();
