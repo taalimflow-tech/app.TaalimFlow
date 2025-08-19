@@ -85,31 +85,35 @@ export function Notifications() {
       markAsReadMutation.mutate(notification.id);
     }
 
+    // Create base path with school code
+    const basePath = schoolCode ? `/school/${schoolCode}` : '';
+
     // Navigate based on notification type
     switch (notification.type) {
       case 'blog':
-        navigate('/blog');
+        navigate(`${basePath}/blog`);
         break;
       case 'announcement':
-        navigate('/announcements');
+        navigate(`${basePath}/home`); // Announcements are shown on home page
         break;
       case 'group_update':
-        navigate('/groups');
+        navigate(`${basePath}/groups`);
         break;
       case 'formation_update':
-        navigate('/formations');
+        navigate(`${basePath}/groups`); // Formations are part of groups page
         break;
       case 'message':
-        navigate('/messages');
+        navigate(`${basePath}/messages`);
         break;
       case 'suggestion':
         if (user?.role === 'admin') {
-          navigate('/admin/suggestions');
+          navigate(`${basePath}/admin/suggestions`);
         } else {
-          navigate('/suggestions');
+          navigate(`${basePath}/suggestions`);
         }
         break;
       default:
+        navigate(`${basePath}/home`); // Default to home page
         break;
     }
   };
