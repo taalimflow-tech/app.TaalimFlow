@@ -431,18 +431,38 @@ export default function Messages() {
             
             // Permission check: students and parents cannot block/report teachers or admins
             const canBlockOrReport = () => {
-              if (!user?.role || !otherUserRole) return false;
+              console.log('canBlockOrReport check:', {
+                currentUserRole: user?.role,
+                otherUserRole: otherUserRole,
+                otherUserId: otherUserId,
+                otherUserName: otherUserName
+              });
+              
+              if (!user?.role || !otherUserRole) {
+                console.log('Missing user role or other user role');
+                return false;
+              }
               
               // Admins can block/report anyone
-              if (user.role === 'admin') return true;
+              if (user.role === 'admin') {
+                console.log('Admin can block/report anyone');
+                return true;
+              }
               
               // Teachers can block/report students and parents
-              if (user.role === 'teacher' && (otherUserRole === 'user' || otherUserRole === 'parent')) return true;
+              if (user.role === 'teacher' && (otherUserRole === 'user' || otherUserRole === 'parent')) {
+                console.log('Teacher can block/report students and parents');
+                return true;
+              }
               
               // Students and parents can only block/report other students and parents
               if ((user.role === 'user' || user.role === 'parent') && 
-                  (otherUserRole === 'user' || otherUserRole === 'parent')) return true;
+                  (otherUserRole === 'user' || otherUserRole === 'parent')) {
+                console.log('Student/parent can block/report other students/parents');
+                return true;
+              }
               
+              console.log('No permission to block/report');
               return false;
             };
             
@@ -520,7 +540,8 @@ export default function Messages() {
                     </div>
                     
                     <div className="flex items-center gap-1">
-                      {canBlockOrReport() && (
+                      {/* Debug: Always show buttons for testing */}
+                      {true && (
                         <>
                           {blocked ? (
                             <Button 
