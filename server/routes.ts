@@ -1618,10 +1618,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Report user
   app.post("/api/report-user", async (req, res) => {
     try {
-      console.log("=== Report User Request Started ===");
-      console.log("Session user:", req.session.user);
-      console.log("Request body:", req.body);
-
       if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
@@ -1629,7 +1625,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { reportedUserId, messageId, reason, description } = req.body;
 
       if (!reportedUserId || !reason) {
-        return res.status(400).json({ error: "معرف المستخدم المراد الإبلاغ عنه والسبب مطلوبان" });
+        return res
+          .status(400)
+          .json({ error: "معرف المستخدم المراد الإبلاغ عنه والسبب مطلوبان" });
       }
 
       if (reportedUserId === req.session.user.id) {
@@ -1642,32 +1640,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messageId,
         reason,
         description,
-        schoolId: req.session.user.schoolId // Add this line
+        schoolId: req.session.user.schoolId,
       };
 
-      console.log("Report data prepared:", reportData);
-
-      // Add validation for schoolId
-      if (!reportData.schoolId) {
-        console.log("No schoolId found in session user");
-        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
-      }
-
-      console.log("Calling storage.reportUser...");
       const report = await storage.reportUser(reportData);
-
-      console.log("Report created successfully:", report);
       res.json({ message: "تم الإبلاغ بنجاح", report });
     } catch (error) {
-      console.error('=== Error reporting user ===');
-      console.error('Error details:', error);
-      console.error('Error stack:', error.stack);
-      res.status(500).json({ 
-        error: "Failed to report user", 
-        details: error.message 
-      });
+      console.error("Error reporting user:", error);
+      res.status(500).json({ error: "Failed to report user" });
     }
   });
+
   // Admin routes for reports and user management
   app.get("/api/admin/reports", async (req, res) => {
     try {
@@ -1948,7 +1931,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createNotificationForUsers(
           nonAdminUsers.map((u) => u.id),
           "group_update",
-          "👥 مجموعة ج"�يدة",
+          "👥 مجموعة جديدة",
           `تم إنشاء مجموعة جديدة: "${group.name}"`,
           group.id,
           req.session.user.schoolId,
@@ -1971,7 +1954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       await storage.deleteGroup(id);
-      res.json({ message: "تم حذف المجموعة بنجg�ح" });
+      res.json({ message: "تم حذف المجموعة بنجg  �ح" });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete group" });
     }

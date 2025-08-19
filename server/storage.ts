@@ -1,6 +1,106 @@
-import { schools, users, announcements, blogPosts, teachers, messages, suggestions, groups, formations, groupRegistrations, groupUserAssignments, groupMixedAssignments, formationRegistrations, children, students, notifications, teachingModules, moduleYears, teacherSpecializations, scheduleTables, scheduleCells, blockedUsers, userReports, groupAttendance, groupTransactions, groupScheduleAssignments, studentMonthlyPayments, financialEntries, pushSubscriptions, notificationLogs, type School, type InsertSchool, type User, type InsertUser, type Announcement, type InsertAnnouncement, type BlogPost, type InsertBlogPost, type Teacher, type InsertTeacher, type Message, type InsertMessage, type Suggestion, type InsertSuggestion, type Group, type InsertGroup, type Formation, type InsertFormation, type GroupRegistration, type InsertGroupRegistration, type GroupUserAssignment, type InsertGroupUserAssignment, type GroupMixedAssignment, type InsertGroupMixedAssignment, type FormationRegistration, type InsertFormationRegistration, type Child, type InsertChild, type Student, type InsertStudent, type Notification, type InsertNotification, type TeachingModule, type InsertTeachingModule, type TeacherSpecialization, type InsertTeacherSpecialization, type ScheduleTable, type InsertScheduleTable, type ScheduleCell, type InsertScheduleCell, type BlockedUser, type InsertBlockedUser, type UserReport, type InsertUserReport, type GroupAttendance, type InsertGroupAttendance, type GroupTransaction, type InsertGroupTransaction, type StudentMonthlyPayment, type InsertStudentMonthlyPayment, type FinancialEntry, type InsertFinancialEntry, type PushSubscription, type InsertPushSubscription, type NotificationLog, type InsertNotificationLog } from "@shared/schema";
+import {
+  schools,
+  users,
+  announcements,
+  blogPosts,
+  teachers,
+  messages,
+  suggestions,
+  groups,
+  formations,
+  groupRegistrations,
+  groupUserAssignments,
+  groupMixedAssignments,
+  formationRegistrations,
+  children,
+  students,
+  notifications,
+  teachingModules,
+  moduleYears,
+  teacherSpecializations,
+  scheduleTables,
+  scheduleCells,
+  blockedUsers,
+  userReports,
+  groupAttendance,
+  groupTransactions,
+  groupScheduleAssignments,
+  studentMonthlyPayments,
+  financialEntries,
+  pushSubscriptions,
+  notificationLogs,
+  type School,
+  type InsertSchool,
+  type User,
+  type InsertUser,
+  type Announcement,
+  type InsertAnnouncement,
+  type BlogPost,
+  type InsertBlogPost,
+  type Teacher,
+  type InsertTeacher,
+  type Message,
+  type InsertMessage,
+  type Suggestion,
+  type InsertSuggestion,
+  type Group,
+  type InsertGroup,
+  type Formation,
+  type InsertFormation,
+  type GroupRegistration,
+  type InsertGroupRegistration,
+  type GroupUserAssignment,
+  type InsertGroupUserAssignment,
+  type GroupMixedAssignment,
+  type InsertGroupMixedAssignment,
+  type FormationRegistration,
+  type InsertFormationRegistration,
+  type Child,
+  type InsertChild,
+  type Student,
+  type InsertStudent,
+  type Notification,
+  type InsertNotification,
+  type TeachingModule,
+  type InsertTeachingModule,
+  type TeacherSpecialization,
+  type InsertTeacherSpecialization,
+  type ScheduleTable,
+  type InsertScheduleTable,
+  type ScheduleCell,
+  type InsertScheduleCell,
+  type BlockedUser,
+  type InsertBlockedUser,
+  type UserReport,
+  type InsertUserReport,
+  type GroupAttendance,
+  type InsertGroupAttendance,
+  type GroupTransaction,
+  type InsertGroupTransaction,
+  type StudentMonthlyPayment,
+  type InsertStudentMonthlyPayment,
+  type FinancialEntry,
+  type InsertFinancialEntry,
+  type PushSubscription,
+  type InsertPushSubscription,
+  type NotificationLog,
+  type InsertNotificationLog,
+} from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, or, ilike, and, aliasedTable, sql, asc, like, SQL, inArray, isNull } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  or,
+  ilike,
+  and,
+  aliasedTable,
+  sql,
+  asc,
+  like,
+  SQL,
+  inArray,
+  isNull,
+} from "drizzle-orm";
 
 export interface IStorage {
   // School methods (for multi-tenancy)
@@ -12,7 +112,11 @@ export interface IStorage {
   updateSchool(id: number, updates: Partial<InsertSchool>): Promise<School>;
   deleteSchool(id: number): Promise<void>;
   getSchoolStatistics(schoolId: number): Promise<any>;
-  updateSchoolKeys(schoolId: number, adminKey: string, teacherKey: string): Promise<void>;
+  updateSchoolKeys(
+    schoolId: number,
+    adminKey: string,
+    teacherKey: string,
+  ): Promise<void>;
 
   // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
@@ -20,7 +124,11 @@ export interface IStorage {
   getUserByEmail(email: string, schoolId?: number): Promise<User | undefined>;
   getUserByPhone(phone: string, schoolId?: number): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  authenticateUser(email: string, password: string, schoolId?: number): Promise<User | null>;
+  authenticateUser(
+    email: string,
+    password: string,
+    schoolId?: number,
+  ): Promise<User | null>;
   getAllUsers(schoolId?: number): Promise<User[]>;
   searchUsers(query: string, schoolId?: number): Promise<User[]>;
   searchUsersWithFilters(filters: {
@@ -31,233 +139,404 @@ export interface IStorage {
     role?: string;
     schoolId?: number;
   }): Promise<User[]>;
-  updateUserProfilePicture(userId: number, profilePictureUrl: string): Promise<User>;
-  
+  updateUserProfilePicture(
+    userId: number,
+    profilePictureUrl: string,
+  ): Promise<User>;
+
   // Phone verification methods
-  savePhoneVerificationCode(userId: number, code: string, expiry: Date): Promise<void>;
+  savePhoneVerificationCode(
+    userId: number,
+    code: string,
+    expiry: Date,
+  ): Promise<void>;
   verifyPhoneCode(userId: number, code: string): Promise<boolean>;
   markPhoneAsVerified(userId: number): Promise<void>;
-  
+
   // Email verification methods
-  saveEmailVerificationCode(userId: number, code: string, expiry: Date): Promise<void>;
+  saveEmailVerificationCode(
+    userId: number,
+    code: string,
+    expiry: Date,
+  ): Promise<void>;
   verifyEmailCode(userId: number, code: string): Promise<boolean>;
   markEmailAsVerified(userId: number): Promise<void>;
-  
+
   // Announcement methods
   getAnnouncements(): Promise<Announcement[]>;
   getAnnouncementsBySchool(schoolId: number): Promise<Announcement[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
-  
+
   // Blog post methods
   getBlogPosts(): Promise<BlogPost[]>;
   getBlogPostsBySchool(schoolId: number): Promise<BlogPost[]>;
   createBlogPost(blogPost: InsertBlogPost): Promise<BlogPost>;
   deleteBlogPost(id: number): Promise<void>;
-  
+
   // Teacher methods
   getTeachers(): Promise<Teacher[]>;
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
   getTeachersWithSpecializations(schoolId: number): Promise<any[]>;
-  
+
   // Message methods
   getMessages(): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   getMessagesByUserId(userId: number): Promise<Message[]>;
-  createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]>;
-  
+  createBulkMessage(
+    senderIds: number[],
+    receiverIds: number[],
+    subject: string,
+    content: string,
+  ): Promise<Message[]>;
+
   // Suggestion methods
   getSuggestions(schoolId?: number): Promise<any[]>;
   getUserSuggestions(userId: number, schoolId?: number): Promise<any[]>;
   createSuggestion(suggestion: InsertSuggestion): Promise<Suggestion>;
-  
+
   // Group methods
   getGroups(): Promise<Group[]>;
   getGroupsBySchool(schoolId: number): Promise<Group[]>;
   getGroupById(id: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
   deleteGroup(id: number, schoolId?: number): Promise<void>;
-  
+
   // Admin group management methods
   getAdminGroups(schoolId?: number): Promise<any[]>;
-  updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group>;
+  updateGroupAssignments(
+    groupId: number | null,
+    studentIds: number[],
+    teacherId: number,
+    groupData?: any,
+    schoolId?: number,
+  ): Promise<Group>;
   getGroupAssignments(groupId: number): Promise<any[]>;
-  getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]>;
-  
+  getAvailableStudentsByLevelAndSubject(
+    educationLevel: string,
+    subjectId: number,
+    schoolId?: number,
+  ): Promise<any[]>;
+
   // Formation methods
   getFormations(): Promise<Formation[]>;
   getFormationsBySchool(schoolId: number): Promise<Formation[]>;
   createFormation(formation: InsertFormation): Promise<Formation>;
   deleteFormation(id: number): Promise<void>;
-  
+
   // Registration methods
-  createGroupRegistration(registration: InsertGroupRegistration): Promise<GroupRegistration>;
-  createFormationRegistration(registration: InsertFormationRegistration): Promise<FormationRegistration>;
-  
+  createGroupRegistration(
+    registration: InsertGroupRegistration,
+  ): Promise<GroupRegistration>;
+  createFormationRegistration(
+    registration: InsertFormationRegistration,
+  ): Promise<FormationRegistration>;
+
   // Children methods
   createChild(child: InsertChild): Promise<Child>;
   getChildrenByParentId(parentId: number): Promise<Child[]>;
   deleteChild(childId: number): Promise<void>;
-  
+
   // Student methods
   createStudent(student: InsertStudent): Promise<Student>;
   getStudentByUserId(userId: number): Promise<Student | undefined>;
-  getStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string } | null>;
-  regenerateStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string }>;
+  getStudentQRCode(
+    studentId: number,
+    type: "student" | "child",
+  ): Promise<{ qrCode: string; qrCodeData: string } | null>;
+  regenerateStudentQRCode(
+    studentId: number,
+    type: "student" | "child",
+  ): Promise<{ qrCode: string; qrCodeData: string }>;
   generateQRCodeForVerifiedUser(userId: number): Promise<void>;
-  
+
   // Student claim system methods
-  getUnclaimedStudent(studentId: number, schoolId: number): Promise<Student | undefined>;
+  getUnclaimedStudent(
+    studentId: number,
+    schoolId: number,
+  ): Promise<Student | undefined>;
   claimStudentAccount(studentId: number, userId: number): Promise<void>;
-  preRegisterStudent(student: Omit<InsertStudent, 'userId'>): Promise<Student>;
+  preRegisterStudent(student: Omit<InsertStudent, "userId">): Promise<Student>;
   getUnclaimedStudents(schoolId: number): Promise<Student[]>;
-  updateStudent(studentId: number, updates: Partial<InsertStudent>): Promise<Student>;
+  updateStudent(
+    studentId: number,
+    updates: Partial<InsertStudent>,
+  ): Promise<Student>;
   deleteStudent(studentId: number): Promise<void>;
-  
+
   // Notification methods
   getNotifications(userId: number): Promise<Notification[]>;
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationAsRead(notificationId: number): Promise<void>;
   markAllNotificationsAsRead(userId: number): Promise<void>;
   getUnreadNotificationCount(userId: number): Promise<number>;
-  createNotificationForUsers(userIds: number[], type: string, title: string, message: string, relatedId?: number): Promise<Notification[]>;
-  
+  createNotificationForUsers(
+    userIds: number[],
+    type: string,
+    title: string,
+    message: string,
+    relatedId?: number,
+  ): Promise<Notification[]>;
+
   // Verification methods - only for children and students
-  verifyChild(childId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Child>;
-  verifyStudent(studentId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Student>;
+  verifyChild(
+    childId: number,
+    adminId: number,
+    notes?: string,
+    educationLevel?: string,
+    selectedSubjects?: string[],
+  ): Promise<Child>;
+  verifyStudent(
+    studentId: number,
+    adminId: number,
+    notes?: string,
+    educationLevel?: string,
+    selectedSubjects?: string[],
+  ): Promise<Student>;
   undoVerifyChild(childId: number): Promise<Child>;
   undoVerifyStudent(studentId: number): Promise<Student>;
   getUnverifiedChildren(schoolId: number): Promise<Child[]>;
   getUnverifiedStudents(schoolId: number): Promise<Student[]>;
   getVerifiedChildren(schoolId: number): Promise<Child[]>;
   getVerifiedStudents(schoolId: number): Promise<Student[]>;
-  
+
   // Teaching module methods
   getTeachingModules(): Promise<TeachingModule[]>;
   getTeachingModulesByLevel(educationLevel: string): Promise<TeachingModule[]>;
   createTeachingModule(module: InsertTeachingModule): Promise<TeachingModule>;
   deleteTeachingModule(id: number): Promise<void>;
-  getTeachingModuleByName(nameAr: string, educationLevel: string): Promise<any | undefined>;
+  getTeachingModuleByName(
+    nameAr: string,
+    educationLevel: string,
+  ): Promise<any | undefined>;
   getTeachingModuleByNameAllLevels(nameAr: string): Promise<any | undefined>;
-  getTeachingModuleByNameAndGrade(nameAr: string, educationLevel: string, grade: string): Promise<any | undefined>;
-  createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string }): Promise<any>;
-  
+  getTeachingModuleByNameAndGrade(
+    nameAr: string,
+    educationLevel: string,
+    grade: string,
+  ): Promise<any | undefined>;
+  createCustomSubject(subjectData: {
+    name: string;
+    nameAr: string;
+    educationLevel: string;
+    grade?: string;
+    description?: string;
+  }): Promise<any>;
+
   // ChatGPT's solution: Module Years mapping methods
   getModuleYears(moduleId: number): Promise<string[]>;
   createModuleYear(moduleId: number, grade: string): Promise<void>;
   getModulesWithYears(schoolId?: number): Promise<any[]>;
-  
+
   // Teacher specialization methods
-  getTeacherSpecializations(teacherId: number): Promise<TeacherSpecialization[]>;
-  createTeacherSpecialization(specialization: InsertTeacherSpecialization): Promise<TeacherSpecialization>;
+  getTeacherSpecializations(
+    teacherId: number,
+  ): Promise<TeacherSpecialization[]>;
+  createTeacherSpecialization(
+    specialization: InsertTeacherSpecialization,
+  ): Promise<TeacherSpecialization>;
   deleteTeacherSpecialization(id: number): Promise<void>;
   getTeachersByModule(moduleId: number): Promise<TeacherSpecialization[]>;
-  
+
   // Schedule table methods
   getScheduleTables(): Promise<ScheduleTable[]>;
   getScheduleTablesBySchool(schoolId: number): Promise<ScheduleTable[]>;
   getScheduleTable(id: number): Promise<ScheduleTable | undefined>;
   createScheduleTable(table: InsertScheduleTable): Promise<ScheduleTable>;
-  updateScheduleTable(id: number, updates: Partial<InsertScheduleTable>): Promise<ScheduleTable>;
+  updateScheduleTable(
+    id: number,
+    updates: Partial<InsertScheduleTable>,
+  ): Promise<ScheduleTable>;
   deleteScheduleTable(id: number): Promise<void>;
-  
+
   // Schedule cell methods
   getScheduleCells(scheduleTableId: number): Promise<ScheduleCell[]>;
   getScheduleCell(id: number): Promise<ScheduleCell | undefined>;
   createScheduleCell(cell: InsertScheduleCell): Promise<ScheduleCell>;
-  updateScheduleCell(id: number, updates: Partial<InsertScheduleCell>): Promise<ScheduleCell>;
+  updateScheduleCell(
+    id: number,
+    updates: Partial<InsertScheduleCell>,
+  ): Promise<ScheduleCell>;
   deleteScheduleCell(id: number): Promise<void>;
   getScheduleCellsWithDetails(scheduleTableId: number): Promise<any[]>;
-  
+
   // User blocking methods
-  blockUser(blockerId: number, blockedId: number, reason?: string, schoolId?: number): Promise<BlockedUser>;
+  blockUser(
+    blockerId: number,
+    blockedId: number,
+    reason?: string,
+    schoolId?: number,
+  ): Promise<BlockedUser>;
   unblockUser(blockerId: number, blockedId: number): Promise<void>;
   isUserBlocked(blockerId: number, blockedId: number): Promise<boolean>;
   getBlockedUsers(userId: number): Promise<BlockedUser[]>;
-  
+
   // User reporting methods
   reportUser(report: InsertUserReport): Promise<UserReport>;
   getUserReports(userId: number): Promise<UserReport[]>;
-  
+
   // Admin reporting methods
   getAllReports(schoolId?: number): Promise<any[]>;
   updateReportStatus(reportId: number, status: string): Promise<UserReport>;
-  
+
   // User banning methods
   banUser(userId: number, reason: string, bannedBy: number): Promise<User>;
   unbanUser(userId: number): Promise<User>;
   getBannedUsers(): Promise<User[]>;
-  
+
   // Enhanced message methods
   getMessagesWithUserInfo(userId: number): Promise<any[]>;
   markMessageAsRead(messageId: number): Promise<void>;
   getConversationBetweenUsers(userId1: number, userId2: number): Promise<any[]>;
 
   // Group Attendance interface methods
-  getGroupAttendance(groupId: number, date?: string): Promise<GroupAttendance[]>;
+  getGroupAttendance(
+    groupId: number,
+    date?: string,
+  ): Promise<GroupAttendance[]>;
   markAttendance(attendance: InsertGroupAttendance): Promise<GroupAttendance>;
-  updateAttendance(id: number, updates: Partial<InsertGroupAttendance>): Promise<GroupAttendance>;
-  getAttendanceWithStudentDetails(groupId: number, date?: string): Promise<any[]>;
+  updateAttendance(
+    id: number,
+    updates: Partial<InsertGroupAttendance>,
+  ): Promise<GroupAttendance>;
+  getAttendanceWithStudentDetails(
+    groupId: number,
+    date?: string,
+  ): Promise<any[]>;
   getGroupAttendanceHistory(groupId: number, schoolId: number): Promise<any[]>;
-  getGroupAttendanceForMonth(groupId: number, year: number, month: number): Promise<GroupAttendance[]>;
+  getGroupAttendanceForMonth(
+    groupId: number,
+    year: number,
+    month: number,
+  ): Promise<GroupAttendance[]>;
 
   // Group Financial Transaction interface methods
-  getGroupTransactions(groupId: number, studentId?: number): Promise<GroupTransaction[]>;
-  createTransaction(transaction: InsertGroupTransaction): Promise<GroupTransaction>;
+  getGroupTransactions(
+    groupId: number,
+    studentId?: number,
+  ): Promise<GroupTransaction[]>;
+  createTransaction(
+    transaction: InsertGroupTransaction,
+  ): Promise<GroupTransaction>;
 
   // Student status methods
   getStudentAttendanceRecords(userId: number, schoolId: number): Promise<any[]>;
   getStudentPaymentRecords(userId: number, schoolId: number): Promise<any[]>;
-  updateTransaction(id: number, updates: Partial<InsertGroupTransaction>): Promise<GroupTransaction>;
+  updateTransaction(
+    id: number,
+    updates: Partial<InsertGroupTransaction>,
+  ): Promise<GroupTransaction>;
   getTransactionsWithDetails(groupId: number): Promise<any[]>;
   getStudentFinancialSummary(groupId: number, studentId: number): Promise<any>;
-  
+
   // Group Schedule interface methods
-  getGroupScheduledLessonDates(groupId: number, schoolId: number): Promise<string[]>;
-  assignGroupToSchedule(groupId: number, scheduleCellId: number, schoolId: number, assignedBy: number): Promise<any>;
+  getGroupScheduledLessonDates(
+    groupId: number,
+    schoolId: number,
+  ): Promise<string[]>;
+  assignGroupToSchedule(
+    groupId: number,
+    scheduleCellId: number,
+    schoolId: number,
+    assignedBy: number,
+  ): Promise<any>;
   getGroupScheduleAssignments(groupId: number): Promise<any[]>;
-  getCompatibleGroups(subjectId: number, teacherId: number, educationLevel: string, schoolId: number): Promise<any[]>;
+  getCompatibleGroups(
+    subjectId: number,
+    teacherId: number,
+    educationLevel: string,
+    schoolId: number,
+  ): Promise<any[]>;
   getScheduleLinkedGroups(tableId: number, schoolId: number): Promise<any[]>;
-  linkGroupsToScheduleCell(cellId: number, groupIds: number[], schoolId: number, assignedBy: number): Promise<void>;
+  linkGroupsToScheduleCell(
+    cellId: number,
+    groupIds: number[],
+    schoolId: number,
+    assignedBy: number,
+  ): Promise<void>;
 
   // Student Monthly Payment interface methods
-  getStudentPaymentStatus(studentId: number, year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment | undefined>;
-  getStudentsPaymentStatusForMonth(studentIds: number[], year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment[]>;
-  markStudentPayment(studentId: number, year: number, month: number, isPaid: boolean, schoolId: number, paidBy: number, amount?: number, notes?: string): Promise<StudentMonthlyPayment>;
-  createDefaultMonthlyPayments(studentIds: number[], year: number, month: number, schoolId: number): Promise<void>;
-  
+  getStudentPaymentStatus(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment | undefined>;
+  getStudentsPaymentStatusForMonth(
+    studentIds: number[],
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment[]>;
+  markStudentPayment(
+    studentId: number,
+    year: number,
+    month: number,
+    isPaid: boolean,
+    schoolId: number,
+    paidBy: number,
+    amount?: number,
+    notes?: string,
+  ): Promise<StudentMonthlyPayment>;
+  createDefaultMonthlyPayments(
+    studentIds: number[],
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<void>;
+
   // Student Status interface methods
   getStudentEnrolledGroups(studentId: number, schoolId: number): Promise<any[]>;
-  getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]>;
+  getStudentAttendanceRecords(
+    studentId: number,
+    schoolId: number,
+  ): Promise<any[]>;
   getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]>;
-  getStudentGroupPayments(studentId: number, groupId: number, year: number, schoolId: number): Promise<any[]>;
-  getFinancialReportData(schoolId: number, year: number, month?: number): Promise<any>;
+  getStudentGroupPayments(
+    studentId: number,
+    groupId: number,
+    year: number,
+    schoolId: number,
+  ): Promise<any[]>;
+  getFinancialReportData(
+    schoolId: number,
+    year: number,
+    month?: number,
+  ): Promise<any>;
   getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]>;
 
   // Financial Entries interface methods (for manual gains and losses)
   createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry>;
-  getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]>;
+  getFinancialEntries(
+    schoolId: number,
+    year?: number,
+    month?: number,
+  ): Promise<FinancialEntry[]>;
   resetFinancialEntries(schoolId: number): Promise<void>;
-  
+
   // Child-specific queries for parent access
   getChildById(childId: number): Promise<Child | undefined>;
   getChildAttendanceRecords(childId: number, schoolId: number): Promise<any[]>;
   getChildPaymentRecords(childId: number, schoolId: number): Promise<any[]>;
   getChildEnrolledGroups(childId: number, schoolId: number): Promise<any[]>;
-  
+
   // Desktop QR Scanner interface methods
-  getStudentCompleteProfile(studentId: number, studentType: 'student' | 'child', schoolId: number): Promise<any | null>;
+  getStudentCompleteProfile(
+    studentId: number,
+    studentType: "student" | "child",
+    schoolId: number,
+  ): Promise<any | null>;
   markStudentAttendanceToday(
-    studentId: number, 
-    studentType: 'student' | 'child',
-    status: 'present' | 'absent' | 'late' | 'excused',
+    studentId: number,
+    studentType: "student" | "child",
+    status: "present" | "absent" | "late" | "excused",
     markedBy: number,
-    schoolId: number
+    schoolId: number,
   ): Promise<any>;
   recordStudentPayment(paymentData: {
     studentId: number;
-    studentType: 'student' | 'child';
+    studentType: "student" | "child";
     amount: number;
     paymentMethod?: string;
     notes?: string;
@@ -271,29 +550,43 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // School methods implementation
   async getSchools(): Promise<School[]> {
-    return await db.select().from(schools).where(eq(schools.active, true)).orderBy(desc(schools.createdAt));
+    return await db
+      .select()
+      .from(schools)
+      .where(eq(schools.active, true))
+      .orderBy(desc(schools.createdAt));
   }
 
   async getAllActiveSchools(): Promise<School[]> {
     // Get all active schools with user count
-    const schoolsList = await db.select().from(schools).where(eq(schools.active, true)).orderBy(desc(schools.createdAt));
-    
+    const schoolsList = await db
+      .select()
+      .from(schools)
+      .where(eq(schools.active, true))
+      .orderBy(desc(schools.createdAt));
+
     // Add user count for each school
     const schoolsWithUserCount = await Promise.all(
       schoolsList.map(async (school) => {
-        const userCount = await db.select().from(users).where(eq(users.schoolId, school.id));
+        const userCount = await db
+          .select()
+          .from(users)
+          .where(eq(users.schoolId, school.id));
         return {
           ...school,
-          userCount: userCount.length
+          userCount: userCount.length,
         };
-      })
+      }),
     );
-    
+
     return schoolsWithUserCount;
   }
 
   async getSchoolByCode(code: string): Promise<School | undefined> {
-    const [school] = await db.select().from(schools).where(and(eq(schools.code, code), eq(schools.active, true)));
+    const [school] = await db
+      .select()
+      .from(schools)
+      .where(and(eq(schools.code, code), eq(schools.active, true)));
     return school || undefined;
   }
 
@@ -307,7 +600,10 @@ export class DatabaseStorage implements IStorage {
     return newSchool;
   }
 
-  async updateSchool(id: number, updates: Partial<InsertSchool>): Promise<School> {
+  async updateSchool(
+    id: number,
+    updates: Partial<InsertSchool>,
+  ): Promise<School> {
     const [updatedSchool] = await db
       .update(schools)
       .set({ ...updates, updatedAt: new Date() })
@@ -322,14 +618,22 @@ export class DatabaseStorage implements IStorage {
     await db.delete(userReports).where(eq(userReports.schoolId, id));
     await db.delete(scheduleCells).where(eq(scheduleCells.schoolId, id));
     await db.delete(scheduleTables).where(eq(scheduleTables.schoolId, id));
-    await db.delete(formationRegistrations).where(eq(formationRegistrations.schoolId, id));
-    await db.delete(groupRegistrations).where(eq(groupRegistrations.schoolId, id));
-    await db.delete(groupUserAssignments).where(eq(groupUserAssignments.schoolId, id));
+    await db
+      .delete(formationRegistrations)
+      .where(eq(formationRegistrations.schoolId, id));
+    await db
+      .delete(groupRegistrations)
+      .where(eq(groupRegistrations.schoolId, id));
+    await db
+      .delete(groupUserAssignments)
+      .where(eq(groupUserAssignments.schoolId, id));
     await db.delete(messages).where(eq(messages.schoolId, id));
     await db.delete(suggestions).where(eq(suggestions.schoolId, id));
     await db.delete(children).where(eq(children.schoolId, id));
     await db.delete(students).where(eq(students.schoolId, id));
-    await db.delete(teacherSpecializations).where(eq(teacherSpecializations.schoolId, id));
+    await db
+      .delete(teacherSpecializations)
+      .where(eq(teacherSpecializations.schoolId, id));
     await db.delete(teachers).where(eq(teachers.schoolId, id));
     await db.delete(formations).where(eq(formations.schoolId, id));
     await db.delete(groups).where(eq(groups.schoolId, id));
@@ -338,7 +642,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(teachingModules).where(eq(teachingModules.schoolId, id));
     await db.delete(blockedUsers).where(eq(blockedUsers.schoolId, id));
     await db.delete(users).where(eq(users.schoolId, id));
-    
+
     // Finally delete the school itself
     await db.delete(schools).where(eq(schools.id, id));
   }
@@ -348,88 +652,114 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, username));
     return user || undefined;
   }
 
-  async getUserByEmail(email: string, schoolId?: number): Promise<User | undefined> {
+  async getUserByEmail(
+    email: string,
+    schoolId?: number,
+  ): Promise<User | undefined> {
     if (schoolId) {
-      const users_found = await db.select().from(users)
+      const users_found = await db
+        .select()
+        .from(users)
         .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
       return users_found[0] || undefined;
     } else {
-      const users_found = await db.select().from(users)
+      const users_found = await db
+        .select()
+        .from(users)
         .where(eq(users.email, email));
       return users_found[0] || undefined;
     }
   }
 
-  async getUserByPhone(phone: string, schoolId?: number): Promise<User | undefined> {
+  async getUserByPhone(
+    phone: string,
+    schoolId?: number,
+  ): Promise<User | undefined> {
     if (schoolId) {
-      const users_found = await db.select().from(users)
+      const users_found = await db
+        .select()
+        .from(users)
         .where(and(eq(users.phone, phone), eq(users.schoolId, schoolId)))
         .orderBy(desc(users.id));
       return users_found[0] || undefined;
     } else {
-      const users_found = await db.select().from(users)
+      const users_found = await db
+        .select()
+        .from(users)
         .where(eq(users.phone, phone))
         .orderBy(desc(users.id));
       return users_found[0] || undefined;
     }
   }
 
-  async authenticateUser(email: string, password: string, schoolId?: number): Promise<User | null> {
-    const bcrypt = await import('bcrypt');
-    
+  async authenticateUser(
+    email: string,
+    password: string,
+    schoolId?: number,
+  ): Promise<User | null> {
+    const bcrypt = await import("bcrypt");
+
     let users_found;
     if (schoolId) {
-      users_found = await db.select().from(users)
+      users_found = await db
+        .select()
+        .from(users)
         .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
     } else {
-      users_found = await db.select().from(users)
-        .where(eq(users.email, email));
+      users_found = await db.select().from(users).where(eq(users.email, email));
     }
-    
+
     let user = users_found[0];
-    
+
     if (user) {
-      console.log('Found user:', user.email);
-      console.log('Password starts with $2b:', user.password.startsWith('$2b$'));
-      
+      console.log("Found user:", user.email);
+      console.log(
+        "Password starts with $2b:",
+        user.password.startsWith("$2b$"),
+      );
+
       // Check if password is already hashed
-      if (user.password.startsWith('$2b$')) {
+      if (user.password.startsWith("$2b$")) {
         // Use bcrypt comparison for hashed passwords
         const isValid = await bcrypt.compare(password, user.password);
-        console.log('Bcrypt comparison result:', isValid);
+        console.log("Bcrypt comparison result:", isValid);
         return isValid ? user : null;
       } else {
         // Legacy plain text password comparison
-        console.log('Using plain text comparison');
+        console.log("Using plain text comparison");
         const isValid = user.password === password;
-        console.log('Plain text comparison result:', isValid);
-        
+        console.log("Plain text comparison result:", isValid);
+
         // If plain text matches, hash and update the password
         if (isValid) {
           const hashedPassword = await bcrypt.hash(password, 10);
-          await db.update(users)
+          await db
+            .update(users)
             .set({ password: hashedPassword })
             .where(eq(users.id, user.id));
-          console.log('Updated password to hashed version');
+          console.log("Updated password to hashed version");
         }
-        
+
         return isValid ? user : null;
       }
     }
-    
-    console.log('No user found with email:', email);
+
+    console.log("No user found with email:", email);
     return null;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const bcrypt = await import('bcrypt');
+    const bcrypt = await import("bcrypt");
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const userWithHashedPassword = { ...insertUser, password: hashedPassword };
-    
+
     const [user] = await db
       .insert(users)
       .values(userWithHashedPassword)
@@ -439,23 +769,31 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(schoolId?: number): Promise<User[]> {
     if (schoolId) {
-      return await db.select().from(users)
+      return await db
+        .select()
+        .from(users)
         .where(eq(users.schoolId, schoolId))
         .orderBy(desc(users.createdAt));
     }
     // If no schoolId provided, return empty array for security
-    console.warn('getAllUsers called without schoolId - returning empty array for security');
+    console.warn(
+      "getAllUsers called without schoolId - returning empty array for security",
+    );
     return [];
   }
 
   async searchUsers(query: string): Promise<User[]> {
-    return await db.select().from(users).where(
-      or(
-        ilike(users.name, `%${query}%`),
-        ilike(users.email, `%${query}%`),
-        ilike(users.phone, `%${query}%`)
+    return await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          ilike(users.name, `%${query}%`),
+          ilike(users.email, `%${query}%`),
+          ilike(users.phone, `%${query}%`),
+        ),
       )
-    ).orderBy(desc(users.createdAt));
+      .orderBy(desc(users.createdAt));
   }
 
   async searchUsersWithFilters(filters: {
@@ -480,8 +818,8 @@ export class DatabaseStorage implements IStorage {
         or(
           ilike(users.name, `%${filters.search}%`),
           ilike(users.email, `%${filters.search}%`),
-          ilike(users.phone, `%${filters.search}%`)
-        )
+          ilike(users.phone, `%${filters.search}%`),
+        ),
       );
     }
 
@@ -491,47 +829,54 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Create base query with all possible joins upfront
-    let query = db.select({
-      id: users.id,
-      email: users.email,
-      password: users.password,
-      name: users.name,
-      phone: users.phone,
-      phoneVerified: users.phoneVerified,
-      phoneVerificationCode: users.phoneVerificationCode,
-      phoneVerificationExpiry: users.phoneVerificationExpiry,
-      emailVerified: users.emailVerified,
-      emailVerificationCode: users.emailVerificationCode,
-      emailVerificationExpiry: users.emailVerificationExpiry,
-      profilePicture: users.profilePicture,
-      role: users.role,
-      gender: users.gender,
-      firebaseUid: users.firebaseUid,
-      verified: users.verified,
-      verificationNotes: users.verificationNotes,
-      verifiedAt: users.verifiedAt,
-      verifiedBy: users.verifiedBy,
-      banned: users.banned,
-      banReason: users.banReason,
-      bannedAt: users.bannedAt,
-      bannedBy: users.bannedBy,
-      createdAt: users.createdAt,
-      schoolId: users.schoolId,
-    })
-    .from(users)
-    .leftJoin(students, eq(users.id, students.userId))
-    .leftJoin(children, eq(users.id, children.parentId))
-    .leftJoin(teacherSpecializations, eq(users.id, teacherSpecializations.teacherId))
-    .leftJoin(teachingModules, eq(teacherSpecializations.moduleId, teachingModules.id))
-    .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId));
+    let query = db
+      .select({
+        id: users.id,
+        email: users.email,
+        password: users.password,
+        name: users.name,
+        phone: users.phone,
+        phoneVerified: users.phoneVerified,
+        phoneVerificationCode: users.phoneVerificationCode,
+        phoneVerificationExpiry: users.phoneVerificationExpiry,
+        emailVerified: users.emailVerified,
+        emailVerificationCode: users.emailVerificationCode,
+        emailVerificationExpiry: users.emailVerificationExpiry,
+        profilePicture: users.profilePicture,
+        role: users.role,
+        gender: users.gender,
+        firebaseUid: users.firebaseUid,
+        verified: users.verified,
+        verificationNotes: users.verificationNotes,
+        verifiedAt: users.verifiedAt,
+        verifiedBy: users.verifiedBy,
+        banned: users.banned,
+        banReason: users.banReason,
+        bannedAt: users.bannedAt,
+        bannedBy: users.bannedBy,
+        createdAt: users.createdAt,
+        schoolId: users.schoolId,
+      })
+      .from(users)
+      .leftJoin(students, eq(users.id, students.userId))
+      .leftJoin(children, eq(users.id, children.parentId))
+      .leftJoin(
+        teacherSpecializations,
+        eq(users.id, teacherSpecializations.teacherId),
+      )
+      .leftJoin(
+        teachingModules,
+        eq(teacherSpecializations.moduleId, teachingModules.id),
+      )
+      .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId));
 
     // Education level filter (applies to students and children)
     if (filters.educationLevel) {
       conditions.push(
         or(
           eq(students.educationLevel, filters.educationLevel),
-          eq(children.educationLevel, filters.educationLevel)
-        )
+          eq(children.educationLevel, filters.educationLevel),
+        ),
       );
     }
 
@@ -553,7 +898,7 @@ export class DatabaseStorage implements IStorage {
     // Execute query and remove duplicates
     const results = await query.orderBy(desc(users.createdAt));
     const uniqueUsers = results.reduce((acc, user) => {
-      if (!acc.find(u => u.id === user.id)) {
+      if (!acc.find((u) => u.id === user.id)) {
         acc.push(user);
       }
       return acc;
@@ -564,45 +909,45 @@ export class DatabaseStorage implements IStorage {
 
   async createChild(insertChild: InsertChild): Promise<Child> {
     // First create the child without QR code
-    const [child] = await db
-      .insert(children)
-      .values(insertChild)
-      .returning();
-    
+    const [child] = await db.insert(children).values(insertChild).returning();
+
     // Only generate QR code if parent is verified
     const [parentInfo] = await db
       .select({ verified: users.verified })
       .from(users)
       .where(eq(users.id, insertChild.parentId!))
       .limit(1);
-    
+
     if (parentInfo?.verified) {
       // Import QR service
-      const { generateStudentQRCode } = await import('./qr-service');
-      
+      const { generateStudentQRCode } = await import("./qr-service");
+
       // Generate QR code with the child's ID
       const { qrCode, qrCodeData } = await generateStudentQRCode(
         child.id,
-        'child',
+        "child",
         child.schoolId,
-        child.name
+        child.name,
       );
-      
+
       // Update child with QR code data
       const [updatedChild] = await db
         .update(children)
         .set({ qrCode, qrCodeData })
         .where(eq(children.id, child.id))
         .returning();
-      
+
       return updatedChild;
     }
-    
+
     return child;
   }
 
   async getChildrenByParentId(parentId: number): Promise<Child[]> {
-    return await db.select().from(children).where(eq(children.parentId, parentId));
+    return await db
+      .select()
+      .from(children)
+      .where(eq(children.parentId, parentId));
   }
 
   async deleteChild(childId: number): Promise<void> {
@@ -611,97 +956,113 @@ export class DatabaseStorage implements IStorage {
 
   async createStudent(insertStudent: InsertStudent): Promise<Student> {
     // First create the student without QR code
-    const [student] = await db.insert(students).values(insertStudent).returning();
-    
+    const [student] = await db
+      .insert(students)
+      .values(insertStudent)
+      .returning();
+
     // Only generate QR code if user is verified
     const [userInfo] = await db
       .select({ name: users.name, verified: users.verified })
       .from(users)
       .where(eq(users.id, student.userId!))
       .limit(1);
-    
+
     if (userInfo?.verified) {
       // Import QR service
-      const { generateStudentQRCode } = await import('./qr-service');
-      
-      const studentName = userInfo?.name || 'طالب غير معروف';
-      
+      const { generateStudentQRCode } = await import("./qr-service");
+
+      const studentName = userInfo?.name || "طالب غير معروف";
+
       // Generate QR code with the student's ID
       const { qrCode, qrCodeData } = await generateStudentQRCode(
         student.id,
-        'student',
+        "student",
         student.schoolId,
-        studentName
+        studentName,
       );
-      
+
       // Update student with QR code data
       const [updatedStudent] = await db
         .update(students)
         .set({ qrCode, qrCodeData })
         .where(eq(students.id, student.id))
         .returning();
-      
+
       return updatedStudent;
     }
-    
+
     return student;
   }
 
   async getStudentByUserId(userId: number): Promise<Student | undefined> {
-    const [student] = await db.select().from(students).where(eq(students.userId, userId));
+    const [student] = await db
+      .select()
+      .from(students)
+      .where(eq(students.userId, userId));
     return student || undefined;
   }
 
-  async getStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string } | null> {
-    if (type === 'student') {
+  async getStudentQRCode(
+    studentId: number,
+    type: "student" | "child",
+  ): Promise<{ qrCode: string; qrCodeData: string } | null> {
+    if (type === "student") {
       const [student] = await db
         .select({ qrCode: students.qrCode, qrCodeData: students.qrCodeData })
         .from(students)
         .where(eq(students.id, studentId));
-      return student?.qrCode ? { qrCode: student.qrCode, qrCodeData: student.qrCodeData! } : null;
+      return student?.qrCode
+        ? { qrCode: student.qrCode, qrCodeData: student.qrCodeData! }
+        : null;
     } else {
       const [child] = await db
         .select({ qrCode: children.qrCode, qrCodeData: children.qrCodeData })
         .from(children)
         .where(eq(children.id, studentId));
-      return child?.qrCode ? { qrCode: child.qrCode, qrCodeData: child.qrCodeData! } : null;
+      return child?.qrCode
+        ? { qrCode: child.qrCode, qrCodeData: child.qrCodeData! }
+        : null;
     }
   }
 
-  async regenerateStudentQRCode(studentId: number, type: 'student' | 'child'): Promise<{ qrCode: string; qrCodeData: string }> {
-    const { generateStudentQRCode } = await import('./qr-service');
-    
-    if (type === 'student') {
+  async regenerateStudentQRCode(
+    studentId: number,
+    type: "student" | "child",
+  ): Promise<{ qrCode: string; qrCodeData: string }> {
+    const { generateStudentQRCode } = await import("./qr-service");
+
+    if (type === "student") {
       // Get student info
       const [student] = await db
         .select({ schoolId: students.schoolId, userId: students.userId })
         .from(students)
         .where(eq(students.id, studentId));
-      
-      if (!student) throw new Error('Student not found');
-      
+
+      if (!student) throw new Error("Student not found");
+
       // Get student name
       const [userInfo] = await db
         .select({ name: users.name })
         .from(users)
         .where(eq(users.id, student.userId!));
-      
-      const studentName = userInfo?.name || 'طالب غير معروف';
-      
+
+      const studentName = userInfo?.name || "طالب غير معروف";
+
       // Generate new QR code
       const { qrCode, qrCodeData } = await generateStudentQRCode(
         studentId,
-        'student',
+        "student",
         student.schoolId,
-        studentName
+        studentName,
       );
-      
+
       // Update student
       await db
         .update(students)
         .set({ qrCode, qrCodeData })
         .where(eq(students.id, studentId));
-      
+
       return { qrCode, qrCodeData };
     } else {
       // Get child info
@@ -709,77 +1070,77 @@ export class DatabaseStorage implements IStorage {
         .select({ schoolId: children.schoolId, name: children.name })
         .from(children)
         .where(eq(children.id, studentId));
-      
-      if (!child) throw new Error('Child not found');
-      
+
+      if (!child) throw new Error("Child not found");
+
       // Generate new QR code
       const { qrCode, qrCodeData } = await generateStudentQRCode(
         studentId,
-        'child',
+        "child",
         child.schoolId,
-        child.name
+        child.name,
       );
-      
+
       // Update child
       await db
         .update(children)
         .set({ qrCode, qrCodeData })
         .where(eq(children.id, studentId));
-      
+
       return { qrCode, qrCodeData };
     }
   }
 
   async generateQRCodeForVerifiedUser(userId: number): Promise<void> {
-    const { generateStudentQRCode } = await import('./qr-service');
-    
+    const { generateStudentQRCode } = await import("./qr-service");
+
     // Check if user is verified
     const [userInfo] = await db
       .select({ verified: users.verified, name: users.name })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
-    
+
     if (!userInfo?.verified) {
       return; // User not verified, skip QR generation
     }
-    
+
     // Generate QR for student if exists
     const [student] = await db
       .select()
       .from(students)
       .where(eq(students.userId, userId))
       .limit(1);
-    
+
     if (student && !student.qrCode) {
       const { qrCode, qrCodeData } = await generateStudentQRCode(
         student.id,
-        'student',
+        "student",
         student.schoolId,
-        userInfo.name
+        userInfo.name,
       );
-      
+
       await db
         .update(students)
         .set({ qrCode, qrCodeData })
         .where(eq(students.id, student.id));
     }
-    
+
     // Generate QR for children if parent is verified
     const childrenList = await db
       .select()
       .from(children)
       .where(eq(children.parentId, userId));
-    
+
     for (const child of childrenList) {
       if (!child.qrCode) {
         const { qrCode, qrCodeData } = await generateStudentQRCode(
           child.id,
-          'child',
+          "child",
           child.schoolId,
-          child.name
+          child.name,
         );
-        
+
         await db
           .update(children)
           .set({ qrCode, qrCodeData })
@@ -789,34 +1150,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Student claim system methods
-  async getUnclaimedStudent(studentId: number, schoolId: number): Promise<Student | undefined> {
+  async getUnclaimedStudent(
+    studentId: number,
+    schoolId: number,
+  ): Promise<Student | undefined> {
     const [student] = await db
       .select()
       .from(students)
-      .where(and(
-        eq(students.id, studentId),
-        eq(students.schoolId, schoolId),
-        isNull(students.userId)
-      ));
+      .where(
+        and(
+          eq(students.id, studentId),
+          eq(students.schoolId, schoolId),
+          isNull(students.userId),
+        ),
+      );
     return student || undefined;
   }
 
   async claimStudentAccount(studentId: number, userId: number): Promise<void> {
-    await db
-      .update(students)
-      .set({ userId })
-      .where(eq(students.id, studentId));
+    await db.update(students).set({ userId }).where(eq(students.id, studentId));
   }
 
-  async preRegisterStudent(student: Omit<InsertStudent, 'userId'>): Promise<Student> {
+  async preRegisterStudent(
+    student: Omit<InsertStudent, "userId">,
+  ): Promise<Student> {
     const [newStudent] = await db
       .insert(students)
-      .values({ 
-        ...student, 
-        userId: null, 
-        verified: true,  // Auto-verify pre-registered students
+      .values({
+        ...student,
+        userId: null,
+        verified: true, // Auto-verify pre-registered students
         verifiedAt: new Date(),
-        verificationNotes: 'تم التحقق تلقائياً عند التسجيل المسبق'
+        verificationNotes: "تم التحقق تلقائياً عند التسجيل المسبق",
       })
       .returning();
     return newStudent;
@@ -826,14 +1191,14 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(students)
-      .where(and(
-        eq(students.schoolId, schoolId),
-        isNull(students.userId)
-      ))
+      .where(and(eq(students.schoolId, schoolId), isNull(students.userId)))
       .orderBy(desc(students.id));
   }
 
-  async updateStudent(studentId: number, updates: Partial<InsertStudent>): Promise<Student> {
+  async updateStudent(
+    studentId: number,
+    updates: Partial<InsertStudent>,
+  ): Promise<Student> {
     const [updatedStudent] = await db
       .update(students)
       .set(updates)
@@ -843,22 +1208,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteStudent(studentId: number): Promise<void> {
-    await db
-      .delete(students)
-      .where(eq(students.id, studentId));
+    await db.delete(students).where(eq(students.id, studentId));
   }
 
   async getAnnouncements(): Promise<Announcement[]> {
-    return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+    return await db
+      .select()
+      .from(announcements)
+      .orderBy(desc(announcements.createdAt));
   }
 
   async getAnnouncementsBySchool(schoolId: number): Promise<Announcement[]> {
-    return await db.select().from(announcements)
+    return await db
+      .select()
+      .from(announcements)
       .where(eq(announcements.schoolId, schoolId))
       .orderBy(desc(announcements.createdAt));
   }
 
-  async createAnnouncement(insertAnnouncement: InsertAnnouncement): Promise<Announcement> {
+  async createAnnouncement(
+    insertAnnouncement: InsertAnnouncement,
+  ): Promise<Announcement> {
     const [announcement] = await db
       .insert(announcements)
       .values(insertAnnouncement)
@@ -871,7 +1241,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBlogPostsBySchool(schoolId: number): Promise<BlogPost[]> {
-    return await db.select().from(blogPosts)
+    return await db
+      .select()
+      .from(blogPosts)
       .where(eq(blogPosts.schoolId, schoolId))
       .orderBy(desc(blogPosts.createdAt));
   }
@@ -893,7 +1265,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeachersBySchool(schoolId: number): Promise<Teacher[]> {
-    return await db.select().from(teachers)
+    return await db
+      .select()
+      .from(teachers)
       .where(eq(teachers.schoolId, schoolId))
       .orderBy(desc(teachers.createdAt));
   }
@@ -924,18 +1298,24 @@ export class DatabaseStorage implements IStorage {
         subjectName: teachingModules.name,
         subjectNameAr: teachingModules.nameAr,
         educationLevel: teachingModules.educationLevel,
-        grade: teachingModules.grade
+        grade: teachingModules.grade,
       })
       .from(users)
-      .leftJoin(teacherSpecializations, eq(users.id, teacherSpecializations.teacherId))
-      .leftJoin(teachingModules, eq(teacherSpecializations.moduleId, teachingModules.id))
-      .where(and(eq(users.role, 'teacher'), eq(users.schoolId, schoolId)))
+      .leftJoin(
+        teacherSpecializations,
+        eq(users.id, teacherSpecializations.teacherId),
+      )
+      .leftJoin(
+        teachingModules,
+        eq(teacherSpecializations.moduleId, teachingModules.id),
+      )
+      .where(and(eq(users.role, "teacher"), eq(users.schoolId, schoolId)))
       .orderBy(users.name);
 
     // Group by teacher to consolidate specializations
     const teachersMap = new Map();
-    
-    result.forEach(row => {
+
+    result.forEach((row) => {
       if (!teachersMap.has(row.id)) {
         teachersMap.set(row.id, {
           id: row.id,
@@ -945,21 +1325,21 @@ export class DatabaseStorage implements IStorage {
           profilePicture: row.profilePicture,
           role: row.role,
           gender: row.gender,
-          specializations: []
+          specializations: [],
         });
       }
-      
+
       if (row.subjectId) {
         teachersMap.get(row.id).specializations.push({
           id: row.subjectId,
           name: row.subjectName,
           nameAr: row.subjectNameAr,
           educationLevel: row.educationLevel,
-          grade: row.grade
+          grade: row.grade,
         });
       }
     });
-    
+
     return Array.from(teachersMap.values());
   }
 
@@ -976,26 +1356,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessagesByUserId(userId: number): Promise<Message[]> {
-    return await db.select().from(messages).where(
-      or(
-        eq(messages.senderId, userId),
-        eq(messages.receiverId, userId)
-      )
-    ).orderBy(desc(messages.createdAt));
+    return await db
+      .select()
+      .from(messages)
+      .where(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)))
+      .orderBy(desc(messages.createdAt));
   }
 
-  async createBulkMessage(senderIds: number[], receiverIds: number[], subject: string, content: string): Promise<Message[]> {
+  async createBulkMessage(
+    senderIds: number[],
+    receiverIds: number[],
+    subject: string,
+    content: string,
+  ): Promise<Message[]> {
     // This method needs schoolId context but isn't provided in the interface
     // For now, we'll get it from the first sender's school
-    const firstSender = await db.select().from(users).where(eq(users.id, senderIds[0])).limit(1);
+    const firstSender = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, senderIds[0]))
+      .limit(1);
     const schoolId = firstSender.length > 0 ? firstSender[0].schoolId : 1;
-    
+
     const messagesToInsert = [];
-    
+
     // Get the first available teacher ID for admin messages
     const firstTeacher = await db.select().from(teachers).limit(1);
     const teacherId = firstTeacher.length > 0 ? firstTeacher[0].id : 1; // fallback to ID 1
-    
+
     for (const senderId of senderIds) {
       for (const receiverId of receiverIds) {
         messagesToInsert.push({
@@ -1005,20 +1393,22 @@ export class DatabaseStorage implements IStorage {
           teacherId, // Use existing teacher ID
           subject,
           content,
-          read: false
+          read: false,
         });
       }
     }
-    
+
     return await db.insert(messages).values(messagesToInsert).returning();
   }
 
   async getSuggestions(schoolId?: number): Promise<any[]> {
     if (!schoolId) {
-      console.warn('getSuggestions called without schoolId - returning empty array for security');
+      console.warn(
+        "getSuggestions called without schoolId - returning empty array for security",
+      );
       return [];
     }
-    
+
     return await db
       .select({
         id: suggestions.id,
@@ -1032,19 +1422,20 @@ export class DatabaseStorage implements IStorage {
       })
       .from(suggestions)
       .leftJoin(users, eq(suggestions.userId, users.id))
-      .where(and(
-        eq(suggestions.schoolId, schoolId),
-        eq(users.schoolId, schoolId)
-      ))
+      .where(
+        and(eq(suggestions.schoolId, schoolId), eq(users.schoolId, schoolId)),
+      )
       .orderBy(desc(suggestions.createdAt));
   }
 
   async getUserSuggestions(userId: number, schoolId?: number): Promise<any[]> {
     if (!schoolId) {
-      console.warn('getUserSuggestions called without schoolId - returning empty array for security');
+      console.warn(
+        "getUserSuggestions called without schoolId - returning empty array for security",
+      );
       return [];
     }
-    
+
     return await db
       .select({
         id: suggestions.id,
@@ -1058,40 +1449,44 @@ export class DatabaseStorage implements IStorage {
       })
       .from(suggestions)
       .leftJoin(users, eq(suggestions.userId, users.id))
-      .where(and(
-        eq(suggestions.schoolId, schoolId),
-        eq(suggestions.userId, userId),
-        eq(users.schoolId, schoolId)
-      ))
+      .where(
+        and(
+          eq(suggestions.schoolId, schoolId),
+          eq(suggestions.userId, userId),
+          eq(users.schoolId, schoolId),
+        ),
+      )
       .orderBy(desc(suggestions.createdAt));
   }
 
-  async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
-    console.log('Storage createSuggestion called with:', insertSuggestion);
-    
+  async createSuggestion(
+    insertSuggestion: InsertSuggestion,
+  ): Promise<Suggestion> {
+    console.log("Storage createSuggestion called with:", insertSuggestion);
+
     // Ensure schoolId is present
     let schoolId = insertSuggestion.schoolId;
     if (!schoolId && insertSuggestion.userId) {
       const user = await this.getUser(insertSuggestion.userId);
       schoolId = user?.schoolId;
     }
-    
+
     if (!schoolId) {
-      throw new Error('School ID is required for creating suggestions');
+      throw new Error("School ID is required for creating suggestions");
     }
-    
+
     // Ensure all required fields are present
     const safeData = {
-      title: insertSuggestion.title || 'Untitled',
-      content: insertSuggestion.content || 'No content',
-      category: insertSuggestion.category || 'other', 
-      status: insertSuggestion.status || 'pending',
+      title: insertSuggestion.title || "Untitled",
+      content: insertSuggestion.content || "No content",
+      category: insertSuggestion.category || "other",
+      status: insertSuggestion.status || "pending",
       userId: insertSuggestion.userId,
-      schoolId: schoolId
+      schoolId: schoolId,
     };
-    
-    console.log('Safe data for insertion:', safeData);
-    
+
+    console.log("Safe data for insertion:", safeData);
+
     const [suggestion] = await db
       .insert(suggestions)
       .values(safeData)
@@ -1104,21 +1499,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGroupsBySchool(schoolId: number): Promise<Group[]> {
-    return await db.select().from(groups)
+    return await db
+      .select()
+      .from(groups)
       .where(eq(groups.schoolId, schoolId))
       .orderBy(desc(groups.createdAt));
   }
 
   async getGroupById(id: number): Promise<Group | undefined> {
-    const result = await db.select().from(groups).where(eq(groups.id, id)).limit(1);
+    const result = await db
+      .select()
+      .from(groups)
+      .where(eq(groups.id, id))
+      .limit(1);
     return result[0];
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
-    const [group] = await db
-      .insert(groups)
-      .values(insertGroup)
-      .returning();
+    const [group] = await db.insert(groups).values(insertGroup).returning();
     return group;
   }
 
@@ -1126,10 +1524,12 @@ export class DatabaseStorage implements IStorage {
   async getAdminGroups(schoolId?: number): Promise<any[]> {
     try {
       if (!schoolId) {
-        console.warn('getAdminGroups called without schoolId - returning empty array for security');
+        console.warn(
+          "getAdminGroups called without schoolId - returning empty array for security",
+        );
         return [];
       }
-      
+
       // Get all existing groups with their module and teacher info in one query
       const existingGroups = await db
         .select({
@@ -1143,7 +1543,7 @@ export class DatabaseStorage implements IStorage {
           subjectName: teachingModules.name,
           nameAr: teachingModules.nameAr,
           teacherName: users.name,
-          createdAt: groups.createdAt
+          createdAt: groups.createdAt,
         })
         .from(groups)
         .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
@@ -1152,21 +1552,28 @@ export class DatabaseStorage implements IStorage {
         .orderBy(groups.educationLevel, groups.name);
 
       // Get all teaching modules available for this school
-      const allModules = await db.select().from(teachingModules)
-        .where(or(eq(teachingModules.schoolId, schoolId), isNull(teachingModules.schoolId)))
+      const allModules = await db
+        .select()
+        .from(teachingModules)
+        .where(
+          or(
+            eq(teachingModules.schoolId, schoolId),
+            isNull(teachingModules.schoolId),
+          ),
+        )
         .orderBy(teachingModules.educationLevel, teachingModules.name);
-      
+
       // Get all group assignments in one query for performance
       const allAssignments = await db
         .select({
           groupId: groupMixedAssignments.groupId,
           studentId: groupMixedAssignments.studentId,
-          studentType: groupMixedAssignments.studentType
+          studentType: groupMixedAssignments.studentType,
         })
         .from(groupMixedAssignments)
         .innerJoin(groups, eq(groupMixedAssignments.groupId, groups.id))
         .where(eq(groups.schoolId, schoolId));
-      
+
       // Create a map of group assignments for quick lookup
       const assignmentsByGroup = new Map<number, any[]>();
       for (const assignment of allAssignments) {
@@ -1175,63 +1582,78 @@ export class DatabaseStorage implements IStorage {
         }
         assignmentsByGroup.get(assignment.groupId)!.push(assignment);
       }
-      
+
       // Process existing groups and add student assignments
       const allPossibleGroups = [];
-      const existingGroupSubjectIds = new Set(existingGroups.map(g => g.subjectId));
-      
+      const existingGroupSubjectIds = new Set(
+        existingGroups.map((g) => g.subjectId),
+      );
+
       // Batch query all student and children data for better performance
       const allStudentIds = new Set<number>();
       const allChildIds = new Set<number>();
-      
+
       for (const assignment of allAssignments) {
-        if (assignment.studentType === 'student') {
+        if (assignment.studentType === "student") {
           allStudentIds.add(assignment.studentId);
-        } else if (assignment.studentType === 'child') {
+        } else if (assignment.studentType === "child") {
           allChildIds.add(assignment.studentId);
         }
       }
-      
+
       // Get all students in one query
-      const allStudentsData = allStudentIds.size > 0 ? await db
-        .select({
-          id: users.id,
-          name: users.name,
-          educationLevel: students.educationLevel,
-          grade: students.grade,
-          email: users.email
-        })
-        .from(users)
-        .leftJoin(students, eq(users.id, students.userId))
-        .where(inArray(users.id, Array.from(allStudentIds))) : [];
-      
-      // Get all children in one query  
-      const allChildrenData = allChildIds.size > 0 ? await db
-        .select({
-          id: children.id,
-          name: children.name,
-          educationLevel: children.educationLevel,
-          grade: children.grade,
-          email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
-        })
-        .from(children)
-        .where(inArray(children.id, Array.from(allChildIds))) : [];
-      
+      const allStudentsData =
+        allStudentIds.size > 0
+          ? await db
+              .select({
+                id: users.id,
+                name: users.name,
+                educationLevel: students.educationLevel,
+                grade: students.grade,
+                email: users.email,
+              })
+              .from(users)
+              .leftJoin(students, eq(users.id, students.userId))
+              .where(inArray(users.id, Array.from(allStudentIds)))
+          : [];
+
+      // Get all children in one query
+      const allChildrenData =
+        allChildIds.size > 0
+          ? await db
+              .select({
+                id: children.id,
+                name: children.name,
+                educationLevel: children.educationLevel,
+                grade: children.grade,
+                email:
+                  sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as(
+                    "email",
+                  ),
+              })
+              .from(children)
+              .where(inArray(children.id, Array.from(allChildIds)))
+          : [];
+
       // Create lookup maps for quick access
-      const studentsMap = new Map(allStudentsData.map(s => [s.id, { ...s, type: 'student' }]));
-      const childrenMap = new Map(allChildrenData.map(c => [c.id, { ...c, type: 'child' }]));
+      const studentsMap = new Map(
+        allStudentsData.map((s) => [s.id, { ...s, type: "student" }]),
+      );
+      const childrenMap = new Map(
+        allChildrenData.map((c) => [c.id, { ...c, type: "child" }]),
+      );
 
       for (const group of existingGroups) {
         const assignments = assignmentsByGroup.get(group.id) || [];
         const assignedStudents = [];
-        
+
         for (const assignment of assignments) {
-          if (assignment.studentType === 'student') {
+          if (assignment.studentType === "student") {
             const studentData = studentsMap.get(assignment.studentId);
             if (studentData) {
               assignedStudents.push(studentData);
             }
-          } else if (assignment.studentType === 'child') {
+          } else if (assignment.studentType === "child") {
             const childData = childrenMap.get(assignment.studentId);
             if (childData) {
               assignedStudents.push(childData);
@@ -1242,10 +1664,10 @@ export class DatabaseStorage implements IStorage {
         allPossibleGroups.push({
           ...group,
           studentsAssigned: assignedStudents,
-          isPlaceholder: false
+          isPlaceholder: false,
         });
       }
-      
+
       // Add placeholder groups for subjects without existing groups
       for (const module of allModules) {
         if (!existingGroupSubjectIds.has(module.id)) {
@@ -1253,7 +1675,7 @@ export class DatabaseStorage implements IStorage {
             id: null,
             name: `مجموعة ${module.nameAr || module.name}`,
             description: `مجموعة تعليمية لمادة ${module.nameAr || module.name}`,
-            category: 'دراسية',
+            category: "دراسية",
             educationLevel: module.educationLevel,
             subjectId: module.id,
             teacherId: null,
@@ -1262,21 +1684,28 @@ export class DatabaseStorage implements IStorage {
             teacherName: null,
             createdAt: null,
             studentsAssigned: [],
-            isPlaceholder: true
+            isPlaceholder: true,
           });
         }
       }
 
       return allPossibleGroups;
     } catch (error) {
-      console.error('Error in getAdminGroups:', error);
+      console.error("Error in getAdminGroups:", error);
       throw error;
     }
   }
 
-  async updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number, adminId?: number): Promise<Group> {
+  async updateGroupAssignments(
+    groupId: number | null,
+    studentIds: number[],
+    teacherId: number,
+    groupData?: any,
+    schoolId?: number,
+    adminId?: number,
+  ): Promise<Group> {
     let actualGroupId = groupId;
-    
+
     // If groupId is null, create a new group first
     if (!groupId && groupData && schoolId) {
       const [newGroup] = await db
@@ -1284,12 +1713,14 @@ export class DatabaseStorage implements IStorage {
         .values({
           schoolId: schoolId,
           name: groupData.name,
-          description: groupData.description || `مجموعة تعليمية لمادة ${groupData.name || 'غير محددة'}`,
-          category: groupData.category || 'دراسية',
+          description:
+            groupData.description ||
+            `مجموعة تعليمية لمادة ${groupData.name || "غير محددة"}`,
+          category: groupData.category || "دراسية",
           educationLevel: groupData.educationLevel,
           subjectId: groupData.subjectId,
           teacherId: teacherId,
-          isAdminManaged: true
+          isAdminManaged: true,
         })
         .returning();
       actualGroupId = newGroup.id;
@@ -1303,95 +1734,120 @@ export class DatabaseStorage implements IStorage {
 
     if (actualGroupId) {
       // Get group information to determine education level and subject
-      const [groupInfo] = await db.select().from(groups).where(eq(groups.id, actualGroupId));
-      
+      const [groupInfo] = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.id, actualGroupId));
+
       // Get all student data to determine types (students vs children)
       // Use actual group's education level and subject ID instead of empty defaults
-      const educationLevel = groupData?.educationLevel || groupInfo?.educationLevel || '';
+      const educationLevel =
+        groupData?.educationLevel || groupInfo?.educationLevel || "";
       const subjectId = groupData?.subjectId || groupInfo?.subjectId || 0;
-      
-      console.log(`[DEBUG] Assignment validation using: educationLevel=${educationLevel}, subjectId=${subjectId}`);
-      const availableStudents = await this.getAvailableStudentsByLevelAndSubject(educationLevel, subjectId, schoolId);
-      
+
+      console.log(
+        `[DEBUG] Assignment validation using: educationLevel=${educationLevel}, subjectId=${subjectId}`,
+      );
+      const availableStudents =
+        await this.getAvailableStudentsByLevelAndSubject(
+          educationLevel,
+          subjectId,
+          schoolId,
+        );
+
       // Remove existing assignments (both old and new)
-      await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, actualGroupId));
-      await db.delete(groupMixedAssignments).where(eq(groupMixedAssignments.groupId, actualGroupId));
+      await db
+        .delete(groupUserAssignments)
+        .where(eq(groupUserAssignments.groupId, actualGroupId));
+      await db
+        .delete(groupMixedAssignments)
+        .where(eq(groupMixedAssignments.groupId, actualGroupId));
 
       // Add new mixed assignments
       if (studentIds.length > 0) {
         const mixedAssignments = studentIds
-          .map(studentId => {
-            const studentInfo = availableStudents.find((s: any) => s.id === studentId);
-            
+          .map((studentId) => {
+            const studentInfo = availableStudents.find(
+              (s: any) => s.id === studentId,
+            );
+
             // Only create assignment if student is found to prevent orphaned records
             if (!studentInfo) {
-              console.warn(`Student with ID ${studentId} not found in available students, skipping assignment`);
+              console.warn(
+                `Student with ID ${studentId} not found in available students, skipping assignment`,
+              );
               return null;
             }
-            
+
             return {
               schoolId: schoolId!,
               groupId: actualGroupId,
               studentId: studentId,
               studentType: studentInfo.type as "student" | "child",
-              assignedBy: adminId || null
+              assignedBy: adminId || null,
             };
           })
-          .filter(assignment => assignment !== null); // Remove null assignments
-        
+          .filter((assignment) => assignment !== null); // Remove null assignments
+
         if (mixedAssignments.length > 0) {
           await db.insert(groupMixedAssignments).values(mixedAssignments);
         }
       }
 
       // Return the updated group
-      const [updatedGroup] = await db.select().from(groups).where(eq(groups.id, actualGroupId));
+      const [updatedGroup] = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.id, actualGroupId));
       return updatedGroup;
     }
 
-    throw new Error('Failed to create or update group');
+    throw new Error("Failed to create or update group");
   }
 
   async getGroupAssignments(groupId: number): Promise<any[]> {
     const assignments = await db
       .select({
         studentId: groupMixedAssignments.studentId,
-        studentType: groupMixedAssignments.studentType
+        studentType: groupMixedAssignments.studentType,
       })
       .from(groupMixedAssignments)
       .where(eq(groupMixedAssignments.groupId, groupId));
 
     const result = [];
     for (const assignment of assignments) {
-      if (assignment.studentType === 'student') {
+      if (assignment.studentType === "student") {
         const studentData = await db
           .select({
             id: users.id,
             name: users.name,
             email: users.email,
-            phone: users.phone
+            phone: users.phone,
           })
           .from(users)
           .where(eq(users.id, assignment.studentId!))
           .limit(1);
-        
+
         if (studentData[0]) {
-          result.push({ ...studentData[0], type: 'student' });
+          result.push({ ...studentData[0], type: "student" });
         }
-      } else if (assignment.studentType === 'child') {
+      } else if (assignment.studentType === "child") {
         const childData = await db
           .select({
             id: children.id,
             name: children.name,
-            email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email'),
-            phone: sql<string>`''`.as('phone')
+            email:
+              sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as(
+                "email",
+              ),
+            phone: sql<string>`''`.as("phone"),
           })
           .from(children)
           .where(eq(children.id, assignment.studentId!))
           .limit(1);
-        
+
         if (childData[0]) {
-          result.push({ ...childData[0], type: 'child' });
+          result.push({ ...childData[0], type: "child" });
         }
       }
     }
@@ -1399,9 +1855,15 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]> {
-    console.log(`[DEBUG] getAvailableStudentsByLevelAndSubject called with: educationLevel=${educationLevel}, subjectId=${subjectId}, schoolId=${schoolId}`);
-    
+  async getAvailableStudentsByLevelAndSubject(
+    educationLevel: string,
+    subjectId: number,
+    schoolId?: number,
+  ): Promise<any[]> {
+    console.log(
+      `[DEBUG] getAvailableStudentsByLevelAndSubject called with: educationLevel=${educationLevel}, subjectId=${subjectId}, schoolId=${schoolId}`,
+    );
+
     // Get direct students (users with student records) - include any user role that has student data
     // This includes regular students, teachers, and admins who also have student records
     let directStudentsQuery = db
@@ -1412,7 +1874,7 @@ export class DatabaseStorage implements IStorage {
         phone: users.phone,
         educationLevel: students.educationLevel,
         grade: students.grade,
-        type: sql<string>`'student'`.as('type')
+        type: sql<string>`'student'`.as("type"),
       })
       .from(users)
       .innerJoin(students, eq(users.id, students.userId))
@@ -1420,76 +1882,109 @@ export class DatabaseStorage implements IStorage {
         and(
           // Include any user role that has student data, not just 'student' role
           eq(students.verified, true), // Only include verified student records
-          educationLevel === 'جميع المستويات' ? sql`1=1` : eq(students.educationLevel, educationLevel),
-          schoolId ? eq(users.schoolId, schoolId) : sql`1=1`
-        )
+          educationLevel === "جميع المستويات"
+            ? sql`1=1`
+            : eq(students.educationLevel, educationLevel),
+          schoolId ? eq(users.schoolId, schoolId) : sql`1=1`,
+        ),
       );
 
     const allDirectStudents = await directStudentsQuery;
-    console.log(`[DEBUG] Found ${allDirectStudents.length} direct student records:`, allDirectStudents);
-    
+    console.log(
+      `[DEBUG] Found ${allDirectStudents.length} direct student records:`,
+      allDirectStudents,
+    );
+
     // Remove duplicates by keeping only the most recent student record per user
-    const uniqueDirectStudents = allDirectStudents.reduce((acc: any[], current: any) => {
-      const existing = acc.find(student => student.id === current.id);
-      if (!existing) {
-        acc.push(current);
-      }
-      return acc;
-    }, []);
-    
-    console.log(`[DEBUG] After deduplication: ${uniqueDirectStudents.length} unique direct students:`, uniqueDirectStudents);
+    const uniqueDirectStudents = allDirectStudents.reduce(
+      (acc: any[], current: any) => {
+        const existing = acc.find((student) => student.id === current.id);
+        if (!existing) {
+          acc.push(current);
+        }
+        return acc;
+      },
+      [],
+    );
+
+    console.log(
+      `[DEBUG] After deduplication: ${uniqueDirectStudents.length} unique direct students:`,
+      uniqueDirectStudents,
+    );
 
     // Get pre-registered students (verified but userId is null)
     let preRegisteredQuery = db
       .select({
         id: students.id,
         name: students.name,
-        email: sql<string>`CONCAT('preregistered_', ${students.id}, '@', 'school.local')`.as('email'), // Synthetic email for pre-registered
-        phone: sql<string>`''`.as('phone'), // Pre-registered students don't have phone yet
+        email:
+          sql<string>`CONCAT('preregistered_', ${students.id}, '@', 'school.local')`.as(
+            "email",
+          ), // Synthetic email for pre-registered
+        phone: sql<string>`''`.as("phone"), // Pre-registered students don't have phone yet
         educationLevel: students.educationLevel,
         grade: students.grade,
-        type: sql<string>`'preregistered'`.as('type')
+        type: sql<string>`'preregistered'`.as("type"),
       })
       .from(students)
       .where(
         and(
-          educationLevel === 'جميع المستويات' ? sql`1=1` : eq(students.educationLevel, educationLevel),
+          educationLevel === "جميع المستويات"
+            ? sql`1=1`
+            : eq(students.educationLevel, educationLevel),
           eq(students.verified, true),
           isNull(students.userId), // Pre-registered students have no userId yet
-          schoolId ? eq(students.schoolId, schoolId) : sql`1=1`
-        )
+          schoolId ? eq(students.schoolId, schoolId) : sql`1=1`,
+        ),
       );
 
     const preRegisteredStudents = await preRegisteredQuery;
-    console.log(`[DEBUG] Found ${preRegisteredStudents.length} pre-registered students:`, preRegisteredStudents);
+    console.log(
+      `[DEBUG] Found ${preRegisteredStudents.length} pre-registered students:`,
+      preRegisteredStudents,
+    );
 
     // Get children registered by parents
     let childrenQuery = db
       .select({
         id: children.id,
         name: children.name,
-        email: sql<string>`CONCAT('child_', ${children.id}, '@', 'parent.local')`.as('email'), // Synthetic email for children
-        phone: sql<string>`''`.as('phone'), // Children don't have their own phone
+        email:
+          sql<string>`CONCAT('child_', ${children.id}, '@', 'parent.local')`.as(
+            "email",
+          ), // Synthetic email for children
+        phone: sql<string>`''`.as("phone"), // Children don't have their own phone
         educationLevel: children.educationLevel,
         grade: children.grade,
-        type: sql<string>`'child'`.as('type')
+        type: sql<string>`'child'`.as("type"),
       })
       .from(children)
       .where(
         and(
-          educationLevel === 'جميع المستويات' ? sql`1=1` : eq(children.educationLevel, educationLevel),
-          schoolId ? eq(children.schoolId, schoolId) : sql`1=1`
-        )
+          educationLevel === "جميع المستويات"
+            ? sql`1=1`
+            : eq(children.educationLevel, educationLevel),
+          schoolId ? eq(children.schoolId, schoolId) : sql`1=1`,
+        ),
       );
 
     const childrenStudents = await childrenQuery;
-    console.log(`[DEBUG] Found ${childrenStudents.length} children:`, childrenStudents);
+    console.log(
+      `[DEBUG] Found ${childrenStudents.length} children:`,
+      childrenStudents,
+    );
 
     // Combine all results and sort by name
-    const combinedResults = [...uniqueDirectStudents, ...preRegisteredStudents, ...childrenStudents];
+    const combinedResults = [
+      ...uniqueDirectStudents,
+      ...preRegisteredStudents,
+      ...childrenStudents,
+    ];
     combinedResults.sort((a, b) => a.name.localeCompare(b.name));
     console.log(`[DEBUG] Combined results:`, combinedResults);
-    console.log(`[DEBUG] Returning ${combinedResults.length} available students to frontend`);
+    console.log(
+      `[DEBUG] Returning ${combinedResults.length} available students to frontend`,
+    );
 
     return combinedResults;
   }
@@ -1497,22 +1992,32 @@ export class DatabaseStorage implements IStorage {
   async deleteGroup(groupId: number, schoolId?: number): Promise<void> {
     try {
       // Delete in correct order to respect foreign key constraints
-      
+
       // 1. Delete group attendance records
-      await db.delete(groupAttendance).where(eq(groupAttendance.groupId, groupId));
-      
+      await db
+        .delete(groupAttendance)
+        .where(eq(groupAttendance.groupId, groupId));
+
       // 2. Delete group financial transactions
-      await db.delete(groupTransactions).where(eq(groupTransactions.groupId, groupId));
-      
+      await db
+        .delete(groupTransactions)
+        .where(eq(groupTransactions.groupId, groupId));
+
       // 3. Delete group schedule assignments
-      await db.delete(groupScheduleAssignments).where(eq(groupScheduleAssignments.groupId, groupId));
-      
+      await db
+        .delete(groupScheduleAssignments)
+        .where(eq(groupScheduleAssignments.groupId, groupId));
+
       // 4. Delete group registrations
-      await db.delete(groupRegistrations).where(eq(groupRegistrations.groupId, groupId));
-      
+      await db
+        .delete(groupRegistrations)
+        .where(eq(groupRegistrations.groupId, groupId));
+
       // 5. Delete group user assignments
-      await db.delete(groupUserAssignments).where(eq(groupUserAssignments.groupId, groupId));
-      
+      await db
+        .delete(groupUserAssignments)
+        .where(eq(groupUserAssignments.groupId, groupId));
+
       // 6. Finally delete the group itself
       let result;
       if (schoolId) {
@@ -1520,24 +2025,27 @@ export class DatabaseStorage implements IStorage {
           .delete(groups)
           .where(and(eq(groups.id, groupId), eq(groups.schoolId, schoolId)));
       } else {
-        result = await db
-          .delete(groups)
-          .where(eq(groups.id, groupId));
+        result = await db.delete(groups).where(eq(groups.id, groupId));
       }
-      
+
       // Don't return anything for void method
     } catch (error) {
-      console.error('Error deleting group:', error);
+      console.error("Error deleting group:", error);
       throw error;
     }
   }
 
   async getFormations(): Promise<Formation[]> {
-    return await db.select().from(formations).orderBy(desc(formations.createdAt));
+    return await db
+      .select()
+      .from(formations)
+      .orderBy(desc(formations.createdAt));
   }
 
   async getFormationsBySchool(schoolId: number): Promise<Formation[]> {
-    return await db.select().from(formations)
+    return await db
+      .select()
+      .from(formations)
       .where(eq(formations.schoolId, schoolId))
       .orderBy(desc(formations.createdAt));
   }
@@ -1554,7 +2062,9 @@ export class DatabaseStorage implements IStorage {
     await db.delete(formations).where(eq(formations.id, id));
   }
 
-  async createGroupRegistration(insertGroupRegistration: InsertGroupRegistration): Promise<GroupRegistration> {
+  async createGroupRegistration(
+    insertGroupRegistration: InsertGroupRegistration,
+  ): Promise<GroupRegistration> {
     const [registration] = await db
       .insert(groupRegistrations)
       .values(insertGroupRegistration)
@@ -1562,7 +2072,9 @@ export class DatabaseStorage implements IStorage {
     return registration;
   }
 
-  async createFormationRegistration(insertFormationRegistration: InsertFormationRegistration): Promise<FormationRegistration> {
+  async createFormationRegistration(
+    insertFormationRegistration: InsertFormationRegistration,
+  ): Promise<FormationRegistration> {
     const [registration] = await db
       .insert(formationRegistrations)
       .values(insertFormationRegistration)
@@ -1570,23 +2082,32 @@ export class DatabaseStorage implements IStorage {
     return registration;
   }
 
-  async getNotifications(userId: number, schoolId?: number): Promise<Notification[]> {
+  async getNotifications(
+    userId: number,
+    schoolId?: number,
+  ): Promise<Notification[]> {
     if (!schoolId) {
-      console.warn('getNotifications called without schoolId - returning empty array for security');
+      console.warn(
+        "getNotifications called without schoolId - returning empty array for security",
+      );
       return [];
     }
-    
+
     return await db
       .select()
       .from(notifications)
-      .where(and(
-        eq(notifications.userId, userId),
-        eq(notifications.schoolId, schoolId)
-      ))
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.schoolId, schoolId),
+        ),
+      )
       .orderBy(desc(notifications.createdAt));
   }
 
-  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+  async createNotification(
+    insertNotification: InsertNotification,
+  ): Promise<Notification> {
     const [notification] = await db
       .insert(notifications)
       .values(insertNotification)
@@ -1608,60 +2129,82 @@ export class DatabaseStorage implements IStorage {
       .where(eq(notifications.userId, userId));
   }
 
-  async getUnreadNotificationCount(userId: number, schoolId?: number): Promise<number> {
+  async getUnreadNotificationCount(
+    userId: number,
+    schoolId?: number,
+  ): Promise<number> {
     if (!schoolId) {
-      console.warn('getUnreadNotificationCount called without schoolId - returning 0 for security');
+      console.warn(
+        "getUnreadNotificationCount called without schoolId - returning 0 for security",
+      );
       return 0;
     }
-    
+
     const result = await db
       .select({ count: notifications.id })
       .from(notifications)
-      .where(and(
-        eq(notifications.userId, userId),
-        eq(notifications.schoolId, schoolId),
-        eq(notifications.read, false)
-      ));
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.schoolId, schoolId),
+          eq(notifications.read, false),
+        ),
+      );
     return result.length;
   }
 
-  async createNotificationForUsers(userIds: number[], type: string, title: string, message: string, relatedId?: number, schoolId?: number): Promise<Notification[]> {
+  async createNotificationForUsers(
+    userIds: number[],
+    type: string,
+    title: string,
+    message: string,
+    relatedId?: number,
+    schoolId?: number,
+  ): Promise<Notification[]> {
     if (!schoolId) {
-      console.warn('createNotificationForUsers called without schoolId - skipping notification creation for security');
+      console.warn(
+        "createNotificationForUsers called without schoolId - skipping notification creation for security",
+      );
       return [];
     }
-    
-    const notificationPromises = userIds.map(userId => 
+
+    const notificationPromises = userIds.map((userId) =>
       this.createNotification({
         userId,
         type,
         title,
         message,
         relatedId,
-        schoolId
-      })
+        schoolId,
+      }),
     );
     return await Promise.all(notificationPromises);
   }
 
   // Verification methods - only for children and students
 
-  async verifyChild(childId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Child> {
+  async verifyChild(
+    childId: number,
+    adminId: number,
+    notes?: string,
+    educationLevel?: string,
+    selectedSubjects?: string[],
+  ): Promise<Child> {
     const updateData: any = {
-      verified: true, 
+      verified: true,
       verificationNotes: notes || null,
       verifiedAt: new Date(),
-      verifiedBy: adminId
+      verifiedBy: adminId,
     };
-    
+
     if (educationLevel) {
       updateData.educationLevel = educationLevel;
     }
-    
+
     if (selectedSubjects && selectedSubjects.length > 0) {
       updateData.subjects = selectedSubjects;
     }
-    
+
     const [child] = await db
       .update(children)
       .set(updateData)
@@ -1670,22 +2213,28 @@ export class DatabaseStorage implements IStorage {
     return child;
   }
 
-  async verifyStudent(studentId: number, adminId: number, notes?: string, educationLevel?: string, selectedSubjects?: string[]): Promise<Student> {
+  async verifyStudent(
+    studentId: number,
+    adminId: number,
+    notes?: string,
+    educationLevel?: string,
+    selectedSubjects?: string[],
+  ): Promise<Student> {
     const updateData: any = {
-      verified: true, 
+      verified: true,
       verificationNotes: notes || null,
       verifiedAt: new Date(),
-      verifiedBy: adminId
+      verifiedBy: adminId,
     };
-    
+
     if (educationLevel) {
       updateData.educationLevel = educationLevel;
     }
-    
+
     if (selectedSubjects && selectedSubjects.length > 0) {
       updateData.selectedSubjects = selectedSubjects;
     }
-    
+
     const [student] = await db
       .update(students)
       .set(updateData)
@@ -1695,7 +2244,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnverifiedChildren(schoolId: number): Promise<Child[]> {
-    return await db.select().from(children).where(and(eq(children.verified, false), eq(children.schoolId, schoolId))).orderBy(desc(children.createdAt));
+    return await db
+      .select()
+      .from(children)
+      .where(and(eq(children.verified, false), eq(children.schoolId, schoolId)))
+      .orderBy(desc(children.createdAt));
   }
 
   async getUnverifiedStudents(schoolId: number): Promise<any[]> {
@@ -1707,11 +2260,17 @@ export class DatabaseStorage implements IStorage {
         grade: students.grade,
         createdAt: students.createdAt,
         verified: students.verified,
-        name: users.name
+        name: users.name,
       })
       .from(students)
       .leftJoin(users, eq(students.userId, users.id))
-      .where(and(eq(students.verified, false), eq(users.role, 'student'), eq(students.schoolId, schoolId)))
+      .where(
+        and(
+          eq(students.verified, false),
+          eq(users.role, "student"),
+          eq(students.schoolId, schoolId),
+        ),
+      )
       .orderBy(desc(students.createdAt));
   }
 
@@ -1729,7 +2288,7 @@ export class DatabaseStorage implements IStorage {
         verificationNotes: children.verificationNotes,
         selectedSubjects: children.selectedSubjects,
         createdAt: children.createdAt,
-        schoolId: children.schoolId
+        schoolId: children.schoolId,
       })
       .from(children)
       .where(and(eq(children.verified, true), eq(children.schoolId, schoolId)))
@@ -1748,40 +2307,53 @@ export class DatabaseStorage implements IStorage {
         verifiedBy: students.verifiedBy,
         verificationNotes: students.verificationNotes,
         selectedSubjects: students.selectedSubjects,
-        name: sql<string>`COALESCE(${users.name}, ${students.name})`.as('name')
+        name: sql<string>`COALESCE(${users.name}, ${students.name})`.as("name"),
       })
       .from(students)
       .leftJoin(users, eq(students.userId, users.id))
-      .where(and(
-        eq(students.verified, true), 
-        eq(students.schoolId, schoolId),
-        or(
-          isNull(students.userId), // Pre-registered students (no userId yet)
-          eq(users.role, 'student') // Claimed students with role = 'student'
-        )
-      ))
+      .where(
+        and(
+          eq(students.verified, true),
+          eq(students.schoolId, schoolId),
+          or(
+            isNull(students.userId), // Pre-registered students (no userId yet)
+            eq(users.role, "student"), // Claimed students with role = 'student'
+          ),
+        ),
+      )
       .orderBy(desc(students.verifiedAt));
 
     // Remove duplicates by keeping only the most recent verified student record per user
-    const uniqueVerifiedStudents = allVerifiedStudents.reduce((acc: any[], current: any) => {
-      if (current.userId) {
-        // For students with userId, check if we already have this user
-        const existing = acc.find(student => student.userId === current.userId);
-        if (!existing) {
+    const uniqueVerifiedStudents = allVerifiedStudents.reduce(
+      (acc: any[], current: any) => {
+        if (current.userId) {
+          // For students with userId, check if we already have this user
+          const existing = acc.find(
+            (student) => student.userId === current.userId,
+          );
+          if (!existing) {
+            acc.push(current);
+          } else if (
+            new Date(current.verifiedAt) > new Date(existing.verifiedAt)
+          ) {
+            // Replace with more recent verification
+            const index = acc.findIndex(
+              (student) => student.userId === current.userId,
+            );
+            acc[index] = current;
+          }
+        } else {
+          // For pre-registered students (no userId), keep all as they're unique
           acc.push(current);
-        } else if (new Date(current.verifiedAt) > new Date(existing.verifiedAt)) {
-          // Replace with more recent verification
-          const index = acc.findIndex(student => student.userId === current.userId);
-          acc[index] = current;
         }
-      } else {
-        // For pre-registered students (no userId), keep all as they're unique
-        acc.push(current);
-      }
-      return acc;
-    }, []);
+        return acc;
+      },
+      [],
+    );
 
-    console.log(`[DEBUG] getVerifiedStudents: Found ${allVerifiedStudents.length} total records, returning ${uniqueVerifiedStudents.length} unique students`);
+    console.log(
+      `[DEBUG] getVerifiedStudents: Found ${allVerifiedStudents.length} total records, returning ${uniqueVerifiedStudents.length} unique students`,
+    );
     return uniqueVerifiedStudents;
   }
 
@@ -1793,7 +2365,7 @@ export class DatabaseStorage implements IStorage {
         verificationNotes: null,
         verifiedAt: null,
         verifiedBy: null,
-        selectedSubjects: null
+        selectedSubjects: null,
       })
       .where(eq(children.id, childId))
       .returning();
@@ -1808,14 +2380,17 @@ export class DatabaseStorage implements IStorage {
         verificationNotes: null,
         verifiedAt: null,
         verifiedBy: null,
-        selectedSubjects: null
+        selectedSubjects: null,
       })
       .where(eq(students.id, studentId))
       .returning();
     return student;
   }
 
-  async updateUserProfilePicture(userId: number, profilePictureUrl: string): Promise<User> {
+  async updateUserProfilePicture(
+    userId: number,
+    profilePictureUrl: string,
+  ): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ profilePicture: profilePictureUrl })
@@ -1825,22 +2400,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Phone verification methods
-  async savePhoneVerificationCode(userId: number, code: string, expiry: Date): Promise<void> {
+  async savePhoneVerificationCode(
+    userId: number,
+    code: string,
+    expiry: Date,
+  ): Promise<void> {
     await db
       .update(users)
-      .set({ 
+      .set({
         phoneVerificationCode: code,
-        phoneVerificationExpiry: expiry
+        phoneVerificationExpiry: expiry,
       })
       .where(eq(users.id, userId));
   }
 
   async verifyPhoneCode(userId: number, code: string): Promise<boolean> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId));
-    
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+
     if (!user || !user.phoneVerificationCode || !user.phoneVerificationExpiry) {
       return false;
     }
@@ -1848,22 +2424,26 @@ export class DatabaseStorage implements IStorage {
     // Check if code matches and is not expired
     const isCodeValid = user.phoneVerificationCode === code;
     const isNotExpired = user.phoneVerificationExpiry > new Date();
-    
+
     return isCodeValid && isNotExpired;
   }
 
   async markPhoneAsVerified(userId: number): Promise<void> {
     await db
       .update(users)
-      .set({ 
+      .set({
         phoneVerified: true,
         phoneVerificationCode: null,
-        phoneVerificationExpiry: null
+        phoneVerificationExpiry: null,
       })
       .where(eq(users.id, userId));
   }
 
-  async saveEmailVerificationCode(userId: number, code: string, expiry: Date): Promise<void> {
+  async saveEmailVerificationCode(
+    userId: number,
+    code: string,
+    expiry: Date,
+  ): Promise<void> {
     await db
       .update(users)
       .set({ emailVerificationCode: code, emailVerificationExpiry: expiry })
@@ -1892,16 +2472,25 @@ export class DatabaseStorage implements IStorage {
   async markEmailAsVerified(userId: number): Promise<void> {
     await db
       .update(users)
-      .set({ emailVerified: true, emailVerificationCode: null, emailVerificationExpiry: null })
+      .set({
+        emailVerified: true,
+        emailVerificationCode: null,
+        emailVerificationExpiry: null,
+      })
       .where(eq(users.id, userId));
   }
 
   // Teaching module methods
   async getTeachingModules(): Promise<TeachingModule[]> {
-    return await db.select().from(teachingModules).orderBy(desc(teachingModules.createdAt));
+    return await db
+      .select()
+      .from(teachingModules)
+      .orderBy(desc(teachingModules.createdAt));
   }
 
-  async getTeachingModulesByLevel(educationLevel: string): Promise<TeachingModule[]> {
+  async getTeachingModulesByLevel(
+    educationLevel: string,
+  ): Promise<TeachingModule[]> {
     return await db
       .select()
       .from(teachingModules)
@@ -1909,11 +2498,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(teachingModules.createdAt));
   }
 
-  async getTeachingModulesBySchool(schoolId: number): Promise<TeachingModule[]> {
+  async getTeachingModulesBySchool(
+    schoolId: number,
+  ): Promise<TeachingModule[]> {
     return await db
       .select()
       .from(teachingModules)
-      .where(or(eq(teachingModules.schoolId, schoolId), isNull(teachingModules.schoolId)))
+      .where(
+        or(
+          eq(teachingModules.schoolId, schoolId),
+          isNull(teachingModules.schoolId),
+        ),
+      )
       .orderBy(desc(teachingModules.createdAt));
   }
 
@@ -1923,10 +2519,16 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(teachingModules)
       .where(isNull(teachingModules.schoolId))
-      .orderBy(teachingModules.nameAr, teachingModules.educationLevel, teachingModules.grade);
+      .orderBy(
+        teachingModules.nameAr,
+        teachingModules.educationLevel,
+        teachingModules.grade,
+      );
   }
 
-  async createTeachingModule(insertModule: InsertTeachingModule): Promise<TeachingModule> {
+  async createTeachingModule(
+    insertModule: InsertTeachingModule,
+  ): Promise<TeachingModule> {
     const [module] = await db
       .insert(teachingModules)
       .values(insertModule)
@@ -1944,7 +2546,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(moduleYears)
       .where(eq(moduleYears.moduleId, moduleId));
-    return years.map(y => y.grade);
+    return years.map((y) => y.grade);
   }
 
   async createModuleYear(moduleId: number, grade: string): Promise<void> {
@@ -1955,9 +2557,13 @@ export class DatabaseStorage implements IStorage {
     const modules = await db
       .select()
       .from(teachingModules)
-      .where(schoolId ? 
-        or(eq(teachingModules.schoolId, schoolId), isNull(teachingModules.schoolId)) :
-        isNull(teachingModules.schoolId)
+      .where(
+        schoolId
+          ? or(
+              eq(teachingModules.schoolId, schoolId),
+              isNull(teachingModules.schoolId),
+            )
+          : isNull(teachingModules.schoolId),
       )
       .orderBy(teachingModules.educationLevel, teachingModules.name);
 
@@ -1967,16 +2573,18 @@ export class DatabaseStorage implements IStorage {
         const years = await this.getModuleYears(module.id);
         return {
           ...module,
-          years
+          years,
         };
-      })
+      }),
     );
 
     return modulesWithYears;
   }
 
   // Teacher specialization methods
-  async getTeacherSpecializations(teacherId: number): Promise<TeacherSpecialization[]> {
+  async getTeacherSpecializations(
+    teacherId: number,
+  ): Promise<TeacherSpecialization[]> {
     return await db
       .select()
       .from(teacherSpecializations)
@@ -1984,7 +2592,9 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(teacherSpecializations.createdAt));
   }
 
-  async createTeacherSpecialization(insertSpecialization: InsertTeacherSpecialization): Promise<TeacherSpecialization> {
+  async createTeacherSpecialization(
+    insertSpecialization: InsertTeacherSpecialization,
+  ): Promise<TeacherSpecialization> {
     const [specialization] = await db
       .insert(teacherSpecializations)
       .values(insertSpecialization)
@@ -1993,10 +2603,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTeacherSpecialization(id: number): Promise<void> {
-    await db.delete(teacherSpecializations).where(eq(teacherSpecializations.id, id));
+    await db
+      .delete(teacherSpecializations)
+      .where(eq(teacherSpecializations.id, id));
   }
 
-  async getTeachersByModule(moduleId: number): Promise<TeacherSpecialization[]> {
+  async getTeachersByModule(
+    moduleId: number,
+  ): Promise<TeacherSpecialization[]> {
     return await db
       .select()
       .from(teacherSpecializations)
@@ -2006,21 +2620,31 @@ export class DatabaseStorage implements IStorage {
 
   // Schedule table methods
   async getScheduleTables(): Promise<ScheduleTable[]> {
-    return await db.select().from(scheduleTables).orderBy(desc(scheduleTables.createdAt));
+    return await db
+      .select()
+      .from(scheduleTables)
+      .orderBy(desc(scheduleTables.createdAt));
   }
 
   async getScheduleTablesBySchool(schoolId: number): Promise<ScheduleTable[]> {
-    return await db.select().from(scheduleTables)
+    return await db
+      .select()
+      .from(scheduleTables)
       .where(eq(scheduleTables.schoolId, schoolId))
       .orderBy(desc(scheduleTables.createdAt));
   }
 
   async getScheduleTable(id: number): Promise<ScheduleTable | undefined> {
-    const [table] = await db.select().from(scheduleTables).where(eq(scheduleTables.id, id));
+    const [table] = await db
+      .select()
+      .from(scheduleTables)
+      .where(eq(scheduleTables.id, id));
     return table;
   }
 
-  async createScheduleTable(insertTable: InsertScheduleTable): Promise<ScheduleTable> {
+  async createScheduleTable(
+    insertTable: InsertScheduleTable,
+  ): Promise<ScheduleTable> {
     const [table] = await db
       .insert(scheduleTables)
       .values(insertTable)
@@ -2028,7 +2652,10 @@ export class DatabaseStorage implements IStorage {
     return table;
   }
 
-  async updateScheduleTable(id: number, updates: Partial<InsertScheduleTable>): Promise<ScheduleTable> {
+  async updateScheduleTable(
+    id: number,
+    updates: Partial<InsertScheduleTable>,
+  ): Promise<ScheduleTable> {
     const [table] = await db
       .update(scheduleTables)
       .set({ ...updates, updatedAt: new Date() })
@@ -2051,11 +2678,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getScheduleCell(id: number): Promise<ScheduleCell | undefined> {
-    const [cell] = await db.select().from(scheduleCells).where(eq(scheduleCells.id, id));
+    const [cell] = await db
+      .select()
+      .from(scheduleCells)
+      .where(eq(scheduleCells.id, id));
     return cell;
   }
 
-  async createScheduleCell(insertCell: InsertScheduleCell): Promise<ScheduleCell> {
+  async createScheduleCell(
+    insertCell: InsertScheduleCell,
+  ): Promise<ScheduleCell> {
     const [cell] = await db
       .insert(scheduleCells)
       .values(insertCell)
@@ -2063,7 +2695,10 @@ export class DatabaseStorage implements IStorage {
     return cell;
   }
 
-  async updateScheduleCell(id: number, updates: Partial<InsertScheduleCell>): Promise<ScheduleCell> {
+  async updateScheduleCell(
+    id: number,
+    updates: Partial<InsertScheduleCell>,
+  ): Promise<ScheduleCell> {
     const [cell] = await db
       .update(scheduleCells)
       .set({ ...updates, updatedAt: new Date() })
@@ -2077,33 +2712,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Group Attendance methods
-  async getGroupAttendance(groupId: number, date?: string): Promise<GroupAttendance[]> {
+  async getGroupAttendance(
+    groupId: number,
+    date?: string,
+  ): Promise<GroupAttendance[]> {
     const query = db
       .select()
       .from(groupAttendance)
       .where(eq(groupAttendance.groupId, groupId));
-    
+
     if (date) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      
+
       return await query
-        .where(and(
-          eq(groupAttendance.groupId, groupId),
+        .where(
           and(
-            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
-            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`
-          )
-        ))
+            eq(groupAttendance.groupId, groupId),
+            and(
+              sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
+              sql`${groupAttendance.attendanceDate} <= ${endOfDay}`,
+            ),
+          ),
+        )
         .orderBy(desc(groupAttendance.attendanceDate));
     }
-    
+
     return await query.orderBy(desc(groupAttendance.attendanceDate));
   }
 
-  async markAttendance(attendance: InsertGroupAttendance): Promise<GroupAttendance> {
+  async markAttendance(
+    attendance: InsertGroupAttendance,
+  ): Promise<GroupAttendance> {
     // Check if attendance record already exists for this student on this date
     const attendanceDateStart = new Date(attendance.attendanceDate);
     attendanceDateStart.setHours(0, 0, 0, 0);
@@ -2113,26 +2755,28 @@ export class DatabaseStorage implements IStorage {
     const existing = await db
       .select()
       .from(groupAttendance)
-      .where(and(
-        eq(groupAttendance.groupId, attendance.groupId),
-        eq(groupAttendance.studentId, attendance.studentId),
-        eq(groupAttendance.studentType, attendance.studentType),
+      .where(
         and(
-          sql`${groupAttendance.attendanceDate} >= ${attendanceDateStart}`,
-          sql`${groupAttendance.attendanceDate} <= ${attendanceDateEnd}`
-        )
-      ))
+          eq(groupAttendance.groupId, attendance.groupId),
+          eq(groupAttendance.studentId, attendance.studentId),
+          eq(groupAttendance.studentType, attendance.studentType),
+          and(
+            sql`${groupAttendance.attendanceDate} >= ${attendanceDateStart}`,
+            sql`${groupAttendance.attendanceDate} <= ${attendanceDateEnd}`,
+          ),
+        ),
+      )
       .limit(1);
 
     if (existing.length > 0) {
       // Update existing record
       const [result] = await db
         .update(groupAttendance)
-        .set({ 
+        .set({
           status: attendance.status,
           notes: attendance.notes,
           markedBy: attendance.markedBy,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(groupAttendance.id, existing[0].id))
         .returning();
@@ -2147,7 +2791,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateAttendance(id: number, updates: Partial<InsertGroupAttendance>): Promise<GroupAttendance> {
+  async updateAttendance(
+    id: number,
+    updates: Partial<InsertGroupAttendance>,
+  ): Promise<GroupAttendance> {
     const [result] = await db
       .update(groupAttendance)
       .set({ ...updates, updatedAt: new Date() })
@@ -2156,7 +2803,10 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getAttendanceWithStudentDetails(groupId: number, date?: string): Promise<any[]> {
+  async getAttendanceWithStudentDetails(
+    groupId: number,
+    date?: string,
+  ): Promise<any[]> {
     // Get attendance records with mixed student types
     let attendanceQuery = db
       .select({
@@ -2178,24 +2828,28 @@ export class DatabaseStorage implements IStorage {
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      
-      attendanceQuery = attendanceQuery.where(and(
-        eq(groupAttendance.groupId, groupId),
+
+      attendanceQuery = attendanceQuery.where(
         and(
-          sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
-          sql`${groupAttendance.attendanceDate} <= ${endOfDay}`
-        )
-      ));
+          eq(groupAttendance.groupId, groupId),
+          and(
+            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
+            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`,
+          ),
+        ),
+      );
     }
-    
-    const attendanceRecords = await attendanceQuery.orderBy(desc(groupAttendance.attendanceDate));
-    
+
+    const attendanceRecords = await attendanceQuery.orderBy(
+      desc(groupAttendance.attendanceDate),
+    );
+
     // Populate student details for each record
     const result = [];
     for (const record of attendanceRecords) {
       let studentInfo;
-      
-      if (record.studentType === 'student') {
+
+      if (record.studentType === "student") {
         // Get user details
         const [userInfo] = await db
           .select({
@@ -2213,14 +2867,17 @@ export class DatabaseStorage implements IStorage {
           .select({
             id: children.id,
             name: children.name,
-            email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email'),
+            email:
+              sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as(
+                "email",
+              ),
           })
           .from(children)
           .where(eq(children.id, record.studentId))
           .limit(1);
         studentInfo = childInfo;
       }
-      
+
       // Get marker details
       let markerInfo = null;
       if (record.markedBy) {
@@ -2234,18 +2891,21 @@ export class DatabaseStorage implements IStorage {
           .limit(1);
         markerInfo = marker;
       }
-      
+
       result.push({
         ...record,
         student: studentInfo,
         markedBy: markerInfo,
       });
     }
-    
+
     return result;
   }
 
-  async getGroupAttendanceHistory(groupId: number, schoolId: number): Promise<any[]> {
+  async getGroupAttendanceHistory(
+    groupId: number,
+    schoolId: number,
+  ): Promise<any[]> {
     const attendanceRecords = await db
       .select({
         id: groupAttendance.id,
@@ -2256,75 +2916,93 @@ export class DatabaseStorage implements IStorage {
         createdAt: groupAttendance.createdAt,
       })
       .from(groupAttendance)
-      .where(and(
-        eq(groupAttendance.groupId, groupId),
-        eq(groupAttendance.schoolId, schoolId)
-      ))
-      .orderBy(desc(groupAttendance.attendanceDate), desc(groupAttendance.createdAt));
+      .where(
+        and(
+          eq(groupAttendance.groupId, groupId),
+          eq(groupAttendance.schoolId, schoolId),
+        ),
+      )
+      .orderBy(
+        desc(groupAttendance.attendanceDate),
+        desc(groupAttendance.createdAt),
+      );
 
     // Populate student names for mixed assignments
     const result = [];
     for (const record of attendanceRecords) {
-      let studentName = 'غير معروف';
-      
-      if (record.studentType === 'student') {
+      let studentName = "غير معروف";
+
+      if (record.studentType === "student") {
         const [userInfo] = await db
           .select({ name: users.name })
           .from(users)
           .where(eq(users.id, record.studentId))
           .limit(1);
-        studentName = userInfo?.name || 'طالب غير موجود';
+        studentName = userInfo?.name || "طالب غير موجود";
       } else {
         const [childInfo] = await db
           .select({ name: children.name })
           .from(children)
           .where(eq(children.id, record.studentId))
           .limit(1);
-        studentName = childInfo?.name || 'طفل غير موجود';
+        studentName = childInfo?.name || "طفل غير موجود";
       }
-      
+
       result.push({
         ...record,
         studentName,
       });
     }
-    
+
     return result;
   }
 
-  async getGroupAttendanceForMonth(groupId: number, year: number, month: number): Promise<GroupAttendance[]> {
+  async getGroupAttendanceForMonth(
+    groupId: number,
+    year: number,
+    month: number,
+  ): Promise<GroupAttendance[]> {
     const startDate = new Date(year, month - 1, 1); // month - 1 because JS months are 0-indexed
     const endDate = new Date(year, month, 0); // Last day of the month
-    
+
     return await db
       .select()
       .from(groupAttendance)
-      .where(and(
-        eq(groupAttendance.groupId, groupId),
-        sql`${groupAttendance.attendanceDate} >= ${startDate.toISOString().split('T')[0]}`,
-        sql`${groupAttendance.attendanceDate} <= ${endDate.toISOString().split('T')[0]}`
-      ))
+      .where(
+        and(
+          eq(groupAttendance.groupId, groupId),
+          sql`${groupAttendance.attendanceDate} >= ${startDate.toISOString().split("T")[0]}`,
+          sql`${groupAttendance.attendanceDate} <= ${endDate.toISOString().split("T")[0]}`,
+        ),
+      )
       .orderBy(groupAttendance.attendanceDate);
   }
 
   // Group Financial Transaction methods
-  async getGroupTransactions(groupId: number, studentId?: number): Promise<GroupTransaction[]> {
+  async getGroupTransactions(
+    groupId: number,
+    studentId?: number,
+  ): Promise<GroupTransaction[]> {
     let query = db
       .select()
       .from(groupTransactions)
       .where(eq(groupTransactions.groupId, groupId));
-    
+
     if (studentId) {
-      query = query.where(and(
-        eq(groupTransactions.groupId, groupId),
-        eq(groupTransactions.studentId, studentId)
-      ));
+      query = query.where(
+        and(
+          eq(groupTransactions.groupId, groupId),
+          eq(groupTransactions.studentId, studentId),
+        ),
+      );
     }
-    
+
     return await query.orderBy(desc(groupTransactions.createdAt));
   }
 
-  async createTransaction(transaction: InsertGroupTransaction): Promise<GroupTransaction> {
+  async createTransaction(
+    transaction: InsertGroupTransaction,
+  ): Promise<GroupTransaction> {
     const [result] = await db
       .insert(groupTransactions)
       .values(transaction)
@@ -2332,7 +3010,10 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async updateTransaction(id: number, updates: Partial<InsertGroupTransaction>): Promise<GroupTransaction> {
+  async updateTransaction(
+    id: number,
+    updates: Partial<InsertGroupTransaction>,
+  ): Promise<GroupTransaction> {
     const [result] = await db
       .update(groupTransactions)
       .set({ ...updates, updatedAt: new Date() })
@@ -2368,34 +3049,42 @@ export class DatabaseStorage implements IStorage {
       })
       .from(groupTransactions)
       .leftJoin(users, eq(groupTransactions.studentId, users.id))
-      .leftJoin(aliasedTable(users, 'recorder'), eq(groupTransactions.recordedBy, sql`recorder.id`))
+      .leftJoin(
+        aliasedTable(users, "recorder"),
+        eq(groupTransactions.recordedBy, sql`recorder.id`),
+      )
       .where(eq(groupTransactions.groupId, groupId))
       .orderBy(desc(groupTransactions.createdAt));
   }
 
-  async getStudentFinancialSummary(groupId: number, studentId: number): Promise<any> {
+  async getStudentFinancialSummary(
+    groupId: number,
+    studentId: number,
+  ): Promise<any> {
     const transactions = await db
       .select()
       .from(groupTransactions)
-      .where(and(
-        eq(groupTransactions.groupId, groupId),
-        eq(groupTransactions.studentId, studentId)
-      ));
-    
+      .where(
+        and(
+          eq(groupTransactions.groupId, groupId),
+          eq(groupTransactions.studentId, studentId),
+        ),
+      );
+
     const totalFees = transactions
-      .filter(t => t.transactionType === 'fee')
+      .filter((t) => t.transactionType === "fee")
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const totalPaid = transactions
-      .filter(t => t.transactionType === 'payment' && t.status === 'paid')
+      .filter((t) => t.transactionType === "payment" && t.status === "paid")
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const pendingAmount = transactions
-      .filter(t => t.status === 'pending')
+      .filter((t) => t.status === "pending")
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const overdueAmount = transactions
-      .filter(t => t.status === 'overdue')
+      .filter((t) => t.status === "overdue")
       .reduce((sum, t) => sum + t.amount, 0);
 
     return {
@@ -2404,7 +3093,7 @@ export class DatabaseStorage implements IStorage {
       balance: totalFees - totalPaid,
       pendingAmount,
       overdueAmount,
-      transactionCount: transactions.length
+      transactionCount: transactions.length,
     };
   }
 
@@ -2435,23 +3124,31 @@ export class DatabaseStorage implements IStorage {
         updatedAt: scheduleCells.updatedAt,
       })
       .from(scheduleCells)
-      .leftJoin(teachingModules, eq(scheduleCells.subjectId, teachingModules.id))
+      .leftJoin(
+        teachingModules,
+        eq(scheduleCells.subjectId, teachingModules.id),
+      )
       .leftJoin(users, eq(scheduleCells.teacherId, users.id))
       .where(eq(scheduleCells.scheduleTableId, scheduleTableId))
       .orderBy(scheduleCells.dayOfWeek, scheduleCells.period);
   }
 
   // User blocking methods
-  async blockUser(blockerId: number, blockedId: number, reason?: string, schoolId?: number): Promise<BlockedUser> {
+  async blockUser(
+    blockerId: number,
+    blockedId: number,
+    reason?: string,
+    schoolId?: number,
+  ): Promise<BlockedUser> {
     // Get blocker's school ID if not provided
     let finalSchoolId = schoolId;
     if (!finalSchoolId) {
       const blocker = await this.getUser(blockerId);
       finalSchoolId = blocker?.schoolId;
     }
-    
+
     if (!finalSchoolId) {
-      throw new Error('School ID is required for blocking users');
+      throw new Error("School ID is required for blocking users");
     }
 
     const [blockedUser] = await db
@@ -2465,17 +3162,17 @@ export class DatabaseStorage implements IStorage {
     // Get blocker's school for proper isolation
     const blocker = await this.getUser(blockerId);
     if (!blocker?.schoolId) {
-      throw new Error('School ID is required for unblocking users');
+      throw new Error("School ID is required for unblocking users");
     }
 
     await db
       .delete(blockedUsers)
       .where(
         and(
-          eq(blockedUsers.blockerId, blockerId), 
+          eq(blockedUsers.blockerId, blockerId),
           eq(blockedUsers.blockedId, blockedId),
-          eq(blockedUsers.schoolId, blocker.schoolId)
-        )
+          eq(blockedUsers.schoolId, blocker.schoolId),
+        ),
       );
   }
 
@@ -2491,10 +3188,10 @@ export class DatabaseStorage implements IStorage {
       .from(blockedUsers)
       .where(
         and(
-          eq(blockedUsers.blockerId, blockerId), 
+          eq(blockedUsers.blockerId, blockerId),
           eq(blockedUsers.blockedId, blockedId),
-          eq(blockedUsers.schoolId, blocker.schoolId)
-        )
+          eq(blockedUsers.schoolId, blocker.schoolId),
+        ),
       );
     return !!blocked;
   }
@@ -2512,8 +3209,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(blockedUsers.blockerId, userId),
-          eq(blockedUsers.schoolId, user.schoolId)
-        )
+          eq(blockedUsers.schoolId, user.schoolId),
+        ),
       )
       .orderBy(desc(blockedUsers.createdAt));
   }
@@ -2525,9 +3222,9 @@ export class DatabaseStorage implements IStorage {
       const reporter = await this.getUser(insertReport.reporterId);
       insertReport.schoolId = reporter?.schoolId;
     }
-    
+
     if (!insertReport.schoolId) {
-      throw new Error('School ID is required for reporting users');
+      throw new Error("School ID is required for reporting users");
     }
 
     const [report] = await db
@@ -2547,9 +3244,9 @@ export class DatabaseStorage implements IStorage {
 
   // Admin reporting methods
   async getAllReports(schoolId?: number): Promise<any[]> {
-    const reporterAlias = aliasedTable(users, 'reporter');
-    const reportedAlias = aliasedTable(users, 'reported');
-    
+    const reporterAlias = aliasedTable(users, "reporter");
+    const reportedAlias = aliasedTable(users, "reported");
+
     let query = db
       .select({
         id: userReports.id,
@@ -2566,7 +3263,10 @@ export class DatabaseStorage implements IStorage {
       })
       .from(userReports)
       .leftJoin(reporterAlias, eq(userReports.reporterId, reporterAlias.id))
-      .leftJoin(reportedAlias, eq(userReports.reportedUserId, reportedAlias.id));
+      .leftJoin(
+        reportedAlias,
+        eq(userReports.reportedUserId, reportedAlias.id),
+      );
 
     // Filter by school if provided (for proper multi-tenancy)
     if (schoolId) {
@@ -2576,7 +3276,10 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(userReports.createdAt));
   }
 
-  async updateReportStatus(reportId: number, status: string): Promise<UserReport> {
+  async updateReportStatus(
+    reportId: number,
+    status: string,
+  ): Promise<UserReport> {
     const [report] = await db
       .update(userReports)
       .set({ status })
@@ -2586,14 +3289,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User banning methods
-  async banUser(userId: number, reason: string, bannedBy: number): Promise<User> {
+  async banUser(
+    userId: number,
+    reason: string,
+    bannedBy: number,
+  ): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ 
-        banned: true, 
-        banReason: reason, 
+      .set({
+        banned: true,
+        banReason: reason,
         bannedAt: new Date(),
-        bannedBy 
+        bannedBy,
       })
       .where(eq(users.id, userId))
       .returning();
@@ -2603,11 +3310,11 @@ export class DatabaseStorage implements IStorage {
   async unbanUser(userId: number): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ 
-        banned: false, 
-        banReason: null, 
+      .set({
+        banned: false,
+        banReason: null,
         bannedAt: null,
-        bannedBy: null 
+        bannedBy: null,
       })
       .where(eq(users.id, userId))
       .returning();
@@ -2641,12 +3348,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(messages)
       .leftJoin(users, eq(messages.senderId, users.id))
-      .where(
-        or(
-          eq(messages.senderId, userId),
-          eq(messages.receiverId, userId)
-        )
-      )
+      .where(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)))
       .orderBy(desc(messages.createdAt));
 
     // Get additional user info for receivers including their roles
@@ -2659,15 +3361,16 @@ export class DatabaseStorage implements IStorage {
           receiverProfilePicture: receiver?.profilePicture,
           receiverRole: receiver?.role,
         };
-      })
+      }),
     );
 
     // Group messages by conversation partner and get only the latest message from each
     const conversationMap = new Map<number, any>();
-    
-    messagesWithCompleteInfo.forEach(message => {
-      const otherUserId = message.senderId === userId ? message.receiverId : message.senderId;
-      
+
+    messagesWithCompleteInfo.forEach((message) => {
+      const otherUserId =
+        message.senderId === userId ? message.receiverId : message.senderId;
+
       if (!conversationMap.has(otherUserId)) {
         conversationMap.set(otherUserId, message);
       }
@@ -2683,7 +3386,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messages.id, messageId));
   }
 
-  async getConversationBetweenUsers(userId1: number, userId2: number): Promise<any[]> {
+  async getConversationBetweenUsers(
+    userId1: number,
+    userId2: number,
+  ): Promise<any[]> {
     const result = await db
       .select({
         id: messages.id,
@@ -2702,8 +3408,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         or(
           and(eq(messages.senderId, userId1), eq(messages.receiverId, userId2)),
-          and(eq(messages.senderId, userId2), eq(messages.receiverId, userId1))
-        )
+          and(eq(messages.senderId, userId2), eq(messages.receiverId, userId1)),
+        ),
       )
       .orderBy(messages.createdAt); // Chronological order for chat history
 
@@ -2711,7 +3417,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Push subscription methods
-  async createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription> {
+  async createPushSubscription(
+    subscription: InsertPushSubscription,
+  ): Promise<PushSubscription> {
     // Check if subscription already exists for this user and endpoint
     const existing = await db
       .select()
@@ -2719,8 +3427,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(pushSubscriptions.userId, subscription.userId),
-          eq(pushSubscriptions.endpoint, subscription.endpoint)
-        )
+          eq(pushSubscriptions.endpoint, subscription.endpoint),
+        ),
       )
       .limit(1);
 
@@ -2732,7 +3440,7 @@ export class DatabaseStorage implements IStorage {
           p256dh: subscription.p256dh,
           auth: subscription.auth,
           userAgent: subscription.userAgent,
-          lastUsed: new Date()
+          lastUsed: new Date(),
         })
         .where(eq(pushSubscriptions.id, existing[0].id))
         .returning();
@@ -2761,12 +3469,12 @@ export class DatabaseStorage implements IStorage {
         id: users.id,
         name: users.name,
         email: users.email,
-        role: users.role
+        role: users.role,
       })
       .from(users)
       .innerJoin(pushSubscriptions, eq(users.id, pushSubscriptions.userId))
       .where(eq(users.schoolId, schoolId));
-    
+
     return result;
   }
 
@@ -2774,12 +3482,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(users)
-      .where(
-        and(
-          eq(users.schoolId, schoolId),
-          inArray(users.role, roles)
-        )
-      );
+      .where(and(eq(users.schoolId, schoolId), inArray(users.role, roles)));
   }
 
   async updatePushSubscriptionLastUsed(subscriptionId: number): Promise<void> {
@@ -2802,15 +3505,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Notification log methods
-  async createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog> {
-    const [newLog] = await db
-      .insert(notificationLogs)
-      .values(log)
-      .returning();
+  async createNotificationLog(
+    log: InsertNotificationLog,
+  ): Promise<NotificationLog> {
+    const [newLog] = await db.insert(notificationLogs).values(log).returning();
     return newLog;
   }
 
-  async getNotificationLogs(schoolId: number, limit: number = 100): Promise<NotificationLog[]> {
+  async getNotificationLogs(
+    schoolId: number,
+    limit: number = 100,
+  ): Promise<NotificationLog[]> {
     return await db
       .select()
       .from(notificationLogs)
@@ -2819,7 +3524,10 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async getNotificationLogsByUser(userId: number, limit: number = 50): Promise<NotificationLog[]> {
+  async getNotificationLogsByUser(
+    userId: number,
+    limit: number = 50,
+  ): Promise<NotificationLog[]> {
     return await db
       .select()
       .from(notificationLogs)
@@ -2829,15 +3537,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Teaching modules/custom subjects methods
-  async getTeachingModuleByName(nameAr: string, educationLevel: string): Promise<any | undefined> {
+  async getTeachingModuleByName(
+    nameAr: string,
+    educationLevel: string,
+  ): Promise<any | undefined> {
     const [module] = await db
       .select()
       .from(teachingModules)
-      .where(and(eq(teachingModules.nameAr, nameAr), eq(teachingModules.educationLevel, educationLevel)));
+      .where(
+        and(
+          eq(teachingModules.nameAr, nameAr),
+          eq(teachingModules.educationLevel, educationLevel),
+        ),
+      );
     return module;
   }
 
-  async getTeachingModuleByNameAllLevels(nameAr: string): Promise<any | undefined> {
+  async getTeachingModuleByNameAllLevels(
+    nameAr: string,
+  ): Promise<any | undefined> {
     const [module] = await db
       .select()
       .from(teachingModules)
@@ -2846,19 +3564,31 @@ export class DatabaseStorage implements IStorage {
     return module;
   }
 
-  async getTeachingModuleByNameAndGrade(nameAr: string, educationLevel: string, grade: string): Promise<any | undefined> {
+  async getTeachingModuleByNameAndGrade(
+    nameAr: string,
+    educationLevel: string,
+    grade: string,
+  ): Promise<any | undefined> {
     const [module] = await db
       .select()
       .from(teachingModules)
-      .where(and(
-        eq(teachingModules.nameAr, nameAr), 
-        eq(teachingModules.educationLevel, educationLevel),
-        eq(teachingModules.grade, grade)
-      ));
+      .where(
+        and(
+          eq(teachingModules.nameAr, nameAr),
+          eq(teachingModules.educationLevel, educationLevel),
+          eq(teachingModules.grade, grade),
+        ),
+      );
     return module;
   }
 
-  async createCustomSubject(subjectData: { name: string, nameAr: string, educationLevel: string, grade?: string, description?: string }) {
+  async createCustomSubject(subjectData: {
+    name: string;
+    nameAr: string;
+    educationLevel: string;
+    grade?: string;
+    description?: string;
+  }) {
     const [customSubject] = await db
       .insert(teachingModules)
       .values({
@@ -2866,7 +3596,7 @@ export class DatabaseStorage implements IStorage {
         nameAr: subjectData.nameAr,
         educationLevel: subjectData.educationLevel,
         grade: subjectData.grade,
-        description: subjectData.description
+        description: subjectData.description,
       })
       .returning();
     return customSubject;
@@ -2879,7 +3609,7 @@ export class DatabaseStorage implements IStorage {
       const userCounts = await db
         .select({
           role: users.role,
-          count: sql<number>`count(*)`
+          count: sql<number>`count(*)`,
         })
         .from(users)
         .where(eq(users.schoolId, schoolId))
@@ -2888,7 +3618,7 @@ export class DatabaseStorage implements IStorage {
       // Get children count
       const [childrenCount] = await db
         .select({
-          count: sql<number>`count(*)`
+          count: sql<number>`count(*)`,
         })
         .from(children)
         .leftJoin(users, eq(children.parentId, users.id))
@@ -2897,7 +3627,7 @@ export class DatabaseStorage implements IStorage {
       // Get announcements count
       const [announcementsCount] = await db
         .select({
-          count: sql<number>`count(*)`
+          count: sql<number>`count(*)`,
         })
         .from(announcements)
         .where(eq(announcements.schoolId, schoolId));
@@ -2905,7 +3635,7 @@ export class DatabaseStorage implements IStorage {
       // Get blog posts count
       const [blogPostsCount] = await db
         .select({
-          count: sql<number>`count(*)`
+          count: sql<number>`count(*)`,
         })
         .from(blogPosts)
         .where(eq(blogPosts.schoolId, schoolId));
@@ -2913,7 +3643,7 @@ export class DatabaseStorage implements IStorage {
       // Get groups count
       const [groupsCount] = await db
         .select({
-          count: sql<number>`count(*)`
+          count: sql<number>`count(*)`,
         })
         .from(groups)
         .where(eq(groups.schoolId, schoolId));
@@ -2921,7 +3651,7 @@ export class DatabaseStorage implements IStorage {
       // Get formations count
       const [formationsCount] = await db
         .select({
-          count: sql<number>`count(*)`
+          count: sql<number>`count(*)`,
         })
         .from(formations)
         .where(eq(formations.schoolId, schoolId));
@@ -2937,23 +3667,23 @@ export class DatabaseStorage implements IStorage {
         announcements: announcementsCount?.count || 0,
         blogPosts: blogPostsCount?.count || 0,
         groups: groupsCount?.count || 0,
-        formations: formationsCount?.count || 0
+        formations: formationsCount?.count || 0,
       };
 
-      userCounts.forEach(roleCount => {
+      userCounts.forEach((roleCount) => {
         const count = parseInt(roleCount.count.toString()) || 0;
         stats.totalUsers += count;
         switch (roleCount.role) {
-          case 'admin':
+          case "admin":
             stats.admins = count;
             break;
-          case 'teacher':
+          case "teacher":
             stats.teachers = count;
             break;
-          case 'student':
+          case "student":
             stats.students = count;
             break;
-          case 'parent':
+          case "parent":
             stats.parents = count;
             break;
         }
@@ -2970,26 +3700,33 @@ export class DatabaseStorage implements IStorage {
         announcements: parseInt(stats.announcements.toString()) || 0,
         blogPosts: parseInt(stats.blogPosts.toString()) || 0,
         groups: parseInt(stats.groups.toString()) || 0,
-        formations: parseInt(stats.formations.toString()) || 0
+        formations: parseInt(stats.formations.toString()) || 0,
       };
     } catch (error) {
-      console.error('Error getting school statistics:', error);
+      console.error("Error getting school statistics:", error);
       throw error;
     }
   }
 
-  async updateSchoolKeys(schoolId: number, adminKey: string, teacherKey: string): Promise<void> {
+  async updateSchoolKeys(
+    schoolId: number,
+    adminKey: string,
+    teacherKey: string,
+  ): Promise<void> {
     await db
       .update(schools)
       .set({
         adminKey,
-        teacherKey
+        teacherKey,
       })
       .where(eq(schools.id, schoolId));
   }
 
   // Group Schedule methods implementation
-  async getGroupScheduledLessonDates(groupId: number, schoolId: number): Promise<string[]> {
+  async getGroupScheduledLessonDates(
+    groupId: number,
+    schoolId: number,
+  ): Promise<string[]> {
     try {
       // Get all schedule assignments for this group
       const assignments = await db
@@ -2997,37 +3734,43 @@ export class DatabaseStorage implements IStorage {
           scheduleCellId: groupScheduleAssignments.scheduleCellId,
           dayOfWeek: scheduleCells.dayOfWeek,
           startTime: scheduleCells.startTime,
-          endTime: scheduleCells.endTime
+          endTime: scheduleCells.endTime,
         })
         .from(groupScheduleAssignments)
-        .leftJoin(scheduleCells, eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id))
+        .leftJoin(
+          scheduleCells,
+          eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id),
+        )
         .where(
           and(
             eq(groupScheduleAssignments.groupId, groupId),
             eq(groupScheduleAssignments.schoolId, schoolId),
-            eq(groupScheduleAssignments.isActive, true)
-          )
+            eq(groupScheduleAssignments.isActive, true),
+          ),
         );
 
       // Generate dates for the next 2 years based on scheduled days
       const dates: string[] = [];
       const today = new Date();
       const startOfWeek = new Date(today);
-      
+
       // Adjust for Friday-first week (Friday = 0, Saturday = 1, ..., Thursday = 6)
       // Find the most recent Friday to start from
       const daysSinceFriday = (today.getDay() + 2) % 7; // Convert to Friday-first mapping
       startOfWeek.setDate(today.getDate() - daysSinceFriday);
 
-      for (let week = 0; week < 104; week++) { // 2 years = 104 weeks
+      for (let week = 0; week < 104; week++) {
+        // 2 years = 104 weeks
         for (const assignment of assignments) {
           if (assignment.dayOfWeek !== null) {
             const lessonDate = new Date(startOfWeek);
-            lessonDate.setDate(startOfWeek.getDate() + (week * 7) + assignment.dayOfWeek);
-            
+            lessonDate.setDate(
+              startOfWeek.getDate() + week * 7 + assignment.dayOfWeek,
+            );
+
             // Only include future dates
             if (lessonDate >= today) {
-              dates.push(lessonDate.toISOString().split('T')[0]);
+              dates.push(lessonDate.toISOString().split("T")[0]);
             }
           }
         }
@@ -3035,12 +3778,17 @@ export class DatabaseStorage implements IStorage {
 
       return dates.sort();
     } catch (error) {
-      console.error('Error getting group scheduled lesson dates:', error);
+      console.error("Error getting group scheduled lesson dates:", error);
       return [];
     }
   }
 
-  async assignGroupToSchedule(groupId: number, scheduleCellId: number, schoolId: number, assignedBy: number): Promise<any> {
+  async assignGroupToSchedule(
+    groupId: number,
+    scheduleCellId: number,
+    schoolId: number,
+    assignedBy: number,
+  ): Promise<any> {
     try {
       const [assignment] = await db
         .insert(groupScheduleAssignments)
@@ -3048,13 +3796,13 @@ export class DatabaseStorage implements IStorage {
           groupId,
           scheduleCellId,
           schoolId,
-          assignedBy
+          assignedBy,
         })
         .returning();
 
       return assignment;
     } catch (error) {
-      console.error('Error assigning group to schedule:', error);
+      console.error("Error assigning group to schedule:", error);
       throw error;
     }
   }
@@ -3072,20 +3820,31 @@ export class DatabaseStorage implements IStorage {
           startTime: scheduleCells.startTime,
           endTime: scheduleCells.endTime,
           educationLevel: scheduleCells.educationLevel,
-          tableName: scheduleTables.name
+          tableName: scheduleTables.name,
         })
         .from(groupScheduleAssignments)
-        .leftJoin(scheduleCells, eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id))
-        .leftJoin(scheduleTables, eq(scheduleCells.scheduleTableId, scheduleTables.id))
+        .leftJoin(
+          scheduleCells,
+          eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id),
+        )
+        .leftJoin(
+          scheduleTables,
+          eq(scheduleCells.scheduleTableId, scheduleTables.id),
+        )
         .where(eq(groupScheduleAssignments.groupId, groupId))
         .orderBy(scheduleCells.dayOfWeek, scheduleCells.period);
     } catch (error) {
-      console.error('Error getting group schedule assignments:', error);
+      console.error("Error getting group schedule assignments:", error);
       return [];
     }
   }
 
-  async getCompatibleGroups(subjectId: number, teacherId: number, educationLevel: string, schoolId: number): Promise<any[]> {
+  async getCompatibleGroups(
+    subjectId: number,
+    teacherId: number,
+    educationLevel: string,
+    schoolId: number,
+  ): Promise<any[]> {
     try {
       // First try exact matching (all criteria must match)
       const exactMatches = await db
@@ -3096,19 +3855,21 @@ export class DatabaseStorage implements IStorage {
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
           studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
-          matchType: sql<string>`'exact'`
+          matchType: sql<string>`'exact'`,
         })
         .from(groups)
-        .where(and(
-          eq(groups.schoolId, schoolId),
-          eq(groups.subjectId, subjectId),
-          eq(groups.teacherId, teacherId),
-          // Flexible education level matching
-          or(
-            eq(groups.educationLevel, educationLevel),
-            like(groups.educationLevel, `%${educationLevel}%`)
-          )
-        ))
+        .where(
+          and(
+            eq(groups.schoolId, schoolId),
+            eq(groups.subjectId, subjectId),
+            eq(groups.teacherId, teacherId),
+            // Flexible education level matching
+            or(
+              eq(groups.educationLevel, educationLevel),
+              like(groups.educationLevel, `%${educationLevel}%`),
+            ),
+          ),
+        )
         .orderBy(groups.name);
 
       if (exactMatches.length > 0) {
@@ -3121,10 +3882,11 @@ export class DatabaseStorage implements IStorage {
         .from(teachingModules)
         .where(eq(teachingModules.id, subjectId))
         .limit(1);
-      
+
       if (requestedSubject.length > 0) {
-        const subjectName = requestedSubject[0].name || requestedSubject[0].name_en || '';
-        
+        const subjectName =
+          requestedSubject[0].name || requestedSubject[0].name_en || "";
+
         // Find groups with same subject name but different grade levels
         const subjectCompatibleMatches = await db
           .select({
@@ -3134,27 +3896,29 @@ export class DatabaseStorage implements IStorage {
             subjectId: groups.subjectId,
             teacherId: groups.teacherId,
             studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
-            matchType: sql<string>`'subject_compatible'`
+            matchType: sql<string>`'subject_compatible'`,
           })
           .from(groups)
           .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
-          .where(and(
-            eq(groups.schoolId, schoolId),
-            eq(groups.teacherId, teacherId),
-            // Flexible education level matching
-            or(
-              eq(groups.educationLevel, educationLevel),
-              like(groups.educationLevel, `%${educationLevel}%`)
+          .where(
+            and(
+              eq(groups.schoolId, schoolId),
+              eq(groups.teacherId, teacherId),
+              // Flexible education level matching
+              or(
+                eq(groups.educationLevel, educationLevel),
+                like(groups.educationLevel, `%${educationLevel}%`),
+              ),
+              // Same subject name
+              or(
+                eq(teachingModules.nameAr, subjectName),
+                eq(teachingModules.name, subjectName),
+              ),
             ),
-            // Same subject name
-            or(
-              eq(teachingModules.nameAr, subjectName),
-              eq(teachingModules.name, subjectName)
-            )
-          ))
+          )
 
           .orderBy(groups.name);
-          
+
         if (subjectCompatibleMatches.length > 0) {
           return subjectCompatibleMatches;
         }
@@ -3169,28 +3933,33 @@ export class DatabaseStorage implements IStorage {
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
           studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
-          matchType: sql<string>`'partial'`
+          matchType: sql<string>`'partial'`,
         })
         .from(groups)
-        .where(and(
-          eq(groups.schoolId, schoolId),
-          eq(groups.subjectId, subjectId),
-          // Flexible education level matching
-          or(
-            eq(groups.educationLevel, educationLevel),
-            like(groups.educationLevel, `%${educationLevel}%`)
-          )
-        ))
+        .where(
+          and(
+            eq(groups.schoolId, schoolId),
+            eq(groups.subjectId, subjectId),
+            // Flexible education level matching
+            or(
+              eq(groups.educationLevel, educationLevel),
+              like(groups.educationLevel, `%${educationLevel}%`),
+            ),
+          ),
+        )
         .orderBy(groups.name);
 
       return partialMatches;
     } catch (error) {
-      console.error('Error getting compatible groups:', error);
+      console.error("Error getting compatible groups:", error);
       return [];
     }
   }
 
-  async getScheduleLinkedGroups(tableId: number, schoolId: number): Promise<any[]> {
+  async getScheduleLinkedGroups(
+    tableId: number,
+    schoolId: number,
+  ): Promise<any[]> {
     try {
       return await db
         .select({
@@ -3199,110 +3968,158 @@ export class DatabaseStorage implements IStorage {
           scheduleCellId: groupScheduleAssignments.scheduleCellId,
           groupName: groups.name,
           isActive: groupScheduleAssignments.isActive,
-          createdAt: groupScheduleAssignments.createdAt
+          createdAt: groupScheduleAssignments.createdAt,
         })
         .from(groupScheduleAssignments)
         .leftJoin(groups, eq(groupScheduleAssignments.groupId, groups.id))
-        .leftJoin(scheduleCells, eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id))
-        .where(and(
-          eq(groupScheduleAssignments.schoolId, schoolId),
-          eq(scheduleCells.scheduleTableId, tableId),
-          eq(groupScheduleAssignments.isActive, true)
-        ))
+        .leftJoin(
+          scheduleCells,
+          eq(groupScheduleAssignments.scheduleCellId, scheduleCells.id),
+        )
+        .where(
+          and(
+            eq(groupScheduleAssignments.schoolId, schoolId),
+            eq(scheduleCells.scheduleTableId, tableId),
+            eq(groupScheduleAssignments.isActive, true),
+          ),
+        )
         .orderBy(groups.name);
     } catch (error) {
-      console.error('Error getting schedule linked groups:', error);
+      console.error("Error getting schedule linked groups:", error);
       return [];
     }
   }
 
-  async linkGroupsToScheduleCell(cellId: number, groupIds: number[], schoolId: number, assignedBy: number): Promise<void> {
+  async linkGroupsToScheduleCell(
+    cellId: number,
+    groupIds: number[],
+    schoolId: number,
+    assignedBy: number,
+  ): Promise<void> {
     try {
       // First, remove all existing assignments for this cell
       await db
         .delete(groupScheduleAssignments)
-        .where(and(
-          eq(groupScheduleAssignments.scheduleCellId, cellId),
-          eq(groupScheduleAssignments.schoolId, schoolId)
-        ));
+        .where(
+          and(
+            eq(groupScheduleAssignments.scheduleCellId, cellId),
+            eq(groupScheduleAssignments.schoolId, schoolId),
+          ),
+        );
 
       // Then, add new assignments if groupIds is not empty
       if (groupIds.length > 0) {
-        const assignments = groupIds.map(groupId => ({
+        const assignments = groupIds.map((groupId) => ({
           groupId,
           scheduleCellId: cellId,
           schoolId,
           assignedBy,
-          isActive: true
+          isActive: true,
         }));
 
-        await db
-          .insert(groupScheduleAssignments)
-          .values(assignments);
+        await db.insert(groupScheduleAssignments).values(assignments);
       }
     } catch (error) {
-      console.error('Error linking groups to schedule cell:', error);
+      console.error("Error linking groups to schedule cell:", error);
       throw error;
     }
   }
 
   // Student Monthly Payment methods implementation
-  async getStudentPaymentStatus(studentId: number, year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment | undefined> {
+  async getStudentPaymentStatus(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment | undefined> {
     try {
       const [payment] = await db
         .select()
         .from(studentMonthlyPayments)
-        .where(and(
-          eq(studentMonthlyPayments.studentId, studentId),
-          eq(studentMonthlyPayments.year, year),
-          eq(studentMonthlyPayments.month, month),
-          eq(studentMonthlyPayments.schoolId, schoolId)
-        ));
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        );
       return payment || undefined;
     } catch (error) {
-      console.error('Error getting student payment status:', error);
+      console.error("Error getting student payment status:", error);
       return undefined;
     }
   }
 
-  async getStudentsPaymentStatusForMonth(studentIds: number[], year: number, month: number, schoolId: number): Promise<StudentMonthlyPayment[]> {
+  async getStudentsPaymentStatusForMonth(
+    studentIds: number[],
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment[]> {
     try {
       if (studentIds.length === 0) return [];
-      
+
       return await db
         .select()
         .from(studentMonthlyPayments)
-        .where(and(
-          inArray(studentMonthlyPayments.studentId, studentIds),
-          eq(studentMonthlyPayments.year, year),
-          eq(studentMonthlyPayments.month, month),
-          eq(studentMonthlyPayments.schoolId, schoolId)
-        ));
+        .where(
+          and(
+            inArray(studentMonthlyPayments.studentId, studentIds),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        );
     } catch (error) {
-      console.error('Error getting students payment status:', error);
+      console.error("Error getting students payment status:", error);
       return [];
     }
   }
 
-  async markStudentPayment(studentId: number, year: number, month: number, isPaid: boolean, schoolId: number, paidBy: number, amount?: number, notes?: string): Promise<StudentMonthlyPayment> {
+  async markStudentPayment(
+    studentId: number,
+    year: number,
+    month: number,
+    isPaid: boolean,
+    schoolId: number,
+    paidBy: number,
+    amount?: number,
+    notes?: string,
+  ): Promise<StudentMonthlyPayment> {
     try {
       // Determine student type by checking if the student exists in users table or children table
-      let studentType: 'student' | 'child' = 'student';
-      
+      let studentType: "student" | "child" = "student";
+
       // First check if it's a user (direct student)
-      const userStudent = await db.select().from(users).where(and(eq(users.id, studentId), eq(users.schoolId, schoolId))).limit(1);
-      
+      const userStudent = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, studentId), eq(users.schoolId, schoolId)))
+        .limit(1);
+
       if (userStudent.length === 0) {
         // If not found in users, check children table
-        const childStudent = await db.select().from(children).where(and(eq(children.id, studentId), eq(children.schoolId, schoolId))).limit(1);
+        const childStudent = await db
+          .select()
+          .from(children)
+          .where(
+            and(eq(children.id, studentId), eq(children.schoolId, schoolId)),
+          )
+          .limit(1);
         if (childStudent.length > 0) {
-          studentType = 'child';
+          studentType = "child";
         }
       }
-      
+
       // Check if payment record exists
-      const existingPayment = await this.getStudentPaymentStatus(studentId, year, month, schoolId);
-      
+      const existingPayment = await this.getStudentPaymentStatus(
+        studentId,
+        year,
+        month,
+        schoolId,
+      );
+
       if (existingPayment) {
         // Update existing record
         const [updatedPayment] = await db
@@ -3313,7 +4130,7 @@ export class DatabaseStorage implements IStorage {
             paidAt: isPaid ? new Date() : null,
             paidBy: isPaid ? paidBy : null,
             notes,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           })
           .where(eq(studentMonthlyPayments.id, existingPayment.id))
           .returning();
@@ -3332,92 +4149,126 @@ export class DatabaseStorage implements IStorage {
             paidAt: isPaid ? new Date() : null,
             paidBy: isPaid ? paidBy : null,
             notes,
-            schoolId
+            schoolId,
           })
           .returning();
         return newPayment;
       }
     } catch (error) {
-      console.error('Error marking student payment:', error);
+      console.error("Error marking student payment:", error);
       throw error;
     }
   }
 
-  async createDefaultMonthlyPayments(studentIds: number[], year: number, month: number, schoolId: number): Promise<void> {
+  async createDefaultMonthlyPayments(
+    studentIds: number[],
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<void> {
     try {
       if (studentIds.length === 0) return;
-      
+
       // Get existing payments to avoid duplicates
-      const existingPayments = await this.getStudentsPaymentStatusForMonth(studentIds, year, month, schoolId);
-      const existingStudentIds = existingPayments.map(p => p.studentId);
-      
+      const existingPayments = await this.getStudentsPaymentStatusForMonth(
+        studentIds,
+        year,
+        month,
+        schoolId,
+      );
+      const existingStudentIds = existingPayments.map((p) => p.studentId);
+
       // Filter out students who already have payment records
-      const newStudentIds = studentIds.filter(id => !existingStudentIds.includes(id));
-      
+      const newStudentIds = studentIds.filter(
+        (id) => !existingStudentIds.includes(id),
+      );
+
       if (newStudentIds.length === 0) return;
-      
+
       // Create default unpaid records for new students with proper student type
-      const defaultPayments = await Promise.all(newStudentIds.map(async (studentId) => {
-        // Determine student type
-        let studentType: 'student' | 'child' = 'student';
-        
-        // First check if it's a user (direct student)
-        const userStudent = await db.select().from(users).where(and(eq(users.id, studentId), eq(users.schoolId, schoolId))).limit(1);
-        
-        if (userStudent.length === 0) {
-          // If not found in users, check children table
-          const childStudent = await db.select().from(children).where(and(eq(children.id, studentId), eq(children.schoolId, schoolId))).limit(1);
-          if (childStudent.length > 0) {
-            studentType = 'child';
+      const defaultPayments = await Promise.all(
+        newStudentIds.map(async (studentId) => {
+          // Determine student type
+          let studentType: "student" | "child" = "student";
+
+          // First check if it's a user (direct student)
+          const userStudent = await db
+            .select()
+            .from(users)
+            .where(and(eq(users.id, studentId), eq(users.schoolId, schoolId)))
+            .limit(1);
+
+          if (userStudent.length === 0) {
+            // If not found in users, check children table
+            const childStudent = await db
+              .select()
+              .from(children)
+              .where(
+                and(
+                  eq(children.id, studentId),
+                  eq(children.schoolId, schoolId),
+                ),
+              )
+              .limit(1);
+            if (childStudent.length > 0) {
+              studentType = "child";
+            }
           }
-        }
-        
-        return {
-          studentId,
-          studentType,
-          year,
-          month,
-          isPaid: false,
-          schoolId
-        };
-      }));
-      
+
+          return {
+            studentId,
+            studentType,
+            year,
+            month,
+            isPaid: false,
+            schoolId,
+          };
+        }),
+      );
+
       await db.insert(studentMonthlyPayments).values(defaultPayments);
     } catch (error) {
-      console.error('Error creating default monthly payments:', error);
+      console.error("Error creating default monthly payments:", error);
       throw error;
     }
   }
 
   // Student Status methods
-  async getStudentEnrolledGroups(studentId: number, schoolId: number): Promise<any[]> {
+  async getStudentEnrolledGroups(
+    studentId: number,
+    schoolId: number,
+  ): Promise<any[]> {
     try {
       // Check both regular group assignments (from users table) and mixed assignments (from users and children tables)
       const groupAssignments = await db
         .select({
-          groupId: groupUserAssignments.groupId
+          groupId: groupUserAssignments.groupId,
         })
         .from(groupUserAssignments)
-        .where(and(
-          eq(groupUserAssignments.userId, studentId),
-          eq(groupUserAssignments.schoolId, schoolId)
-        ));
+        .where(
+          and(
+            eq(groupUserAssignments.userId, studentId),
+            eq(groupUserAssignments.schoolId, schoolId),
+          ),
+        );
 
       // Also check mixed group assignments for children
       const mixedAssignments = await db
         .select({
-          groupId: groupMixedAssignments.groupId
+          groupId: groupMixedAssignments.groupId,
         })
         .from(groupMixedAssignments)
-        .where(and(
-          eq(groupMixedAssignments.studentId, studentId),
-          eq(groupMixedAssignments.schoolId, schoolId)
-        ));
+        .where(
+          and(
+            eq(groupMixedAssignments.studentId, studentId),
+            eq(groupMixedAssignments.schoolId, schoolId),
+          ),
+        );
 
       // Combine all group IDs
       const allGroupIds = [
-        ...groupAssignments.map(a => a.groupId),
-        ...mixedAssignments.map(a => a.groupId)
+        ...groupAssignments.map((a) => a.groupId),
+        ...mixedAssignments.map((a) => a.groupId),
       ];
 
       if (allGroupIds.length === 0) {
@@ -3432,416 +4283,16 @@ export class DatabaseStorage implements IStorage {
           educationLevel: groups.educationLevel,
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
-          description: groups.description
+          description: groups.description,
         })
         .from(groups)
-        .where(and(
-          inArray(groups.id, allGroupIds),
-          eq(groups.schoolId, schoolId)
-        ));
+        .where(
+          and(inArray(groups.id, allGroupIds), eq(groups.schoolId, schoolId)),
+        );
 
       // Get teacher names, subject names, and assigned students for each group
-      const enrichedGroups = await Promise.all(groupsData.map(async (group) => {
-        let teacherName = null;
-        let subjectName = null;
-        let nameAr = null;
-
-        // Get teacher name
-        if (group.teacherId) {
-          const teacher = await db
-            .select({ name: users.name })
-            .from(users)
-            .where(eq(users.id, group.teacherId))
-            .limit(1);
-          if (teacher.length > 0) {
-            teacherName = teacher[0].name;
-          }
-        }
-
-        // Get subject name
-        if (group.subjectId) {
-          const subject = await db
-            .select({ name: teachingModules.name, nameAr: teachingModules.nameAr })
-            .from(teachingModules)
-            .where(eq(teachingModules.id, group.subjectId))
-            .limit(1);
-          if (subject.length > 0) {
-            subjectName = subject[0].name;
-            nameAr = subject[0].nameAr;
-          }
-        }
-
-        // Get assigned students for this group (both students and children)
-        const mixedAssignments = await db
-          .select({
-            studentId: groupMixedAssignments.studentId,
-            studentType: groupMixedAssignments.studentType
-          })
-          .from(groupMixedAssignments)
-          .where(and(
-            eq(groupMixedAssignments.groupId, group.id),
-            eq(groupMixedAssignments.schoolId, schoolId)
-          ));
-
-        const assignedStudents = [];
-        for (const assignment of mixedAssignments) {
-          if (assignment.studentType === 'student') {
-            // Get student from users/students tables
-            const studentData = await db
-              .select({
-                id: users.id,
-                name: users.name,
-                educationLevel: students.educationLevel,
-                grade: students.grade,
-                email: users.email
-              })
-              .from(users)
-              .leftJoin(students, eq(users.id, students.userId))
-              .where(eq(users.id, assignment.studentId))
-              .limit(1);
-            
-            if (studentData[0]) {
-              assignedStudents.push({
-                ...studentData[0],
-                type: 'student'
-              });
-            }
-          } else if (assignment.studentType === 'child') {
-            // Get child from children table
-            const childData = await db
-              .select({
-                id: children.id,
-                name: children.name,
-                educationLevel: children.educationLevel,
-                grade: children.grade,
-                email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
-              })
-              .from(children)
-              .where(eq(children.id, assignment.studentId))
-              .limit(1);
-            
-            if (childData[0]) {
-              assignedStudents.push({
-                ...childData[0],
-                type: 'child'
-              });
-            }
-          }
-        }
-
-        return {
-          ...group,
-          teacherName,
-          subjectName,
-          nameAr,
-          studentsAssigned: assignedStudents
-        };
-      }));
-
-      return enrichedGroups;
-    } catch (error) {
-      console.error('Error getting student enrolled groups:', error);
-      return [];
-    }
-  }
-
-  async getStudentAttendanceRecords(studentId: number, schoolId: number): Promise<any[]> {
-    try {
-      const result = await db
-        .select({
-          id: groupAttendance.id,
-          groupId: groupAttendance.groupId,
-          groupName: groups.name,
-          date: groupAttendance.attendanceDate,
-          status: groupAttendance.status
-        })
-        .from(groupAttendance)
-        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
-        .where(and(
-          eq(groupAttendance.studentId, studentId),
-          eq(groupAttendance.schoolId, schoolId)
-        ))
-        .orderBy(desc(groupAttendance.attendanceDate));
-      
-      return result;
-    } catch (error) {
-      console.error('Error fetching student attendance records:', error);
-      return [];
-    }
-  }
-
-  async getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]> {
-    try {
-      // Get payment status from groupTransactions table - check if payment exists for the student
-      const result = await db
-        .select({
-          id: groupTransactions.id,
-          groupId: groupTransactions.groupId,
-          groupName: groups.name,
-          amount: groupTransactions.amount,
-          dueDate: groupTransactions.dueDate,
-          isPaid: sql<boolean>`CASE WHEN ${groupTransactions.status} = 'paid' THEN true ELSE false END`.as('isPaid'),
-          paidDate: groupTransactions.paidDate,
-          description: groupTransactions.description
-        })
-        .from(groupTransactions)
-        .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
-        .where(and(
-          eq(groupTransactions.studentId, studentId),
-          eq(groupTransactions.schoolId, schoolId),
-          eq(groupTransactions.studentType, 'student')
-        ))
-        .orderBy(desc(groupTransactions.createdAt));
-      
-      return result;
-    } catch (error) {
-      console.error('Error fetching student payment records:', error);
-      return [];
-    }
-  }
-
-  // Child-specific methods for parent access
-  async getChildById(childId: number): Promise<Child | undefined> {
-    try {
-      const [child] = await db
-        .select()
-        .from(children)
-        .where(eq(children.id, childId))
-        .limit(1);
-      
-      return child;
-    } catch (error) {
-      console.error('Error fetching child by ID:', error);
-      return undefined;
-    }
-  }
-
-  async getChildAttendanceRecords(childId: number, schoolId: number): Promise<any[]> {
-    try {
-      const result = await db
-        .select({
-          id: groupAttendance.id,
-          groupId: groupAttendance.groupId,
-          groupName: groups.name,
-          date: groupAttendance.attendanceDate,
-          status: groupAttendance.status
-        })
-        .from(groupAttendance)
-        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
-        .where(and(
-          eq(groupAttendance.studentId, childId),
-          eq(groupAttendance.schoolId, schoolId),
-          eq(groupAttendance.studentType, 'child')
-        ))
-        .orderBy(desc(groupAttendance.attendanceDate));
-      
-      return result;
-    } catch (error) {
-      console.error('Error fetching child attendance records:', error);
-      return [];
-    }
-  }
-
-  async getChildPaymentRecords(childId: number, schoolId: number): Promise<any[]> {
-    try {
-      const result = await db
-        .select({
-          id: groupTransactions.id,
-          groupId: groupTransactions.groupId,
-          groupName: groups.name,
-          amount: groupTransactions.amount,
-          dueDate: groupTransactions.dueDate,
-          isPaid: sql<boolean>`CASE WHEN ${groupTransactions.status} = 'paid' THEN true ELSE false END`.as('isPaid'),
-          paidDate: groupTransactions.paidDate,
-          description: groupTransactions.description
-        })
-        .from(groupTransactions)
-        .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
-        .where(and(
-          eq(groupTransactions.studentId, childId),
-          eq(groupTransactions.schoolId, schoolId),
-          eq(groupTransactions.studentType, 'child')
-        ))
-        .orderBy(desc(groupTransactions.createdAt));
-      
-      return result;
-    } catch (error) {
-      console.error('Error fetching child payment records:', error);
-      return [];
-    }
-  }
-
-  async getChildEnrolledGroups(childId: number, schoolId: number): Promise<any[]> {
-    try {
-      // Get groups where this child is assigned
-      const mixedAssignments = await db
-        .select({
-          groupId: groupMixedAssignments.groupId,
-        })
-        .from(groupMixedAssignments)
-        .where(and(
-          eq(groupMixedAssignments.studentId, childId),
-          eq(groupMixedAssignments.studentType, 'child'),
-          eq(groupMixedAssignments.schoolId, schoolId)
-        ));
-
-      if (mixedAssignments.length === 0) {
-        return [];
-      }
-
-      const groupIds = mixedAssignments.map(assignment => assignment.groupId);
-      
-      // Get group details
-      const groupsData = await db
-        .select({
-          id: groups.id,
-          name: groups.name,
-          educationLevel: groups.educationLevel,
-          description: groups.description,
-          teacherId: groups.teacherId,
-          subjectName: teachingModules.name,
-          teacherName: users.name
-        })
-        .from(groups)
-        .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
-        .leftJoin(users, eq(groups.teacherId, users.id))
-        .where(and(
-          inArray(groups.id, groupIds),
-          eq(groups.schoolId, schoolId)
-        ));
-
-      // For each group, populate the studentsAssigned array
-      const result = [];
-      for (const group of groupsData) {
-        const mixedAssignments = await db
-          .select({
-            studentId: groupMixedAssignments.studentId,
-            studentType: groupMixedAssignments.studentType,
-          })
-          .from(groupMixedAssignments)
-          .where(and(
-            eq(groupMixedAssignments.groupId, group.id),
-            eq(groupMixedAssignments.schoolId, schoolId)
-          ));
-
-        const assignedStudents = [];
-        for (const assignment of mixedAssignments) {
-          if (assignment.studentType === 'student') {
-            // Get student from users/students tables
-            const studentData = await db
-              .select({
-                id: users.id,
-                name: users.name,
-                educationLevel: students.educationLevel,
-                grade: students.grade,
-                email: users.email
-              })
-              .from(users)
-              .leftJoin(students, eq(users.id, students.userId))
-              .where(eq(users.id, assignment.studentId))
-              .limit(1);
-            
-            if (studentData[0]) {
-              assignedStudents.push({
-                ...studentData[0],
-                type: 'student'
-              });
-            }
-          } else if (assignment.studentType === 'child') {
-            // Get child from children table
-            const childData = await db
-              .select({
-                id: children.id,
-                name: children.name,
-                educationLevel: children.educationLevel,
-                grade: children.grade,
-                email: sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as('email')
-              })
-              .from(children)
-              .where(eq(children.id, assignment.studentId))
-              .limit(1);
-            
-            if (childData[0]) {
-              assignedStudents.push({
-                ...childData[0],
-                type: 'child'
-              });
-            }
-          }
-        }
-
-        result.push({
-          ...group,
-          studentsAssigned: assignedStudents
-        });
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Error fetching child enrolled groups:', error);
-      return [];
-    }
-  }
-
-  async getChildrenEnrolledGroups(parentId: number, schoolId: number): Promise<any[]> {
-    try {
-      // First, get all children for this parent
-      const childrenList = await db
-        .select({
-          id: children.id,
-          name: children.name
-        })
-        .from(children)
-        .where(and(
-          eq(children.parentId, parentId),
-          eq(children.schoolId, schoolId)
-        ));
-
-      if (childrenList.length === 0) {
-        return [];
-      }
-
-      // Get group assignments for all children
-      const childrenGroups = await Promise.all(childrenList.map(async (child) => {
-        // Check mixed group assignments for this child
-        const mixedAssignments = await db
-          .select({
-            groupId: groupMixedAssignments.groupId
-          })
-          .from(groupMixedAssignments)
-          .where(and(
-            eq(groupMixedAssignments.studentId, child.id),
-            eq(groupMixedAssignments.schoolId, schoolId)
-          ));
-
-        if (mixedAssignments.length === 0) {
-          return {
-            childId: child.id,
-            childName: child.name,
-            groups: []
-          };
-        }
-
-        const groupIds = mixedAssignments.map(a => a.groupId);
-
-        // Fetch group details with teacher information
-        const groupsData = await db
-          .select({
-            id: groups.id,
-            name: groups.name,
-            educationLevel: groups.educationLevel,
-            subjectId: groups.subjectId,
-            teacherId: groups.teacherId,
-            description: groups.description
-          })
-          .from(groups)
-          .where(and(
-            inArray(groups.id, groupIds),
-            eq(groups.schoolId, schoolId)
-          ));
-
-        // Enrich groups with teacher and subject information
-        const enrichedGroups = await Promise.all(groupsData.map(async (group) => {
+      const enrichedGroups = await Promise.all(
+        groupsData.map(async (group) => {
           let teacherName = null;
           let subjectName = null;
           let nameAr = null;
@@ -3861,7 +4312,10 @@ export class DatabaseStorage implements IStorage {
           // Get subject name
           if (group.subjectId) {
             const subject = await db
-              .select({ name: teachingModules.name, nameAr: teachingModules.nameAr })
+              .select({
+                name: teachingModules.name,
+                nameAr: teachingModules.nameAr,
+              })
               .from(teachingModules)
               .where(eq(teachingModules.id, group.subjectId))
               .limit(1);
@@ -3871,30 +4325,486 @@ export class DatabaseStorage implements IStorage {
             }
           }
 
+          // Get assigned students for this group (both students and children)
+          const mixedAssignments = await db
+            .select({
+              studentId: groupMixedAssignments.studentId,
+              studentType: groupMixedAssignments.studentType,
+            })
+            .from(groupMixedAssignments)
+            .where(
+              and(
+                eq(groupMixedAssignments.groupId, group.id),
+                eq(groupMixedAssignments.schoolId, schoolId),
+              ),
+            );
+
+          const assignedStudents = [];
+          for (const assignment of mixedAssignments) {
+            if (assignment.studentType === "student") {
+              // Get student from users/students tables
+              const studentData = await db
+                .select({
+                  id: users.id,
+                  name: users.name,
+                  educationLevel: students.educationLevel,
+                  grade: students.grade,
+                  email: users.email,
+                })
+                .from(users)
+                .leftJoin(students, eq(users.id, students.userId))
+                .where(eq(users.id, assignment.studentId))
+                .limit(1);
+
+              if (studentData[0]) {
+                assignedStudents.push({
+                  ...studentData[0],
+                  type: "student",
+                });
+              }
+            } else if (assignment.studentType === "child") {
+              // Get child from children table
+              const childData = await db
+                .select({
+                  id: children.id,
+                  name: children.name,
+                  educationLevel: children.educationLevel,
+                  grade: children.grade,
+                  email:
+                    sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as(
+                      "email",
+                    ),
+                })
+                .from(children)
+                .where(eq(children.id, assignment.studentId))
+                .limit(1);
+
+              if (childData[0]) {
+                assignedStudents.push({
+                  ...childData[0],
+                  type: "child",
+                });
+              }
+            }
+          }
+
           return {
             ...group,
             teacherName,
             subjectName,
-            nameAr
+            nameAr,
+            studentsAssigned: assignedStudents,
           };
-        }));
+        }),
+      );
 
-        return {
-          childId: child.id,
-          childName: child.name,
-          groups: enrichedGroups
-        };
-      }));
-
-      // Filter out children with no groups
-      return childrenGroups.filter(childGroup => childGroup.groups.length > 0);
+      return enrichedGroups;
     } catch (error) {
-      console.error('Error getting children enrolled groups:', error);
+      console.error("Error getting student enrolled groups:", error);
       return [];
     }
   }
 
-  async getStudentAttendanceRecords(userId: number, schoolId: number): Promise<any[]> {
+  async getStudentAttendanceRecords(
+    studentId: number,
+    schoolId: number,
+  ): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: groupAttendance.id,
+          groupId: groupAttendance.groupId,
+          groupName: groups.name,
+          date: groupAttendance.attendanceDate,
+          status: groupAttendance.status,
+        })
+        .from(groupAttendance)
+        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
+        .where(
+          and(
+            eq(groupAttendance.studentId, studentId),
+            eq(groupAttendance.schoolId, schoolId),
+          ),
+        )
+        .orderBy(desc(groupAttendance.attendanceDate));
+
+      return result;
+    } catch (error) {
+      console.error("Error fetching student attendance records:", error);
+      return [];
+    }
+  }
+
+  async getStudentPaymentRecords(
+    studentId: number,
+    schoolId: number,
+  ): Promise<any[]> {
+    try {
+      // Get payment status from groupTransactions table - check if payment exists for the student
+      const result = await db
+        .select({
+          id: groupTransactions.id,
+          groupId: groupTransactions.groupId,
+          groupName: groups.name,
+          amount: groupTransactions.amount,
+          dueDate: groupTransactions.dueDate,
+          isPaid:
+            sql<boolean>`CASE WHEN ${groupTransactions.status} = 'paid' THEN true ELSE false END`.as(
+              "isPaid",
+            ),
+          paidDate: groupTransactions.paidDate,
+          description: groupTransactions.description,
+        })
+        .from(groupTransactions)
+        .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
+        .where(
+          and(
+            eq(groupTransactions.studentId, studentId),
+            eq(groupTransactions.schoolId, schoolId),
+            eq(groupTransactions.studentType, "student"),
+          ),
+        )
+        .orderBy(desc(groupTransactions.createdAt));
+
+      return result;
+    } catch (error) {
+      console.error("Error fetching student payment records:", error);
+      return [];
+    }
+  }
+
+  // Child-specific methods for parent access
+  async getChildById(childId: number): Promise<Child | undefined> {
+    try {
+      const [child] = await db
+        .select()
+        .from(children)
+        .where(eq(children.id, childId))
+        .limit(1);
+
+      return child;
+    } catch (error) {
+      console.error("Error fetching child by ID:", error);
+      return undefined;
+    }
+  }
+
+  async getChildAttendanceRecords(
+    childId: number,
+    schoolId: number,
+  ): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: groupAttendance.id,
+          groupId: groupAttendance.groupId,
+          groupName: groups.name,
+          date: groupAttendance.attendanceDate,
+          status: groupAttendance.status,
+        })
+        .from(groupAttendance)
+        .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
+        .where(
+          and(
+            eq(groupAttendance.studentId, childId),
+            eq(groupAttendance.schoolId, schoolId),
+            eq(groupAttendance.studentType, "child"),
+          ),
+        )
+        .orderBy(desc(groupAttendance.attendanceDate));
+
+      return result;
+    } catch (error) {
+      console.error("Error fetching child attendance records:", error);
+      return [];
+    }
+  }
+
+  async getChildPaymentRecords(
+    childId: number,
+    schoolId: number,
+  ): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: groupTransactions.id,
+          groupId: groupTransactions.groupId,
+          groupName: groups.name,
+          amount: groupTransactions.amount,
+          dueDate: groupTransactions.dueDate,
+          isPaid:
+            sql<boolean>`CASE WHEN ${groupTransactions.status} = 'paid' THEN true ELSE false END`.as(
+              "isPaid",
+            ),
+          paidDate: groupTransactions.paidDate,
+          description: groupTransactions.description,
+        })
+        .from(groupTransactions)
+        .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
+        .where(
+          and(
+            eq(groupTransactions.studentId, childId),
+            eq(groupTransactions.schoolId, schoolId),
+            eq(groupTransactions.studentType, "child"),
+          ),
+        )
+        .orderBy(desc(groupTransactions.createdAt));
+
+      return result;
+    } catch (error) {
+      console.error("Error fetching child payment records:", error);
+      return [];
+    }
+  }
+
+  async getChildEnrolledGroups(
+    childId: number,
+    schoolId: number,
+  ): Promise<any[]> {
+    try {
+      // Get groups where this child is assigned
+      const mixedAssignments = await db
+        .select({
+          groupId: groupMixedAssignments.groupId,
+        })
+        .from(groupMixedAssignments)
+        .where(
+          and(
+            eq(groupMixedAssignments.studentId, childId),
+            eq(groupMixedAssignments.studentType, "child"),
+            eq(groupMixedAssignments.schoolId, schoolId),
+          ),
+        );
+
+      if (mixedAssignments.length === 0) {
+        return [];
+      }
+
+      const groupIds = mixedAssignments.map((assignment) => assignment.groupId);
+
+      // Get group details
+      const groupsData = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          educationLevel: groups.educationLevel,
+          description: groups.description,
+          teacherId: groups.teacherId,
+          subjectName: teachingModules.name,
+          teacherName: users.name,
+        })
+        .from(groups)
+        .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+        .leftJoin(users, eq(groups.teacherId, users.id))
+        .where(
+          and(inArray(groups.id, groupIds), eq(groups.schoolId, schoolId)),
+        );
+
+      // For each group, populate the studentsAssigned array
+      const result = [];
+      for (const group of groupsData) {
+        const mixedAssignments = await db
+          .select({
+            studentId: groupMixedAssignments.studentId,
+            studentType: groupMixedAssignments.studentType,
+          })
+          .from(groupMixedAssignments)
+          .where(
+            and(
+              eq(groupMixedAssignments.groupId, group.id),
+              eq(groupMixedAssignments.schoolId, schoolId),
+            ),
+          );
+
+        const assignedStudents = [];
+        for (const assignment of mixedAssignments) {
+          if (assignment.studentType === "student") {
+            // Get student from users/students tables
+            const studentData = await db
+              .select({
+                id: users.id,
+                name: users.name,
+                educationLevel: students.educationLevel,
+                grade: students.grade,
+                email: users.email,
+              })
+              .from(users)
+              .leftJoin(students, eq(users.id, students.userId))
+              .where(eq(users.id, assignment.studentId))
+              .limit(1);
+
+            if (studentData[0]) {
+              assignedStudents.push({
+                ...studentData[0],
+                type: "student",
+              });
+            }
+          } else if (assignment.studentType === "child") {
+            // Get child from children table
+            const childData = await db
+              .select({
+                id: children.id,
+                name: children.name,
+                educationLevel: children.educationLevel,
+                grade: children.grade,
+                email:
+                  sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as(
+                    "email",
+                  ),
+              })
+              .from(children)
+              .where(eq(children.id, assignment.studentId))
+              .limit(1);
+
+            if (childData[0]) {
+              assignedStudents.push({
+                ...childData[0],
+                type: "child",
+              });
+            }
+          }
+        }
+
+        result.push({
+          ...group,
+          studentsAssigned: assignedStudents,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error fetching child enrolled groups:", error);
+      return [];
+    }
+  }
+
+  async getChildrenEnrolledGroups(
+    parentId: number,
+    schoolId: number,
+  ): Promise<any[]> {
+    try {
+      // First, get all children for this parent
+      const childrenList = await db
+        .select({
+          id: children.id,
+          name: children.name,
+        })
+        .from(children)
+        .where(
+          and(eq(children.parentId, parentId), eq(children.schoolId, schoolId)),
+        );
+
+      if (childrenList.length === 0) {
+        return [];
+      }
+
+      // Get group assignments for all children
+      const childrenGroups = await Promise.all(
+        childrenList.map(async (child) => {
+          // Check mixed group assignments for this child
+          const mixedAssignments = await db
+            .select({
+              groupId: groupMixedAssignments.groupId,
+            })
+            .from(groupMixedAssignments)
+            .where(
+              and(
+                eq(groupMixedAssignments.studentId, child.id),
+                eq(groupMixedAssignments.schoolId, schoolId),
+              ),
+            );
+
+          if (mixedAssignments.length === 0) {
+            return {
+              childId: child.id,
+              childName: child.name,
+              groups: [],
+            };
+          }
+
+          const groupIds = mixedAssignments.map((a) => a.groupId);
+
+          // Fetch group details with teacher information
+          const groupsData = await db
+            .select({
+              id: groups.id,
+              name: groups.name,
+              educationLevel: groups.educationLevel,
+              subjectId: groups.subjectId,
+              teacherId: groups.teacherId,
+              description: groups.description,
+            })
+            .from(groups)
+            .where(
+              and(inArray(groups.id, groupIds), eq(groups.schoolId, schoolId)),
+            );
+
+          // Enrich groups with teacher and subject information
+          const enrichedGroups = await Promise.all(
+            groupsData.map(async (group) => {
+              let teacherName = null;
+              let subjectName = null;
+              let nameAr = null;
+
+              // Get teacher name
+              if (group.teacherId) {
+                const teacher = await db
+                  .select({ name: users.name })
+                  .from(users)
+                  .where(eq(users.id, group.teacherId))
+                  .limit(1);
+                if (teacher.length > 0) {
+                  teacherName = teacher[0].name;
+                }
+              }
+
+              // Get subject name
+              if (group.subjectId) {
+                const subject = await db
+                  .select({
+                    name: teachingModules.name,
+                    nameAr: teachingModules.nameAr,
+                  })
+                  .from(teachingModules)
+                  .where(eq(teachingModules.id, group.subjectId))
+                  .limit(1);
+                if (subject.length > 0) {
+                  subjectName = subject[0].name;
+                  nameAr = subject[0].nameAr;
+                }
+              }
+
+              return {
+                ...group,
+                teacherName,
+                subjectName,
+                nameAr,
+              };
+            }),
+          );
+
+          return {
+            childId: child.id,
+            childName: child.name,
+            groups: enrichedGroups,
+          };
+        }),
+      );
+
+      // Filter out children with no groups
+      return childrenGroups.filter(
+        (childGroup) => childGroup.groups.length > 0,
+      );
+    } catch (error) {
+      console.error("Error getting children enrolled groups:", error);
+      return [];
+    }
+  }
+
+  async getStudentAttendanceRecords(
+    userId: number,
+    schoolId: number,
+  ): Promise<any[]> {
     try {
       const result = await db
         .select({
@@ -3902,29 +4812,37 @@ export class DatabaseStorage implements IStorage {
           groupId: groupAttendance.groupId,
           groupName: groups.name,
           date: groupAttendance.date,
-          status: groupAttendance.status
+          status: groupAttendance.status,
         })
         .from(groupAttendance)
         .leftJoin(groups, eq(groupAttendance.groupId, groups.id))
-        .leftJoin(groupMixedAssignments, and(
-          eq(groupMixedAssignments.groupId, groupAttendance.groupId),
-          eq(groupMixedAssignments.studentId, userId),
-          eq(groupMixedAssignments.studentType, 'student')
-        ))
-        .where(and(
-          eq(groupAttendance.studentId, userId),
-          eq(groups.schoolId, schoolId)
-        ))
+        .leftJoin(
+          groupMixedAssignments,
+          and(
+            eq(groupMixedAssignments.groupId, groupAttendance.groupId),
+            eq(groupMixedAssignments.studentId, userId),
+            eq(groupMixedAssignments.studentType, "student"),
+          ),
+        )
+        .where(
+          and(
+            eq(groupAttendance.studentId, userId),
+            eq(groups.schoolId, schoolId),
+          ),
+        )
         .orderBy(desc(groupAttendance.date));
-      
+
       return result;
     } catch (error) {
-      console.error('Error fetching student attendance records:', error);
+      console.error("Error fetching student attendance records:", error);
       throw error;
     }
   }
 
-  async getStudentPaymentRecords(userId: number, schoolId: number): Promise<any[]> {
+  async getStudentPaymentRecords(
+    userId: number,
+    schoolId: number,
+  ): Promise<any[]> {
     try {
       const result = await db
         .select({
@@ -3935,29 +4853,39 @@ export class DatabaseStorage implements IStorage {
           dueDate: groupTransactions.dueDate,
           isPaid: groupTransactions.isPaid,
           paidDate: groupTransactions.paidAt,
-          description: groupTransactions.description
+          description: groupTransactions.description,
         })
         .from(groupTransactions)
         .leftJoin(groups, eq(groupTransactions.groupId, groups.id))
-        .leftJoin(groupMixedAssignments, and(
-          eq(groupMixedAssignments.groupId, groupTransactions.groupId),
-          eq(groupMixedAssignments.studentId, userId),
-          eq(groupMixedAssignments.studentType, 'student')
-        ))
-        .where(and(
-          eq(groupTransactions.studentId, userId),
-          eq(groups.schoolId, schoolId)
-        ))
+        .leftJoin(
+          groupMixedAssignments,
+          and(
+            eq(groupMixedAssignments.groupId, groupTransactions.groupId),
+            eq(groupMixedAssignments.studentId, userId),
+            eq(groupMixedAssignments.studentType, "student"),
+          ),
+        )
+        .where(
+          and(
+            eq(groupTransactions.studentId, userId),
+            eq(groups.schoolId, schoolId),
+          ),
+        )
         .orderBy(desc(groupTransactions.createdAt));
-      
+
       return result;
     } catch (error) {
-      console.error('Error fetching student payment records:', error);
+      console.error("Error fetching student payment records:", error);
       throw error;
     }
   }
 
-  async getStudentGroupPayments(studentId: number, groupId: number, year: number, schoolId: number): Promise<any[]> {
+  async getStudentGroupPayments(
+    studentId: number,
+    groupId: number,
+    year: number,
+    schoolId: number,
+  ): Promise<any[]> {
     try {
       const result = await db
         .select({
@@ -3971,29 +4899,46 @@ export class DatabaseStorage implements IStorage {
           paidBy: studentMonthlyPayments.paidBy,
         })
         .from(studentMonthlyPayments)
-        .where(and(
-          eq(studentMonthlyPayments.studentId, studentId),
-          eq(studentMonthlyPayments.year, year),
-          eq(studentMonthlyPayments.schoolId, schoolId),
-          eq(studentMonthlyPayments.isPaid, true)
-        ))
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.isPaid, true),
+          ),
+        )
         .orderBy(studentMonthlyPayments.month);
-        
+
       return result;
     } catch (error) {
-      console.error('Error in getStudentGroupPayments:', error);
+      console.error("Error in getStudentGroupPayments:", error);
       return [];
     }
   }
 
-  async getFinancialReportData(schoolId: number, year: number, month?: number): Promise<any> {
+  async getFinancialReportData(
+    schoolId: number,
+    year: number,
+    month?: number,
+  ): Promise<any> {
     try {
-      console.log('📊 Generating financial report for school:', schoolId, 'year:', year, 'month:', month);
+      console.log(
+        "📊 Generating financial report for school:",
+        schoolId,
+        "year:",
+        year,
+        "month:",
+        month,
+      );
 
       // Base date filters
       const yearFilter = eq(studentMonthlyPayments.year, year);
-      const monthFilter = month ? eq(studentMonthlyPayments.month, month) : undefined;
-      const dateFilters = monthFilter ? and(yearFilter, monthFilter) : yearFilter;
+      const monthFilter = month
+        ? eq(studentMonthlyPayments.month, month)
+        : undefined;
+      const dateFilters = monthFilter
+        ? and(yearFilter, monthFilter)
+        : yearFilter;
 
       // Get total revenue from payments
       const revenueResult = await db
@@ -4001,11 +4946,13 @@ export class DatabaseStorage implements IStorage {
           totalRevenue: sql<number>`COALESCE(SUM(${studentMonthlyPayments.amount}), 0)`,
         })
         .from(studentMonthlyPayments)
-        .where(and(
-          eq(studentMonthlyPayments.schoolId, schoolId),
-          eq(studentMonthlyPayments.isPaid, true),
-          dateFilters
-        ));
+        .where(
+          and(
+            eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.isPaid, true),
+            dateFilters,
+          ),
+        );
 
       const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
@@ -4015,11 +4962,13 @@ export class DatabaseStorage implements IStorage {
           totalStudents: sql<number>`COUNT(DISTINCT ${studentMonthlyPayments.studentId})`,
         })
         .from(studentMonthlyPayments)
-        .where(and(
-          eq(studentMonthlyPayments.schoolId, schoolId),
-          eq(studentMonthlyPayments.isPaid, true),
-          dateFilters
-        ));
+        .where(
+          and(
+            eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.isPaid, true),
+            dateFilters,
+          ),
+        );
 
       const totalStudents = studentCountResult[0]?.totalStudents || 0;
 
@@ -4037,7 +4986,8 @@ export class DatabaseStorage implements IStorage {
       // In a real system, you would track actual expenses
       const totalExpenses = Math.round(totalRevenue * 0.2);
       const netProfit = totalRevenue - totalExpenses;
-      const averageRevenuePerStudent = totalStudents > 0 ? Math.round(totalRevenue / totalStudents) : 0;
+      const averageRevenuePerStudent =
+        totalStudents > 0 ? Math.round(totalRevenue / totalStudents) : 0;
 
       // Get monthly breakdown if viewing all months
       let monthlyBreakdown: any[] = [];
@@ -4048,12 +4998,14 @@ export class DatabaseStorage implements IStorage {
               revenue: sql<number>`COALESCE(SUM(${studentMonthlyPayments.amount}), 0)`,
             })
             .from(studentMonthlyPayments)
-            .where(and(
-              eq(studentMonthlyPayments.schoolId, schoolId),
-              eq(studentMonthlyPayments.isPaid, true),
-              eq(studentMonthlyPayments.year, year),
-              eq(studentMonthlyPayments.month, m)
-            ));
+            .where(
+              and(
+                eq(studentMonthlyPayments.schoolId, schoolId),
+                eq(studentMonthlyPayments.isPaid, true),
+                eq(studentMonthlyPayments.year, year),
+                eq(studentMonthlyPayments.month, m),
+              ),
+            );
 
           const monthRevenue = monthlyRevenueResult[0]?.revenue || 0;
           if (monthRevenue > 0) {
@@ -4062,7 +5014,7 @@ export class DatabaseStorage implements IStorage {
               month: m,
               revenue: monthRevenue,
               expenses: monthExpenses,
-              profit: monthRevenue - monthExpenses
+              profit: monthRevenue - monthExpenses,
             });
           }
         }
@@ -4078,25 +5030,37 @@ export class DatabaseStorage implements IStorage {
           totalStudents: sql<number>`COUNT(DISTINCT ${studentMonthlyPayments.studentId})`,
         })
         .from(groups)
-        .leftJoin(groupMixedAssignments, eq(groups.id, groupMixedAssignments.groupId))
-        .leftJoin(studentMonthlyPayments, and(
-          eq(groupMixedAssignments.studentId, studentMonthlyPayments.studentId),
-          eq(studentMonthlyPayments.schoolId, schoolId),
-          eq(studentMonthlyPayments.isPaid, true),
-          eq(studentMonthlyPayments.year, year),
-          ...(month ? [eq(studentMonthlyPayments.month, month)] : [])
-        ))
+        .leftJoin(
+          groupMixedAssignments,
+          eq(groups.id, groupMixedAssignments.groupId),
+        )
+        .leftJoin(
+          studentMonthlyPayments,
+          and(
+            eq(
+              groupMixedAssignments.studentId,
+              studentMonthlyPayments.studentId,
+            ),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.isPaid, true),
+            eq(studentMonthlyPayments.year, year),
+            ...(month ? [eq(studentMonthlyPayments.month, month)] : []),
+          ),
+        )
         .where(eq(groups.schoolId, schoolId))
         .groupBy(groups.id, groups.name, groups.subjectName)
         .having(sql`COUNT(DISTINCT ${studentMonthlyPayments.studentId}) > 0`);
 
-      const groupPerformance = groupPerformanceResult.map(group => ({
+      const groupPerformance = groupPerformanceResult.map((group) => ({
         groupId: group.groupId,
         groupName: group.groupName,
         subjectName: group.subjectName,
         totalStudents: group.totalStudents,
         totalRevenue: group.totalRevenue,
-        averagePerStudent: group.totalStudents > 0 ? Math.round(group.totalRevenue / group.totalStudents) : 0
+        averagePerStudent:
+          group.totalStudents > 0
+            ? Math.round(group.totalRevenue / group.totalStudents)
+            : 0,
       }));
 
       const financialData = {
@@ -4107,61 +5071,68 @@ export class DatabaseStorage implements IStorage {
         totalGroups,
         averageRevenuePerStudent,
         monthlyBreakdown,
-        groupPerformance
+        groupPerformance,
       };
 
-      console.log('✅ Financial report generated:', {
+      console.log("✅ Financial report generated:", {
         totalRevenue,
         totalStudents,
         totalGroups,
         monthlyBreakdownCount: monthlyBreakdown.length,
-        groupPerformanceCount: groupPerformance.length
+        groupPerformanceCount: groupPerformance.length,
       });
 
       return financialData;
     } catch (error) {
-      console.error('Error generating financial report:', error);
+      console.error("Error generating financial report:", error);
       throw error;
     }
   }
 
   // Desktop QR Scanner methods implementation
-  async getStudentCompleteProfile(studentId: number, studentType: 'student' | 'child', schoolId: number): Promise<any | null> {
+  async getStudentCompleteProfile(
+    studentId: number,
+    studentType: "student" | "child",
+    schoolId: number,
+  ): Promise<any | null> {
     try {
-      console.log(`🔍 getStudentCompleteProfile called with studentId=${studentId}, studentType=${studentType}, schoolId=${schoolId}`);
+      console.log(
+        `🔍 getStudentCompleteProfile called with studentId=${studentId}, studentType=${studentType}, schoolId=${schoolId}`,
+      );
       let studentProfile: any = null;
-      
-      if (studentType === 'student') {
-        console.log('🔍 Querying students table for student...');
+
+      if (studentType === "student") {
+        console.log("🔍 Querying students table for student...");
         // Get student from students table using student ID, not user ID
         const [result] = await db
           .select()
           .from(students)
           .leftJoin(users, eq(students.userId, users.id))
-          .where(and(
-            eq(students.id, studentId),
-            eq(students.schoolId, schoolId)
-          ));
-          
-        console.log('🔍 Student query result:', result);
+          .where(
+            and(eq(students.id, studentId), eq(students.schoolId, schoolId)),
+          );
+
+        console.log("🔍 Student query result:", result);
         if (!result || !result.students) {
-          console.log('❌ No student found with the given criteria');
+          console.log("❌ No student found with the given criteria");
           return null;
         }
-        
+
         const student = result.students;
         const user = result.users;
-        
+
         // Only create profile if user account exists - students without user accounts should not appear in QR scanner
         if (!user) {
-          console.log('❌ Student exists but no user account linked - skipping incomplete profile');
+          console.log(
+            "❌ Student exists but no user account linked - skipping incomplete profile",
+          );
           return null;
         }
-        
+
         studentProfile = {
           id: student.id,
           userId: user.id,
-          name: user.name || student.name || 'طالب غير محدد', // Prefer user name, fallback to student name
+          name: user.name || student.name || "طالب غير محدد", // Prefer user name, fallback to student name
           email: user.email,
           phone: user.phone || student.phone,
           role: user.role,
@@ -4169,69 +5140,74 @@ export class DatabaseStorage implements IStorage {
           selectedSubjects: student.selectedSubjects,
           profilePicture: user.profilePicture,
           verified: student.verified,
-          type: 'student'
+          type: "student",
         };
-        
       } else {
         // Get child from children table
-        console.log('🔍 Querying children table for child...');
+        console.log("🔍 Querying children table for child...");
         const [child] = await db
           .select()
           .from(children)
-          .where(and(
-            eq(children.id, studentId),
-            eq(children.schoolId, schoolId)
-          ));
-          
-        console.log('🔍 Child query result:', child);
+          .where(
+            and(eq(children.id, studentId), eq(children.schoolId, schoolId)),
+          );
+
+        console.log("🔍 Child query result:", child);
         if (!child) {
-          console.log('❌ No child found with the given criteria');
+          console.log("❌ No child found with the given criteria");
           return null;
         }
         // Add type field for consistency with student records
-        studentProfile = { ...child, type: 'child' };
+        studentProfile = { ...child, type: "child" };
       }
-      
-      console.log('✅ Student found, now fetching enrolled groups...');
-      
+
+      console.log("✅ Student found, now fetching enrolled groups...");
+
       // Fetch enrolled groups
       let enrolledGroups: any[] = [];
-      
+
       try {
         // Get group assignments from both mixed assignments table and user assignments table
         const mixedGroupAssignments = await db
           .select({
-            groupId: groupMixedAssignments.groupId
+            groupId: groupMixedAssignments.groupId,
           })
           .from(groupMixedAssignments)
-          .where(and(
-            eq(groupMixedAssignments.studentId, studentId),
-            eq(groupMixedAssignments.studentType, studentType),
-            eq(groupMixedAssignments.schoolId, schoolId)
-          ));
+          .where(
+            and(
+              eq(groupMixedAssignments.studentId, studentId),
+              eq(groupMixedAssignments.studentType, studentType),
+              eq(groupMixedAssignments.schoolId, schoolId),
+            ),
+          );
 
         // Also check regular user assignments if this is a student
         let userGroupAssignments: any[] = [];
-        if (studentType === 'student' && studentProfile.userId) {
+        if (studentType === "student" && studentProfile.userId) {
           userGroupAssignments = await db
             .select({
-              groupId: groupUserAssignments.groupId
+              groupId: groupUserAssignments.groupId,
             })
             .from(groupUserAssignments)
-            .where(and(
-              eq(groupUserAssignments.userId, studentProfile.userId),
-              eq(groupUserAssignments.schoolId, schoolId)
-            ));
+            .where(
+              and(
+                eq(groupUserAssignments.userId, studentProfile.userId),
+                eq(groupUserAssignments.schoolId, schoolId),
+              ),
+            );
         }
 
         // Combine all group assignments
-        const groupAssignments = [...mixedGroupAssignments, ...userGroupAssignments];
-        
-        console.log('🔍 Found group assignments:', groupAssignments);
+        const groupAssignments = [
+          ...mixedGroupAssignments,
+          ...userGroupAssignments,
+        ];
+
+        console.log("🔍 Found group assignments:", groupAssignments);
 
         if (groupAssignments.length > 0) {
-          const groupIds = groupAssignments.map(a => a.groupId);
-          
+          const groupIds = groupAssignments.map((a) => a.groupId);
+
           // Fetch group details with teacher and subject information
           const groupsData = await db
             .select({
@@ -4240,13 +5216,12 @@ export class DatabaseStorage implements IStorage {
               educationLevel: groups.educationLevel,
               subjectId: groups.subjectId,
               teacherId: groups.teacherId,
-              description: groups.description
+              description: groups.description,
             })
             .from(groups)
-            .where(and(
-              inArray(groups.id, groupIds),
-              eq(groups.schoolId, schoolId)
-            ));
+            .where(
+              and(inArray(groups.id, groupIds), eq(groups.schoolId, schoolId)),
+            );
 
           // Enrich groups with teacher and subject names
           for (const group of groupsData) {
@@ -4268,7 +5243,10 @@ export class DatabaseStorage implements IStorage {
             // Get subject name
             if (group.subjectId) {
               const subject = await db
-                .select({ name: teachingModules.name, nameAr: teachingModules.nameAr })
+                .select({
+                  name: teachingModules.name,
+                  nameAr: teachingModules.nameAr,
+                })
                 .from(teachingModules)
                 .where(eq(teachingModules.id, group.subjectId))
                 .limit(1);
@@ -4283,42 +5261,40 @@ export class DatabaseStorage implements IStorage {
               educationLevel: group.educationLevel,
               subjectName: subjectName,
               teacherName: teacherName,
-              description: group.description
+              description: group.description,
             });
           }
         }
-        
-        console.log('✅ Fetched enrolled groups:', enrolledGroups.length);
-        
+
+        console.log("✅ Fetched enrolled groups:", enrolledGroups.length);
       } catch (error) {
-        console.error('Error fetching enrolled groups:', error);
+        console.error("Error fetching enrolled groups:", error);
         enrolledGroups = [];
       }
-      
+
       return {
         ...studentProfile,
         attendanceStats: {
           totalClasses: 0,
           presentCount: 0,
           absentCount: 0,
-          lateCount: 0
+          lateCount: 0,
         },
         paymentStats: {
           totalDue: 0,
           paidCount: 0,
           unpaidCount: 0,
-          totalAmount: 0
+          totalAmount: 0,
         },
         enrolledGroups: enrolledGroups,
-        recentAttendance: []
+        recentAttendance: [],
       };
-      
     } catch (error) {
-      console.error('Error getting student complete profile:', error);
+      console.error("Error getting student complete profile:", error);
       return null;
     }
   }
-  
+
   // Search both students and children for QR scanner
   async searchStudentsAndChildren(filters: {
     search?: string;
@@ -4328,23 +5304,25 @@ export class DatabaseStorage implements IStorage {
   }): Promise<any[]> {
     try {
       const results: any[] = [];
-      
+
       // Search verified students only (from students table)
-      if (!filters.role || filters.role === 'student') {
+      if (!filters.role || filters.role === "student") {
         const studentResults = await db
           .select()
           .from(students)
           .leftJoin(users, eq(students.userId, users.id))
-          .where(and(
-            eq(students.schoolId, filters.schoolId),
-            eq(students.verified, true)
-          ));
+          .where(
+            and(
+              eq(students.schoolId, filters.schoolId),
+              eq(students.verified, true),
+            ),
+          );
 
         // Process and filter student results
         for (const result of studentResults) {
           const student = result.students;
           const user = result.users;
-          
+
           if (!user) continue;
 
           // Apply search filter
@@ -4353,14 +5331,17 @@ export class DatabaseStorage implements IStorage {
             const matchesName = user.name.toLowerCase().includes(searchTerm);
             const matchesEmail = user.email?.toLowerCase().includes(searchTerm);
             const matchesId = student.id.toString().includes(searchTerm);
-            
+
             if (!matchesName && !matchesEmail && !matchesId) {
               continue;
             }
           }
 
           // Apply education level filter
-          if (filters.educationLevel && student.educationLevel !== filters.educationLevel) {
+          if (
+            filters.educationLevel &&
+            student.educationLevel !== filters.educationLevel
+          ) {
             continue;
           }
 
@@ -4373,20 +5354,22 @@ export class DatabaseStorage implements IStorage {
             role: user.role,
             educationLevel: student.educationLevel,
             verified: student.verified,
-            type: 'student'
+            type: "student",
           });
         }
       }
 
       // Search verified children (only if role is not specifically 'student')
-      if (!filters.role || filters.role === 'child') {
+      if (!filters.role || filters.role === "child") {
         const childResults = await db
           .select()
           .from(children)
-          .where(and(
-            eq(children.schoolId, filters.schoolId),
-            eq(children.verified, true)
-          ));
+          .where(
+            and(
+              eq(children.schoolId, filters.schoolId),
+              eq(children.verified, true),
+            ),
+          );
 
         // Process and filter child results
         for (const child of childResults) {
@@ -4394,16 +5377,21 @@ export class DatabaseStorage implements IStorage {
           if (filters.search) {
             const searchTerm = filters.search.toLowerCase();
             const matchesName = child.name.toLowerCase().includes(searchTerm);
-            const matchesParentName = child.parentName?.toLowerCase().includes(searchTerm);
+            const matchesParentName = child.parentName
+              ?.toLowerCase()
+              .includes(searchTerm);
             const matchesId = child.id.toString().includes(searchTerm);
-            
+
             if (!matchesName && !matchesParentName && !matchesId) {
               continue;
             }
           }
 
           // Apply education level filter
-          if (filters.educationLevel && child.educationLevel !== filters.educationLevel) {
+          if (
+            filters.educationLevel &&
+            child.educationLevel !== filters.educationLevel
+          ) {
             continue;
           }
 
@@ -4411,63 +5399,72 @@ export class DatabaseStorage implements IStorage {
             id: child.id,
             userId: null,
             name: child.name,
-            email: '',
+            email: "",
             phone: child.parentPhone,
-            role: 'child',
+            role: "child",
             educationLevel: child.educationLevel,
             verified: child.verified,
-            type: 'child',
-            parentName: child.parentName
+            type: "child",
+            parentName: child.parentName,
           });
         }
       }
 
-      console.log(`[DEBUG] searchStudentsAndChildren: Found ${results.length} total records (verified only)`);
+      console.log(
+        `[DEBUG] searchStudentsAndChildren: Found ${results.length} total records (verified only)`,
+      );
       return results;
-      
     } catch (error) {
-      console.error('Error searching students and children:', error);
+      console.error("Error searching students and children:", error);
       throw error;
     }
   }
 
   async markStudentAttendanceToday(
-    studentId: number, 
-    studentType: 'student' | 'child',
-    status: 'present' | 'absent' | 'late' | 'excused',
+    studentId: number,
+    studentType: "student" | "child",
+    status: "present" | "absent" | "late" | "excused",
     markedBy: number,
-    schoolId: number
+    schoolId: number,
   ): Promise<any> {
     try {
       const today = new Date();
-      const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      
+      const todayDateOnly = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+      );
+
       // Get student's enrolled groups to mark attendance for all
       const enrolledGroups = await db
         .select({ groupId: groupMixedAssignments.groupId })
         .from(groupMixedAssignments)
         .leftJoin(groups, eq(groupMixedAssignments.groupId, groups.id))
-        .where(and(
-          eq(groupMixedAssignments.studentId, studentId),
-          eq(groupMixedAssignments.studentType, studentType),
-          eq(groups.schoolId, schoolId)
-        ));
-      
+        .where(
+          and(
+            eq(groupMixedAssignments.studentId, studentId),
+            eq(groupMixedAssignments.studentType, studentType),
+            eq(groups.schoolId, schoolId),
+          ),
+        );
+
       const attendanceRecords = [];
-      
+
       for (const group of enrolledGroups) {
         // Check if attendance already exists for today
         const existingAttendance = await db
           .select()
           .from(groupAttendance)
-          .where(and(
-            eq(groupAttendance.studentId, studentId),
-            eq(groupAttendance.studentType, studentType),
-            eq(groupAttendance.groupId, group.groupId),
-            eq(groupAttendance.attendanceDate, todayDateOnly)
-          ))
+          .where(
+            and(
+              eq(groupAttendance.studentId, studentId),
+              eq(groupAttendance.studentType, studentType),
+              eq(groupAttendance.groupId, group.groupId),
+              eq(groupAttendance.attendanceDate, todayDateOnly),
+            ),
+          )
           .limit(1);
-        
+
         if (existingAttendance.length > 0) {
           // Update existing attendance
           const [updatedRecord] = await db
@@ -4475,7 +5472,7 @@ export class DatabaseStorage implements IStorage {
             .set({
               status,
               markedBy,
-              updatedAt: new Date()
+              updatedAt: new Date(),
             })
             .where(eq(groupAttendance.id, existingAttendance[0].id))
             .returning();
@@ -4491,24 +5488,23 @@ export class DatabaseStorage implements IStorage {
               attendanceDate: todayDateOnly,
               status,
               markedBy,
-              schoolId
+              schoolId,
             })
             .returning();
           attendanceRecords.push(newRecord);
         }
       }
-      
+
       return attendanceRecords;
-      
     } catch (error) {
-      console.error('Error marking student attendance:', error);
+      console.error("Error marking student attendance:", error);
       throw error;
     }
   }
-  
+
   async recordStudentPayment(paymentData: {
     studentId: number;
-    studentType: 'student' | 'child';
+    studentType: "student" | "child";
     amount: number;
     paymentMethod?: string;
     notes?: string;
@@ -4518,21 +5514,33 @@ export class DatabaseStorage implements IStorage {
     schoolId: number;
   }): Promise<any> {
     try {
-      const { studentId, studentType, amount, paymentMethod, notes, year, month, paidBy, schoolId } = paymentData;
-      
+      const {
+        studentId,
+        studentType,
+        amount,
+        paymentMethod,
+        notes,
+        year,
+        month,
+        paidBy,
+        schoolId,
+      } = paymentData;
+
       // Check if payment record already exists
       const existingPayment = await db
         .select()
         .from(studentMonthlyPayments)
-        .where(and(
-          eq(studentMonthlyPayments.studentId, studentId),
-          eq(studentMonthlyPayments.studentType, studentType),
-          eq(studentMonthlyPayments.year, year),
-          eq(studentMonthlyPayments.month, month),
-          eq(studentMonthlyPayments.schoolId, schoolId)
-        ))
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.studentType, studentType),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        )
         .limit(1);
-      
+
       if (existingPayment.length > 0) {
         // Update existing payment
         const [updatedPayment] = await db
@@ -4543,11 +5551,11 @@ export class DatabaseStorage implements IStorage {
             paidAt: new Date(),
             paidBy,
             notes,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           })
           .where(eq(studentMonthlyPayments.id, existingPayment[0].id))
           .returning();
-        
+
         return updatedPayment;
       } else {
         // Create new payment record
@@ -4563,37 +5571,42 @@ export class DatabaseStorage implements IStorage {
             paidAt: new Date(),
             paidBy,
             notes,
-            schoolId
+            schoolId,
           })
           .returning();
-        
+
         return newPayment;
       }
-      
     } catch (error) {
-      console.error('Error recording student payment:', error);
+      console.error("Error recording student payment:", error);
       throw error;
     }
   }
 
   // Financial Entries implementation methods
-  async createFinancialEntry(entry: InsertFinancialEntry): Promise<FinancialEntry> {
+  async createFinancialEntry(
+    entry: InsertFinancialEntry,
+  ): Promise<FinancialEntry> {
     try {
-      console.log('🔄 Attempting to create financial entry:', entry);
+      console.log("🔄 Attempting to create financial entry:", entry);
       const [result] = await db
         .insert(financialEntries)
         .values(entry)
         .returning();
-      console.log('✅ Financial entry created successfully:', result);
+      console.log("✅ Financial entry created successfully:", result);
       return result;
     } catch (error) {
-      console.error('❌ Error creating financial entry:', error);
-      console.error('❌ Entry data that failed:', entry);
+      console.error("❌ Error creating financial entry:", error);
+      console.error("❌ Entry data that failed:", entry);
       throw error;
     }
   }
 
-  async getFinancialEntries(schoolId: number, year?: number, month?: number): Promise<FinancialEntry[]> {
+  async getFinancialEntries(
+    schoolId: number,
+    year?: number,
+    month?: number,
+  ): Promise<FinancialEntry[]> {
     try {
       let query = db
         .select()
@@ -4601,20 +5614,27 @@ export class DatabaseStorage implements IStorage {
         .where(eq(financialEntries.schoolId, schoolId));
 
       if (year) {
-        query = query.where(and(eq(financialEntries.schoolId, schoolId), eq(financialEntries.year, year)));
+        query = query.where(
+          and(
+            eq(financialEntries.schoolId, schoolId),
+            eq(financialEntries.year, year),
+          ),
+        );
       }
 
       if (month && year) {
-        query = query.where(and(
-          eq(financialEntries.schoolId, schoolId),
-          eq(financialEntries.year, year),
-          eq(financialEntries.month, month)
-        ));
+        query = query.where(
+          and(
+            eq(financialEntries.schoolId, schoolId),
+            eq(financialEntries.year, year),
+            eq(financialEntries.month, month),
+          ),
+        );
       }
 
       return await query.orderBy(desc(financialEntries.createdAt));
     } catch (error) {
-      console.error('Error fetching financial entries:', error);
+      console.error("Error fetching financial entries:", error);
       throw error;
     }
   }
@@ -4625,7 +5645,7 @@ export class DatabaseStorage implements IStorage {
         .delete(financialEntries)
         .where(eq(financialEntries.schoolId, schoolId));
     } catch (error) {
-      console.error('Error resetting financial entries:', error);
+      console.error("Error resetting financial entries:", error);
       throw error;
     }
   }
