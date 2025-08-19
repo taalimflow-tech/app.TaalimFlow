@@ -161,7 +161,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
             </div>
           </div>
           
-          <div className="p-0 overflow-y-auto flex-1 min-h-0">
+          <div className="p-0 lg:p-0 overflow-y-auto flex-1 min-h-0">
             {isLoading ? (
               <div className="p-4 text-center text-gray-500">
                 جاري تحميل الإشعارات...
@@ -172,24 +172,24 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 <p>لا توجد إشعارات</p>
               </div>
             ) : (
-              <div className="space-y-0">
+              <div className="space-y-0 lg:space-y-0">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 lg:p-6 border-b hover:bg-gray-50 transition-colors cursor-pointer ${
+                    className={`p-8 lg:p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer min-h-[180px] lg:min-h-0 ${
                       !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3 lg:gap-4">
+                    <div className="flex items-start justify-between gap-6 lg:gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-2">
-                          <span className="text-xl lg:text-lg">
+                        <div className="flex items-center gap-4 lg:gap-2 mb-6 lg:mb-2">
+                          <span className="text-3xl lg:text-lg">
                             {getNotificationIcon(notification.type)}
                           </span>
                           <Badge 
                             variant="secondary" 
-                            className={`text-sm lg:text-xs px-2 py-1 ${getNotificationColor(notification.type)}`}
+                            className={`text-lg lg:text-xs px-4 lg:px-2 py-2 lg:py-1 ${getNotificationColor(notification.type)}`}
                           >
                             {notification.type === 'suggestion' && 'اقتراح'}
                             {notification.type === 'message' && 'رسالة'}
@@ -199,19 +199,19 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                             {notification.type === 'formation_update' && 'تدريب'}
                           </Badge>
                           {!notification.read && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <div className="w-4 h-4 lg:w-2 lg:h-2 bg-blue-500 rounded-full"></div>
                           )}
                         </div>
                         
-                        <h4 className="font-semibold text-gray-900 mb-3 lg:mb-2 text-lg lg:text-base leading-7 lg:leading-6">
+                        <h4 className="font-bold text-gray-900 mb-4 lg:mb-2 text-2xl lg:text-base leading-8 lg:leading-6">
                           {notification.title}
                         </h4>
                         
-                        <p className="text-gray-600 mb-3 lg:mb-3 text-base lg:text-sm leading-6 lg:leading-5">
+                        <p className="text-gray-600 mb-4 lg:mb-3 text-xl lg:text-sm leading-7 lg:leading-5">
                           {notification.message}
                         </p>
                         
-                        <p className="text-gray-400 text-sm lg:text-xs">
+                        <p className="text-gray-400 text-lg lg:text-xs">
                           {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
                             year: 'numeric',
                             month: 'short',
@@ -230,10 +230,10 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                           }}
                           disabled={markAsReadMutation.isPending}
                           variant="ghost"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                          size="lg"
+                          className="text-blue-600 hover:text-blue-800 flex-shrink-0 lg:size-sm"
                         >
-                          <Check className="w-4 h-4" />
+                          <Check className="w-6 h-6 lg:w-4 lg:h-4" />
                         </Button>
                       )}
                     </div>
