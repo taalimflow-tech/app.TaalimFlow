@@ -180,16 +180,16 @@ export function Notifications() {
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-2xl">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-lg">
                           {getNotificationIcon(notification.type)}
                         </span>
                         <Badge 
                           variant="secondary" 
-                          className={`text-sm px-3 py-1 ${getNotificationColor(notification.type)}`}
+                          className={`text-xs px-2 py-1 ${getNotificationColor(notification.type)}`}
                         >
                           {notification.type === 'suggestion' && 'اقتراح'}
                           {notification.type === 'message' && 'رسالة'}
@@ -203,18 +203,18 @@ export function Notifications() {
                         )}
                       </div>
                       
-                      <h3 className="font-bold text-gray-900 mb-3 text-xl leading-8">
+                      <h3 className="font-semibold text-gray-900 mb-2 text-base leading-6">
                         {notification.title}
                       </h3>
                       
-                      <p className="text-gray-700 mb-4 text-lg leading-7">
+                      <p className="text-gray-700 mb-3 text-sm leading-5">
                         {notification.message}
                       </p>
                       
-                      <p className="text-gray-500">
-                        {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
+                      <p className="text-gray-500 text-xs">
+                        {new Date(notification.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
-                          month: 'long',
+                          month: 'short',
                           day: 'numeric',
                           hour: '2-digit',
                           minute: '2-digit'
@@ -233,7 +233,7 @@ export function Notifications() {
                         size="sm"
                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 flex-shrink-0"
                       >
-                        <Check className="w-5 h-5" />
+                        <Check className="w-4 h-4" />
                       </Button>
                     )}
                   </div>
