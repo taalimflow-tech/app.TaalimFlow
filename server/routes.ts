@@ -1613,8 +1613,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('Suggestion request body:', req.body);
+      console.log('Schema fields:', Object.keys(insertSuggestionSchema.shape));
+      
+      // Try to validate and catch specific errors
+      try {
+        const validatedData = insertSuggestionSchema.parse(req.body);
+        console.log('Validated data:', validatedData);
+      } catch (validationError: any) {
+        console.error('Validation error details:', validationError);
+        if (validationError.errors) {
+          console.error('Specific field errors:', validationError.errors);
+        }
+        throw validationError;
+      }
+      
       const validatedData = insertSuggestionSchema.parse(req.body);
-      console.log('Validated data:', validatedData);
       const suggestionData = {
         ...validatedData,
         userId: req.session.user.id, // Set userId from session

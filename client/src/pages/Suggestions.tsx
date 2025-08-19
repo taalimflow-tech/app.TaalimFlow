@@ -29,11 +29,40 @@ export default function Suggestions() {
     e.preventDefault();
     if (!user) return;
 
+    // Client-side validation
+    if (!title.trim()) {
+      toast({ 
+        title: 'خطأ في البيانات',
+        description: 'العنوان مطلوب',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (!content.trim()) {
+      toast({ 
+        title: 'خطأ في البيانات',
+        description: 'المحتوى مطلوب',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (!category) {
+      toast({ 
+        title: 'خطأ في البيانات',
+        description: 'الفئة مطلوبة',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      console.log('Submitting suggestion:', { title, content, category });
       const suggestion = await apiRequest('POST', '/api/suggestions', {
-        title,
-        content,
+        title: title.trim(),
+        content: content.trim(),
         category
       });
 
@@ -97,7 +126,7 @@ export default function Suggestions() {
             
             <div>
               <Label htmlFor="category">الفئة</Label>
-              <Select value={category} onValueChange={setCategory} required>
+              <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="اختر فئة الاقتراح" />
                 </SelectTrigger>

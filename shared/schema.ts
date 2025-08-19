@@ -495,13 +495,12 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
   schoolId: z.number().optional(), // schoolId will be set from session
 });
 
-export const insertSuggestionSchema = createInsertSchema(suggestions).pick({
-  title: true,
-  content: true,
-  category: true,
-}).extend({
-  userId: z.number().optional(), // Make userId optional - server will set from session
-  status: z.string().optional() // Allow status to be optional from client
+export const insertSuggestionSchema = z.object({
+  title: z.string().min(1, "العنوان مطلوب"),
+  content: z.string().min(1, "المحتوى مطلوب"), 
+  category: z.string().min(1, "الفئة مطلوبة"),
+  userId: z.number().optional(),
+  status: z.string().optional()
 });
 
 export const insertGroupSchema = createInsertSchema(groups).pick({
