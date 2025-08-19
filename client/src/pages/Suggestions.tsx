@@ -31,7 +31,7 @@ export default function Suggestions() {
 
     setLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/suggestions', {
+      const suggestion = await apiRequest('POST', '/api/suggestions', {
         userId: user.id,
         title,
         content,
@@ -39,19 +39,19 @@ export default function Suggestions() {
         status: 'pending'
       });
 
-      if (response.ok) {
-        toast({ title: 'تم إرسال الاقتراح بنجاح!' });
-        setTitle('');
-        setContent('');
-        setCategory('');
-      } else {
-        throw new Error('Failed to submit suggestion');
-      }
-    } catch (error) {
+      toast({ 
+        title: 'تم إرسال الاقتراح بنجاح!',
+        description: 'سيتم مراجعة اقتراحك قريباً'
+      });
+      setTitle('');
+      setContent('');
+      setCategory('');
+    } catch (error: any) {
       console.error('Error submitting suggestion:', error);
+      const errorMessage = error?.message || 'يرجى المحاولة مرة أخرى';
       toast({ 
         title: 'خطأ في إرسال الاقتراح',
-        description: 'يرجى المحاولة مرة أخرى',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {

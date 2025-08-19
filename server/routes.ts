@@ -1575,10 +1575,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/suggestions", async (req, res) => {
+  app.post("/api/suggestions", requireAuth, async (req, res) => {
     try {
-      if (!req.session?.user) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      // CRITICAL: Prevent access if user doesn't belong to a school
+      if (!req.session.user.schoolId) {
+        return res.status(403).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
       }
       
       console.log('Suggestion request body:', req.body);
