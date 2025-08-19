@@ -72,8 +72,11 @@ export function Header() {
         
         <div className="flex items-center space-x-reverse space-x-2">
           <button 
-            onClick={() => setShowNotifications(true)}
-            className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors lg:hidden"
+            onClick={() => {
+              console.log('Bell clicked, showing notifications:', !showNotifications);
+              setShowNotifications(true);
+            }}
+            className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Bell className="w-6 h-6 text-gray-600" />
             {unreadCount.count > 0 && (
