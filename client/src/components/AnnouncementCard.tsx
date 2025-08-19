@@ -9,17 +9,17 @@ interface AnnouncementCardProps {
 
 export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const isLongContent = announcement.content.length > 150;
+  const isLongContent = announcement.content.length > 120;
 
   return (
-    <div className="announcement-card rounded-xl p-4 text-white">
+    <div className="announcement-card rounded-xl p-4 lg:p-6 text-white h-fit">
       {/* Display image if available */}
       {announcement.imageUrl && (
         <div className="mb-4">
           <img 
             src={announcement.imageUrl} 
             alt={announcement.title}
-            className="w-full h-48 object-cover rounded-lg"
+            className="w-full h-32 lg:h-40 xl:h-48 object-cover rounded-lg"
             style={{ aspectRatio: '16/9' }}
           />
         </div>
@@ -39,17 +39,17 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
       </div>
-      <h4 className="font-bold text-lg mb-2">{announcement.title}</h4>
-      <p className="text-sm opacity-90 leading-relaxed">
+      <h4 className="font-bold text-lg lg:text-xl mb-2 lg:mb-3 line-clamp-2">{announcement.title}</h4>
+      <p className="text-sm lg:text-base opacity-90 leading-relaxed">
         {isLongContent && !isExpanded 
-          ? `${announcement.content.substring(0, 150)}...`
+          ? `${announcement.content.substring(0, 120)}...`
           : announcement.content
         }
       </p>
       {isLongContent && (
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-3 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
+          className="mt-3 lg:mt-4 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm lg:text-base font-medium hover:bg-white/30 transition-colors"
         >
           {isExpanded ? 'إخفاء' : 'اقرأ المزيد'}
         </button>

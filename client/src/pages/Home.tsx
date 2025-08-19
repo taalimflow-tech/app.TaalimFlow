@@ -38,7 +38,7 @@ export default function Home() {
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen lg:bg-gradient-to-br lg:from-white lg:via-gray-50/50 lg:to-gray-100/30">
       <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6 lg:space-y-10 max-w-7xl mx-auto">
         {/* Latest Announcements Section */}
-        <section className="space-y-6 lg:space-y-8">
+        <section className="space-y-6 lg:space-y-8 max-w-none">
           <div className="flex items-center gap-3 mb-6 lg:mb-8">
             <div className="p-2 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl">
               <Megaphone className="w-6 h-6 lg:w-7 lg:h-7 text-primary" />
@@ -51,7 +51,7 @@ export default function Home() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : announcements.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
               {announcements.map((announcement) => (
                 <AnnouncementCard key={announcement.id} announcement={announcement} />
               ))}
