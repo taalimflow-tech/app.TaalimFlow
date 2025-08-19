@@ -127,8 +127,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end lg:justify-center lg:items-center">
-      <div className="bg-white w-full lg:w-full lg:max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:flex lg:justify-center lg:items-center">
+      <div className="bg-white w-full h-full lg:w-full lg:max-w-md lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden">
         <div className="h-full flex flex-col">
           <div className="flex flex-row items-center justify-between border-b bg-purple-50 p-4 flex-shrink-0">
             <h2 className="text-lg font-semibold text-purple-800">
@@ -174,19 +174,19 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer min-h-[120px] ${
+                    className={`p-6 border-b hover:bg-gray-50 transition-colors cursor-pointer ${
                       !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-lg">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-xl">
                             {getNotificationIcon(notification.type)}
                           </span>
                           <Badge 
                             variant="secondary" 
-                            className={`text-xs ${getNotificationColor(notification.type)}`}
+                            className={`text-sm px-2 py-1 ${getNotificationColor(notification.type)}`}
                           >
                             {notification.type === 'suggestion' && 'اقتراح'}
                             {notification.type === 'message' && 'رسالة'}
@@ -200,15 +200,15 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                           )}
                         </div>
                         
-                        <h4 className="font-medium text-gray-900 mb-2 text-base leading-6">
+                        <h4 className="font-semibold text-gray-900 mb-3 text-lg leading-7">
                           {notification.title}
                         </h4>
                         
-                        <p className="text-sm text-gray-600 mb-3 leading-5">
+                        <p className="text-base text-gray-600 mb-4 leading-6">
                           {notification.message}
                         </p>
                         
-                        <p className="text-xs text-gray-400">
+                        <p className="text-sm text-gray-400">
                           {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
                             year: 'numeric',
                             month: 'short',
