@@ -333,11 +333,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (validatedData.adminKey !== currentSchool.adminKey) {
-        return res
-          .status(403)
-          .json({
-            error: "مفتاح الإدارة غير صحيح. تأكد من صحة المفتاح السري للمدرسة",
-          });
+        return res.status(403).json({
+          error: "مفتاح الإدارة غير صحيح. تأكد من صحة المفتاح السري للمدرسة",
+        });
       }
 
       // Check if user already exists by email in this school context
@@ -400,11 +398,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .status(400)
           .json({ error: "يرجى التأكد من صحة جميع البيانات المطلوبة" });
       } else {
-        res
-          .status(400)
-          .json({
-            error: "حدث خطأ في إنشاء حساب المدير. يرجى المحاولة مرة أخرى",
-          });
+        res.status(400).json({
+          error: "حدث خطأ في إنشاء حساب المدير. يرجى المحاولة مرة أخرى",
+        });
       }
     }
   });
@@ -428,11 +424,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (validatedData.teacherKey !== currentSchool.teacherKey) {
-        return res
-          .status(403)
-          .json({
-            error: "مفتاح المعلم غير صحيح. تأكد من صحة المفتاح السري للمدرسة",
-          });
+        return res.status(403).json({
+          error: "مفتاح المعلم غير صحيح. تأكد من صحة المفتاح السري للمدرسة",
+        });
       }
 
       // Check if user already exists by email in this school context
@@ -506,11 +500,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .status(400)
           .json({ error: "يرجى التأكد من صحة جميع البيانات المطلوبة" });
       } else {
-        res
-          .status(400)
-          .json({
-            error: "حدث خطأ في إنشاء حساب المعلم. يرجى المحاولة مرة أخرى",
-          });
+        res.status(400).json({
+          error: "حدث خطأ في إنشاء حساب المعلم. يرجى المحاولة مرة أخرى",
+        });
       }
     }
   });
@@ -1576,7 +1568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.user.id,
         blockedId,
         reason,
-        req.session.user.schoolId
+        req.session.user.schoolId,
       );
       res.json({ message: "تم حظر المستخدم بنجاح", blockedUser });
     } catch (error) {
@@ -1626,6 +1618,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Report user
   app.post("/api/report-user", async (req, res) => {
     try {
+      console.log("=== Report User Request Started ===");
+      console.log("Session user:", req.session.user);
+      console.log("Request body:", req.body);
+
       if (!req.session.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
@@ -1633,9 +1629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { reportedUserId, messageId, reason, description } = req.body;
 
       if (!reportedUserId || !reason) {
-        return res
-          .status(400)
-          .json({ error: "معرف المستخدم المراد الإبلاغ عنه والسبب مطلوبان" });
+        return res.status(400).json({ error: "معرف المستخدم المراد الإبلاغ عنه والسبب مطلوبان" });
       }
 
       if (reportedUserId === req.session.user.id) {
@@ -1648,17 +1642,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messageId,
         reason,
         description,
-        schoolId: req.session.user.schoolId,
+        schoolId: req.session.user.schoolId // Add this line
       };
 
+      console.log("Report data prepared:", reportData);
+
+      // Add validation for schoolId
+      if (!reportData.schoolId) {
+        console.log("No schoolId found in session user");
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      console.log("Calling storage.reportUser...");
       const report = await storage.reportUser(reportData);
+
+      console.log("Report created successfully:", report);
       res.json({ message: "تم الإبلاغ بنجاح", report });
     } catch (error) {
-      console.error("Error reporting user:", error);
-      res.status(500).json({ error: "Failed to report user" });
+      console.error('=== Error reporting user ===');
+      console.error('Error details:', error);
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ 
+        error: "Failed to report user", 
+        details: error.message 
+      });
     }
   });
-
   // Admin routes for reports and user management
   app.get("/api/admin/reports", async (req, res) => {
     try {
@@ -1785,12 +1794,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData.senderId!,
       );
       if (isBlocked) {
-        return res
-          .status(403)
-          .json({
-            error:
-              "لا يمكنك إرسال رسائل لهذا المستخدم. تم حظرك من قبل المستخدم",
-          });
+        return res.status(403).json({
+          error: "لا يمكنك إرسال رسائل لهذا المستخدم. تم حظرك من قبل المستخدم",
+        });
       }
 
       // Add school context to message
@@ -1900,13 +1906,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Suggestion creation error:", error);
       if (error instanceof z.ZodError) {
         console.error("Validation errors:", error.errors);
-        res
-          .status(400)
-          .json({
-            error:
-              "بيانات الاقتراح غير صحيحة: " +
-              error.errors.map((e) => e.message).join(", "),
-          });
+        res.status(400).json({
+          error:
+            "بيانات الاقتراح غير صحيحة: " +
+            error.errors.map((e) => e.message).join(", "),
+        });
       } else {
         res
           .status(400)
@@ -1944,7 +1948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createNotificationForUsers(
           nonAdminUsers.map((u) => u.id),
           "group_update",
-          "👥 مجموعة جديدة",
+          "👥 مجموعة ج"�يدة",
           `تم إنشاء مجموعة جديدة: "${group.name}"`,
           group.id,
           req.session.user.schoolId,
@@ -2256,11 +2260,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name, nameAr, educationLevel, grade } = req.body;
 
       if (!name || !nameAr || !educationLevel || !grade) {
-        return res
-          .status(400)
-          .json({
-            error: "اسم المادة والمستوى التعليمي والسنة الدراسية مطلوبان",
-          });
+        return res.status(400).json({
+          error: "اسم المادة والمستوى التعليمي والسنة الدراسية مطلوبان",
+        });
       }
 
       // Prevent creating subjects with "جميع المستويات" - each subject must be year-specific
@@ -2277,11 +2279,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         grade,
       );
       if (existingSubject) {
-        return res
-          .status(400)
-          .json({
-            error: `المادة "${nameAr}" موجودة بالفعل للمستوى "${educationLevel}" - ${grade}`,
-          });
+        return res.status(400).json({
+          error: `المادة "${nameAr}" موجودة بالفعل للمستوى "${educationLevel}" - ${grade}`,
+        });
       }
 
       // Create subject for specific education level and grade
@@ -3233,11 +3233,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Emergency super admin creation error:", error);
-      res
-        .status(500)
-        .json({
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
@@ -3298,12 +3296,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error instanceof Error ? error.name : "Unknown",
       );
       console.error("Full error:", error);
-      res
-        .status(400)
-        .json({
-          error: "بيانات غير صحيحة",
-          details: error instanceof Error ? error.message : "Unknown error",
-        });
+      res.status(400).json({
+        error: "بيانات غير صحيحة",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
@@ -3428,11 +3424,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if ((error as any).code === "23505") {
           // Unique constraint violation
           if ((error as any).constraint === "schools_code_unique") {
-            return res
-              .status(400)
-              .json({
-                error: "كود المدرسة مستخدم بالفعل، يرجى اختيار كود آخر",
-              });
+            return res.status(400).json({
+              error: "كود المدرسة مستخدم بالفعل، يرجى اختيار كود آخر",
+            });
           }
           if ((error as any).constraint === "schools_domain_unique") {
             return res
@@ -3442,11 +3436,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res
-        .status(400)
-        .json({
-          error: "فشل في إنشاء المدرسة، يرجى التحقق من البيانات المدخلة",
-        });
+      res.status(400).json({
+        error: "فشل في إنشاء المدرسة، يرجى التحقق من البيانات المدخلة",
+      });
     }
   });
 
@@ -4901,13 +4893,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("❌ Error creating financial entry:", error);
       if (error instanceof z.ZodError) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "بيانات غير صحيحة: " +
-              error.errors.map((e) => e.message).join(", "),
-          });
+        return res.status(400).json({
+          error:
+            "بيانات غير صحيحة: " +
+            error.errors.map((e) => e.message).join(", "),
+        });
       }
       res.status(500).json({ error: "فشل في إضافة الإدخال المالي" });
     }
@@ -4983,13 +4973,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("❌ Error creating gain/loss entry:", error);
       console.error("❌ Error details:", error);
       if (error instanceof z.ZodError) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "بيانات غير صحيحة: " +
-              error.errors.map((e) => e.message).join(", "),
-          });
+        return res.status(400).json({
+          error:
+            "بيانات غير صحيحة: " +
+            error.errors.map((e) => e.message).join(", "),
+        });
       }
       // Include more detailed error information for debugging
       const errorMessage =

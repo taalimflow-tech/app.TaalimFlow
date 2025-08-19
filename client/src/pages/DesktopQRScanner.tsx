@@ -2202,6 +2202,14 @@ function DesktopQRScanner() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
+                {/* Debug Info */}
+                <div className="mb-4 p-3 bg-yellow-50 text-yellow-800 text-sm rounded">
+                  <strong>Debug Info:</strong><br/>
+                  Enrolled groups count: {scannedProfile.enrolledGroups?.length || 0}<br/>
+                  Available groups count: {availableGroups.length}<br/>
+                  Enrolled groups: {JSON.stringify(scannedProfile.enrolledGroups)}<br/>
+                  Available groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
+                </div>
                 {scannedProfile.enrolledGroups?.length > 0 ? (
                   scannedProfile.enrolledGroups.map((group) => (
                     <div key={group.id} className="bg-white rounded-lg border">
@@ -2232,10 +2240,29 @@ function DesktopQRScanner() {
                       </div>
                     </div>
                   ))
+                ) : availableGroups.length > 0 ? (
+                  availableGroups.map((group) => (
+                    <div key={group.id} className="bg-white rounded-lg border">
+                      <div className="p-4 border-b bg-gray-50">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-lg">{group.name}</h4>
+                            <p className="text-sm text-gray-600">{group.subjectName || group.nameAr}</p>
+                            <p className="text-sm text-gray-500">{group.educationLevel}</p>
+                            <p className="text-xs text-blue-600">From availableGroups (fallback)</p>
+                          </div>
+                          <div className="text-sm text-gray-500 text-right">
+                            <div>المعلم: {group.teacherName}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center text-gray-500 py-8">
                     <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
                     <p>لا توجد مجموعات مسجل فيها</p>
+                    <p className="text-xs mt-2">Enrolled: {scannedProfile.enrolledGroups?.length || 0}, Available: {availableGroups.length}</p>
                   </div>
                 )}
               </div>
