@@ -5232,8 +5232,13 @@ export class DatabaseStorage implements IStorage {
 
         if (groupAssignments.length > 0) {
           const groupIds = groupAssignments.map((a) => a.groupId);
+          console.log("🔍 Extracted group IDs:", groupIds);
 
           // Fetch group details with teacher and subject information
+          console.log("🔍 Fetching group details with conditions:");
+          console.log(`   - inArray(groups.id, ${JSON.stringify(groupIds)})`);
+          console.log(`   - eq(groups.schoolId, ${schoolId})`);
+          
           const groupsData = await db
             .select({
               id: groups.id,
@@ -5247,6 +5252,9 @@ export class DatabaseStorage implements IStorage {
             .where(
               and(inArray(groups.id, groupIds), eq(groups.schoolId, schoolId)),
             );
+          
+          console.log("🔍 Groups data query result:", groupsData);
+          console.log("🔍 Number of groups found:", groupsData.length);
 
           // Enrich groups with teacher and subject names
           for (const group of groupsData) {
