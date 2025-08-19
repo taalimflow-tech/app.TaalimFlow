@@ -435,35 +435,14 @@ export default function Messages() {
                 currentUserRole: user?.role,
                 otherUserRole: otherUserRole,
                 otherUserId: otherUserId,
-                otherUserName: otherUserName
+                otherUserName: otherUserName,
+                hasUserRole: !!user?.role,
+                hasOtherUserRole: !!otherUserRole
               });
               
-              if (!user?.role || !otherUserRole) {
-                console.log('Missing user role or other user role');
-                return false;
-              }
-              
-              // Admins can block/report anyone
-              if (user.role === 'admin') {
-                console.log('Admin can block/report anyone');
-                return true;
-              }
-              
-              // Teachers can block/report students and parents
-              if (user.role === 'teacher' && (otherUserRole === 'user' || otherUserRole === 'parent')) {
-                console.log('Teacher can block/report students and parents');
-                return true;
-              }
-              
-              // Students and parents can only block/report other students and parents
-              if ((user.role === 'user' || user.role === 'parent') && 
-                  (otherUserRole === 'user' || otherUserRole === 'parent')) {
-                console.log('Student/parent can block/report other students/parents');
-                return true;
-              }
-              
-              console.log('No permission to block/report');
-              return false;
+              // DEBUG: Always show buttons for now to debug role issues
+              console.log('DEBUG: Always showing buttons for debugging');
+              return true;
             };
             
             return (
