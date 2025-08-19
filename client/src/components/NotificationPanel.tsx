@@ -127,58 +127,122 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
     }
   });
 
-  console.log('NotificationPanel render - isOpen:', isOpen, 'notifications:', notifications.length);
-  
-  if (!isOpen) {
-    console.log('Panel closed, returning null');
-    return null;
-  }
-  
-  console.log('Panel open, rendering with z-index 9999');
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-red-500 bg-opacity-80 z-[9999] flex justify-center items-center">
-      <div className="bg-yellow-300 border-4 border-red-600 p-8 rounded-lg shadow-2xl max-w-md w-full mx-4">
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-black">
-              🔔 NOTIFICATIONS TEST
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] lg:flex lg:justify-center lg:items-center">
+      <div className="bg-white w-full h-full lg:w-full lg:max-w-md lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-2xl border overflow-hidden">
+        <div className="h-full flex flex-col">
+          {/* Header */}
+          <div className="flex flex-row items-center justify-between border-b bg-purple-50 p-4 flex-shrink-0">
+            <h2 className="text-lg font-semibold text-purple-800">
+              <Bell className="w-5 h-5 inline-block mr-2" />
+              الإشعارات
             </h2>
-            <Button
-              onClick={onClose}
-              className="bg-red-600 text-white"
-            >
-              ❌ CLOSE
-            </Button>
+            <div className="flex items-center gap-2">
+              {notifications.some((n) => !n.read) && (
+                <Button
+                  onClick={() => markAllAsReadMutation.mutate()}
+                  disabled={markAllAsReadMutation.isPending}
+                  variant="ghost"
+                  size="sm"
+                  className="text-purple-600 hover:text-purple-800"
+                >
+                  <CheckCheck className="w-4 h-4" />
+                </Button>
+              )}
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           
-          <div className="space-y-4">
-            <div className="text-xl text-black font-bold">
-              📊 Total Notifications: {notifications.length}
-            </div>
-            
-            {notifications.map((notification, index) => (
-              <div key={notification.id} className="bg-white p-4 border-2 border-black rounded">
-                <div className="text-lg font-bold text-black mb-2">
-                  #{index + 1}: {notification.type}
-                </div>
-                <div className="text-black mb-2">
-                  <strong>Title:</strong> {notification.title}
-                </div>
-                <div className="text-black mb-2">
-                  <strong>Message:</strong> {notification.message}
-                </div>
-                <div className="text-black text-sm">
-                  <strong>Read:</strong> {notification.read ? 'Yes' : 'No'}
-                </div>
-                <Button 
-                  onClick={() => handleNotificationClick(notification)}
-                  className="mt-2 bg-green-600 text-white"
-                >
-                  CLICK TO NAVIGATE
-                </Button>
+          {/* Scrollable Content */}
+          <div className="overflow-y-auto flex-1">
+            {isLoading ? (
+              <div className="p-4 text-center text-gray-500">
+                جاري تحميل الإشعارات...
               </div>
-            ))}
+            ) : notifications.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>لا توجد إشعارات</p>
+              </div>
+            ) : (
+              <div className="space-y-0">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`p-6 lg:p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer ${
+                      !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4 lg:gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 lg:gap-2 mb-3">
+                          <span className="text-2xl lg:text-lg">
+                            {getNotificationIcon(notification.type)}
+                          </span>
+                          <Badge 
+                            variant="secondary" 
+                            className={`text-sm lg:text-xs px-3 lg:px-2 py-1 ${getNotificationColor(notification.type)}`}
+                          >
+                            {notification.type === 'suggestion' && 'اقتراح'}
+                            {notification.type === 'message' && 'رسالة'}
+                            {notification.type === 'blog' && 'مقال'}
+                            {notification.type === 'announcement' && 'إعلان'}
+                            {notification.type === 'group_update' && 'مجموعة'}
+                            {notification.type === 'formation_update' && 'تدريب'}
+                          </Badge>
+                          {!notification.read && (
+                            <div className="w-3 h-3 lg:w-2 lg:h-2 bg-blue-500 rounded-full"></div>
+                          )}
+                        </div>
+                        
+                        <h4 className="font-semibold text-gray-900 mb-3 lg:mb-2 text-xl lg:text-base leading-7 lg:leading-6">
+                          {notification.title}
+                        </h4>
+                        
+                        <p className="text-gray-600 mb-3 text-lg lg:text-sm leading-6 lg:leading-5">
+                          {notification.message}
+                        </p>
+                        
+                        <p className="text-gray-400 text-base lg:text-xs">
+                          {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                      
+                      {!notification.read && (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAsReadMutation.mutate(notification.id);
+                          }}
+                          disabled={markAsReadMutation.isPending}
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                        >
+                          <Check className="w-5 h-5 lg:w-4 lg:h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
