@@ -65,12 +65,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     );
   }
   
-  // Show login page if user is not authenticated and we're in a school context
-  if (!user && location.includes('/school/')) {
-    return <Login />;
-  }
-  
-  // Show public pages if user is not authenticated and not in school context
+  // Show login page if user is not authenticated
   if (!user) {
     return <Login />;
   }
