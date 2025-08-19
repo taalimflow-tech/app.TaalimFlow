@@ -144,7 +144,14 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      return await apiRequest('POST', '/api/messages', messageData);
+      console.log('Sending message with data:', messageData);
+      const response = await apiRequest('POST', '/api/messages', messageData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Message send failed:', errorData);
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -156,6 +163,7 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
       queryClient.invalidateQueries({ queryKey: ['/api/messages/with-user-info'] });
     },
     onError: (error: any) => {
+      console.error('Message send error:', error);
       toast({
         title: "خطأ في إرسال الرسالة",
         description: error.message || "حدث خطأ أثناء إرسال الرسالة",
@@ -174,12 +182,21 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
       return;
     }
 
-    sendMessageMutation.mutate({
+    console.log('Preparing to send message');
+    console.log('User data:', { id: user?.id, schoolId: user?.schoolId });
+    console.log('Target user:', userId);
+    console.log('Message content:', newMessage);
+
+    const messageData = {
       senderId: user?.id,
       receiverId: userId,
       subject: "رسالة",
       content: newMessage,
-    });
+      schoolId: user?.schoolId,
+    };
+
+    console.log('Final message data being sent:', messageData);
+    sendMessageMutation.mutate(messageData);
   };
   
   if (!isOpen) return null;
