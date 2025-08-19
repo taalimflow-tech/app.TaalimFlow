@@ -944,8 +944,13 @@ function DesktopQRScanner() {
         
         profile.enrolledGroups = groupsWithPayments;
         setAvailableGroups(groupsWithPayments);
+        console.log('✅ Updated profile with payment data:', profile.enrolledGroups);
+      } else {
+        console.log('⚠️ No enrolled groups to fetch payments for');
+        setAvailableGroups([]); // Set empty array for payment form
       }
       
+      console.log('✅ Final profile being set to scannedProfile state:', JSON.stringify(profile, null, 2));
       setScannedProfile(profile);
       stopScanning();
       
@@ -2355,6 +2360,13 @@ function DesktopQRScanner() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* DEBUG: Show enrolled groups data structure */}
+                    <div className="mb-4 p-3 bg-blue-50 rounded text-xs">
+                      <strong>Debug - Enrolled Groups Data:</strong><br/>
+                      Has enrolledGroups: {scannedProfile.enrolledGroups ? 'Yes' : 'No'}<br/>
+                      Enrolled groups count: {scannedProfile.enrolledGroups?.length || 0}<br/>
+                      Raw data: {JSON.stringify(scannedProfile.enrolledGroups, null, 2)}
+                    </div>
                     {scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0 ? scannedProfile.enrolledGroups.map((group) => (
                       <div key={group.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start">
@@ -2370,6 +2382,13 @@ function DesktopQRScanner() {
                       </div>
                     )) : (
                       <div className="text-center text-gray-500 py-4">
+                        <div className="mb-3 p-2 bg-red-50 text-red-700 text-xs rounded">
+                          <strong>Debug - Why no groups shown:</strong><br/>
+                          scannedProfile exists: {scannedProfile ? 'Yes' : 'No'}<br/>
+                          enrolledGroups property exists: {scannedProfile?.enrolledGroups !== undefined ? 'Yes' : 'No'}<br/>
+                          enrolledGroups length: {scannedProfile?.enrolledGroups?.length || 'N/A'}<br/>
+                          enrolledGroups value: {JSON.stringify(scannedProfile?.enrolledGroups)}
+                        </div>
                         لا توجد مجموعات مسجل فيها
                       </div>
                     )}
