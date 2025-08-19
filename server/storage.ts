@@ -1601,12 +1601,13 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
-      // Get all students in one query - FIXED: Filter by schoolId and use student IDs
+      // Get all students in one query - For attendance display: use user.id with school verification
       const allStudentsData =
         allStudentIds.size > 0
           ? await db
               .select({
-                id: students.id, // Use student.id to match assignments
+                id: users.id, // Use user.id for attendance display
+                studentId: students.id, // Keep student ID for reference
                 name: users.name,
                 educationLevel: students.educationLevel,
                 grade: students.grade,
@@ -1616,16 +1617,17 @@ export class DatabaseStorage implements IStorage {
               .leftJoin(users, eq(students.userId, users.id))
               .where(and(
                 inArray(students.id, Array.from(allStudentIds)), // Filter by student IDs
-                eq(students.schoolId, schoolId) // CRITICAL: Filter by school
+                eq(students.schoolId, schoolId), // CRITICAL: Filter by school
+                eq(users.schoolId, schoolId) // CRITICAL: Verify user also belongs to same school
               ))
           : [];
 
-      // Get all children in one query - FIXED: Filter by schoolId
+      // Get all children in one query - For attendance display: keep child.id with school verification
       const allChildrenData =
         allChildIds.size > 0
           ? await db
               .select({
-                id: children.id,
+                id: children.id, // Use child.id directly for children
                 name: children.name,
                 educationLevel: children.educationLevel,
                 grade: children.grade,
@@ -1641,9 +1643,9 @@ export class DatabaseStorage implements IStorage {
               ))
           : [];
 
-      // Create lookup maps for quick access
+      // Create lookup maps for quick access - Use studentId as key for assignments
       const studentsMap = new Map(
-        allStudentsData.map((s) => [s.id, { ...s, type: "student" }]),
+        allStudentsData.map((s) => [s.studentId, { ...s, type: "student" }]),
       );
       const childrenMap = new Map(
         allChildrenData.map((c) => [c.id, { ...c, type: "child" }]),
