@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
+import { formatDistanceToNow } from 'date-fns';
+import { ar } from 'date-fns/locale';
 
 interface Notification {
   id: number;
@@ -126,8 +128,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end lg:justify-center lg:items-center">
-      <div className="bg-white w-full max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden lg:relative">
-        <Card className="h-full rounded-none lg:rounded-xl border-none">
+      <div className="bg-white w-full max-w-md h-full lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-lg overflow-hidden flex flex-col">
+        <Card className="h-full rounded-none lg:rounded-xl border-none flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between border-b bg-purple-50">
             <CardTitle className="text-lg font-semibold text-purple-800">
               <Bell className="w-5 h-5 inline-block mr-2" />
@@ -156,7 +158,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
             </div>
           </CardHeader>
           
-          <CardContent className="p-0 overflow-y-auto h-full">
+          <CardContent className="p-0 overflow-y-auto flex-1">
             {isLoading ? (
               <div className="p-4 text-center text-gray-500">
                 جاري تحميل الإشعارات...
@@ -207,7 +209,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                         </p>
                         
                         <p className="text-xs text-gray-400">
-                          {new Date(notification.createdAt).toLocaleDateString('en-US', {
+                          {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
