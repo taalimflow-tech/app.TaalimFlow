@@ -171,7 +171,7 @@ export interface IStorage {
   getScheduleCellsWithDetails(scheduleTableId: number): Promise<any[]>;
   
   // User blocking methods
-  blockUser(blockerId: number, blockedId: number, reason?: string): Promise<BlockedUser>;
+  blockUser(blockerId: number, blockedId: number, reason?: string, schoolId?: number): Promise<BlockedUser>;
   unblockUser(blockerId: number, blockedId: number): Promise<void>;
   isUserBlocked(blockerId: number, blockedId: number): Promise<boolean>;
   getBlockedUsers(userId: number): Promise<BlockedUser[]>;
@@ -181,7 +181,7 @@ export interface IStorage {
   getUserReports(userId: number): Promise<UserReport[]>;
   
   // Admin reporting methods
-  getAllReports(): Promise<any[]>;
+  getAllReports(schoolId?: number): Promise<any[]>;
   updateReportStatus(reportId: number, status: string): Promise<UserReport>;
   
   // User banning methods
@@ -1069,6 +1069,17 @@ export class DatabaseStorage implements IStorage {
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
     console.log('Storage createSuggestion called with:', insertSuggestion);
     
+    // Ensure schoolId is present
+    let schoolId = insertSuggestion.schoolId;
+    if (!schoolId && insertSuggestion.userId) {
+      const user = await this.getUser(insertSuggestion.userId);
+      schoolId = user?.schoolId;
+    }
+    
+    if (!schoolId) {
+      throw new Error('School ID is required for creating suggestions');
+    }
+    
     // Ensure all required fields are present
     const safeData = {
       title: insertSuggestion.title || 'Untitled',
@@ -1076,7 +1087,7 @@ export class DatabaseStorage implements IStorage {
       category: insertSuggestion.category || 'other', 
       status: insertSuggestion.status || 'pending',
       userId: insertSuggestion.userId,
-      schoolId: insertSuggestion.schoolId
+      schoolId: schoolId
     };
     
     console.log('Safe data for insertion:', safeData);
@@ -2431,42 +2442,94 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User blocking methods
-  async blockUser(blockerId: number, blockedId: number, reason?: string): Promise<BlockedUser> {
+  async blockUser(blockerId: number, blockedId: number, reason?: string, schoolId?: number): Promise<BlockedUser> {
+    // Get blocker's school ID if not provided
+    let finalSchoolId = schoolId;
+    if (!finalSchoolId) {
+      const blocker = await this.getUser(blockerId);
+      finalSchoolId = blocker?.schoolId;
+    }
+    
+    if (!finalSchoolId) {
+      throw new Error('School ID is required for blocking users');
+    }
+
     const [blockedUser] = await db
       .insert(blockedUsers)
-      .values({ blockerId, blockedId, reason })
+      .values({ blockerId, blockedId, reason, schoolId: finalSchoolId })
       .returning();
     return blockedUser;
   }
 
   async unblockUser(blockerId: number, blockedId: number): Promise<void> {
+    // Get blocker's school for proper isolation
+    const blocker = await this.getUser(blockerId);
+    if (!blocker?.schoolId) {
+      throw new Error('School ID is required for unblocking users');
+    }
+
     await db
       .delete(blockedUsers)
       .where(
-        and(eq(blockedUsers.blockerId, blockerId), eq(blockedUsers.blockedId, blockedId))
+        and(
+          eq(blockedUsers.blockerId, blockerId), 
+          eq(blockedUsers.blockedId, blockedId),
+          eq(blockedUsers.schoolId, blocker.schoolId)
+        )
       );
   }
 
   async isUserBlocked(blockerId: number, blockedId: number): Promise<boolean> {
+    // Get blocker's school for proper isolation
+    const blocker = await this.getUser(blockerId);
+    if (!blocker?.schoolId) {
+      return false;
+    }
+
     const [blocked] = await db
       .select()
       .from(blockedUsers)
       .where(
-        and(eq(blockedUsers.blockerId, blockerId), eq(blockedUsers.blockedId, blockedId))
+        and(
+          eq(blockedUsers.blockerId, blockerId), 
+          eq(blockedUsers.blockedId, blockedId),
+          eq(blockedUsers.schoolId, blocker.schoolId)
+        )
       );
     return !!blocked;
   }
 
   async getBlockedUsers(userId: number): Promise<BlockedUser[]> {
+    // Get user's school for proper isolation
+    const user = await this.getUser(userId);
+    if (!user?.schoolId) {
+      return [];
+    }
+
     return await db
       .select()
       .from(blockedUsers)
-      .where(eq(blockedUsers.blockerId, userId))
+      .where(
+        and(
+          eq(blockedUsers.blockerId, userId),
+          eq(blockedUsers.schoolId, user.schoolId)
+        )
+      )
       .orderBy(desc(blockedUsers.createdAt));
   }
 
   // User reporting methods
   async reportUser(insertReport: InsertUserReport): Promise<UserReport> {
+    // Ensure schoolId is present
+    if (!insertReport.schoolId) {
+      const reporter = await this.getUser(insertReport.reporterId);
+      insertReport.schoolId = reporter?.schoolId;
+    }
+    
+    if (!insertReport.schoolId) {
+      throw new Error('School ID is required for reporting users');
+    }
+
     const [report] = await db
       .insert(userReports)
       .values(insertReport)
@@ -2483,11 +2546,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Admin reporting methods
-  async getAllReports(): Promise<any[]> {
+  async getAllReports(schoolId?: number): Promise<any[]> {
     const reporterAlias = aliasedTable(users, 'reporter');
     const reportedAlias = aliasedTable(users, 'reported');
     
-    return await db
+    let query = db
       .select({
         id: userReports.id,
         reporterId: userReports.reporterId,
@@ -2499,11 +2562,18 @@ export class DatabaseStorage implements IStorage {
         createdAt: userReports.createdAt,
         reporterName: reporterAlias.name,
         reportedUserName: reportedAlias.name,
+        schoolId: userReports.schoolId,
       })
       .from(userReports)
       .leftJoin(reporterAlias, eq(userReports.reporterId, reporterAlias.id))
-      .leftJoin(reportedAlias, eq(userReports.reportedUserId, reportedAlias.id))
-      .orderBy(desc(userReports.createdAt));
+      .leftJoin(reportedAlias, eq(userReports.reportedUserId, reportedAlias.id));
+
+    // Filter by school if provided (for proper multi-tenancy)
+    if (schoolId) {
+      query = query.where(eq(userReports.schoolId, schoolId));
+    }
+
+    return await query.orderBy(desc(userReports.createdAt));
   }
 
   async updateReportStatus(reportId: number, status: string): Promise<UserReport> {

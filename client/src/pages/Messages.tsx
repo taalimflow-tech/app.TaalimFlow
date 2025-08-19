@@ -540,8 +540,7 @@ export default function Messages() {
                     </div>
                     
                     <div className="flex items-center gap-1">
-                      {/* Debug: Always show buttons for testing */}
-                      {true && (
+                      {canBlockOrReport() && (
                         <>
                           {blocked ? (
                             <Button 
