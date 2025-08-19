@@ -410,33 +410,13 @@ export default function AdminContent() {
           </Button>
           <h2 className="text-2xl font-bold text-gray-800">إدارة المحتوى</h2>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={async () => {
-              try {
-                const response = await apiRequest('POST', '/api/debug/create-test-notification', {});
-                const result = await response.json();
-                if (result.success) {
-                  toast({ title: 'تم إنشاء إشعار تجريبي بنجاح' });
-                }
-              } catch (error) {
-                console.error('Error creating test notification:', error);
-                toast({ title: 'فشل في إنشاء الإشعار التجريبي', variant: 'destructive' });
-              }
-            }}
-            variant="outline"
-            className="text-blue-600 hover:text-blue-800"
-          >
-            إنشاء إشعار تجريبي
-          </Button>
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            إضافة جديد
-          </Button>
-        </div>
+        <Button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          إضافة جديد
+        </Button>
       </div>
 
       {/* Tabs */}

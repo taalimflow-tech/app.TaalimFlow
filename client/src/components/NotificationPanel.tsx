@@ -54,21 +54,9 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   const [, navigate] = useLocation();
 
   // Fetch notifications
-  const { data: notifications = [], isLoading, error } = useQuery<Notification[]>({
+  const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['/api/notifications'],
-    enabled: isOpen && !!user,
-    retry: 1,
-    refetchOnWindowFocus: false
-  });
-
-  // Debug logging
-  console.log('NotificationPanel Debug:', {
-    isOpen,
-    user: !!user,
-    isLoading,
-    error,
-    notificationsCount: notifications.length,
-    notifications
+    enabled: isOpen && !!user
   });
 
   // Mark notification as read mutation
@@ -177,11 +165,6 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
               <div className="p-8 text-center text-gray-500">
                 <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p>لا توجد إشعارات</p>
-                {error && (
-                  <p className="text-xs text-red-500 mt-2">
-                    خطأ: {error instanceof Error ? error.message : 'فشل في تحميل الإشعارات'}
-                  </p>
-                )}
               </div>
             ) : (
               <div className="space-y-1">
