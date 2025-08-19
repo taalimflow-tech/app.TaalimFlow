@@ -1633,16 +1633,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Content:', req.body?.content, 'Type:', typeof req.body?.content);
       console.log('Category:', req.body?.category, 'Type:', typeof req.body?.category);
 
-      // Simple direct creation without complex validation
+      // Ensure all data is properly formatted
       const suggestionData = {
-        title: req.body.title || 'Test Title',
-        content: req.body.content || 'Test Content', 
-        category: req.body.category || 'other',
-        userId: req.session.user.id,
-        schoolId: req.session.user.schoolId,
+        title: String(req.body.title || 'Test Title').trim(),
+        content: String(req.body.content || 'Test Content').trim(),
+        category: String(req.body.category || 'other').trim(),
+        userId: Number(req.session.user.id),
+        schoolId: Number(req.session.user.schoolId),
         status: 'pending'
       };
-      console.log('Suggestion data with school:', suggestionData);
+      console.log('Final suggestion data:', suggestionData);
       const suggestion = await storage.createSuggestion(suggestionData);
       
       // Create notification for admins about new suggestion

@@ -1067,9 +1067,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
+    console.log('Storage createSuggestion called with:', insertSuggestion);
+    
+    // Ensure all required fields are present
+    const safeData = {
+      title: insertSuggestion.title || 'Untitled',
+      content: insertSuggestion.content || 'No content',
+      category: insertSuggestion.category || 'other', 
+      status: insertSuggestion.status || 'pending',
+      userId: insertSuggestion.userId,
+      schoolId: insertSuggestion.schoolId
+    };
+    
+    console.log('Safe data for insertion:', safeData);
+    
     const [suggestion] = await db
       .insert(suggestions)
-      .values(insertSuggestion)
+      .values(safeData)
       .returning();
     return suggestion;
   }
