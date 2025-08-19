@@ -2065,9 +2065,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
       
+      console.log('🔔 Fetching notifications for user:', {
+        userId: req.session.user.id,
+        schoolId: req.session.user.schoolId,
+        userRole: req.session.user.role
+      });
+      
       const notifications = await storage.getNotifications(req.session.user.id, req.session.user.schoolId);
+      console.log('🔔 Found notifications:', notifications.length);
       res.json(notifications);
     } catch (error) {
+      console.error('🔔 Error fetching notifications:', error);
       res.status(500).json({ error: "Failed to fetch notifications" });
     }
   });
@@ -4529,6 +4537,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error stack:', error?.stack);
       console.error('Error message:', error?.message);
       res.status(500).json({ error: "حدث خطأ في إنشاء إيصال الدفع" });
+    }
+  });
+
+  // Debug endpoint to create test notification
+  app.post("/api/debug/create-test-notification", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      if (req.session.user.role !== 'admin' && req.session.user.role !== 'super_admin') {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const testNotification = await storage.createNotification({
+        userId: req.session.user.id,
+        schoolId: req.session.user.schoolId,
+        type: 'announcement',
+        title: 'إشعار تجريبي',
+        message: 'هذا إشعار تجريبي للتأكد من عمل النظام بشكل صحيح'
+      });
+
+      console.log('✅ Test notification created:', testNotification);
+      res.json({ success: true, notification: testNotification });
+    } catch (error) {
+      console.error('❌ Error creating test notification:', error);
+      res.status(500).json({ error: "Failed to create test notification" });
     }
   });
 
