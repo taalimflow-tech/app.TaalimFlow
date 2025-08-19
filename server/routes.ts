@@ -67,15 +67,18 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure session middleware
+  // Configure session middleware with proper persistence
   app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
     resave: false,
     saveUninitialized: true, // Create session for anonymous users for school selection
     cookie: { 
       secure: false, // Set to true in production with HTTPS
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+      httpOnly: true, // Prevent XSS attacks
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax' // Allow cross-site cookies for proper functionality
+    },
+    name: 'school.session', // Custom session name for clarity
   }));
 
   // Firebase config endpoint
@@ -116,9 +119,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // Store user session properly
-        req.session.user = user;
+        // Store user session properly with school context
+        req.session.user = {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          schoolId: user.schoolId,
+          phone: user.phone,
+          gender: user.gender
+        };
         req.session.userId = user.id;
+        req.session.schoolId = user.schoolId;
         // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
         res.json({ user: userWithoutPassword });
