@@ -309,12 +309,12 @@ export default function Messages() {
   const [chatUserName, setChatUserName] = useState<string>('');
   const [chatUserProfilePicture, setChatUserProfilePicture] = useState<string | null>(null);
   
-  const { data: messages, isLoading } = useQuery({
+  const { data: messages = [], isLoading } = useQuery({
     queryKey: ['/api/messages/with-user-info'],
     enabled: !!user,
   });
 
-  const { data: blockedUsers } = useQuery({
+  const { data: blockedUsers = [] } = useQuery({
     queryKey: ['/api/blocked-users'],
     enabled: !!user,
   });
