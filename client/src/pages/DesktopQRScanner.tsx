@@ -894,7 +894,7 @@ function DesktopQRScanner() {
       
       // CRITICAL DEBUG: Check the actual enrolled groups data structure
       if (profile.enrolledGroups && profile.enrolledGroups.length > 0) {
-        profile.enrolledGroups.forEach((group, index) => {
+        profile.enrolledGroups.forEach((group: any, index: number) => {
           console.log(`✅ Enrolled Group ${index + 1}:`, {
             id: group.id,
             name: group.name,
@@ -2237,17 +2237,38 @@ function DesktopQRScanner() {
                 </div>
                 {scannedProfile.enrolledGroups?.length > 0 ? (
                   scannedProfile.enrolledGroups.map((group) => (
-                    <div key={group.id} className="bg-white rounded-lg border">
+                    <div key={group.id} className="bg-white rounded-lg border shadow-sm">
                       {/* Group Header */}
-                      <div className="p-4 border-b bg-gray-50">
+                      <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold text-lg">{group.name}</h4>
-                            <p className="text-sm text-gray-600">{group.subjectName}</p>
-                            <p className="text-sm text-gray-500">{group.educationLevel}</p>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-lg text-gray-800 mb-1">{group.name}</h4>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                                  {group.subjectName || 'مادة غير محددة'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span>📚 المستوى:</span>
+                                <span className="font-medium">{group.educationLevel}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-500 text-right">
-                            <div>المعلم: {group.teacherName}</div>
+                          <div className="text-sm text-gray-600 text-right">
+                            <div className="flex items-center gap-1">
+                              <span>👨‍🏫</span>
+                              <span className="font-medium">{group.teacherName || 'معلم غير محدد'}</span>
+                            </div>
+
+                          </div>
+                        </div>
+                        
+                        {/* Group Stats Row */}
+                        <div className="mt-3 pt-3 border-t border-blue-100">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-gray-500">رمز المجموعة: {group.id}</span>
+                            <span className="text-green-600 font-medium">نشط</span>
                           </div>
                         </div>
                       </div>
@@ -2267,9 +2288,22 @@ function DesktopQRScanner() {
                   ))
                 ) : (
                   <div className="text-center text-gray-500 py-8">
-                    <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                    <p>لا توجد مجموعات مسجل فيها</p>
-                    <p className="text-xs mt-2">Enrolled: {scannedProfile.enrolledGroups?.length || 0}, Available: {availableGroups.length}</p>
+                    <div className="bg-gray-50 rounded-lg p-6 border-2 border-dashed border-gray-200">
+                      <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p className="text-lg font-medium text-gray-600 mb-2">لا توجد مجموعات مسجل فيها</p>
+                      <p className="text-sm text-gray-500 mb-3">
+                        هذا الطالب غير مسجل في أي مجموعة تعليمية حالياً
+                      </p>
+                      
+                      {/* Debug Information */}
+                      <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200 text-left text-xs">
+                        <strong>Debug Info:</strong><br/>
+                        Student ID: {scannedProfile?.id}<br/>
+                        Student Type: {scannedProfile?.type}<br/>
+                        enrolledGroups length: {scannedProfile?.enrolledGroups?.length || 'N/A'}<br/>
+                        enrolledGroups value: {JSON.stringify(scannedProfile?.enrolledGroups)}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
