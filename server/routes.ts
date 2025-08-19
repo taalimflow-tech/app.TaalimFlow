@@ -1494,6 +1494,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messages", requireAuth, async (req, res) => {
     try {
       console.log('Received message request:', req.body);
+      console.log('Session user:', req.session.user);
+      
+      // Validate the request body
       const validatedData = insertMessageSchema.parse(req.body);
       console.log('Validated data:', validatedData);
       
@@ -1541,9 +1544,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(201).json(message);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating message:', error);
-      res.status(400).json({ error: "Invalid message data" });
+      if (error.name === 'ZodError') {
+        console.error('Validation error details:', error.errors);
+        res.status(400).json({ 
+          error: "خطأ في بيانات الرسالة", 
+          details: error.errors 
+        });
+      } else {
+        res.status(400).json({ error: "Invalid message data" });
+      }
     }
   });
 

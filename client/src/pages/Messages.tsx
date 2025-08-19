@@ -145,13 +145,14 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
       console.log('Sending message with data:', messageData);
-      const response = await apiRequest('POST', '/api/messages', messageData);
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Message send failed:', errorData);
-        throw new Error(errorData.error || 'Failed to send message');
+      try {
+        const response = await apiRequest('POST', '/api/messages', messageData);
+        return response.json();
+      } catch (error: any) {
+        console.error('API request failed:', error);
+        console.error('Error details:', error.message);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: () => {
       toast({
