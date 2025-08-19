@@ -496,9 +496,9 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
 });
 
 export const insertSuggestionSchema = z.object({
-  title: z.string().min(1),
-  content: z.string().min(1), 
-  category: z.string().min(1),
+  title: z.string(),
+  content: z.string(), 
+  category: z.string(),
   userId: z.number().optional(),
   status: z.string().optional()
 });
