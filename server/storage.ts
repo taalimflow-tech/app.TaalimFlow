@@ -2876,7 +2876,7 @@ export class DatabaseStorage implements IStorage {
         markedBy: groupAttendance.markedBy,
         createdAt: groupAttendance.createdAt,
         updatedAt: groupAttendance.updatedAt,
-        userId: groupMixedAssignments.userId, // Get userId from assignments table
+        assignmentUserId: groupMixedAssignments.userId, // Get userId from assignments table
       })
       .from(groupAttendance)
       .innerJoin(
@@ -2923,7 +2923,7 @@ export class DatabaseStorage implements IStorage {
 
       if (record.studentType === "student") {
         // COST OPTIMIZATION: Use userId from group mixed assignments for fast lookups
-        console.log(`[COST OPT] Using userId ${record.userId} from group assignments for fast student name lookup`);
+        console.log(`[COST OPT] Using userId ${record.assignmentUserId} from group assignments for fast student name lookup`);
         const [userInfo] = await db
           .select({
             id: users.id,
@@ -2933,7 +2933,7 @@ export class DatabaseStorage implements IStorage {
           .from(users)
           .where(
             and(
-              eq(users.id, record.userId), // Use userId from group mixed assignments
+              eq(users.id, record.assignmentUserId), // Use userId from group mixed assignments
               eq(users.schoolId, schoolId) // Verify school ID for data isolation
             )
           )
