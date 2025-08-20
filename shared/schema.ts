@@ -183,7 +183,8 @@ export const groupMixedAssignments = pgTable("group_mixed_assignments", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id, { onDelete: "cascade" }),
-  studentId: integer("student_id"), // ID from either users or children table
+  studentId: integer("student_id"), // ID from either students or children table
+  userId: integer("user_id"), // Corresponding user ID for efficient session-based queries
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   assignedAt: timestamp("assigned_at").defaultNow().notNull(),
   assignedBy: integer("assigned_by").references(() => users.id), // Admin who made the assignment

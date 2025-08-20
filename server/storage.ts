@@ -205,20 +205,9 @@ export interface IStorage {
 
   // Admin group management methods
   getAdminGroups(schoolId?: number): Promise<any[]>;
-  updateGroupAssignments(
-    groupId: number | null,
-    studentIds: number[],
-    teacherId: number,
-    groupData?: any,
-    schoolId?: number,
-  ): Promise<Group>;
+  updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group>;
   getGroupAssignments(groupId: number): Promise<any[]>;
-  getAvailableStudentsByLevelAndSubject(
-    educationLevel: string,
-    subjectId: number,
-    schoolId?: number,
-  ): Promise<any[]>;
-
+  getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]>;
   // Formation methods
   getFormations(): Promise<Formation[]>;
   getFormationsBySchool(schoolId: number): Promise<Formation[]>;
@@ -1783,15 +1772,16 @@ export class DatabaseStorage implements IStorage {
 
             console.log(`🔧 Creating assignment for student ${studentId}:`, {
               studentId: studentId,
+              userId: studentInfo.userId, // Include userId in assignment
               studentType: studentInfo.type,
-              studentName: studentInfo.name,
-              userId: studentInfo.userId || 'N/A'
+              studentName: studentInfo.name
             });
 
             return {
               schoolId: schoolId!,
               groupId: actualGroupId,
               studentId: studentId, // This now correctly uses student.id from the fixed query
+              userId: studentInfo.userId || null, // Add userId to the assignment record
               studentType: studentInfo.type as "student" | "child",
               assignedBy: adminId || null,
             };
@@ -1823,6 +1813,7 @@ export class DatabaseStorage implements IStorage {
     const assignments = await db
       .select({
         studentId: groupMixedAssignments.studentId,
+        userId: groupMixedAssignments.userId,
         studentType: groupMixedAssignments.studentType,
       })
       .from(groupMixedAssignments)
@@ -1848,7 +1839,7 @@ export class DatabaseStorage implements IStorage {
         if (studentData[0]) {
           result.push({ 
             id: studentData[0].studentId, // Use student ID, not user ID
-            userId: studentData[0].userId,
+            userId: assignment.userId || studentData[0].userId, // Prefer userId from assignment table
             name: studentData[0].name,
             email: studentData[0].email,
             phone: studentData[0].phone,
@@ -1871,7 +1862,11 @@ export class DatabaseStorage implements IStorage {
           .limit(1);
 
         if (childData[0]) {
-          result.push({ ...childData[0], type: "child" });
+          result.push({ 
+            ...childData[0], 
+            userId: assignment.userId, // Include userId from assignment table
+            type: "child" 
+          });
         }
       }
     }
