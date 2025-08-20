@@ -2864,6 +2864,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<any[]> {
     // Enhanced approach: Get attendance records by joining with group mixed assignments
     // This ensures we only get attendance for students who are actually assigned to this group in this school
+    // AND gets the userId from the assignments table for efficient lookups
     let attendanceQuery = db
       .select({
         id: groupAttendance.id,
@@ -2875,6 +2876,7 @@ export class DatabaseStorage implements IStorage {
         markedBy: groupAttendance.markedBy,
         createdAt: groupAttendance.createdAt,
         updatedAt: groupAttendance.updatedAt,
+        userId: groupMixedAssignments.userId, // Get userId from assignments table
       })
       .from(groupAttendance)
       .innerJoin(
@@ -2920,42 +2922,23 @@ export class DatabaseStorage implements IStorage {
       let studentInfo;
 
       if (record.studentType === "student") {
-        // COST OPTIMIZATION: Use userId instead of studentId for faster lookups
-        if (record.userId) {
-          console.log(`[COST OPT] Using userId ${record.userId} for fast student name lookup`);
-          const [userInfo] = await db
-            .select({
-              id: users.id,
-              name: users.name,
-              email: users.email,
-            })
-            .from(users)
-            .where(
-              and(
-                eq(users.id, record.userId),
-                eq(users.schoolId, schoolId) // Verify school ID for data isolation
-              )
+        // COST OPTIMIZATION: Use userId from group mixed assignments for fast lookups
+        console.log(`[COST OPT] Using userId ${record.userId} from group assignments for fast student name lookup`);
+        const [userInfo] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+          })
+          .from(users)
+          .where(
+            and(
+              eq(users.id, record.userId), // Use userId from group mixed assignments
+              eq(users.schoolId, schoolId) // Verify school ID for data isolation
             )
-            .limit(1);
-          studentInfo = userInfo;
-        } else {
-          // Fallback to studentId if userId not available
-          const [userInfo] = await db
-            .select({
-              id: users.id,
-              name: users.name,
-              email: users.email,
-            })
-            .from(users)
-            .where(
-              and(
-                eq(users.id, record.studentId),
-                eq(users.schoolId, schoolId) // Verify school ID for data isolation
-              )
-            )
-            .limit(1);
-          studentInfo = userInfo;
-        }
+          )
+          .limit(1);
+        studentInfo = userInfo;
       } else {
         // For children, we still use studentId since children don't have userIds
         // But we could optimize this by storing parent userId in the future
