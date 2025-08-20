@@ -2864,72 +2864,59 @@ export class DatabaseStorage implements IStorage {
   ): Promise<any[]> {
     // Direct approach: Get attendance records directly from group_attendance table
     // Use userId from attendance table for efficient name lookups
-    let attendanceQuery = db
-      .select({
-        id: groupAttendance.id,
-        attendanceDate: groupAttendance.attendanceDate,
-        status: groupAttendance.status,
-        notes: groupAttendance.notes,
-        studentId: groupAttendance.studentId,
-        studentType: groupAttendance.studentType,
-        markedBy: groupAttendance.markedBy,
-        createdAt: groupAttendance.createdAt,
-        updatedAt: groupAttendance.updatedAt,
-        userId: groupAttendance.userId, // Use userId directly from attendance table
-      })
+    const attendanceRecords = await db
+      .select()
       .from(groupAttendance)
       .where(
         and(
           eq(groupAttendance.groupId, groupId),
           eq(groupAttendance.schoolId, schoolId) // School ID verification
         )
-      );
+      )
+      .orderBy(desc(groupAttendance.attendanceDate));
 
+    // Filter by date if specified
+    let filteredRecords = attendanceRecords;
     if (date) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-
-      attendanceQuery = attendanceQuery.where(
-        and(
-          eq(groupAttendance.groupId, groupId),
-          eq(groupAttendance.schoolId, schoolId), // Ensure school ID filtering
-          and(
-            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
-            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`,
-          ),
-        ),
-      );
+      
+      filteredRecords = attendanceRecords.filter(record => {
+        const recordDate = new Date(record.attendanceDate);
+        return recordDate >= startOfDay && recordDate <= endOfDay;
+      });
     }
-
-    const attendanceRecords = await attendanceQuery.orderBy(
-      desc(groupAttendance.attendanceDate),
-    );
 
     // Populate student details for each record
     const result = [];
-    for (const record of attendanceRecords) {
+    for (const record of filteredRecords) {
       let studentInfo;
 
       if (record.studentType === "student") {
-        // COST OPTIMIZATION: Use userId directly from attendance table for fast lookups
-        console.log(`[COST OPT] Using userId ${record.userId} from attendance table for fast student name lookup`);
-        const [userInfo] = await db
-          .select({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          })
-          .from(users)
-          .where(
-            and(
-              eq(users.id, record.userId), // Use userId directly from attendance table
-              eq(users.schoolId, schoolId) // Verify school ID for data isolation
+        // CRITICAL FIX: Use userId from attendance table, not studentId
+        if (record.userId) {
+          console.log(`[FIXED] Using userId ${record.userId} from attendance table for student name lookup`);
+          const [userInfo] = await db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+            })
+            .from(users)
+            .where(
+              and(
+                eq(users.id, record.userId), // FIXED: Use userId, not studentId
+                eq(users.schoolId, schoolId) // ENFORCE school isolation
+              )
             )
-          )
-          .limit(1);
-        studentInfo = userInfo;
+            .limit(1);
+          studentInfo = userInfo;
+        } else {
+          console.log(`[ERROR] No userId found in attendance record ${record.id}`);
+          studentInfo = null;
+        }
       } else {
         // For children, we still use studentId since children don't have userIds
         // But we could optimize this by storing parent userId in the future
