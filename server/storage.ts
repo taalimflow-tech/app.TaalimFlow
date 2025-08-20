@@ -2862,9 +2862,8 @@ export class DatabaseStorage implements IStorage {
     schoolId: number, // Add schoolId parameter for data isolation
     date?: string,
   ): Promise<any[]> {
-    // Enhanced approach: Get attendance records by joining with group mixed assignments
-    // This ensures we only get attendance for students who are actually assigned to this group in this school
-    // AND gets the userId from the assignments table for efficient lookups
+    // Direct approach: Get attendance records directly from group_attendance table
+    // Use userId from attendance table for efficient name lookups
     let attendanceQuery = db
       .select({
         id: groupAttendance.id,
@@ -2876,21 +2875,13 @@ export class DatabaseStorage implements IStorage {
         markedBy: groupAttendance.markedBy,
         createdAt: groupAttendance.createdAt,
         updatedAt: groupAttendance.updatedAt,
-        assignmentUserId: groupMixedAssignments.userId, // Get userId from assignments table
+        userId: groupAttendance.userId, // Use userId directly from attendance table
       })
       .from(groupAttendance)
-      .innerJoin(
-        groupMixedAssignments,
-        and(
-          eq(groupAttendance.groupId, groupMixedAssignments.groupId),
-          eq(groupAttendance.studentId, groupMixedAssignments.studentId),
-          eq(groupMixedAssignments.schoolId, schoolId) // Verify student belongs to this school
-        )
-      )
       .where(
         and(
           eq(groupAttendance.groupId, groupId),
-          eq(groupAttendance.schoolId, schoolId) // Double verification for school ID
+          eq(groupAttendance.schoolId, schoolId) // School ID verification
         )
       );
 
@@ -2922,8 +2913,8 @@ export class DatabaseStorage implements IStorage {
       let studentInfo;
 
       if (record.studentType === "student") {
-        // COST OPTIMIZATION: Use userId from group mixed assignments for fast lookups
-        console.log(`[COST OPT] Using userId ${record.assignmentUserId} from group assignments for fast student name lookup`);
+        // COST OPTIMIZATION: Use userId directly from attendance table for fast lookups
+        console.log(`[COST OPT] Using userId ${record.userId} from attendance table for fast student name lookup`);
         const [userInfo] = await db
           .select({
             id: users.id,
@@ -2933,7 +2924,7 @@ export class DatabaseStorage implements IStorage {
           .from(users)
           .where(
             and(
-              eq(users.id, record.assignmentUserId), // Use userId from group mixed assignments
+              eq(users.id, record.userId), // Use userId directly from attendance table
               eq(users.schoolId, schoolId) // Verify school ID for data isolation
             )
           )
