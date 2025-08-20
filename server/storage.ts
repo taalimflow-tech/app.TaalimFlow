@@ -881,7 +881,32 @@ export class DatabaseStorage implements IStorage {
 
     // Apply all conditions
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          profilePicture: users.profilePicture,
+          verified: users.verified,
+          createdAt: users.createdAt,
+          banned: users.banned,
+          schoolId: users.schoolId,
+        })
+        .from(users)
+        .leftJoin(students, eq(users.id, students.userId))
+        .leftJoin(children, eq(users.id, children.parentId))
+        .leftJoin(
+          teacherSpecializations,
+          eq(users.id, teacherSpecializations.teacherId),
+        )
+        .leftJoin(
+          teachingModules,
+          eq(teacherSpecializations.moduleId, teachingModules.id),
+        )
+        .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId))
+        .where(and(...conditions));
     }
 
     // Execute query and remove duplicates
@@ -898,7 +923,7 @@ export class DatabaseStorage implements IStorage {
 
   async createChild(insertChild: InsertChild): Promise<Child> {
     // First create the child without QR code
-    const [child] = await db.insert(children).values(insertChild).returning();
+    const [child] = await db.insert(children).values([insertChild]).returning();
 
     // Only generate QR code if parent is verified
     const [parentInfo] = await db
@@ -1217,10 +1242,15 @@ export class DatabaseStorage implements IStorage {
 
   async createAnnouncement(
     insertAnnouncement: InsertAnnouncement,
+    schoolId?: number,
   ): Promise<Announcement> {
+    const announcementData = {
+      ...insertAnnouncement,
+      schoolId: schoolId || insertAnnouncement.schoolId || 1,
+    };
     const [announcement] = await db
       .insert(announcements)
-      .values(insertAnnouncement)
+      .values([announcementData])
       .returning();
     return announcement;
   }
@@ -1237,10 +1267,17 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(blogPosts.createdAt));
   }
 
-  async createBlogPost(insertBlogPost: InsertBlogPost): Promise<BlogPost> {
+  async createBlogPost(
+    insertBlogPost: InsertBlogPost,
+    schoolId?: number,
+  ): Promise<BlogPost> {
+    const blogPostData = {
+      ...insertBlogPost,
+      schoolId: schoolId || insertBlogPost.schoolId || 1,
+    };
     const [blogPost] = await db
       .insert(blogPosts)
-      .values(insertBlogPost)
+      .values([blogPostData])
       .returning();
     return blogPost;
   }
@@ -1336,10 +1373,17 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(messages).orderBy(desc(messages.createdAt));
   }
 
-  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+  async createMessage(
+    insertMessage: InsertMessage,
+    schoolId?: number,
+  ): Promise<Message> {
+    const messageData = {
+      ...insertMessage,
+      schoolId: schoolId || insertMessage.schoolId || 1,
+    };
     const [message] = await db
       .insert(messages)
-      .values(insertMessage)
+      .values([messageData])
       .returning();
     return message;
   }
@@ -1471,14 +1515,14 @@ export class DatabaseStorage implements IStorage {
       category: insertSuggestion.category || "other",
       status: insertSuggestion.status || "pending",
       userId: insertSuggestion.userId,
-      schoolId: schoolId,
+      schoolId: schoolId!,
     };
 
     console.log("Safe data for insertion:", safeData);
 
     const [suggestion] = await db
       .insert(suggestions)
-      .values(safeData)
+      .values([safeData])
       .returning();
     return suggestion;
   }
@@ -1567,9 +1611,13 @@ export class DatabaseStorage implements IStorage {
       const assignmentsByGroup = new Map<number, any[]>();
       for (const assignment of allAssignments) {
         if (!assignmentsByGroup.has(assignment.groupId)) {
+          if (assignment.groupId) {
           assignmentsByGroup.set(assignment.groupId, []);
         }
-        assignmentsByGroup.get(assignment.groupId)!.push(assignment);
+        }
+        if (assignment.groupId) {
+          assignmentsByGroup.get(assignment.groupId)!.push(assignment);
+        }
       }
 
       // Process existing groups and add student assignments
@@ -1583,9 +1631,9 @@ export class DatabaseStorage implements IStorage {
       const allChildIds = new Set<number>();
 
       for (const assignment of allAssignments) {
-        if (assignment.studentType === "student") {
+        if (assignment.studentType === "student" && assignment.studentId != null) {
           allStudentIds.add(assignment.studentId);
-        } else if (assignment.studentType === "child") {
+        } else if (assignment.studentType === "child" && assignment.studentId != null) {
           allChildIds.add(assignment.studentId);
         }
       }
@@ -2074,7 +2122,7 @@ export class DatabaseStorage implements IStorage {
   async createFormation(insertFormation: InsertFormation): Promise<Formation> {
     const [formation] = await db
       .insert(formations)
-      .values(insertFormation)
+      .values([insertFormation])
       .returning();
     return formation;
   }
@@ -2088,7 +2136,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<GroupRegistration> {
     const [registration] = await db
       .insert(groupRegistrations)
-      .values(insertGroupRegistration)
+      .values([insertGroupRegistration])
       .returning();
     return registration;
   }
@@ -2098,7 +2146,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<FormationRegistration> {
     const [registration] = await db
       .insert(formationRegistrations)
-      .values(insertFormationRegistration)
+      .values([insertFormationRegistration])
       .returning();
     return registration;
   }
@@ -2618,7 +2666,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<TeacherSpecialization> {
     const [specialization] = await db
       .insert(teacherSpecializations)
-      .values(insertSpecialization)
+      .values([insertSpecialization])
       .returning();
     return specialization;
   }
@@ -2668,7 +2716,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<ScheduleTable> {
     const [table] = await db
       .insert(scheduleTables)
-      .values(insertTable)
+      .values([insertTable])
       .returning();
     return table;
   }
@@ -2737,7 +2785,7 @@ export class DatabaseStorage implements IStorage {
     groupId: number,
     date?: string,
   ): Promise<GroupAttendance[]> {
-    const query = db
+    let query = db
       .select()
       .from(groupAttendance)
       .where(eq(groupAttendance.groupId, groupId));
@@ -2748,17 +2796,16 @@ export class DatabaseStorage implements IStorage {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      return await query
+      query = db
+        .select()
+        .from(groupAttendance)
         .where(
           and(
             eq(groupAttendance.groupId, groupId),
-            and(
-              sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
-              sql`${groupAttendance.attendanceDate} <= ${endOfDay}`,
-            ),
+            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
+            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`,
           ),
-        )
-        .orderBy(desc(groupAttendance.attendanceDate));
+        );
     }
 
     return await query.orderBy(desc(groupAttendance.attendanceDate));
@@ -2859,9 +2906,12 @@ export class DatabaseStorage implements IStorage {
 
   async getAttendanceWithStudentDetails(
     groupId: number,
-    schoolId: number, // Add schoolId parameter for data isolation
     date?: string,
   ): Promise<any[]> {
+    // Get school ID from group for data isolation
+    const [group] = await db.select({ schoolId: groups.schoolId }).from(groups).where(eq(groups.id, groupId)).limit(1);
+    const schoolId = group?.schoolId;
+    if (!schoolId) throw new Error('Group not found or missing school ID');
     // Direct approach: Get attendance records directly from group_attendance table
     // Use userId from attendance table for efficient name lookups
     const attendanceRecords = await db
@@ -3055,12 +3105,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(groupTransactions.groupId, groupId));
 
     if (studentId) {
-      query = query.where(
-        and(
-          eq(groupTransactions.groupId, groupId),
-          eq(groupTransactions.studentId, studentId),
-        ),
-      );
+      query = db
+        .select()
+        .from(groupTransactions)
+        .where(
+          and(
+            eq(groupTransactions.groupId, groupId),
+            eq(groupTransactions.studentId, studentId),
+          ),
+        );
     }
 
     return await query.orderBy(desc(groupTransactions.createdAt));
@@ -3069,9 +3122,14 @@ export class DatabaseStorage implements IStorage {
   async createTransaction(
     transaction: InsertGroupTransaction,
   ): Promise<GroupTransaction> {
+    // Add missing studentType if not provided
+    const finalTransaction = {
+      ...transaction,
+      studentType: transaction.studentType || "student" as "student" | "child",
+    };
     const [result] = await db
       .insert(groupTransactions)
-      .values(transaction)
+      .values([finalTransaction])
       .returning();
     return result;
   }
@@ -3210,7 +3268,7 @@ export class DatabaseStorage implements IStorage {
     let finalSchoolId = schoolId;
     if (!finalSchoolId) {
       const blocker = await this.getUser(blockerId);
-      finalSchoolId = blocker?.schoolId;
+      finalSchoolId = blocker?.schoolId ?? undefined;
     }
 
     if (!finalSchoolId) {
@@ -3219,7 +3277,7 @@ export class DatabaseStorage implements IStorage {
 
     const [blockedUser] = await db
       .insert(blockedUsers)
-      .values({ blockerId, blockedId, reason, schoolId: finalSchoolId })
+      .values([{ blockerId, blockedId, reason: reason || null, schoolId: finalSchoolId }])
       .returning();
     return blockedUser;
   }
@@ -3284,18 +3342,19 @@ export class DatabaseStorage implements IStorage {
   // User reporting methods
   async reportUser(insertReport: InsertUserReport): Promise<UserReport> {
     // Ensure schoolId is present
-    if (!insertReport.schoolId) {
+    let finalReport = { ...insertReport };
+    if (!finalReport.schoolId) {
       const reporter = await this.getUser(insertReport.reporterId);
-      insertReport.schoolId = reporter?.schoolId;
+      finalReport.schoolId = reporter?.schoolId;
     }
 
-    if (!insertReport.schoolId) {
+    if (!finalReport.schoolId) {
       throw new Error("School ID is required for reporting users");
     }
 
     const [report] = await db
       .insert(userReports)
-      .values(insertReport)
+      .values([finalReport])
       .returning();
     return report;
   }
@@ -3335,11 +3394,32 @@ export class DatabaseStorage implements IStorage {
       );
 
     // Filter by school if provided (for proper multi-tenancy)
+    let finalQuery = query;
     if (schoolId) {
-      query = query.where(eq(userReports.schoolId, schoolId));
+      finalQuery = db
+        .select({
+          id: userReports.id,
+          reporterId: userReports.reporterId,
+          reportedUserId: userReports.reportedUserId,
+          messageId: userReports.messageId,
+          reason: userReports.reason,
+          description: userReports.description,
+          status: userReports.status,
+          createdAt: userReports.createdAt,
+          reporterName: reporterAlias.name,
+          reportedUserName: reportedAlias.name,
+          schoolId: userReports.schoolId,
+        })
+        .from(userReports)
+        .leftJoin(reporterAlias, eq(userReports.reporterId, reporterAlias.id))
+        .leftJoin(
+          reportedAlias,
+          eq(userReports.reportedUserId, reportedAlias.id),
+        )
+        .where(eq(userReports.schoolId, schoolId));
     }
 
-    return await query.orderBy(desc(userReports.createdAt));
+    return await finalQuery.orderBy(desc(userReports.createdAt));
   }
 
   async updateReportStatus(
@@ -3420,7 +3500,7 @@ export class DatabaseStorage implements IStorage {
     // Get additional user info for receivers including their roles
     const messagesWithCompleteInfo = await Promise.all(
       result.map(async (message) => {
-        const receiver = await this.getUser(message.receiverId);
+        const receiver = message.receiverId ? await this.getUser(message.receiverId) : undefined;
         return {
           ...message,
           receiverName: receiver?.name,
@@ -3574,7 +3654,7 @@ export class DatabaseStorage implements IStorage {
   async createNotificationLog(
     log: InsertNotificationLog,
   ): Promise<NotificationLog> {
-    const [newLog] = await db.insert(notificationLogs).values(log).returning();
+    const [newLog] = await db.insert(notificationLogs).values([log]).returning();
     return newLog;
   }
 
@@ -3657,13 +3737,13 @@ export class DatabaseStorage implements IStorage {
   }) {
     const [customSubject] = await db
       .insert(teachingModules)
-      .values({
+      .values([{
         name: subjectData.name,
         nameAr: subjectData.nameAr,
         educationLevel: subjectData.educationLevel,
         grade: subjectData.grade,
         description: subjectData.description,
-      })
+      }])
       .returning();
     return customSubject;
   }
