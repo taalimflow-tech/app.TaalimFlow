@@ -2920,48 +2920,21 @@ export class DatabaseStorage implements IStorage {
       let studentInfo;
 
       if (record.studentType === "student") {
-        let userInfo = null;
-        
-        // ALWAYS try userId first (most reliable)
-        if (record.userId) {
-          console.log(`[USING USERID] ${record.userId} for student lookup`);
-          const [user] = await db
-            .select({
-              id: users.id,
-              name: users.name,
-              email: users.email,
-            })
-            .from(users)
-            .where(
-              and(
-                eq(users.id, record.userId),
-                eq(users.schoolId, schoolId)
-              )
+        // Get user details with school ID verification for data isolation
+        const [userInfo] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+          })
+          .from(users)
+          .where(
+            and(
+              eq(users.id, record.studentId),
+              eq(users.schoolId, schoolId) // Verify school ID for data isolation
             )
-            .limit(1);
-          userInfo = user;
-        }
-        
-        // Fallback to studentId if userId lookup failed
-        if (!userInfo && record.studentId) {
-          console.log(`[FALLBACK STUDENTID] ${record.studentId} for student lookup`);
-          const [user] = await db
-            .select({
-              id: users.id,
-              name: users.name,
-              email: users.email,
-            })
-            .from(users)
-            .where(
-              and(
-                eq(users.id, record.studentId),
-                eq(users.schoolId, schoolId)
-              )
-            )
-            .limit(1);
-          userInfo = user;
-        }
-        
+          )
+          .limit(1);
         studentInfo = userInfo;
       } else {
         // Get child details with school ID verification for data isolation
