@@ -3267,6 +3267,9 @@ export default function Groups() {
                                   // Use the student name from attendance record (which uses userId correctly)
                                   const studentName = studentAttendanceRecord?.student?.name || `Student ${uniqueId}`;
                                   
+                                  // CRITICAL: Get the correct studentId for attendance marking
+                                  const correctStudentId = studentAttendanceRecord?.studentId;
+                                  
                                   return (
                                     <tr
                                       key={uniqueId}
@@ -3278,13 +3281,13 @@ export default function Groups() {
                                         </div>
                                         {/* DEBUG: Show correct student info */}
                                         <div className="text-xs text-red-500 mt-1">
-                                          DEBUG: User ID = {studentAttendanceRecord?.userId || 'MISSING'}, Student ID = {studentAttendanceRecord?.studentId}, School ID = {user?.schoolId}
+                                          DEBUG: User ID = {studentAttendanceRecord?.userId || 'MISSING'}, Student ID = {correctStudentId}, School ID = {user?.schoolId}
                                         </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
                                           const paymentStatus =
-                                            getStudentPaymentStatus(uniqueId);
+                                            getStudentPaymentStatus(correctStudentId);
 
                                           // If it's a virtual record with no payment requirement
                                           if (
@@ -3390,7 +3393,7 @@ export default function Groups() {
                                             <button
                                               onClick={() =>
                                                 handleTableAttendanceClick(
-                                                  uniqueId,
+                                                  correctStudentId, // Use correct studentId, not userId
                                                   date,
                                                   attendanceRecord?.status,
                                                 )
