@@ -2862,7 +2862,8 @@ export class DatabaseStorage implements IStorage {
     schoolId: number, // Add schoolId parameter for data isolation
     date?: string,
   ): Promise<any[]> {
-    // Get attendance records with mixed student types
+    // Enhanced approach: Get attendance records by joining with group mixed assignments
+    // This ensures we only get attendance for students who are actually assigned to this group in this school
     let attendanceQuery = db
       .select({
         id: groupAttendance.id,
@@ -2876,10 +2877,18 @@ export class DatabaseStorage implements IStorage {
         updatedAt: groupAttendance.updatedAt,
       })
       .from(groupAttendance)
+      .innerJoin(
+        groupMixedAssignments,
+        and(
+          eq(groupAttendance.groupId, groupMixedAssignments.groupId),
+          eq(groupAttendance.studentId, groupMixedAssignments.studentId),
+          eq(groupMixedAssignments.schoolId, schoolId) // Verify student belongs to this school
+        )
+      )
       .where(
         and(
           eq(groupAttendance.groupId, groupId),
-          eq(groupAttendance.schoolId, schoolId) // Add school ID filtering for data isolation
+          eq(groupAttendance.schoolId, schoolId) // Double verification for school ID
         )
       );
 
