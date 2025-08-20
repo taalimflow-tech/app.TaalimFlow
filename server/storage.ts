@@ -2920,24 +2920,45 @@ export class DatabaseStorage implements IStorage {
       let studentInfo;
 
       if (record.studentType === "student") {
-        // Get user details with school ID verification for data isolation
-        const [userInfo] = await db
-          .select({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          })
-          .from(users)
-          .where(
-            and(
-              eq(users.id, record.studentId),
-              eq(users.schoolId, schoolId) // Verify school ID for data isolation
+        // COST OPTIMIZATION: Use userId instead of studentId for faster lookups
+        if (record.userId) {
+          console.log(`[COST OPT] Using userId ${record.userId} for fast student name lookup`);
+          const [userInfo] = await db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+            })
+            .from(users)
+            .where(
+              and(
+                eq(users.id, record.userId),
+                eq(users.schoolId, schoolId) // Verify school ID for data isolation
+              )
             )
-          )
-          .limit(1);
-        studentInfo = userInfo;
+            .limit(1);
+          studentInfo = userInfo;
+        } else {
+          // Fallback to studentId if userId not available
+          const [userInfo] = await db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+            })
+            .from(users)
+            .where(
+              and(
+                eq(users.id, record.studentId),
+                eq(users.schoolId, schoolId) // Verify school ID for data isolation
+              )
+            )
+            .limit(1);
+          studentInfo = userInfo;
+        }
       } else {
-        // Get child details with school ID verification for data isolation
+        // For children, we still use studentId since children don't have userIds
+        // But we could optimize this by storing parent userId in the future
         const [childInfo] = await db
           .select({
             id: children.id,
