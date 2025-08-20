@@ -3170,6 +3170,10 @@ export default function Groups() {
               </div>
 
               <div className="p-6">
+                {/* DEBUG: Log students assigned data */}
+                {console.log('[DEBUG] Students Assigned:', managementGroup.studentsAssigned)}
+                {console.log('[DEBUG] Attendance History:', attendanceHistory)}
+                
                 {managementGroup.studentsAssigned &&
                 managementGroup.studentsAssigned.length > 0 ? (
                   <div className="space-y-6">
@@ -3263,6 +3267,10 @@ export default function Groups() {
                                         <div className="font-medium">
                                           {student.name}
                                         </div>
+                                        {/* DEBUG: Show student info */}
+                                        <div className="text-xs text-red-500 mt-1">
+                                          DEBUG: Student ID = {student.id}
+                                        </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
@@ -3337,6 +3345,15 @@ export default function Groups() {
                                         })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
+                                        // DEBUG: Log attendance lookup
+                                        console.log(`[DEBUG] Looking for attendance: Student ID ${student.id}, Date ${date}`);
+                                        console.log(`[DEBUG] Available attendance records:`, attendanceHistory?.map(r => ({
+                                          studentId: r.studentId,
+                                          userId: r.userId,
+                                          date: r.attendanceDate?.split("T")[0],
+                                          student: r.student?.name
+                                        })));
+                                        
                                         const attendanceRecord =
                                           attendanceHistory.find(
                                             (record: any) =>
@@ -3345,6 +3362,16 @@ export default function Groups() {
                                                 "T",
                                               )[0] === date,
                                           );
+                                          
+                                        // DEBUG: Log match result
+                                        if (attendanceRecord) {
+                                          console.log(`[DEBUG] Found attendance record:`, {
+                                            studentId: attendanceRecord.studentId,
+                                            userId: attendanceRecord.userId,
+                                            studentName: attendanceRecord.student?.name,
+                                            status: attendanceRecord.status
+                                          });
+                                        }
 
                                         return (
                                           <td
