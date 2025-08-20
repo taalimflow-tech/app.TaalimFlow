@@ -3171,8 +3171,11 @@ export default function Groups() {
 
               <div className="p-6">
                 {/* DEBUG: Log students assigned data */}
-                {console.log('[DEBUG] Students Assigned:', managementGroup.studentsAssigned)}
-                {console.log('[DEBUG] Attendance History:', attendanceHistory)}
+                {(() => {
+                  console.log('[DEBUG] Students Assigned:', managementGroup.studentsAssigned);
+                  console.log('[DEBUG] Attendance History:', attendanceHistory);
+                  return null;
+                })()}
                 
                 {managementGroup.studentsAssigned &&
                 managementGroup.studentsAssigned.length > 0 ? (
