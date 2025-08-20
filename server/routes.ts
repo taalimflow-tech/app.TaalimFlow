@@ -3518,9 +3518,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const groupId = parseInt(req.params.groupId);
       const { date } = req.query;
+      const schoolId = req.session.user.schoolId; // Get schoolId from session for data isolation
 
       const attendance = await storage.getAttendanceWithStudentDetails(
         groupId,
+        schoolId, // Pass schoolId for data isolation
         date as string,
       );
       res.json(attendance);

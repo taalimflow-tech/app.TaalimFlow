@@ -2859,6 +2859,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAttendanceWithStudentDetails(
     groupId: number,
+    schoolId: number, // Add schoolId parameter for data isolation
     date?: string,
   ): Promise<any[]> {
     // Get attendance records with mixed student types
@@ -2875,7 +2876,12 @@ export class DatabaseStorage implements IStorage {
         updatedAt: groupAttendance.updatedAt,
       })
       .from(groupAttendance)
-      .where(eq(groupAttendance.groupId, groupId));
+      .where(
+        and(
+          eq(groupAttendance.groupId, groupId),
+          eq(groupAttendance.schoolId, schoolId) // Add school ID filtering for data isolation
+        )
+      );
 
     if (date) {
       const startOfDay = new Date(date);
@@ -2886,6 +2892,7 @@ export class DatabaseStorage implements IStorage {
       attendanceQuery = attendanceQuery.where(
         and(
           eq(groupAttendance.groupId, groupId),
+          eq(groupAttendance.schoolId, schoolId), // Ensure school ID filtering
           and(
             sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
             sql`${groupAttendance.attendanceDate} <= ${endOfDay}`,
@@ -2904,7 +2911,7 @@ export class DatabaseStorage implements IStorage {
       let studentInfo;
 
       if (record.studentType === "student") {
-        // Get user details
+        // Get user details with school ID verification for data isolation
         const [userInfo] = await db
           .select({
             id: users.id,
@@ -2912,11 +2919,16 @@ export class DatabaseStorage implements IStorage {
             email: users.email,
           })
           .from(users)
-          .where(eq(users.id, record.studentId))
+          .where(
+            and(
+              eq(users.id, record.studentId),
+              eq(users.schoolId, schoolId) // Verify school ID for data isolation
+            )
+          )
           .limit(1);
         studentInfo = userInfo;
       } else {
-        // Get child details
+        // Get child details with school ID verification for data isolation
         const [childInfo] = await db
           .select({
             id: children.id,
@@ -2927,7 +2939,12 @@ export class DatabaseStorage implements IStorage {
               ),
           })
           .from(children)
-          .where(eq(children.id, record.studentId))
+          .where(
+            and(
+              eq(children.id, record.studentId),
+              eq(children.schoolId, schoolId) // Verify school ID for data isolation
+            )
+          )
           .limit(1);
         studentInfo = childInfo;
       }
