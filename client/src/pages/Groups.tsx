@@ -3257,37 +3257,35 @@ export default function Groups() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {/* FIXED: Use attendance records to get students with correct userIds, not studentsAssigned */}
-                                {Array.from(new Set(attendanceHistory?.map((record: any) => record.userId || record.studentId))).map((uniqueId: any) => {
-                                  // Get the attendance record for this unique student
-                                  const studentAttendanceRecord = attendanceHistory?.find((record: any) => 
-                                    (record.userId || record.studentId) === uniqueId
-                                  );
+                                {/* CORRECT FLOW: Use attendance records grouped by userId for display */}
+                                {Array.from(new Set(attendanceHistory?.map((record: any) => record.userId))).filter(Boolean).map((userId: any) => {
+                                  // Get the first attendance record for this userId (all records for same user will have same student info)
+                                  const userAttendanceRecord = attendanceHistory?.find((record: any) => record.userId === userId);
                                   
-                                  // Use the student name from attendance record (which uses userId correctly)
-                                  const studentName = studentAttendanceRecord?.student?.name || `Student ${uniqueId}`;
+                                  // Student name comes from userId lookup in users table (via backend)
+                                  const studentName = userAttendanceRecord?.student?.name || `Student ${userId}`;
                                   
-                                  // CRITICAL: Get the correct studentId for attendance marking
-                                  const correctStudentId = studentAttendanceRecord?.studentId;
+                                  // StudentId for attendance marking (stored in attendance records)
+                                  const studentId = userAttendanceRecord?.studentId;
                                   
                                   return (
                                     <tr
-                                      key={uniqueId}
+                                      key={userId}
                                       className="hover:bg-gray-50"
                                     >
                                       <td className="border border-gray-300 p-3 font-medium">
                                         <div className="font-medium">
                                           {studentName}
                                         </div>
-                                        {/* DEBUG: Show correct student info */}
+                                        {/* DEBUG: Show correct flow - userId for name, studentId for attendance */}
                                         <div className="text-xs text-red-500 mt-1">
-                                          DEBUG: User ID = {studentAttendanceRecord?.userId || 'MISSING'}, Student ID = {correctStudentId}, School ID = {user?.schoolId}
+                                          DEBUG: User ID = {userId} (for name lookup), Student ID = {studentId} (for attendance), School ID = {user?.schoolId}
                                         </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
                                           const paymentStatus =
-                                            getStudentPaymentStatus(correctStudentId);
+                                            getStudentPaymentStatus(studentId);
 
                                           // If it's a virtual record with no payment requirement
                                           if (
@@ -3311,7 +3309,7 @@ export default function Groups() {
                                                 <button
                                                   onClick={() =>
                                                     handleTogglePayment(
-                                                      student.id,
+                                                      studentId,
                                                     )
                                                   }
                                                   className={`px-3 py-1 rounded text-sm font-medium ${
@@ -3357,8 +3355,8 @@ export default function Groups() {
                                         })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
-                                        // DEBUG: Log attendance lookup
-                                        console.log(`[DEBUG] Looking for attendance: User ID ${uniqueId}, Date ${date}`);
+                                        // DEBUG: Log correct attendance lookup flow
+                                        console.log(`[DEBUG] Looking for attendance: User ID ${userId} (for name), Student ID ${studentId} (for attendance), Date ${date}`);
                                         console.log(`[DEBUG] Available attendance records:`, attendanceHistory?.map(r => ({
                                           studentId: r.studentId,
                                           userId: r.userId,
@@ -3366,10 +3364,11 @@ export default function Groups() {
                                           student: r.student?.name
                                         })));
                                         
+                                        // Find attendance record by userId and date (userId groups all records for this student)
                                         const attendanceRecord =
                                           attendanceHistory.find(
                                             (record: any) =>
-                                              (record.userId || record.studentId) === uniqueId &&
+                                              record.userId === userId &&
                                               record.attendanceDate?.split(
                                                 "T",
                                               )[0] === date,
@@ -3393,7 +3392,7 @@ export default function Groups() {
                                             <button
                                               onClick={() =>
                                                 handleTableAttendanceClick(
-                                                  correctStudentId, // Use correct studentId, not userId
+                                                  studentId, // Use studentId for attendance marking
                                                   date,
                                                   attendanceRecord?.status,
                                                 )
