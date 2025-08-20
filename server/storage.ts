@@ -2767,26 +2767,58 @@ export class DatabaseStorage implements IStorage {
   async markAttendance(
     attendance: InsertGroupAttendance,
   ): Promise<GroupAttendance> {
+    // COST OPTIMIZATION: Ensure userId is populated from groupMixedAssignments if not provided
+    let finalAttendance = { ...attendance };
+    
+    if (!attendance.userId) {
+      console.log(`[COST OPT] Looking up userId for studentId: ${attendance.studentId}, type: ${attendance.studentType}`);
+      
+      // Get userId from groupMixedAssignments for cost optimization
+      const assignment = await db
+        .select({ userId: groupMixedAssignments.userId })
+        .from(groupMixedAssignments)
+        .where(
+          and(
+            eq(groupMixedAssignments.groupId, attendance.groupId),
+            eq(groupMixedAssignments.studentId, attendance.studentId),
+            eq(groupMixedAssignments.studentType, attendance.studentType)
+          )
+        )
+        .limit(1);
+        
+      if (assignment[0]?.userId) {
+        finalAttendance.userId = assignment[0].userId;
+        console.log(`[COST OPT] Found userId: ${assignment[0].userId} for efficient queries`);
+      } else {
+        console.log(`[WARNING] No userId found in assignments for student ${attendance.studentId}`);
+      }
+    }
+
     // Check if attendance record already exists for this student on this date
     const attendanceDateStart = new Date(attendance.attendanceDate);
     attendanceDateStart.setHours(0, 0, 0, 0);
     const attendanceDateEnd = new Date(attendance.attendanceDate);
     attendanceDateEnd.setHours(23, 59, 59, 999);
 
+    // COST OPTIMIZATION: Use userId for faster lookups when available
+    const whereConditions = [
+      eq(groupAttendance.groupId, attendance.groupId),
+      eq(groupAttendance.studentId, attendance.studentId),
+      eq(groupAttendance.studentType, attendance.studentType),
+      and(
+        sql`${groupAttendance.attendanceDate} >= ${attendanceDateStart}`,
+        sql`${groupAttendance.attendanceDate} <= ${attendanceDateEnd}`,
+      ),
+    ];
+
+    if (finalAttendance.userId) {
+      whereConditions.push(eq(groupAttendance.userId, finalAttendance.userId));
+    }
+
     const existing = await db
       .select()
       .from(groupAttendance)
-      .where(
-        and(
-          eq(groupAttendance.groupId, attendance.groupId),
-          eq(groupAttendance.studentId, attendance.studentId),
-          eq(groupAttendance.studentType, attendance.studentType),
-          and(
-            sql`${groupAttendance.attendanceDate} >= ${attendanceDateStart}`,
-            sql`${groupAttendance.attendanceDate} <= ${attendanceDateEnd}`,
-          ),
-        ),
-      )
+      .where(and(...whereConditions))
       .limit(1);
 
     if (existing.length > 0) {
@@ -2797,16 +2829,17 @@ export class DatabaseStorage implements IStorage {
           status: attendance.status,
           notes: attendance.notes,
           markedBy: attendance.markedBy,
+          userId: finalAttendance.userId, // Update userId for cost optimization
           updatedAt: new Date(),
         })
         .where(eq(groupAttendance.id, existing[0].id))
         .returning();
       return result;
     } else {
-      // Create new record
+      // Create new record with userId for cost optimization
       const [result] = await db
         .insert(groupAttendance)
-        .values(attendance)
+        .values(finalAttendance)
         .returning();
       return result;
     }
@@ -2927,10 +2960,12 @@ export class DatabaseStorage implements IStorage {
     groupId: number,
     schoolId: number,
   ): Promise<any[]> {
+    // COST OPTIMIZATION: Include userId in the initial query for efficient lookups
     const attendanceRecords = await db
       .select({
         id: groupAttendance.id,
         studentId: groupAttendance.studentId,
+        userId: groupAttendance.userId, // Include userId for cost optimization
         studentType: groupAttendance.studentType,
         status: groupAttendance.status,
         attendanceDate: groupAttendance.attendanceDate,
@@ -2948,19 +2983,33 @@ export class DatabaseStorage implements IStorage {
         desc(groupAttendance.createdAt),
       );
 
-    // Populate student names for mixed assignments
+    // COST OPTIMIZATION: Populate student names using userId when available
     const result = [];
     for (const record of attendanceRecords) {
       let studentName = "غير معروف";
 
       if (record.studentType === "student") {
-        const [userInfo] = await db
-          .select({ name: users.name })
-          .from(users)
-          .where(eq(users.id, record.studentId))
-          .limit(1);
-        studentName = userInfo?.name || "طالب غير موجود";
+        // COST OPTIMIZATION: Use userId directly when available (faster than JOIN)
+        if (record.userId) {
+          console.log(`[COST OPT] Using userId ${record.userId} for fast student name lookup`);
+          const [userInfo] = await db
+            .select({ name: users.name })
+            .from(users)
+            .where(eq(users.id, record.userId))
+            .limit(1);
+          studentName = userInfo?.name || "طالب غير موجود";
+        } else {
+          // Fallback: Look up via studentId (less efficient)
+          console.log(`[FALLBACK] Looking up student name via studentId ${record.studentId}`);
+          const [userInfo] = await db
+            .select({ name: users.name })
+            .from(users)
+            .where(eq(users.id, record.studentId))
+            .limit(1);
+          studentName = userInfo?.name || "طالب غير موجود";
+        }
       } else {
+        // For children: Direct lookup by child ID (studentId)
         const [childInfo] = await db
           .select({ name: children.name })
           .from(children)

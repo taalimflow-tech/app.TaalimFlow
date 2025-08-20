@@ -207,6 +207,7 @@ export const groupAttendance = pgTable("group_attendance", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id).notNull(),
   studentId: integer("student_id").notNull(), // ID from either users or children table
+  userId: integer("user_id"), // Corresponding user ID for efficient session-based queries - cost optimization
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   attendanceDate: timestamp("attendance_date").notNull(),
   status: text("status", { enum: ["present", "absent", "late", "excused"] }).notNull().default("absent"),
@@ -667,6 +668,8 @@ export const insertScheduleCellSchema = createInsertSchema(scheduleCells).pick({
 export const insertGroupAttendanceSchema = createInsertSchema(groupAttendance).pick({
   groupId: true,
   studentId: true,
+  userId: true,
+  studentType: true,
   attendanceDate: true,
   status: true,
   notes: true,
