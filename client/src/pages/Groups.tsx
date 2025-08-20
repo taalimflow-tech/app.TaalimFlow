@@ -3355,24 +3355,34 @@ export default function Groups() {
                                         })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
-                                        // CORRECTED: Look for attendance using studentId (not userId) since attendance records are stored by studentId
-                                        // But we still group the display by userId to avoid duplicate student rows
-                                        const attendanceRecord = attendanceHistory.find(
-                                          (record: any) =>
-                                            record.studentId === studentId && // Use studentId for attendance lookup
-                                            record.attendanceDate?.split("T")[0] === date
-                                        );
-                                        
                                         // DEBUG: Log correct attendance lookup flow
-                                        console.log(`[DEBUG] Looking for attendance: User ID ${userId} (display), Student ID ${studentId} (attendance), Date ${date}`);
-                                        console.log(`[DEBUG] Found record:`, attendanceRecord ? {
-                                          studentId: attendanceRecord.studentId,
-                                          userId: attendanceRecord.userId,
-                                          studentName: attendanceRecord.student?.name,
-                                          status: attendanceRecord.status,
-                                          date: attendanceRecord.attendanceDate?.split("T")[0]
-                                        } : 'No record found');
-
+                                        console.log(`[DEBUG] Looking for attendance: User ID ${userId} (for name), Student ID ${studentId} (for attendance), Date ${date}`);
+                                        console.log(`[DEBUG] Available attendance records:`, attendanceHistory?.map(r => ({
+                                          studentId: r.studentId,
+                                          userId: r.userId,
+                                          date: r.attendanceDate?.split("T")[0],
+                                          student: r.student?.name
+                                        })));
+                                        
+                                        // Find attendance record by userId and date (userId groups all records for this student)
+                                        const attendanceRecord =
+                                          attendanceHistory.find(
+                                            (record: any) =>
+                                              record.userId === userId &&
+                                              record.attendanceDate?.split(
+                                                "T",
+                                              )[0] === date,
+                                          );
+                                          
+                                        // DEBUG: Log match result
+                                        if (attendanceRecord) {
+                                          console.log(`[DEBUG] Found attendance record:`, {
+                                            studentId: attendanceRecord.studentId,
+                                            userId: attendanceRecord.userId,
+                                            studentName: attendanceRecord.student?.name,
+                                            status: attendanceRecord.status
+                                          });
+                                        }
 
                                         return (
                                           <td
@@ -3384,27 +3394,35 @@ export default function Groups() {
                                                 handleTableAttendanceClick(
                                                   studentId, // Use studentId for attendance marking
                                                   date,
-                                                  attendanceRecord?.status
+                                                  attendanceRecord?.status,
                                                 )
                                               }
-                                              className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
-                                                attendanceRecord?.status === "present"
-                                                  ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                                  : attendanceRecord?.status === "absent"
-                                                  ? "bg-red-100 text-red-800 hover:bg-red-200"
-                                                  : attendanceRecord?.status === "late"
-                                                  ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                                                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                              className={`w-8 h-8 rounded text-xs font-bold ${
+                                                attendanceRecord?.status ===
+                                                "present"
+                                                  ? "bg-green-500 text-white hover:bg-green-600"
+                                                  : attendanceRecord?.status ===
+                                                      "absent"
+                                                    ? "bg-red-500 text-white hover:bg-red-600"
+                                                    : "bg-gray-200 hover:bg-gray-300 text-gray-600"
                                               }`}
-                                              title={`${studentName} - ${date} - ${attendanceRecord?.status || 'unmarked'}`}
+                                              title={`${studentName} - ${date} - ${
+                                                attendanceRecord?.status ===
+                                                "present"
+                                                  ? "حاضر"
+                                                  : attendanceRecord?.status ===
+                                                      "absent"
+                                                    ? "غائب"
+                                                    : "غير مسجل"
+                                              }`}
                                             >
-                                              {attendanceRecord?.status === "present"
+                                              {attendanceRecord?.status ===
+                                              "present"
                                                 ? "✓"
-                                                : attendanceRecord?.status === "absent"
-                                                ? "✗"
-                                                : attendanceRecord?.status === "late"
-                                                ? "L"
-                                                : "?"}
+                                                : attendanceRecord?.status ===
+                                                    "absent"
+                                                  ? "✗"
+                                                  : "?"}
                                             </button>
                                           </td>
                                         );
