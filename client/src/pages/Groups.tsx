@@ -3355,6 +3355,14 @@ export default function Groups() {
                                         })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
+                                        // CORRECTED: Look for attendance using studentId (not userId) since attendance records are stored by studentId
+                                        // But we still group the display by userId to avoid duplicate student rows
+                                        const attendanceRecord = attendanceHistory.find(
+                                          (record: any) =>
+                                            record.studentId === studentId && // Use studentId for attendance lookup
+                                            record.attendanceDate?.split("T")[0] === date
+                                        );
+                                        
                                         // DEBUG: Log correct attendance lookup flow
                                         console.log(`[DEBUG] Looking for attendance: User ID ${userId} (display), Student ID ${studentId} (attendance), Date ${date}`);
                                         console.log(`[DEBUG] Found record:`, attendanceRecord ? {
@@ -3364,14 +3372,6 @@ export default function Groups() {
                                           status: attendanceRecord.status,
                                           date: attendanceRecord.attendanceDate?.split("T")[0]
                                         } : 'No record found');
-                                        
-                                        // CORRECTED: Look for attendance using studentId (not userId) since attendance records are stored by studentId
-                                        // But we still group the display by userId to avoid duplicate student rows
-                                        const attendanceRecord = attendanceHistory.find(
-                                          (record: any) =>
-                                            record.studentId === studentId && // Use studentId for attendance lookup
-                                            record.attendanceDate?.split("T")[0] === date
-                                        );
 
 
                                         return (
