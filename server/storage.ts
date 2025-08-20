@@ -2919,23 +2919,23 @@ export class DatabaseStorage implements IStorage {
     for (const record of attendanceRecords) {
       let studentInfo;
 
-      if (record.studentType === "student") {
-        // Get user details with school ID verification for data isolation
-        const [userInfo] = await db
-          .select({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          })
-          .from(users)
-          .where(
-            and(
-              eq(users.id, record.studentId),
-              eq(users.schoolId, schoolId) // Verify school ID for data isolation
+        if (record.studentType === "student") {
+          const [userInfo] = await db
+            .select({
+              id: users.id,
+              name: users.name,   // ← Student name retrieved here
+              email: users.email,
+            })
+            .from(users)
+            .where(
+              and(
+                eq(users.id, record.userId),    // ✅ match by userId instead of studentId
+                eq(users.schoolId, schoolId)    // still make sure they belong to the same school
+              )
             )
-          )
-          .limit(1);
-        studentInfo = userInfo;
+            .limit(1);
+
+          studentInfo = userInfo;
       } else {
         // Get child details with school ID verification for data isolation
         const [childInfo] = await db
