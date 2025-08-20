@@ -3261,7 +3261,7 @@ export default function Groups() {
                                     >
                                       <td className="border border-gray-300 p-3 font-medium">
                                         <div className="font-medium">
-                                          {student.name}
+                                          {student.email}
                                         </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">

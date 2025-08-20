@@ -2873,7 +2873,6 @@ export class DatabaseStorage implements IStorage {
         studentId: groupAttendance.studentId,
         studentType: groupAttendance.studentType,
         markedBy: groupAttendance.markedBy,
-        userId: groupAttendance.userId, // Add userId to the select for cost optimization
         createdAt: groupAttendance.createdAt,
         updatedAt: groupAttendance.updatedAt,
       })
@@ -2920,42 +2919,50 @@ export class DatabaseStorage implements IStorage {
     for (const record of attendanceRecords) {
       let studentInfo;
 
-        if (record.studentType === "student") {
-          // COST OPTIMIZATION: Use userId when available for faster lookups
-          if (record.userId) {
-            const [userInfo] = await db
-              .select({
-                id: users.id,
-                name: users.name,   // ← Student name retrieved here
-                email: users.email,
-              })
-              .from(users)
-              .where(
-                and(
-                  eq(users.id, record.userId),    // ✅ match by userId instead of studentId
-                  eq(users.schoolId, schoolId)    // still make sure they belong to the same school
-                )
+      if (record.studentType === "student") {
+        let userInfo = null;
+        
+        // ALWAYS try userId first (most reliable)
+        if (record.userId) {
+          console.log(`[USING USERID] ${record.userId} for student lookup`);
+          const [user] = await db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+            })
+            .from(users)
+            .where(
+              and(
+                eq(users.id, record.userId),
+                eq(users.schoolId, schoolId)
               )
-              .limit(1);
-            studentInfo = userInfo;
-          } else {
-            // Fallback: Get user details via studentId with school ID verification
-            const [userInfo] = await db
-              .select({
-                id: users.id,
-                name: users.name,
-                email: users.email,
-              })
-              .from(users)
-              .where(
-                and(
-                  eq(users.id, record.studentId),
-                  eq(users.schoolId, schoolId) // Verify school ID for data isolation
-                )
+            )
+            .limit(1);
+          userInfo = user;
+        }
+        
+        // Fallback to studentId if userId lookup failed
+        if (!userInfo && record.studentId) {
+          console.log(`[FALLBACK STUDENTID] ${record.studentId} for student lookup`);
+          const [user] = await db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+            })
+            .from(users)
+            .where(
+              and(
+                eq(users.id, record.studentId),
+                eq(users.schoolId, schoolId)
               )
-              .limit(1);
-            studentInfo = userInfo;
-          }
+            )
+            .limit(1);
+          userInfo = user;
+        }
+        
+        studentInfo = userInfo;
       } else {
         // Get child details with school ID verification for data isolation
         const [childInfo] = await db
