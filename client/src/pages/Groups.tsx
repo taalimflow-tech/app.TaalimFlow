@@ -3170,12 +3170,33 @@ export default function Groups() {
               </div>
 
               <div className="p-6">
-                {/* DEBUG: Log students assigned data */}
+                {/* DEBUG: Enhanced debugging info */}
                 {(() => {
+                  console.log('[DEBUG] Management Group Full Object:', managementGroup);
                   console.log('[DEBUG] Students Assigned:', managementGroup.studentsAssigned);
+                  console.log('[DEBUG] Students Assigned Length:', managementGroup.studentsAssigned?.length);
                   console.log('[DEBUG] Attendance History:', attendanceHistory);
+                  console.log('[DEBUG] Attendance History Length:', attendanceHistory?.length);
+                  console.log('[DEBUG] Scheduled Dates Data:', scheduledDatesData);
+                  console.log('[DEBUG] Month Keys:', monthKeys);
+                  console.log('[DEBUG] Month Keys Length:', monthKeys.length);
+                  console.log('[DEBUG] Current Month Key:', currentMonthKey);
+                  console.log('[DEBUG] Current Month Dates:', currentMonthDates);
                   return null;
                 })()}
+                
+                {/* Show debugging info directly on the page */}
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                  <h4 className="font-semibold text-yellow-800 mb-2">معلومات التشخيص:</h4>
+                  <div className="space-y-1 text-yellow-700">
+                    <div>الطلاب المسجلين: {managementGroup.studentsAssigned ? managementGroup.studentsAssigned.length : 'غير متوفر'}</div>
+                    <div>سجل الحضور: {attendanceHistory ? attendanceHistory.length : 'غير متوفر'}</div>
+                    <div>المواعيد المجدولة: {scheduledDatesData?.dates ? scheduledDatesData.dates.length : 'غير متوفر'}</div>
+                    <div>أشهر متاحة: {monthKeys ? monthKeys.length : 'غير متوفر'}</div>
+                    <div>الشهر الحالي: {currentMonthKey || 'غير محدد'}</div>
+                    <div>تواريخ الشهر الحالي: {currentMonthDates ? currentMonthDates.length : 'غير متوفر'}</div>
+                  </div>
+                </div>
                 
                 {managementGroup.studentsAssigned &&
                 managementGroup.studentsAssigned.length > 0 ? (
