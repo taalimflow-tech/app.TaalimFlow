@@ -1,4 +1,4 @@
-{student.name}import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -3170,6 +3170,13 @@ export default function Groups() {
               </div>
 
               <div className="p-6">
+                {/* DEBUG: Log students assigned data */}
+                {(() => {
+                  console.log('[DEBUG] Students Assigned:', managementGroup.studentsAssigned);
+                  console.log('[DEBUG] Attendance History:', attendanceHistory);
+                  return null;
+                })()}
+                
                 {managementGroup.studentsAssigned &&
                 managementGroup.studentsAssigned.length > 0 ? (
                   <div className="space-y-6">
@@ -3253,21 +3260,35 @@ export default function Groups() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {managementGroup.studentsAssigned.map(
-                                  (student: any) => (
+                                {/* CORRECT FLOW: Use attendance records grouped by userId for display */}
+                                {Array.from(new Set(attendanceHistory?.map((record: any) => record.userId))).filter(Boolean).map((userId: any) => {
+                                  // Get the first attendance record for this userId (all records for same user will have same student info)
+                                  const userAttendanceRecord = attendanceHistory?.find((record: any) => record.userId === userId);
+                                  
+                                  // Student name comes from userId lookup in users table (via backend)
+                                  const studentName = userAttendanceRecord?.student?.name || `Student ${userId}`;
+                                  
+                                  // StudentId for attendance marking (stored in attendance records)
+                                  const studentId = userAttendanceRecord?.studentId;
+                                  
+                                  return (
                                     <tr
-                                      key={student.id}
+                                      key={userId}
                                       className="hover:bg-gray-50"
                                     >
                                       <td className="border border-gray-300 p-3 font-medium">
                                         <div className="font-medium">
-                                          {student.email}
+                                          {studentName}
+                                        </div>
+                                        {/* DEBUG: Show correct flow - userId for name, studentId for attendance */}
+                                        <div className="text-xs text-red-500 mt-1">
+                                          DEBUG: User ID = {userId} (for name lookup), Student ID = {studentId} (for attendance), School ID = {user?.schoolId}
                                         </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
                                           const paymentStatus =
-                                            getStudentPaymentStatus(student.id);
+                                            getStudentPaymentStatus(studentId);
 
                                           // If it's a virtual record with no payment requirement
                                           if (
@@ -3291,7 +3312,7 @@ export default function Groups() {
                                                 <button
                                                   onClick={() =>
                                                     handleTogglePayment(
-                                                      student.id,
+                                                      studentId,
                                                     )
                                                   }
                                                   className={`px-3 py-1 rounded text-sm font-medium ${
@@ -3337,14 +3358,34 @@ export default function Groups() {
                                         })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
+                                        // DEBUG: Log correct attendance lookup flow
+                                        console.log(`[DEBUG] Looking for attendance: User ID ${userId} (for name), Student ID ${studentId} (for attendance), Date ${date}`);
+                                        console.log(`[DEBUG] Available attendance records:`, attendanceHistory?.map(r => ({
+                                          studentId: r.studentId,
+                                          userId: r.userId,
+                                          date: r.attendanceDate?.split("T")[0],
+                                          student: r.student?.name
+                                        })));
+                                        
+                                        // Find attendance record by userId and date (userId groups all records for this student)
                                         const attendanceRecord =
                                           attendanceHistory.find(
                                             (record: any) =>
-                                              record.studentId === student.id &&
+                                              record.userId === userId &&
                                               record.attendanceDate?.split(
                                                 "T",
                                               )[0] === date,
                                           );
+                                          
+                                        // DEBUG: Log match result
+                                        if (attendanceRecord) {
+                                          console.log(`[DEBUG] Found attendance record:`, {
+                                            studentId: attendanceRecord.studentId,
+                                            userId: attendanceRecord.userId,
+                                            studentName: attendanceRecord.student?.name,
+                                            status: attendanceRecord.status
+                                          });
+                                        }
 
                                         return (
                                           <td
@@ -3354,7 +3395,7 @@ export default function Groups() {
                                             <button
                                               onClick={() =>
                                                 handleTableAttendanceClick(
-                                                  student.id,
+                                                  studentId, // Use studentId for attendance marking
                                                   date,
                                                   attendanceRecord?.status,
                                                 )
@@ -3368,7 +3409,7 @@ export default function Groups() {
                                                     ? "bg-red-500 text-white hover:bg-red-600"
                                                     : "bg-gray-200 hover:bg-gray-300 text-gray-600"
                                               }`}
-                                              title={`${student.name} - ${date} - ${
+                                              title={`${studentName} - ${date} - ${
                                                 attendanceRecord?.status ===
                                                 "present"
                                                   ? "حاضر"
@@ -3390,8 +3431,8 @@ export default function Groups() {
                                         );
                                       })}
                                     </tr>
-                                  ),
-                                )}
+                                  );
+                                })}
                               </tbody>
                             </table>
 

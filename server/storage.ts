@@ -2862,82 +2862,64 @@ export class DatabaseStorage implements IStorage {
     schoolId: number, // Add schoolId parameter for data isolation
     date?: string,
   ): Promise<any[]> {
-    // Enhanced approach: Get attendance records by joining with group mixed assignments
-    // This ensures we only get attendance for students who are actually assigned to this group in this school
-    let attendanceQuery = db
-      .select({
-        id: groupAttendance.id,
-        attendanceDate: groupAttendance.attendanceDate,
-        status: groupAttendance.status,
-        notes: groupAttendance.notes,
-        studentId: groupAttendance.studentId,
-        studentType: groupAttendance.studentType,
-        markedBy: groupAttendance.markedBy,
-        createdAt: groupAttendance.createdAt,
-        updatedAt: groupAttendance.updatedAt,
-      })
+    // Direct approach: Get attendance records directly from group_attendance table
+    // Use userId from attendance table for efficient name lookups
+    const attendanceRecords = await db
+      .select()
       .from(groupAttendance)
-      .innerJoin(
-        groupMixedAssignments,
-        and(
-          eq(groupAttendance.groupId, groupMixedAssignments.groupId),
-          eq(groupAttendance.studentId, groupMixedAssignments.studentId),
-          eq(groupMixedAssignments.schoolId, schoolId) // Verify student belongs to this school
-        )
-      )
       .where(
         and(
           eq(groupAttendance.groupId, groupId),
-          eq(groupAttendance.schoolId, schoolId) // Double verification for school ID
+          eq(groupAttendance.schoolId, schoolId) // School ID verification
         )
-      );
+      )
+      .orderBy(desc(groupAttendance.attendanceDate));
 
+    // Filter by date if specified
+    let filteredRecords = attendanceRecords;
     if (date) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-
-      attendanceQuery = attendanceQuery.where(
-        and(
-          eq(groupAttendance.groupId, groupId),
-          eq(groupAttendance.schoolId, schoolId), // Ensure school ID filtering
-          and(
-            sql`${groupAttendance.attendanceDate} >= ${startOfDay}`,
-            sql`${groupAttendance.attendanceDate} <= ${endOfDay}`,
-          ),
-        ),
-      );
+      
+      filteredRecords = attendanceRecords.filter(record => {
+        const recordDate = new Date(record.attendanceDate);
+        return recordDate >= startOfDay && recordDate <= endOfDay;
+      });
     }
-
-    const attendanceRecords = await attendanceQuery.orderBy(
-      desc(groupAttendance.attendanceDate),
-    );
 
     // Populate student details for each record
     const result = [];
-    for (const record of attendanceRecords) {
+    for (const record of filteredRecords) {
       let studentInfo;
 
       if (record.studentType === "student") {
-        // Get user details with school ID verification for data isolation
-        const [userInfo] = await db
-          .select({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          })
-          .from(users)
-          .where(
-            and(
-              eq(users.id, record.studentId),
-              eq(users.schoolId, schoolId) // Verify school ID for data isolation
+        // CRITICAL FIX: Use userId from attendance table, not studentId
+        if (record.userId) {
+          console.log(`[FIXED] Using userId ${record.userId} from attendance table for student name lookup`);
+          const [userInfo] = await db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+            })
+            .from(users)
+            .where(
+              and(
+                eq(users.id, record.userId), // FIXED: Use userId, not studentId
+                eq(users.schoolId, schoolId) // ENFORCE school isolation
+              )
             )
-          )
-          .limit(1);
-        studentInfo = userInfo;
+            .limit(1);
+          studentInfo = userInfo;
+        } else {
+          console.log(`[ERROR] No userId found in attendance record ${record.id}`);
+          studentInfo = null;
+        }
       } else {
-        // Get child details with school ID verification for data isolation
+        // For children, we still use studentId since children don't have userIds
+        // But we could optimize this by storing parent userId in the future
         const [childInfo] = await db
           .select({
             id: children.id,
@@ -2986,18 +2968,39 @@ export class DatabaseStorage implements IStorage {
     groupId: number,
     schoolId: number,
   ): Promise<any[]> {
-    // COST OPTIMIZATION: Include userId in the initial query for efficient lookups
+    // CORRECT IMPLEMENTATION: Use JOIN with userId for attendance name lookup
+    // Query follows the pattern: SELECT u.name, ga.* FROM group_attendance ga 
+    // JOIN users u ON ga.userId = u.id AND u.schoolId = ga.schoolId
+    
+    console.log(`[ATTENDANCE] Getting attendance history for group ${groupId}, school ${schoolId}`);
+    
     const attendanceRecords = await db
       .select({
+        // Attendance record fields
         id: groupAttendance.id,
         studentId: groupAttendance.studentId,
-        userId: groupAttendance.userId, // Include userId for cost optimization
+        userId: groupAttendance.userId,
         studentType: groupAttendance.studentType,
         status: groupAttendance.status,
         attendanceDate: groupAttendance.attendanceDate,
         createdAt: groupAttendance.createdAt,
+        groupId: groupAttendance.groupId,
+        schoolId: groupAttendance.schoolId,
+        // Student info from users table (using userId)
+        student: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
       })
       .from(groupAttendance)
+      .leftJoin(
+        users,
+        and(
+          eq(groupAttendance.userId, users.id), // JOIN on userId
+          eq(users.schoolId, groupAttendance.schoolId), // School verification
+        ),
+      )
       .where(
         and(
           eq(groupAttendance.groupId, groupId),
@@ -3009,48 +3012,15 @@ export class DatabaseStorage implements IStorage {
         desc(groupAttendance.createdAt),
       );
 
-    // COST OPTIMIZATION: Populate student names using userId when available
-    const result = [];
-    for (const record of attendanceRecords) {
-      let studentName = "غير معروف";
-
-      if (record.studentType === "student") {
-        // COST OPTIMIZATION: Use userId directly when available (faster than JOIN)
-        if (record.userId) {
-          console.log(`[COST OPT] Using userId ${record.userId} for fast student name lookup`);
-          const [userInfo] = await db
-            .select({ name: users.name })
-            .from(users)
-            .where(eq(users.id, record.userId))
-            .limit(1);
-          studentName = userInfo?.name || "طالب غير موجود";
-        } else {
-          // Fallback: Look up via studentId (less efficient)
-          console.log(`[FALLBACK] Looking up student name via studentId ${record.studentId}`);
-          const [userInfo] = await db
-            .select({ name: users.name })
-            .from(users)
-            .where(eq(users.id, record.studentId))
-            .limit(1);
-          studentName = userInfo?.name || "طالب غير موجود";
-        }
-      } else {
-        // For children: Direct lookup by child ID (studentId)
-        const [childInfo] = await db
-          .select({ name: children.name })
-          .from(children)
-          .where(eq(children.id, record.studentId))
-          .limit(1);
-        studentName = childInfo?.name || "طفل غير موجود";
-      }
-
-      result.push({
-        ...record,
-        studentName,
-      });
+    console.log(`[ATTENDANCE] Found ${attendanceRecords.length} attendance records with proper userId joins`);
+    
+    // Log sample record for debugging
+    if (attendanceRecords.length > 0) {
+      const sample = attendanceRecords[0];
+      console.log(`[ATTENDANCE] Sample record: userId=${sample.userId}, studentId=${sample.studentId}, studentName=${sample.student?.name}, schoolId=${sample.schoolId}`);
     }
 
-    return result;
+    return attendanceRecords;
   }
 
   async getGroupAttendanceForMonth(
