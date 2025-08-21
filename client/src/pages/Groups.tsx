@@ -3259,8 +3259,7 @@ export default function Groups() {
                   </div>
                 </div>
                 
-                {managementGroup.studentsAssigned &&
-                managementGroup.studentsAssigned.length > 0 ? (
+                {groupAssignments && groupAssignments.length > 0 ? (
                   <div className="space-y-6">
                     {/* Monthly Carousel Attendance View */}
                     <div className="bg-white rounded-lg border p-4">
@@ -3587,6 +3586,9 @@ export default function Groups() {
                     <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                     <p className="text-gray-600">
                       لا يوجد طلاب مسجلين في هذه المجموعة
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      استخدم نظام إدارة المجموعات لإضافة طلاب
                     </p>
                   </div>
                 )}
