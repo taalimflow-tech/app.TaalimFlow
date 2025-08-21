@@ -1256,24 +1256,29 @@ export default function Groups() {
     }
   };
 
-  // Function to fetch payment history for debug display
+  // Function to fetch payment history for debug display  
   const fetchStudentPaymentHistory = async (userId: number) => {
     try {
-      const response = await fetch(`/api/users/${userId}/payment-records`, {
+      console.log(`🔍 Fetching payment history for userId: ${userId}`);
+      const response = await fetch(`/api/student/payments/${userId}`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
       
       if (response.ok) {
         const paymentData = await response.json();
+        console.log(`✅ Payment data for userId ${userId}:`, paymentData);
         setStudentPaymentHistory(prev => ({
           ...prev,
           [userId]: paymentData || []
         }));
         return paymentData;
+      } else {
+        console.error(`❌ Failed to fetch payment history for userId ${userId}:`, response.status, await response.text());
+        return [];
       }
     } catch (error) {
-      console.error(`Error fetching payment history for user ${userId}:`, error);
+      console.error(`❌ Error fetching payment history for userId ${userId}:`, error);
       return [];
     }
   };
@@ -3414,13 +3419,16 @@ export default function Groups() {
                                             <div className="mt-1 max-h-20 overflow-y-auto bg-purple-50 p-1 rounded border">
                                               <div className="font-semibold">Payment History ({studentPaymentHistory[userId].length} records):</div>
                                               {studentPaymentHistory[userId].length === 0 ? (
-                                                <div className="text-gray-500">No payments found</div>
+                                                <div className="text-gray-500">No actual payment records found in database</div>
                                               ) : (
                                                 studentPaymentHistory[userId].map((payment: any, index: number) => (
                                                   <div key={index} className="flex justify-between text-xs border-b border-purple-200 py-1">
                                                     <span>{payment.description || `${payment.month}/${payment.year}`}</span>
                                                     <span className={payment.isPaid ? 'text-green-600' : 'text-red-600'}>
                                                       {payment.amount} DA - {payment.isPaid ? '✅ Paid' : '❌ Unpaid'}
+                                                    </span>
+                                                    <span className="text-xs text-blue-500">
+                                                      {payment.paidDate ? `(${new Date(payment.paidDate).toLocaleDateString()})` : '(No date)'}
                                                     </span>
                                                   </div>
                                                 ))
