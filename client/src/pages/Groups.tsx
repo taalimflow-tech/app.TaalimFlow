@@ -3188,8 +3188,22 @@ export default function Groups() {
                 {/* Show debugging info directly on the page */}
                 <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-sm">
                   <h4 className="font-semibold text-yellow-800 mb-2">معلومات التشخيص:</h4>
-                  <div className="space-y-1 text-yellow-700">
+                  <div className="space-y-2 text-yellow-700">
                     <div>الطلاب المسجلين: {managementGroup.studentsAssigned ? managementGroup.studentsAssigned.length : 'غير متوفر'}</div>
+                    {managementGroup.studentsAssigned && managementGroup.studentsAssigned.length > 0 && (
+                      <div className="pl-4">
+                        <div className="font-medium">أسماء الطلاب:</div>
+                        <div className="pl-2">
+                          {managementGroup.studentsAssigned.map((student: any, index: number) => (
+                            <div key={index} className="text-xs">
+                              • {student.name || student.studentName || `طالب ${student.id || student.studentId || index + 1}`} 
+                              (ID: {student.id || student.studentId || 'غير متوفر'}, 
+                              User ID: {student.userId || 'غير متوفر'})
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div>سجل الحضور: {attendanceHistory ? attendanceHistory.length : 'غير متوفر'}</div>
                     <div>المواعيد المجدولة: {scheduledDatesData?.dates ? scheduledDatesData.dates.length : 'غير متوفر'}</div>
                     <div>أشهر متاحة: {monthKeys ? monthKeys.length : 'غير متوفر'}</div>
