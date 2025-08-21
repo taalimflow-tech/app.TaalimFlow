@@ -1411,18 +1411,18 @@ export default function Groups() {
   };
 
   // Helper function to toggle payment status
-  const handleTogglePayment = (studentId: number) => {
+  const handleTogglePayment = (userId: number) => {
     if (user?.role !== "admin") return;
 
-    // Find student in Group Assignments data (not legacy studentsAssigned)
-    const student = groupAssignments.find((s: any) => s.userId === studentId || s.id === studentId);
+    // Find student in Group Assignments data using userId consistently
+    const student = groupAssignments.find((s: any) => s.userId === userId);
 
     if (!student) {
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
       return;
     }
 
-    const currentPayment = getStudentPaymentStatus(studentId);
+    const currentPayment = getStudentPaymentStatus(userId);
 
     // Only allow payment changes if payment is required (not virtual records)
     if (currentPayment?.isVirtual && !currentPayment?.mustPay) {
@@ -1434,7 +1434,7 @@ export default function Groups() {
     }
 
     const isPaid = !currentPayment?.isPaid;
-    markPaymentMutation.mutate({ studentId, isPaid });
+    markPaymentMutation.mutate({ studentId: userId, isPaid });
   };
 
   const getAvailableGrades = (level: string) => {

@@ -3920,24 +3920,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 mustPay: paymentRequired,
               });
             } else {
-              // Create new unpaid record
+              // Return virtual record instead of creating database record
               paymentNote = "يجب الدفع"; // Must pay (Arabic)
 
-              const newPaymentRecord = await storage.markStudentPayment(
-                studentId,
-                targetYear,
-                targetMonth,
-                false, // Default to unpaid
-                schoolId,
-                req.session.user.id, // Auto-created by system
-                undefined, // No amount
-                `تم الإنشاء تلقائياً: ${paymentNote}`, // Auto-created (Arabic)
-              );
-
               paymentStatuses.push({
-                ...newPaymentRecord,
+                studentId,
+                year: targetYear,
+                month: targetMonth,
+                isPaid: false,
                 paymentNote,
                 mustPay: paymentRequired,
+                isVirtual: true, // Not stored in database - only for display
               });
             }
           } else {
