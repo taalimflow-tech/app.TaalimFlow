@@ -3342,16 +3342,12 @@ export default function Groups() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {/* CORRECT FLOW: Use attendance records grouped by userId for display */}
-                                {Array.from(new Set(attendanceHistory?.map((record: any) => record.userId))).filter(Boolean).map((userId: any) => {
-                                  // Get the first attendance record for this userId (all records for same user will have same student info)
-                                  const userAttendanceRecord = attendanceHistory?.find((record: any) => record.userId === userId);
-                                  
-                                  // Student name comes from userId lookup in users table (via backend)
-                                  const studentName = userAttendanceRecord?.student?.name || `Student ${userId}`;
-                                  
-                                  // StudentId for attendance marking (stored in attendance records)
-                                  const studentId = userAttendanceRecord?.studentId;
+                                {/* NEW FLOW: Use Group Assignments to display students */}
+                                {groupAssignments.map((student: any) => {
+                                  // Use data from Group Assignments API
+                                  const userId = student.userId || student.id;
+                                  const studentName = student.name || `Student ${userId}`;
+                                  const studentId = student.id; // This should be the userId for attendance
                                   
                                   return (
                                     <tr
@@ -3362,9 +3358,9 @@ export default function Groups() {
                                         <div className="font-medium">
                                           {studentName}
                                         </div>
-                                        {/* DEBUG: Show correct flow - userId for name, studentId for attendance */}
-                                        <div className="text-xs text-red-500 mt-1">
-                                          DEBUG: User ID = {userId} (for name lookup), Student ID = {studentId} (for attendance), School ID = {user?.schoolId}
+                                        {/* DEBUG: Show Group Assignments data */}
+                                        <div className="text-xs text-green-600 mt-1">
+                                          FROM ASSIGNMENTS: User ID = {userId}, Student ID = {studentId}, Email = {student.email}
                                         </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
@@ -3440,16 +3436,7 @@ export default function Groups() {
                                         })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
-                                        // DEBUG: Log correct attendance lookup flow
-                                        console.log(`[DEBUG] Looking for attendance: User ID ${userId} (for name), Student ID ${studentId} (for attendance), Date ${date}`);
-                                        console.log(`[DEBUG] Available attendance records:`, attendanceHistory?.map(r => ({
-                                          studentId: r.studentId,
-                                          userId: r.userId,
-                                          date: r.attendanceDate?.split("T")[0],
-                                          student: r.student?.name
-                                        })));
-                                        
-                                        // Find attendance record by userId and date (userId groups all records for this student)
+                                        // Find attendance record by userId and date
                                         const attendanceRecord =
                                           attendanceHistory.find(
                                             (record: any) =>
@@ -3458,16 +3445,6 @@ export default function Groups() {
                                                 "T",
                                               )[0] === date,
                                           );
-                                          
-                                        // DEBUG: Log match result
-                                        if (attendanceRecord) {
-                                          console.log(`[DEBUG] Found attendance record:`, {
-                                            studentId: attendanceRecord.studentId,
-                                            userId: attendanceRecord.userId,
-                                            studentName: attendanceRecord.student?.name,
-                                            status: attendanceRecord.status
-                                          });
-                                        }
 
                                         return (
                                           <td
@@ -3477,7 +3454,7 @@ export default function Groups() {
                                             <button
                                               onClick={() =>
                                                 handleTableAttendanceClick(
-                                                  studentId, // Use studentId for attendance marking
+                                                  userId, // Use userId for attendance marking
                                                   date,
                                                   attendanceRecord?.status,
                                                 )
