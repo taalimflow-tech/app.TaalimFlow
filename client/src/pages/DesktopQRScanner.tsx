@@ -1147,12 +1147,22 @@ function DesktopQRScanner() {
                   return response.ok ? response.json() : [];
                 })
                 .then(paymentData => {
-                  const studentPayment = paymentData.find((record: any) => 
-                    record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
-                  );
+                  // **FIX: Check payment status using correct ID logic**
+                  // For direct students: look for scannedProfile.id in studentId
+                  // For children: look for parent's userId or child's studentId 
+                  const studentPayment = paymentData.find((record: any) => {
+                    if (scannedProfile.type === "student") {
+                      // Direct student: match by studentId (which should equal userId)
+                      return record.studentId === scannedProfile.id;
+                    } else if (scannedProfile.type === "child") {
+                      // Child: match by studentId (child ID) - group payment API returns student records
+                      return record.studentId === scannedProfile.id && record.studentType === "child";
+                    }
+                    return record.studentId === scannedProfile.id;
+                  });
                   const isPaid = studentPayment?.isPaid || false;
                   if (isPaid) {
-                    console.log(`✅ Month ${month} confirmed as PAID from API for student ${scannedProfile.id}`);
+                    console.log(`✅ Month ${month} confirmed as PAID from API for ${scannedProfile.type} ${scannedProfile.id}`);
                   }
                   return { month, isPaid };
                 })

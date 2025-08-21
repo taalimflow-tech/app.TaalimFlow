@@ -5131,18 +5131,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("💰 Processing transaction:", transaction);
 
         try {
-          // Mark student payment for this month with detailed logging
-          console.log(
-            `📝 Creating payment record for student ${transaction.studentId}, month ${transaction.month}/${transaction.year}, amount: ${transaction.amount}`,
+          // **FIX: Determine correct userId based on studentType**
+          let userId: number;
+          
+          if (transaction.studentType === "student") {
+            // For direct students, userId = studentId
+            userId = transaction.studentId;
+          } else if (transaction.studentType === "child") {
+            // For children, get parent's userId
+            const child = await storage.getChildById(transaction.studentId);
+            if (!child || !child.parentId) {
+              throw new Error(`Child with ID ${transaction.studentId} not found or has no parent`);
+            }
+            userId = child.parentId; // Parent's user ID
+          } else {
+            // Default fallback
+            userId = transaction.studentId;
+          }
+
+          console.log(`📝 Payment logic: studentId=${transaction.studentId}, studentType=${transaction.studentType}, determined userId=${userId}`);
+
+          // **FIX: Check if payment already exists for this specific school/user/year/month**
+          const existingPayment = await storage.getStudentPaymentStatus(
+            userId,
+            transaction.year,
+            transaction.month,
+            schoolId
           );
+
+          if (existingPayment && existingPayment.isPaid) {
+            console.log(`⚠️ Payment already exists and is PAID for userId=${userId}, month=${transaction.month}/${transaction.year} - skipping`);
+            continue; // Skip this transaction
+          }
+
+          console.log(
+            `📝 Creating payment record for userId=${userId} (studentId=${transaction.studentId}), month ${transaction.month}/${transaction.year}, amount: ${transaction.amount}`,
+          );
+          
           const paymentRecord = await storage.markStudentPayment(
-            transaction.studentId,
+            userId, // **FIX: Use correct userId instead of studentId**
             transaction.year,
             transaction.month,
             true, // Mark as paid
             schoolId,
             req.session.user.id,
-            transaction.amount, // Keep amount as is - it's already in the right format
+            transaction.amount,
             `${transaction.notes || ""} - إيصال: ${receiptId}`.trim(),
           );
           console.log("✅ Payment record created successfully:", {
@@ -5160,7 +5193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           setTimeout(async () => {
             try {
               const verificationCheck = await storage.getStudentPaymentStatus(
-                transaction.studentId,
+                userId, // **FIX: Use userId for verification check**
                 transaction.year,
                 transaction.month,
                 schoolId,
