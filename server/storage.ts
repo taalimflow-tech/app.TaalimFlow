@@ -3109,11 +3109,30 @@ export class DatabaseStorage implements IStorage {
   async createTransaction(
     transaction: InsertGroupTransaction,
   ): Promise<GroupTransaction> {
-    // Add missing studentType if not provided
+    // Determine userId based on studentId and studentType
+    let userId: number;
+    
+    if (transaction.studentType === "student") {
+      // For direct students, userId = studentId
+      userId = transaction.studentId;
+    } else {
+      // For children, find the parent's userId
+      const child = await db
+        .select({ parentId: children.parentId })
+        .from(children)
+        .where(eq(children.id, transaction.studentId))
+        .limit(1);
+      
+      userId = child.length > 0 ? child[0].parentId : transaction.studentId;
+    }
+
+    // Add missing fields
     const finalTransaction = {
       ...transaction,
+      userId, // Add the determined userId
       studentType: transaction.studentType || "student" as "student" | "child",
     };
+    
     const [result] = await db
       .insert(groupTransactions)
       .values([finalTransaction])

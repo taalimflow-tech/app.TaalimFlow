@@ -223,9 +223,10 @@ export const groupTransactions = pgTable("group_transactions", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id).notNull(),
   studentId: integer("student_id").notNull(), // ID from either users or children table
+  userId: integer("user_id"), // Corresponding user ID for efficient session-based queries
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   transactionType: text("transaction_type", { enum: ["payment", "fee", "refund", "discount"] }).notNull(),
-  amount: integer("amount").notNull(), // Amount in cents to avoid decimal issues
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Amount in dinars (consistent with payments)
   currency: text("currency").notNull().default("DZD"), // Algerian Dinar
   description: text("description").notNull(),
   dueDate: timestamp("due_date"),

@@ -1425,7 +1425,7 @@ function DesktopQRScanner() {
             studentId: scannedProfile.id,
             studentType: scannedProfile.type,
             groupId: parseInt(groupId),
-            amount: Math.round((parseFloat(paymentAmount) / getTotalSelectedMonths()) * 100), // Convert to cents and distribute
+            amount: Math.round(parseFloat(paymentAmount) / getTotalSelectedMonths()), // Keep amount as dinars (no conversion)
             paymentMethod: 'cash', // Always cash
             notes: paymentNotes,
             month,

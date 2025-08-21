@@ -1272,7 +1272,7 @@ export default function Groups() {
     const transactionData = {
       ...newTransaction,
       studentId: parseInt(newTransaction.studentId),
-      amount: parseInt(newTransaction.amount) * 100, // Convert to cents
+      amount: parseInt(newTransaction.amount), // Keep amount as dinars (no conversion)
       dueDate: newTransaction.dueDate ? new Date(newTransaction.dueDate) : null,
     };
 
