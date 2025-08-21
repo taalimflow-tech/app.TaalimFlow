@@ -880,33 +880,34 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Apply all conditions
+    query = db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        role: users.role,
+        profilePicture: users.profilePicture,
+        verified: users.verified,
+        createdAt: users.createdAt,
+        banned: users.banned,
+        schoolId: users.schoolId,
+      })
+      .from(users)
+      .leftJoin(students, eq(users.id, students.userId))
+      .leftJoin(children, eq(users.id, children.parentId))
+      .leftJoin(
+        teacherSpecializations,
+        eq(users.id, teacherSpecializations.teacherId),
+      )
+      .leftJoin(
+        teachingModules,
+        eq(teacherSpecializations.moduleId, teachingModules.id),
+      )
+      .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId));
+      
     if (conditions.length > 0) {
-      query = db
-        .select({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          phone: users.phone,
-          role: users.role,
-          profilePicture: users.profilePicture,
-          verified: users.verified,
-          createdAt: users.createdAt,
-          banned: users.banned,
-          schoolId: users.schoolId,
-        })
-        .from(users)
-        .leftJoin(students, eq(users.id, students.userId))
-        .leftJoin(children, eq(users.id, children.parentId))
-        .leftJoin(
-          teacherSpecializations,
-          eq(users.id, teacherSpecializations.teacherId),
-        )
-        .leftJoin(
-          teachingModules,
-          eq(teacherSpecializations.moduleId, teachingModules.id),
-        )
-        .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId))
-        .where(and(...conditions));
+      query = query.where(and(...conditions));
     }
 
     // Execute query and remove duplicates
@@ -1246,7 +1247,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<Announcement> {
     const announcementData = {
       ...insertAnnouncement,
-      schoolId: schoolId || insertAnnouncement.schoolId || 1,
+      schoolId: schoolId || 1,
     };
     const [announcement] = await db
       .insert(announcements)
@@ -1273,7 +1274,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<BlogPost> {
     const blogPostData = {
       ...insertBlogPost,
-      schoolId: schoolId || insertBlogPost.schoolId || 1,
+      schoolId: schoolId || 1,
     };
     const [blogPost] = await db
       .insert(blogPosts)
@@ -1950,12 +1951,12 @@ export class DatabaseStorage implements IStorage {
       `[DEBUG] getAvailableStudentsByLevelAndSubject called with: educationLevel=${educationLevel}, subjectId=${subjectId}, schoolId=${schoolId}`,
     );
 
-    // Get direct students (users with student records) - USE USER ID AS PRIMARY IDENTIFIER
-    // FIXED: Use users.id as the primary identifier for assignments
+    // Get direct students (users with student records) - USE STUDENT ID AS PRIMARY IDENTIFIER
+    // FIXED: Use students.id as the primary identifier for group assignments
     let directStudentsQuery = db
       .select({
-        id: users.id, // Use user ID as primary identifier
-        userId: users.id, // Keep user ID for reference
+        id: students.id, // Use student table ID as primary identifier for assignments
+        userId: users.id, // Keep user ID for attendance system
         name: users.name,
         email: users.email,
         phone: users.phone,
