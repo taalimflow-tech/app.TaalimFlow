@@ -3522,8 +3522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const attendance = await storage.getAttendanceWithStudentDetails(
         groupId,
-        schoolId, // Pass schoolId for data isolation
-        date as string,
+        date as string
       );
       res.json(attendance);
     } catch (error) {

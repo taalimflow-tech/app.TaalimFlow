@@ -3184,62 +3184,78 @@ export default function Groups() {
               </div>
 
               <div className="p-6">
-                {/* DEBUG: Enhanced debugging info */}
+                {/* DEBUG: Complete raw data debugging */}
                 {(() => {
-                  console.log('[DEBUG] Management Group Full Object:', managementGroup);
-                  console.log('[DEBUG] Group Assignments from API:', groupAssignments);
-                  console.log('[DEBUG] Students Assigned (Legacy):', managementGroup.studentsAssigned);
-                  console.log('[DEBUG] Students Assigned Length (Legacy):', managementGroup.studentsAssigned?.length);
-                  console.log('[DEBUG] Attendance History:', attendanceHistory);
-                  console.log('[DEBUG] Attendance History Length:', attendanceHistory?.length);
-                  console.log('[DEBUG] Scheduled Dates Data:', scheduledDatesData);
+                  console.log('[DEBUG] =================== COMPLETE TABLE DATA ===================');
+                  console.log('[DEBUG] Management Group (ALL FIELDS):', JSON.stringify(managementGroup, null, 2));
+                  console.log('[DEBUG] Group Assignments (ALL FIELDS):', JSON.stringify(groupAssignments, null, 2));
+                  console.log('[DEBUG] Attendance History (ALL FIELDS):', JSON.stringify(attendanceHistory, null, 2));
+                  console.log('[DEBUG] Scheduled Dates Data (ALL FIELDS):', JSON.stringify(scheduledDatesData, null, 2));
+                  console.log('[DEBUG] Payment Statuses (ALL FIELDS):', JSON.stringify(paymentStatuses, null, 2));
                   console.log('[DEBUG] Month Keys:', monthKeys);
-                  console.log('[DEBUG] Month Keys Length:', monthKeys.length);
                   console.log('[DEBUG] Current Month Key:', currentMonthKey);
                   console.log('[DEBUG] Current Month Dates:', currentMonthDates);
+                  console.log('[DEBUG] ============================================================');
                   return null;
                 })()}
                 
                 {/* Show debugging info directly on the page */}
-                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                  <h4 className="font-semibold text-yellow-800 mb-2">معلومات التشخيص:</h4>
-                  <div className="space-y-2 text-yellow-700">
-                    <div>الطلاب المسجلين (من المخصصات): {groupAssignments ? groupAssignments.length : 'غير متوفر'}</div>
-                    <div>الطلاب المسجلين (قديم): {managementGroup.studentsAssigned ? managementGroup.studentsAssigned.length : 'غير متوفر'}</div>
-                    {groupAssignments && groupAssignments.length > 0 && (
-                      <div className="pl-4">
-                        <div className="font-medium">أسماء الطلاب (من جدول المخصصات):</div>
-                        <div className="pl-2">
-                          {groupAssignments.map((assignment: any, index: number) => (
-                            <div key={index} className="text-xs">
-                              • {assignment.studentName || assignment.name || `طالب ${assignment.studentId || index + 1}`} 
-                              (Student ID: {assignment.studentId || 'غير متوفر'}, 
-                              User ID: {assignment.userId || 'غير متوفر'}, 
-                              Type: {assignment.studentType || 'غير محدد'})
-                            </div>
-                          ))}
-                        </div>
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-xs max-h-96 overflow-y-auto">
+                  <h4 className="font-semibold text-yellow-800 mb-2">بيانات الجداول الكاملة - Raw Table Data:</h4>
+                  <div className="space-y-4 text-yellow-700 font-mono">
+                    
+                    {/* Management Group Raw Data */}
+                    <div className="border-l-2 border-yellow-400 pl-2">
+                      <div className="font-bold text-yellow-900">Management Group (كاملة):</div>
+                      <pre className="text-xs bg-yellow-100 p-2 rounded mt-1 whitespace-pre-wrap">
+                        {JSON.stringify(managementGroup, null, 2)}
+                      </pre>
+                    </div>
+
+                    {/* Group Assignments Raw Data */}
+                    <div className="border-l-2 border-blue-400 pl-2">
+                      <div className="font-bold text-blue-900">Group Assignments (كاملة) - Count: {groupAssignments?.length || 0}</div>
+                      <pre className="text-xs bg-blue-100 p-2 rounded mt-1 whitespace-pre-wrap">
+                        {JSON.stringify(groupAssignments, null, 2)}
+                      </pre>
+                    </div>
+
+                    {/* Attendance History Raw Data */}
+                    <div className="border-l-2 border-green-400 pl-2">
+                      <div className="font-bold text-green-900">Attendance History (كاملة) - Count: {attendanceHistory?.length || 0}</div>
+                      <pre className="text-xs bg-green-100 p-2 rounded mt-1 whitespace-pre-wrap">
+                        {JSON.stringify(attendanceHistory, null, 2)}
+                      </pre>
+                    </div>
+
+                    {/* Scheduled Dates Raw Data */}
+                    <div className="border-l-2 border-purple-400 pl-2">
+                      <div className="font-bold text-purple-900">Scheduled Dates (كاملة):</div>
+                      <pre className="text-xs bg-purple-100 p-2 rounded mt-1 whitespace-pre-wrap">
+                        {JSON.stringify(scheduledDatesData, null, 2)}
+                      </pre>
+                    </div>
+
+                    {/* Payment Statuses Raw Data */}
+                    <div className="border-l-2 border-red-400 pl-2">
+                      <div className="font-bold text-red-900">Payment Statuses (كاملة) - Count: {paymentStatuses?.length || 0}</div>
+                      <pre className="text-xs bg-red-100 p-2 rounded mt-1 whitespace-pre-wrap">
+                        {JSON.stringify(paymentStatuses, null, 2)}
+                      </pre>
+                    </div>
+
+                    {/* Processed Data */}
+                    <div className="border-l-2 border-gray-400 pl-2">
+                      <div className="font-bold text-gray-900">Processed Data:</div>
+                      <div className="text-xs bg-gray-100 p-2 rounded mt-1">
+                        <div>Month Keys: {JSON.stringify(monthKeys)}</div>
+                        <div>Current Month Key: {currentMonthKey || 'NULL'}</div>
+                        <div>Current Month Dates: {JSON.stringify(currentMonthDates)}</div>
+                        <div>Month Keys Length: {monthKeys?.length || 0}</div>
+                        <div>Current Month Dates Length: {currentMonthDates?.length || 0}</div>
                       </div>
-                    )}
-                    {managementGroup.studentsAssigned && managementGroup.studentsAssigned.length > 0 && (
-                      <div className="pl-4">
-                        <div className="font-medium">أسماء الطلاب (قديم - من المجموعة):</div>
-                        <div className="pl-2">
-                          {managementGroup.studentsAssigned.map((student: any, index: number) => (
-                            <div key={index} className="text-xs">
-                              • {student.name || student.studentName || `طالب ${student.id || student.studentId || index + 1}`} 
-                              (ID: {student.id || student.studentId || 'غير متوفر'}, 
-                              User ID: {student.userId || 'غير متوفر'})
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <div>سجل الحضور: {attendanceHistory ? attendanceHistory.length : 'غير متوفر'}</div>
-                    <div>المواعيد المجدولة: {scheduledDatesData?.dates ? scheduledDatesData.dates.length : 'غير متوفر'}</div>
-                    <div>أشهر متاحة: {monthKeys ? monthKeys.length : 'غير متوفر'}</div>
-                    <div>الشهر الحالي: {currentMonthKey || 'غير محدد'}</div>
-                    <div>تواريخ الشهر الحالي: {currentMonthDates ? currentMonthDates.length : 'غير متوفر'}</div>
+                    </div>
+
                   </div>
                 </div>
                 
