@@ -741,6 +741,20 @@ export default function Groups() {
     enabled: !!managementGroup && managementView === "attendance",
   });
 
+  // Group assignments query to get actual student information  
+  const { data: groupAssignments = [] } = useQuery<any[]>({
+    queryKey: ["/api/groups", managementGroup?.id, "assignments"],
+    queryFn: async () => {
+      if (!managementGroup) return [];
+      const response = await apiRequest(
+        "GET",
+        `/api/groups/${managementGroup.id}/assignments`,
+      );
+      return await response.json();
+    },
+    enabled: !!managementGroup && managementView === "attendance",
+  });
+
   // Scheduled dates query for attendance table
   const { data: scheduledDatesData } = useQuery<{ dates: string[] }>({
     queryKey: ["/api/groups", managementGroup?.id, "scheduled-dates"],
@@ -3173,8 +3187,9 @@ export default function Groups() {
                 {/* DEBUG: Enhanced debugging info */}
                 {(() => {
                   console.log('[DEBUG] Management Group Full Object:', managementGroup);
-                  console.log('[DEBUG] Students Assigned:', managementGroup.studentsAssigned);
-                  console.log('[DEBUG] Students Assigned Length:', managementGroup.studentsAssigned?.length);
+                  console.log('[DEBUG] Group Assignments from API:', groupAssignments);
+                  console.log('[DEBUG] Students Assigned (Legacy):', managementGroup.studentsAssigned);
+                  console.log('[DEBUG] Students Assigned Length (Legacy):', managementGroup.studentsAssigned?.length);
                   console.log('[DEBUG] Attendance History:', attendanceHistory);
                   console.log('[DEBUG] Attendance History Length:', attendanceHistory?.length);
                   console.log('[DEBUG] Scheduled Dates Data:', scheduledDatesData);
@@ -3189,10 +3204,26 @@ export default function Groups() {
                 <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-sm">
                   <h4 className="font-semibold text-yellow-800 mb-2">معلومات التشخيص:</h4>
                   <div className="space-y-2 text-yellow-700">
-                    <div>الطلاب المسجلين: {managementGroup.studentsAssigned ? managementGroup.studentsAssigned.length : 'غير متوفر'}</div>
+                    <div>الطلاب المسجلين (من المخصصات): {groupAssignments ? groupAssignments.length : 'غير متوفر'}</div>
+                    <div>الطلاب المسجلين (قديم): {managementGroup.studentsAssigned ? managementGroup.studentsAssigned.length : 'غير متوفر'}</div>
+                    {groupAssignments && groupAssignments.length > 0 && (
+                      <div className="pl-4">
+                        <div className="font-medium">أسماء الطلاب (من جدول المخصصات):</div>
+                        <div className="pl-2">
+                          {groupAssignments.map((assignment: any, index: number) => (
+                            <div key={index} className="text-xs">
+                              • {assignment.studentName || assignment.name || `طالب ${assignment.studentId || index + 1}`} 
+                              (Student ID: {assignment.studentId || 'غير متوفر'}, 
+                              User ID: {assignment.userId || 'غير متوفر'}, 
+                              Type: {assignment.studentType || 'غير محدد'})
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {managementGroup.studentsAssigned && managementGroup.studentsAssigned.length > 0 && (
                       <div className="pl-4">
-                        <div className="font-medium">أسماء الطلاب:</div>
+                        <div className="font-medium">أسماء الطلاب (قديم - من المجموعة):</div>
                         <div className="pl-2">
                           {managementGroup.studentsAssigned.map((student: any, index: number) => (
                             <div key={index} className="text-xs">

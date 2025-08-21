@@ -3681,6 +3681,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get group student assignments (mixed assignments from groupMixedAssignments table)
+  app.get("/api/groups/:groupId/assignments", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+      }
+
+      const groupId = parseInt(req.params.groupId);
+      const assignments = await storage.getGroupAssignments(groupId);
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error getting group assignments:", error);
+      res.status(500).json({ error: "فشل في جلب مخصصات المجموعة" });
+    }
+  });
+
   // Group Financial Transaction Routes
   app.get("/api/groups/:groupId/transactions", async (req, res) => {
     try {
