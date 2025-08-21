@@ -1414,9 +1414,8 @@ export default function Groups() {
   const handleTogglePayment = (studentId: number) => {
     if (user?.role !== "admin") return;
 
-    // Find student to check if it exists
-    const assignedStudents = managementGroup?.studentsAssigned || [];
-    const student = assignedStudents.find((s: any) => s.id === studentId);
+    // Find student in Group Assignments data (not legacy studentsAssigned)
+    const student = groupAssignments.find((s: any) => s.userId === studentId || s.id === studentId);
 
     if (!student) {
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
@@ -3382,7 +3381,7 @@ export default function Groups() {
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
                                           const paymentStatus =
-                                            getStudentPaymentStatus(studentId);
+                                            getStudentPaymentStatus(userId);
 
                                           // If it's a virtual record with no payment requirement
                                           if (
@@ -3406,7 +3405,7 @@ export default function Groups() {
                                                 <button
                                                   onClick={() =>
                                                     handleTogglePayment(
-                                                      studentId,
+                                                      userId,
                                                     )
                                                   }
                                                   className={`px-3 py-1 rounded text-sm font-medium ${
