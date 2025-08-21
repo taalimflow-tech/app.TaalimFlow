@@ -468,12 +468,7 @@ export interface IStorage {
     amount?: number,
     notes?: string,
   ): Promise<StudentMonthlyPayment>;
-  createDefaultMonthlyPayments(
-    userIds: number[],
-    year: number,
-    month: number,
-    schoolId: number,
-  ): Promise<void>;
+  // REMOVED: createDefaultMonthlyPayments - caused bulk payment creation
 
   // Student Status interface methods
   getStudentEnrolledGroups(studentId: number, schoolId: number): Promise<any[]>;
@@ -4298,78 +4293,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createDefaultMonthlyPayments(
-    userIds: number[],
-    year: number,
-    month: number,
-    schoolId: number,
-  ): Promise<void> {
-    try {
-      if (userIds.length === 0) return;
-
-      // Get existing payments to avoid duplicates
-      const existingPayments = await this.getStudentsPaymentStatusForMonth(
-        userIds,
-        year,
-        month,
-        schoolId,
-      );
-      const existingUserIds = existingPayments.map((p) => p.userId);
-
-      // Filter out users who already have payment records
-      const newUserIds = userIds.filter(
-        (id) => !existingUserIds.includes(id),
-      );
-
-      if (newUserIds.length === 0) return;
-
-      // Create default unpaid records for new users with proper student type
-      const defaultPayments = await Promise.all(
-        newUserIds.map(async (userId) => {
-          // Determine student type
-          let studentType: "student" | "child" = "student";
-
-          // First check if it's a user (direct student)
-          const userStudent = await db
-            .select()
-            .from(users)
-            .where(and(eq(users.id, userId), eq(users.schoolId, schoolId)))
-            .limit(1);
-
-          if (userStudent.length === 0) {
-            // If not found in users, check children table (children use parent's userId)
-            const childStudent = await db
-              .select()
-              .from(children)
-              .where(
-                and(
-                  eq(children.parentId, userId),
-                  eq(children.schoolId, schoolId),
-                ),
-              )
-              .limit(1);
-            if (childStudent.length > 0) {
-              studentType = "child";
-            }
-          }
-
-          return {
-            userId,
-            studentType,
-            year,
-            month,
-            isPaid: false,
-            schoolId,
-          };
-        }),
-      );
-
-      await db.insert(studentMonthlyPayments).values(defaultPayments);
-    } catch (error) {
-      console.error("Error creating default monthly payments:", error);
-      throw error;
-    }
-  }
+  // REMOVED: createDefaultMonthlyPayments function
+  // This function was causing bulk payment creation for months 1-8
+  // We now use virtual records instead of creating database records
 
   // Student Status methods
   async getStudentEnrolledGroups(

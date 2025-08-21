@@ -5147,7 +5147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           console.log("✅ Payment record created successfully:", {
             id: paymentRecord.id,
-            studentId: paymentRecord.studentId,
+            userId: paymentRecord.userId,
             studentType: paymentRecord.studentType,
             month: paymentRecord.month,
             year: paymentRecord.year,
@@ -5169,7 +5169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 found: verificationCheck ? "YES" : "NO",
                 isPaid: verificationCheck?.isPaid || false,
                 amount: verificationCheck?.amount || "N/A",
-                studentId: verificationCheck?.studentId,
+                userId: verificationCheck?.userId,
                 month: verificationCheck?.month,
                 year: verificationCheck?.year,
               });
@@ -5215,7 +5215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             studentId: transaction.studentId,
 
             transactionType: "payment",
-            amount: transaction.amount, // Amount in cents
+            amount: transaction.amount, // Amount in DA (Dinars)
             currency: "DZD",
             description: `دفع شهر ${transaction.month}/${transaction.year}`,
             paidDate: new Date(),
