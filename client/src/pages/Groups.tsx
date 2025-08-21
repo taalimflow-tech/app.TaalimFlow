@@ -611,6 +611,9 @@ export default function Groups() {
 
   // Monthly carousel state
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+  
+  // Payment history debug state
+  const [studentPaymentHistory, setStudentPaymentHistory] = useState<{[userId: number]: any[]}>({});
 
   // Helper function to group dates by month
   const groupDatesByMonth = (dates: string[]) => {
@@ -1250,6 +1253,28 @@ export default function Groups() {
         description: "فشل في الاتصال بالخادم",
         variant: "destructive",
       });
+    }
+  };
+
+  // Function to fetch payment history for debug display
+  const fetchStudentPaymentHistory = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/payment-records`, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const paymentData = await response.json();
+        setStudentPaymentHistory(prev => ({
+          ...prev,
+          [userId]: paymentData || []
+        }));
+        return paymentData;
+      }
+    } catch (error) {
+      console.error(`Error fetching payment history for user ${userId}:`, error);
+      return [];
     }
   };
 
@@ -3376,6 +3401,32 @@ export default function Groups() {
                                         {/* DEBUG: Show Group Assignments data */}
                                         <div className="text-xs text-green-600 mt-1">
                                           FROM ASSIGNMENTS: User ID = {userId}, Student ID = {studentId}, Email = {student.email}
+                                        </div>
+                                        {/* DEBUG: Payment History */}
+                                        <div className="text-xs text-purple-600 mt-1">
+                                          <button 
+                                            onClick={() => fetchStudentPaymentHistory(userId)}
+                                            className="underline hover:text-purple-800"
+                                          >
+                                            📋 عرض سجل المدفوعات
+                                          </button>
+                                          {studentPaymentHistory[userId] && (
+                                            <div className="mt-1 max-h-20 overflow-y-auto bg-purple-50 p-1 rounded border">
+                                              <div className="font-semibold">Payment History ({studentPaymentHistory[userId].length} records):</div>
+                                              {studentPaymentHistory[userId].length === 0 ? (
+                                                <div className="text-gray-500">No payments found</div>
+                                              ) : (
+                                                studentPaymentHistory[userId].map((payment: any, index: number) => (
+                                                  <div key={index} className="flex justify-between text-xs border-b border-purple-200 py-1">
+                                                    <span>{payment.description || `${payment.month}/${payment.year}`}</span>
+                                                    <span className={payment.isPaid ? 'text-green-600' : 'text-red-600'}>
+                                                      {payment.amount} DA - {payment.isPaid ? '✅ Paid' : '❌ Unpaid'}
+                                                    </span>
+                                                  </div>
+                                                ))
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
