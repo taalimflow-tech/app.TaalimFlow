@@ -3551,6 +3551,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const attendanceData = {
         groupId,
         userId,
+        studentId: userId, // Use userId as studentId for backward compatibility
+        studentType: "student" as const, // Default to student type
         attendanceDate: new Date(attendanceDate),
         status,
         notes,
