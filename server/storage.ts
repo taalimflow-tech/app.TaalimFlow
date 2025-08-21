@@ -1886,8 +1886,9 @@ export class DatabaseStorage implements IStorage {
 
         if (studentData[0]) {
           result.push({ 
-            id: studentData[0].studentId, // Use student ID, not user ID
-            userId: assignment.userId || studentData[0].userId, // Prefer userId from assignment table
+            id: assignment.userId || studentData[0].userId, // Use userId as the main ID
+            userId: assignment.userId || studentData[0].userId, // Keep userId for compatibility
+            studentId: studentData[0].studentId, // Keep studentId for reference
             name: studentData[0].name,
             email: studentData[0].email,
             phone: studentData[0].phone,
@@ -1911,8 +1912,12 @@ export class DatabaseStorage implements IStorage {
 
         if (childData[0]) {
           result.push({ 
-            ...childData[0], 
+            id: assignment.userId, // Use userId as the main ID
+            studentId: childData[0].id, // Keep studentId for reference
             userId: assignment.userId, // Include userId from assignment table
+            name: childData[0].name,
+            email: childData[0].email,
+            phone: childData[0].phone,
             type: "child" 
           });
         }
