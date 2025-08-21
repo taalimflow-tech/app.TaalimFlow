@@ -1178,16 +1178,15 @@ export default function Groups() {
 
   // Table attendance click handler - toggles between present/absent
   const handleTableAttendanceClick = async (
-    studentId: number,
+    userId: number,
     date: string,
     currentStatus?: string,
   ) => {
     // Toggle: unrecorded -> present -> absent -> present
     const nextStatus = currentStatus === "present" ? "absent" : "present";
 
-    // Find student to get their type
-    const assignedStudents = managementGroup?.studentsAssigned || [];
-    const student = assignedStudents.find((s: any) => s.id === studentId);
+    // Find student in Group Assignments data (not legacy studentsAssigned)
+    const student = groupAssignments.find((s: any) => s.userId === userId || s.id === userId);
 
     if (!student) {
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
@@ -1209,8 +1208,7 @@ export default function Groups() {
         "POST",
         `/api/groups/${managementGroup?.id}/attendance`,
         {
-          studentId,
-          studentType: studentType, // Use determined student type
+          userId, // Use userId instead of studentId
           attendanceDate: date,
           status: nextStatus,
         },
