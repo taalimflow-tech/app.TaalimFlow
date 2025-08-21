@@ -5312,12 +5312,13 @@ export class DatabaseStorage implements IStorage {
           .where(eq(groupMixedAssignments.schoolId, schoolId));
         console.log(`🔍 Found ${allSchoolAssignments.length} total assignments in school ${schoolId}:`, allSchoolAssignments);
 
-        // Get group assignments from both mixed assignments table and user assignments table
-        console.log("🔍 Executing mixed assignments query with params:", { studentId, studentType, schoolId });
+        // FIXED: Use userId for group assignments instead of studentId
+        const userId = studentProfile.userId; // Use the linked user ID
+        console.log("🔍 Using userId for group assignments query:", { userId, studentType, schoolId });
         
         // Enhanced debugging for mixed assignments query
         console.log('🔍 Running mixed assignments query with exact conditions:');
-        console.log(`   - eq(groupMixedAssignments.studentId, ${studentId})`);
+        console.log(`   - eq(groupMixedAssignments.userId, ${userId})`);
         console.log(`   - eq(groupMixedAssignments.studentType, '${studentType}')`);
         console.log(`   - eq(groupMixedAssignments.schoolId, ${schoolId})`);
 
@@ -5325,6 +5326,7 @@ export class DatabaseStorage implements IStorage {
           .select({
             groupId: groupMixedAssignments.groupId,
             studentId: groupMixedAssignments.studentId,
+            userId: groupMixedAssignments.userId,
             studentType: groupMixedAssignments.studentType,
             schoolId: groupMixedAssignments.schoolId,
             assignedAt: groupMixedAssignments.assignedAt,
@@ -5332,7 +5334,7 @@ export class DatabaseStorage implements IStorage {
           .from(groupMixedAssignments)
           .where(
             and(
-              eq(groupMixedAssignments.studentId, studentId),
+              eq(groupMixedAssignments.userId, userId), // Use userId instead of studentId
               eq(groupMixedAssignments.studentType, studentType),
               eq(groupMixedAssignments.schoolId, schoolId),
             ),
