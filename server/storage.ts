@@ -880,34 +880,33 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Apply all conditions
-    query = db
-      .select({
-        id: users.id,
-        name: users.name,
-        email: users.email,
-        phone: users.phone,
-        role: users.role,
-        profilePicture: users.profilePicture,
-        verified: users.verified,
-        createdAt: users.createdAt,
-        banned: users.banned,
-        schoolId: users.schoolId,
-      })
-      .from(users)
-      .leftJoin(students, eq(users.id, students.userId))
-      .leftJoin(children, eq(users.id, children.parentId))
-      .leftJoin(
-        teacherSpecializations,
-        eq(users.id, teacherSpecializations.teacherId),
-      )
-      .leftJoin(
-        teachingModules,
-        eq(teacherSpecializations.moduleId, teachingModules.id),
-      )
-      .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId));
-      
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          profilePicture: users.profilePicture,
+          verified: users.verified,
+          createdAt: users.createdAt,
+          banned: users.banned,
+          schoolId: users.schoolId,
+        })
+        .from(users)
+        .leftJoin(students, eq(users.id, students.userId))
+        .leftJoin(children, eq(users.id, children.parentId))
+        .leftJoin(
+          teacherSpecializations,
+          eq(users.id, teacherSpecializations.teacherId),
+        )
+        .leftJoin(
+          teachingModules,
+          eq(teacherSpecializations.moduleId, teachingModules.id),
+        )
+        .leftJoin(scheduleCells, eq(users.id, scheduleCells.teacherId))
+        .where(and(...conditions));
     }
 
     // Execute query and remove duplicates
