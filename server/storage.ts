@@ -1869,57 +1869,67 @@ export class DatabaseStorage implements IStorage {
 
     const result = [];
     for (const assignment of assignments) {
-      if (assignment.studentType === "student") {
-        // FIXED: Look up student data using student ID, then get user info
-        const studentData = await db
+      if (assignment.userId) {
+        // PRIMARY: Get user data first using userId (this ensures school isolation)
+        const userData = await db
           .select({
-            studentId: students.id,
-            userId: users.id,
+            id: users.id,
             name: users.name,
             email: users.email,
             phone: users.phone,
+            schoolId: users.schoolId,
           })
-          .from(students)
-          .leftJoin(users, eq(students.userId, users.id))
-          .where(eq(students.id, assignment.studentId!))
+          .from(users)
+          .where(eq(users.id, assignment.userId))
           .limit(1);
 
-        if (studentData[0]) {
-          result.push({ 
-            id: assignment.userId || studentData[0].userId, // Use userId as the main ID
-            userId: assignment.userId || studentData[0].userId, // Keep userId for compatibility
-            studentId: studentData[0].studentId, // Keep studentId for reference
-            name: studentData[0].name,
-            email: studentData[0].email,
-            phone: studentData[0].phone,
-            type: "student" 
-          });
-        }
-      } else if (assignment.studentType === "child") {
-        const childData = await db
-          .select({
-            id: children.id,
-            name: children.name,
-            email:
-              sql<string>`CONCAT('child_', ${children.id}, '@parent.local')`.as(
-                "email",
-              ),
-            phone: sql<string>`''`.as("phone"),
-          })
-          .from(children)
-          .where(eq(children.id, assignment.studentId!))
-          .limit(1);
+        if (userData[0]) {
+          if (assignment.studentType === "student") {
+            // Get additional student details if needed
+            const studentDetails = await db
+              .select({
+                educationLevel: students.educationLevel,
+                grade: students.grade,
+              })
+              .from(students)
+              .where(eq(students.id, assignment.studentId!))
+              .limit(1);
 
-        if (childData[0]) {
-          result.push({ 
-            id: assignment.userId, // Use userId as the main ID
-            studentId: childData[0].id, // Keep studentId for reference
-            userId: assignment.userId, // Include userId from assignment table
-            name: childData[0].name,
-            email: childData[0].email,
-            phone: childData[0].phone,
-            type: "child" 
-          });
+            result.push({ 
+              id: userData[0].id, // Use userId as primary ID
+              userId: userData[0].id,
+              studentId: assignment.studentId,
+              name: userData[0].name,
+              email: userData[0].email,
+              phone: userData[0].phone,
+              educationLevel: studentDetails[0]?.educationLevel,
+              grade: studentDetails[0]?.grade,
+              type: "student" 
+            });
+          } else if (assignment.studentType === "child") {
+            // Get child details
+            const childDetails = await db
+              .select({
+                name: children.name,
+                educationLevel: children.educationLevel,
+                grade: children.grade,
+              })
+              .from(children)
+              .where(eq(children.id, assignment.studentId!))
+              .limit(1);
+
+            result.push({ 
+              id: userData[0].id, // Use userId (parent) as primary ID
+              userId: userData[0].id,
+              studentId: assignment.studentId,
+              name: childDetails[0]?.name || userData[0].name,
+              email: userData[0].email,
+              phone: userData[0].phone,
+              educationLevel: childDetails[0]?.educationLevel,
+              grade: childDetails[0]?.grade,
+              type: "child" 
+            });
+          }
         }
       }
     }
