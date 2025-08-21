@@ -412,7 +412,7 @@ function GroupAttendanceTable({
                       console.log(`🔍 Attendance table month check: Group ${groupId}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
                       
                       // **DEBUG: Fetch all student payment records for debugging**
-                      useEffect(() => {
+                      React.useEffect(() => {
                         const fetchAllPayments = async () => {
                           if (!scannedProfile) return;
                           
