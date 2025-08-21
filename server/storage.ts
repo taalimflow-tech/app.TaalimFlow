@@ -1818,12 +1818,13 @@ export class DatabaseStorage implements IStorage {
               return null;
             }
 
-            // FIXED: Use userId as the primary identifier for both studentId and userId
-            const primaryUserId = studentInfo.userId || studentId;
+            // CORRECT: Use separate IDs for different purposes
+            const actualStudentId = studentId;        // Student ID for payment/display (e.g., 18 for student5)
+            const actualUserId = studentInfo.userId;  // User ID for attendance (e.g., 34 for student5)
 
-            console.log(`🔧 Creating assignment for user ${primaryUserId}:`, {
-              studentId: primaryUserId, // Use userId as studentId
-              userId: primaryUserId,    // Use userId as userId
+            console.log(`🔧 Creating assignment with dual IDs:`, {
+              studentId: actualStudentId, // Payment system & group display use this
+              userId: actualUserId,       // Attendance system uses this
               studentType: studentInfo.type,
               studentName: studentInfo.name
             });
@@ -1831,8 +1832,8 @@ export class DatabaseStorage implements IStorage {
             return {
               schoolId: schoolId!,
               groupId: actualGroupId,
-              studentId: primaryUserId, // Use userId as primary identifier
-              userId: primaryUserId,    // Use userId as primary identifier
+              studentId: actualStudentId, // For payment system and group display
+              userId: actualUserId,       // For attendance system
               studentType: studentInfo.type as "student" | "child",
               assignedBy: adminId || null,
             };
@@ -5312,13 +5313,13 @@ export class DatabaseStorage implements IStorage {
           .where(eq(groupMixedAssignments.schoolId, schoolId));
         console.log(`🔍 Found ${allSchoolAssignments.length} total assignments in school ${schoolId}:`, allSchoolAssignments);
 
-        // FIXED: Use userId for group assignments instead of studentId
-        const userId = studentProfile.userId; // Use the linked user ID
-        console.log("🔍 Using userId for group assignments query:", { userId, studentType, schoolId });
+        // Use studentId for group display (QR scanner shows groups student attends)
+        // studentId is used for payment system and group display
+        console.log("🔍 Using studentId for group display query:", { studentId, studentType, schoolId });
         
         // Enhanced debugging for mixed assignments query
         console.log('🔍 Running mixed assignments query with exact conditions:');
-        console.log(`   - eq(groupMixedAssignments.userId, ${userId})`);
+        console.log(`   - eq(groupMixedAssignments.studentId, ${studentId})`);
         console.log(`   - eq(groupMixedAssignments.studentType, '${studentType}')`);
         console.log(`   - eq(groupMixedAssignments.schoolId, ${schoolId})`);
 
@@ -5334,7 +5335,7 @@ export class DatabaseStorage implements IStorage {
           .from(groupMixedAssignments)
           .where(
             and(
-              eq(groupMixedAssignments.userId, userId), // Use userId instead of studentId
+              eq(groupMixedAssignments.studentId, studentId), // Use studentId for group display
               eq(groupMixedAssignments.studentType, studentType),
               eq(groupMixedAssignments.schoolId, schoolId),
             ),
