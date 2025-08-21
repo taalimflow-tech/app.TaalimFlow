@@ -1204,6 +1204,14 @@ export default function Groups() {
         : "student";
 
     try {
+      console.log("🎯 ATTENDANCE DEBUG: Sending request with:", {
+        userId,
+        groupId: managementGroup?.id,
+        attendanceDate: date,
+        status: nextStatus,
+        studentData: student
+      });
+
       const response = await apiRequest(
         "POST",
         `/api/groups/${managementGroup?.id}/attendance`,
@@ -1213,6 +1221,8 @@ export default function Groups() {
           status: nextStatus,
         },
       );
+
+      console.log("🎯 ATTENDANCE DEBUG: Response:", response);
 
       if (response.ok) {
         // Refetch attendance history to update the table
@@ -1224,11 +1234,20 @@ export default function Groups() {
           title: `تم تسجيل ${nextStatus === "present" ? "الحضور" : "الغياب"} بنجاح`,
           description: `${new Date(date).toLocaleDateString("en-US")}`,
         });
+      } else {
+        const errorData = await response.json();
+        console.error("🎯 ATTENDANCE DEBUG: Backend error:", errorData);
+        toast({
+          title: "خطأ في تسجيل الحضور",
+          description: errorData.error || "خطأ غير معروف",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error("Error marking table attendance:", error);
+      console.error("🎯 ATTENDANCE DEBUG: Request failed:", error);
       toast({
         title: "خطأ في تسجيل الحضور",
+        description: "فشل في الاتصال بالخادم",
         variant: "destructive",
       });
     }
