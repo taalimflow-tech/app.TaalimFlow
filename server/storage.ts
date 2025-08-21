@@ -447,19 +447,19 @@ export interface IStorage {
 
   // Student Monthly Payment interface methods
   getStudentPaymentStatus(
-    studentId: number,
+    userId: number,
     year: number,
     month: number,
     schoolId: number,
   ): Promise<StudentMonthlyPayment | undefined>;
   getStudentsPaymentStatusForMonth(
-    studentIds: number[],
+    userIds: number[],
     year: number,
     month: number,
     schoolId: number,
   ): Promise<StudentMonthlyPayment[]>;
   markStudentPayment(
-    studentId: number,
+    userId: number,
     year: number,
     month: number,
     isPaid: boolean,
@@ -469,7 +469,7 @@ export interface IStorage {
     notes?: string,
   ): Promise<StudentMonthlyPayment>;
   createDefaultMonthlyPayments(
-    studentIds: number[],
+    userIds: number[],
     year: number,
     month: number,
     schoolId: number,
@@ -4165,7 +4165,7 @@ export class DatabaseStorage implements IStorage {
 
   // Student Monthly Payment methods implementation
   async getStudentPaymentStatus(
-    studentId: number,
+    userId: number,
     year: number,
     month: number,
     schoolId: number,
@@ -4176,7 +4176,7 @@ export class DatabaseStorage implements IStorage {
         .from(studentMonthlyPayments)
         .where(
           and(
-            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.userId, userId),
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId),
@@ -4190,20 +4190,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStudentsPaymentStatusForMonth(
-    studentIds: number[],
+    userIds: number[],
     year: number,
     month: number,
     schoolId: number,
   ): Promise<StudentMonthlyPayment[]> {
     try {
-      if (studentIds.length === 0) return [];
+      if (userIds.length === 0) return [];
 
       return await db
         .select()
         .from(studentMonthlyPayments)
         .where(
           and(
-            inArray(studentMonthlyPayments.studentId, studentIds),
+            inArray(studentMonthlyPayments.userId, userIds),
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId),
@@ -4216,7 +4216,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markStudentPayment(
-    studentId: number,
+    userId: number,
     year: number,
     month: number,
     isPaid: boolean,
@@ -4226,23 +4226,23 @@ export class DatabaseStorage implements IStorage {
     notes?: string,
   ): Promise<StudentMonthlyPayment> {
     try {
-      // Determine student type by checking if the student exists in users table or children table
+      // Determine student type by checking if the user exists in users table or children table
       let studentType: "student" | "child" = "student";
 
       // First check if it's a user (direct student)
       const userStudent = await db
         .select()
         .from(users)
-        .where(and(eq(users.id, studentId), eq(users.schoolId, schoolId)))
+        .where(and(eq(users.id, userId), eq(users.schoolId, schoolId)))
         .limit(1);
 
       if (userStudent.length === 0) {
-        // If not found in users, check children table
+        // If not found in users, check children table (children use parent's userId)
         const childStudent = await db
           .select()
           .from(children)
           .where(
-            and(eq(children.id, studentId), eq(children.schoolId, schoolId)),
+            and(eq(children.parentId, userId), eq(children.schoolId, schoolId)),
           )
           .limit(1);
         if (childStudent.length > 0) {
@@ -4252,7 +4252,7 @@ export class DatabaseStorage implements IStorage {
 
       // Check if payment record exists
       const existingPayment = await this.getStudentPaymentStatus(
-        studentId,
+        userId,
         year,
         month,
         schoolId,
@@ -4278,7 +4278,7 @@ export class DatabaseStorage implements IStorage {
         const [newPayment] = await db
           .insert(studentMonthlyPayments)
           .values({
-            studentId,
+            userId,
             studentType, // Include the determined student type
             year,
             month,
@@ -4299,33 +4299,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDefaultMonthlyPayments(
-    studentIds: number[],
+    userIds: number[],
     year: number,
     month: number,
     schoolId: number,
   ): Promise<void> {
     try {
-      if (studentIds.length === 0) return;
+      if (userIds.length === 0) return;
 
       // Get existing payments to avoid duplicates
       const existingPayments = await this.getStudentsPaymentStatusForMonth(
-        studentIds,
+        userIds,
         year,
         month,
         schoolId,
       );
-      const existingStudentIds = existingPayments.map((p) => p.studentId);
+      const existingUserIds = existingPayments.map((p) => p.userId);
 
-      // Filter out students who already have payment records
-      const newStudentIds = studentIds.filter(
-        (id) => !existingStudentIds.includes(id),
+      // Filter out users who already have payment records
+      const newUserIds = userIds.filter(
+        (id) => !existingUserIds.includes(id),
       );
 
-      if (newStudentIds.length === 0) return;
+      if (newUserIds.length === 0) return;
 
-      // Create default unpaid records for new students with proper student type
+      // Create default unpaid records for new users with proper student type
       const defaultPayments = await Promise.all(
-        newStudentIds.map(async (studentId) => {
+        newUserIds.map(async (userId) => {
           // Determine student type
           let studentType: "student" | "child" = "student";
 
@@ -4333,17 +4333,17 @@ export class DatabaseStorage implements IStorage {
           const userStudent = await db
             .select()
             .from(users)
-            .where(and(eq(users.id, studentId), eq(users.schoolId, schoolId)))
+            .where(and(eq(users.id, userId), eq(users.schoolId, schoolId)))
             .limit(1);
 
           if (userStudent.length === 0) {
-            // If not found in users, check children table
+            // If not found in users, check children table (children use parent's userId)
             const childStudent = await db
               .select()
               .from(children)
               .where(
                 and(
-                  eq(children.id, studentId),
+                  eq(children.parentId, userId),
                   eq(children.schoolId, schoolId),
                 ),
               )
@@ -4354,7 +4354,7 @@ export class DatabaseStorage implements IStorage {
           }
 
           return {
-            studentId,
+            userId,
             studentType,
             year,
             month,

@@ -238,11 +238,11 @@ export const groupTransactions = pgTable("group_transactions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Monthly payment status for students - simple paid/unpaid tracking - Updated for mixed assignments
+// Monthly payment status for students - simple paid/unpaid tracking - Uses only user_id for consistency
 export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
-  studentId: integer("student_id").notNull(), // ID from either users or children table
+  userId: integer("student_id").references(() => users.id).notNull(), // Use existing student_id column but reference as userId
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   year: integer("year").notNull(),
   month: integer("month").notNull(), // 1-12
