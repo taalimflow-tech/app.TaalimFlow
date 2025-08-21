@@ -1818,9 +1818,12 @@ export class DatabaseStorage implements IStorage {
               return null;
             }
 
-            console.log(`🔧 Creating assignment for student ${studentId}:`, {
-              studentId: studentId,
-              userId: studentInfo.userId, // Include userId in assignment
+            // FIXED: Use userId as the primary identifier for both studentId and userId
+            const primaryUserId = studentInfo.userId || studentId;
+
+            console.log(`🔧 Creating assignment for user ${primaryUserId}:`, {
+              studentId: primaryUserId, // Use userId as studentId
+              userId: primaryUserId,    // Use userId as userId
               studentType: studentInfo.type,
               studentName: studentInfo.name
             });
@@ -1828,8 +1831,8 @@ export class DatabaseStorage implements IStorage {
             return {
               schoolId: schoolId!,
               groupId: actualGroupId,
-              studentId: studentId, // This now correctly uses student.id from the fixed query
-              userId: studentInfo.userId || null, // Add userId to the assignment record
+              studentId: primaryUserId, // Use userId as primary identifier
+              userId: primaryUserId,    // Use userId as primary identifier
               studentType: studentInfo.type as "student" | "child",
               assignedBy: adminId || null,
             };
@@ -1946,12 +1949,11 @@ export class DatabaseStorage implements IStorage {
       `[DEBUG] getAvailableStudentsByLevelAndSubject called with: educationLevel=${educationLevel}, subjectId=${subjectId}, schoolId=${schoolId}`,
     );
 
-    // Get direct students (users with student records) - include any user role that has student data
-    // This includes regular students, teachers, and admins who also have student records
-    // FIXED: Use students.id instead of users.id for consistent assignment logic
+    // Get direct students (users with student records) - USE USER ID AS PRIMARY IDENTIFIER
+    // FIXED: Use users.id as the primary identifier for assignments
     let directStudentsQuery = db
       .select({
-        id: students.id, // FIX: Use student ID not user ID
+        id: users.id, // Use user ID as primary identifier
         userId: users.id, // Keep user ID for reference
         name: users.name,
         email: users.email,
