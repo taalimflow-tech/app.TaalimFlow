@@ -3787,18 +3787,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Student Payment Status Routes
   app.get(
-    "/api/students/:studentId/payment-status/:year/:month",
+    "/api/students/:userId/payment-status/:year/:month",
     async (req, res) => {
       try {
         if (!req.session?.user) {
           return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
         }
 
-        const { studentId, year, month } = req.params;
+        const { userId, year, month } = req.params;
         const schoolId = req.session.user.schoolId;
 
         const paymentStatus = await storage.getStudentPaymentStatus(
-          parseInt(studentId),
+          parseInt(userId),
           parseInt(year),
           parseInt(month),
           schoolId,
@@ -3836,9 +3836,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parseInt(groupId),
         );
 
-        // Get all student IDs (both actual students and children) for payment processing
+        // Get all user IDs (both actual students and children) for payment processing
         const allStudentIds = groupAssignments.map(
-          (assignment: any) => assignment.id,
+          (assignment: any) => assignment.userId,
         );
 
         if (allStudentIds.length === 0) {
@@ -3881,15 +3881,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Process each student to determine payment requirement
         const paymentStatuses = [];
 
-        for (const studentId of allStudentIds) {
+        for (const userId of allStudentIds) {
           // Check if student has attendance in target month
           const hasAttendanceThisMonth = attendanceData.some(
-            (record: any) => record.studentId === studentId,
+            (record: any) => record.userId === userId,
           );
 
           // Find existing payment record
           const existingPayment = existingPayments.find(
-            (payment: any) => payment.studentId === studentId,
+            (payment: any) => payment.userId === userId,
           );
 
           let paymentRequired = false;
@@ -3924,7 +3924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               paymentNote = "يجب الدفع"; // Must pay (Arabic)
 
               paymentStatuses.push({
-                studentId,
+                studentId: userId,
                 year: targetYear,
                 month: targetMonth,
                 isPaid: false,
@@ -3936,7 +3936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             // Return virtual record for display purposes
             paymentStatuses.push({
-              studentId,
+              studentId: userId,
               year: targetYear,
               month: targetMonth,
               isPaid: false,
@@ -3955,7 +3955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.post("/api/students/:studentId/mark-payment", async (req, res) => {
+  app.post("/api/students/:userId/mark-payment", async (req, res) => {
     try {
       if (!req.session?.user || req.session.user.role !== "admin") {
         return res
@@ -3963,7 +3963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "غير مسموح لك بتعديل حالة الدفع" });
       }
 
-      const { studentId } = req.params;
+      const { userId } = req.params;
       const { year, month, isPaid, amount, notes } = req.body;
       const schoolId = req.session.user.schoolId;
       const paidBy = req.session.user.id;
@@ -3972,7 +3972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentNote = isPaid ? "مدفوع" : "يجب الدفع"; // Paid or Must pay in Arabic
 
       const paymentRecord = await storage.markStudentPayment(
-        parseInt(studentId),
+        parseInt(userId),
         parseInt(year),
         parseInt(month),
         isPaid,
