@@ -3939,6 +3939,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "معلومات ناقصة" });
       }
 
+      // First, get the uniqueStudentId from the database
+      let uniqueStudentId: string;
+      
+      if (studentType === "student") {
+        const student = await storage.getStudentById(parseInt(studentId));
+        if (!student) {
+          return res.status(404).json({ error: "الطالب غير موجود" });
+        }
+        uniqueStudentId = student.uniqueStudentId;
+      } else {
+        const child = await storage.getChildById(parseInt(studentId));
+        if (!child) {
+          return res.status(404).json({ error: "الطفل غير موجود" });
+        }
+        uniqueStudentId = child.uniqueStudentId;
+      }
+
       const paymentRecords = [];
       
       // Create payment for each selected month
@@ -3949,6 +3966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parseInt(studentId),
           parseInt(userId),
           studentType,
+          uniqueStudentId,
           parseInt(year),
           parseInt(month),
           parseFloat(amount),
@@ -4653,9 +4671,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "بيانات ناقصة" });
       }
 
+      // First, get the uniqueStudentId and userId from the database
+      let uniqueStudentId: string;
+      let userId: number;
+      
+      if (studentType === "student") {
+        const student = await storage.getStudentById(parseInt(studentId));
+        if (!student) {
+          return res.status(404).json({ error: "الطالب غير موجود" });
+        }
+        uniqueStudentId = student.uniqueStudentId;
+        userId = student.userId || student.id; // userId for direct students
+      } else {
+        const child = await storage.getChildById(parseInt(studentId));
+        if (!child) {
+          return res.status(404).json({ error: "الطفل غير موجود" });
+        }
+        uniqueStudentId = child.uniqueStudentId;
+        userId = child.parentId; // userId is parentId for children
+      }
+
       // Record payment
       const result = await storage.recordStudentPayment({
         studentId,
+        userId,
+        uniqueStudentId,
         studentType: studentType as "student" | "child",
         amount: parseFloat(amount),
         paymentMethod,

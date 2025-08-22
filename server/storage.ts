@@ -4239,6 +4239,7 @@ export class DatabaseStorage implements IStorage {
     studentId: number,
     userId: number,
     studentType: "student" | "child",
+    uniqueStudentId: string,
     year: number,
     month: number,
     amount: number,
@@ -4272,6 +4273,7 @@ export class DatabaseStorage implements IStorage {
         .values({
           userId,
           studentId,
+          uniqueStudentId,
           studentType,
           year,
           month,
@@ -5637,6 +5639,8 @@ export class DatabaseStorage implements IStorage {
 
   async recordStudentPayment(paymentData: {
     studentId: number;
+    userId: number;
+    uniqueStudentId: string;
     studentType: "student" | "child";
     amount: number;
     paymentMethod?: string;
@@ -5649,6 +5653,8 @@ export class DatabaseStorage implements IStorage {
     try {
       const {
         studentId,
+        userId,
+        uniqueStudentId,
         studentType,
         amount,
         paymentMethod,
@@ -5679,6 +5685,8 @@ export class DatabaseStorage implements IStorage {
         const [updatedPayment] = await db
           .update(studentMonthlyPayments)
           .set({
+            userId,
+            uniqueStudentId,
             isPaid: true,
             amount: amount.toString(),
             paidAt: new Date(),
@@ -5696,6 +5704,8 @@ export class DatabaseStorage implements IStorage {
           .insert(studentMonthlyPayments)
           .values({
             studentId,
+            userId,
+            uniqueStudentId,
             studentType,
             year,
             month,
