@@ -1012,54 +1012,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Update user profile
-  app.put("/api/profile", async (req, res) => {
-    try {
-      if (!req.session?.user) {
-        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
-      }
-
-      const { name, email } = req.body;
-
-      if (!name && !email) {
-        return res.status(400).json({ error: "يجب تقديم الاسم أو البريد الإلكتروني للتحديث" });
-      }
-
-      // Validate email format if provided
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return res.status(400).json({ error: "تنسيق البريد الإلكتروني غير صحيح" });
-      }
-
-      // Check if email already exists for another user in the same school
-      if (email) {
-        const existingUser = await storage.getUserByEmail(email, req.session.user.schoolId);
-        if (existingUser && existingUser.id !== req.session.user.id) {
-          return res.status(400).json({ error: "البريد الإلكتروني مستخدم من قبل مستخدم آخر" });
-        }
-      }
-
-      const updates: { name?: string; email?: string } = {};
-      if (name?.trim()) updates.name = name.trim();
-      if (email?.trim()) updates.email = email.trim();
-
-      const updatedUser = await storage.updateUserProfile(req.session.user.id, updates);
-
-      // Update session data
-      req.session.user = { ...req.session.user, ...updates };
-
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = updatedUser;
-      
-      res.json({ 
-        message: "تم تحديث الملف الشخصي بنجاح",
-        user: userWithoutPassword 
-      });
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      res.status(500).json({ error: "فشل في تحديث الملف الشخصي" });
-    }
-  });
-
   // Content upload endpoint for blogs, groups, formations, and school logos
   app.post(
     "/api/upload-content",
@@ -3987,23 +3939,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "معلومات ناقصة" });
       }
 
-      // First, get the uniqueStudentId from the database
-      let uniqueStudentId: string;
-      
-      if (studentType === "student") {
-        const student = await storage.getStudentByUserId(parseInt(studentId));
-        if (!student) {
-          return res.status(404).json({ error: "الطالب غير موجود" });
-        }
-        uniqueStudentId = student.uniqueStudentId;
-      } else {
-        const child = await storage.getChildById(parseInt(studentId));
-        if (!child) {
-          return res.status(404).json({ error: "الطفل غير موجود" });
-        }
-        uniqueStudentId = child.uniqueStudentId;
-      }
-
       const paymentRecords = [];
       
       // Create payment for each selected month
@@ -4014,7 +3949,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parseInt(studentId),
           parseInt(userId),
           studentType,
-          uniqueStudentId,
           parseInt(year),
           parseInt(month),
           parseFloat(amount),
@@ -4719,31 +4653,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "بيانات ناقصة" });
       }
 
-      // First, get the uniqueStudentId and userId from the database
-      let uniqueStudentId: string;
-      let userId: number;
-      
-      if (studentType === "student") {
-        const student = await storage.getStudentByUserId(parseInt(studentId));
-        if (!student) {
-          return res.status(404).json({ error: "الطالب غير موجود" });
-        }
-        uniqueStudentId = student.uniqueStudentId;
-        userId = student?.userId || parseInt(studentId) || 0; // userId for direct students
-      } else {
-        const child = await storage.getChildById(parseInt(studentId));
-        if (!child) {
-          return res.status(404).json({ error: "الطفل غير موجود" });
-        }
-        uniqueStudentId = child.uniqueStudentId;
-        userId = child.parentId; // userId is parentId for children
-      }
-
       // Record payment
       const result = await storage.recordStudentPayment({
         studentId,
-        userId,
-        uniqueStudentId,
         studentType: studentType as "student" | "child",
         amount: parseFloat(amount),
         paymentMethod,
@@ -5258,7 +5170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const paymentRecord = await storage.createStudentPayment(
             transaction.studentId, // Student or child ID
-            userId, 
+            userId, // User ID (parent for children, same as studentId for direct students)
             transaction.studentType as "student" | "child",
             transaction.year,
             transaction.month,

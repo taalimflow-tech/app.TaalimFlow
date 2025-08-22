@@ -68,16 +68,6 @@ export default function Profile() {
     email: user?.email || '',
   });
 
-  // Update form data when user data changes
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-      });
-    }
-  }, [user]);
-
   // Check Firebase email verification status
   useEffect(() => {
     const checkEmailVerification = () => {
@@ -152,25 +142,11 @@ export default function Profile() {
         body: JSON.stringify(childData),
       });
       
-      // Read response text first, then try to parse as JSON
-      const responseText = await response.text();
-      
       if (!response.ok) {
-        let errorMessage = 'Failed to add child';
-        try {
-          const errorData = responseText ? JSON.parse(responseText) : {};
-          errorMessage = errorData.error || responseText || errorMessage;
-        } catch {
-          errorMessage = responseText || errorMessage;
-        }
-        throw new Error(errorMessage);
+        throw new Error('Failed to add child');
       }
       
-      try {
-        return responseText ? JSON.parse(responseText) : { success: true };
-      } catch {
-        return { success: true };
-      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/children'] });
@@ -178,10 +154,9 @@ export default function Profile() {
       setShowAddChild(false);
       toast({ title: 'تم إضافة الطفل بنجاح' });
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({ 
         title: 'خطأ في إضافة الطفل', 
-        description: error.message,
         variant: 'destructive' 
       });
     }
@@ -194,34 +169,19 @@ export default function Profile() {
         method: 'DELETE',
       });
       
-      // Read response text first, then try to parse as JSON
-      const responseText = await response.text();
-      
       if (!response.ok) {
-        let errorMessage = 'Failed to delete child';
-        try {
-          const errorData = responseText ? JSON.parse(responseText) : {};
-          errorMessage = errorData.error || responseText || errorMessage;
-        } catch {
-          errorMessage = responseText || errorMessage;
-        }
-        throw new Error(errorMessage);
+        throw new Error('Failed to delete child');
       }
       
-      try {
-        return responseText ? JSON.parse(responseText) : { success: true };
-      } catch {
-        return { success: true };
-      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/children'] });
       toast({ title: 'تم حذف الطفل بنجاح' });
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({ 
         title: 'خطأ في حذف الطفل', 
-        description: error.message,
         variant: 'destructive' 
       });
     }
@@ -232,52 +192,11 @@ export default function Profile() {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-        }),
-      });
-
-      // Read response text first, then try to parse as JSON
-      const responseText = await response.text();
-      let data;
-      
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch (jsonError) {
-        // If response is not JSON, treat as plain text
-        if (!response.ok) {
-          throw new Error(responseText || 'حدث خطأ أثناء تحديث البيانات');
-        }
-        data = { message: 'تم التحديث بنجاح' };
-      }
-
-      if (!response.ok) {
-        throw new Error(data?.error || 'حدث خطأ أثناء تحديث البيانات');
-      }
-
-      // Update the auth context with new user data and wait for it
-      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      
-      // Force a refetch to get the updated user data
-      await queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
-      
-      toast({ 
-        title: 'تم تحديث الملف الشخصي بنجاح',
-        description: data?.message || 'تم تحديث البيانات بنجاح'
-      });
-    } catch (error: any) {
-      console.error('Profile update error:', error);
-      toast({ 
-        title: 'حدث خطأ أثناء تحديث البيانات', 
-        description: error.message || 'حدث خطأ غير متوقع',
-        variant: 'destructive' 
-      });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast({ title: 'تم تحديث الملف الشخصي بنجاح' });
+    } catch (error) {
+      toast({ title: 'حدث خطأ أثناء تحديث البيانات', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -514,7 +433,7 @@ export default function Profile() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 break-all">{user?.email}</p>
+                    <p className="font-medium text-gray-900 break-all">{user.email}</p>
                     <p className={`text-sm mt-1 ${
                       isEmailVerified ? 'text-green-600' : 'text-gray-500'
                     }`}>
@@ -537,11 +456,11 @@ export default function Profile() {
           </Card>
 
           {/* QR Code Section for Students - Only for verified students */}
-          {user?.role === 'student' && currentStudent && typeof currentStudent === 'object' && 'id' in currentStudent && user?.verified && (
+          {user.role === 'student' && currentStudent && 'id' in currentStudent && user.verified && (
             <QRCodeDisplay
-              studentId={(currentStudent as any).id}
+              studentId={currentStudent.id}
               type="student"
-              studentName={user?.name || ''}
+              studentName={user.name}
               isAdmin={false}
             />
           )}
