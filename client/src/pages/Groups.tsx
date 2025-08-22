@@ -614,6 +614,8 @@ export default function Groups() {
   
   // Payment history debug state
   const [studentPaymentHistory, setStudentPaymentHistory] = useState<{[userId: number]: any[]}>({});
+  const [allPayments, setAllPayments] = useState<any[]>([]);
+  const [showAllPayments, setShowAllPayments] = useState(false);
 
   // Helper function to group dates by month
   const groupDatesByMonth = (dates: string[]) => {
@@ -1280,6 +1282,22 @@ export default function Groups() {
     } catch (error) {
       console.error(`❌ Error fetching payment history for userId ${userId}:`, error);
       return [];
+    }
+  };
+
+  // Fetch all payments for this school
+  const fetchAllPayments = async () => {
+    try {
+      const response = await fetch(`/api/groups/${managementGroup?.id}/payment-status/${new Date().getFullYear()}/${new Date().getMonth() + 1}`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAllPayments(data);
+        setShowAllPayments(true);
+      }
+    } catch (error) {
+      console.error('Error fetching all payments:', error);
     }
   };
 
@@ -3348,6 +3366,44 @@ export default function Groups() {
                             >
                               <ChevronLeft className="w-4 h-4" />
                             </Button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* All Payments Debug Section */}
+                      <div className="mb-4">
+                        <Button 
+                          onClick={fetchAllPayments}
+                          variant="outline" 
+                          size="sm"
+                          className="mb-2"
+                        >
+                          📊 عرض جميع المدفوعات
+                        </Button>
+                        
+                        {showAllPayments && (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-h-60 overflow-y-auto">
+                            <h5 className="font-semibold text-yellow-800 mb-2">
+                              جميع المدفوعات ({allPayments.length} records)
+                            </h5>
+                            {allPayments.length === 0 ? (
+                              <p className="text-gray-600">No payments found</p>
+                            ) : (
+                              <div className="space-y-1">
+                                {allPayments.map((payment, index) => (
+                                  <div key={index} className="bg-white p-2 rounded border text-xs">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <span><strong>Student ID:</strong> {payment.studentId}</span>
+                                      <span><strong>Year/Month:</strong> {payment.year}/{payment.month}</span>
+                                      <span><strong>Amount:</strong> {payment.amount} DA</span>
+                                      <span><strong>Paid:</strong> {payment.isPaid ? '✅ Yes' : '❌ No'}</span>
+                                      <span><strong>Note:</strong> {payment.paymentNote}</span>
+                                      <span><strong>Virtual:</strong> {payment.isVirtual ? 'Yes' : 'No'}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
