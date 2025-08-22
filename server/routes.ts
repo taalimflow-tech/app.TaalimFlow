@@ -5170,7 +5170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const paymentRecord = await storage.createStudentPayment(
             transaction.studentId, // Student or child ID
-            userId, // User ID (parent for children, same as studentId for direct students)
+            userId, 
             transaction.studentType as "student" | "child",
             transaction.year,
             transaction.month,

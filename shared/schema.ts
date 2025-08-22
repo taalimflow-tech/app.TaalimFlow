@@ -1,4 +1,5 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, unique, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -184,6 +185,7 @@ export const groupMixedAssignments = pgTable("group_mixed_assignments", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id, { onDelete: "cascade" }),
   studentId: integer("student_id"), // ID from either students or children table
+  uniqueStudentId: varchar("unique_student_id", { length: 36 }), // Globally unique student identifier
   userId: integer("user_id"), // Corresponding user ID for efficient session-based queries
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   assignedAt: timestamp("assigned_at").defaultNow().notNull(),
@@ -207,6 +209,7 @@ export const groupAttendance = pgTable("group_attendance", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id).notNull(),
   studentId: integer("student_id").notNull(), // ID from either users or children table
+  uniqueStudentId: varchar("unique_student_id", { length: 36 }), // Globally unique student identifier
   userId: integer("user_id"), // Corresponding user ID for efficient session-based queries - cost optimization
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   attendanceDate: timestamp("attendance_date").notNull(),
@@ -223,6 +226,7 @@ export const groupTransactions = pgTable("group_transactions", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   groupId: integer("group_id").references(() => groups.id).notNull(),
   studentId: integer("student_id").notNull(), // ID from either users or children table
+  uniqueStudentId: varchar("unique_student_id", { length: 36 }), // Globally unique student identifier
   userId: integer("user_id"), // Corresponding user ID for efficient session-based queries
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
   transactionType: text("transaction_type", { enum: ["payment", "fee", "refund", "discount"] }).notNull(),
@@ -245,6 +249,7 @@ export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").notNull(), // User ID (parent ID for children, student ID for direct students)
   studentId: integer("student_id").notNull(), // Student or child ID
+  uniqueStudentId: varchar("unique_student_id", { length: 36 }), // Globally unique student identifier
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(),
   year: integer("year").notNull(),
   month: integer("month").notNull(), // 1-12
@@ -256,8 +261,8 @@ export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
-  // Unique constraint to prevent duplicate payments
-  uniquePayment: unique().on(table.studentId, table.year, table.month, table.schoolId),
+  // Unique constraint to prevent duplicate payments - now using uniqueStudentId
+  uniquePayment: unique().on(table.uniqueStudentId, table.year, table.month, table.schoolId),
 }));
 
 // Manual Financial Entries table for gains and losses tracking
@@ -286,6 +291,7 @@ export const formationRegistrations = pgTable("formation_registrations", {
 
 export const children = pgTable("children", {
   id: serial("id").primaryKey(),
+  uniqueStudentId: varchar("unique_student_id", { length: 36 }).notNull().unique().default(sql`gen_random_uuid()`), // Globally unique identifier
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   parentId: integer("parent_id").references(() => users.id),
   name: text("name").notNull(),
@@ -304,6 +310,7 @@ export const children = pgTable("children", {
 
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
+  uniqueStudentId: varchar("unique_student_id", { length: 36 }).notNull().unique().default(sql`gen_random_uuid()`), // Globally unique identifier
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   userId: integer("user_id").references(() => users.id),
   name: text("name").notNull(), // Student name
