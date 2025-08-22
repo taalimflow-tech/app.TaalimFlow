@@ -68,6 +68,16 @@ export default function Profile() {
     email: user?.email || '',
   });
 
+  // Update form data when user data changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+      });
+    }
+  }, [user]);
+
   // Check Firebase email verification status
   useEffect(() => {
     const checkEmailVerification = () => {
@@ -251,8 +261,11 @@ export default function Profile() {
         throw new Error(data?.error || 'حدث خطأ أثناء تحديث البيانات');
       }
 
-      // Update the auth context with new user data
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      // Update the auth context with new user data and wait for it
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      // Force a refetch to get the updated user data
+      await queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
       
       toast({ 
         title: 'تم تحديث الملف الشخصي بنجاح',
