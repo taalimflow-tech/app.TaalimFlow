@@ -447,27 +447,32 @@ export interface IStorage {
 
   // Student Monthly Payment interface methods
   getStudentPaymentStatus(
-    userId: number,
+    studentId: number,
     year: number,
     month: number,
     schoolId: number,
   ): Promise<StudentMonthlyPayment | undefined>;
   getStudentsPaymentStatusForMonth(
-    userIds: number[],
+    studentIds: number[],
     year: number,
     month: number,
     schoolId: number,
   ): Promise<StudentMonthlyPayment[]>;
-  markStudentPayment(
+  createStudentPayment(
+    studentId: number,
     userId: number,
+    studentType: "student" | "child",
     year: number,
     month: number,
-    isPaid: boolean,
+    amount: number,
     schoolId: number,
     paidBy: number,
-    amount?: number,
     notes?: string,
   ): Promise<StudentMonthlyPayment>;
+  getStudentPaymentHistory(
+    studentId: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment[]>;
   // REMOVED: createDefaultMonthlyPayments - caused bulk payment creation
 
   // Student Status interface methods
@@ -4179,7 +4184,7 @@ export class DatabaseStorage implements IStorage {
 
   // Student Monthly Payment methods implementation
   async getStudentPaymentStatus(
-    userId: number,
+    studentId: number,
     year: number,
     month: number,
     schoolId: number,
@@ -4190,12 +4195,13 @@ export class DatabaseStorage implements IStorage {
         .from(studentMonthlyPayments)
         .where(
           and(
-            eq(studentMonthlyPayments.userId, userId),
+            eq(studentMonthlyPayments.studentId, studentId),
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId),
           ),
-        );
+        )
+        .limit(1);
       return payment || undefined;
     } catch (error) {
       console.error("Error getting student payment status:", error);
@@ -4204,20 +4210,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStudentsPaymentStatusForMonth(
-    userIds: number[],
+    studentIds: number[],
     year: number,
     month: number,
     schoolId: number,
   ): Promise<StudentMonthlyPayment[]> {
     try {
-      if (userIds.length === 0) return [];
+      if (studentIds.length === 0) return [];
 
       return await db
         .select()
         .from(studentMonthlyPayments)
         .where(
           and(
-            inArray(studentMonthlyPayments.userId, userIds),
+            inArray(studentMonthlyPayments.studentId, studentIds),
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId),
@@ -4229,86 +4235,81 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async markStudentPayment(
+  async createStudentPayment(
+    studentId: number,
     userId: number,
+    studentType: "student" | "child",
     year: number,
     month: number,
-    isPaid: boolean,
+    amount: number,
     schoolId: number,
     paidBy: number,
-    amount?: number,
     notes?: string,
   ): Promise<StudentMonthlyPayment> {
     try {
-      // Determine student type by checking if the user exists in users table or children table
-      let studentType: "student" | "child" = "student";
-
-      // First check if it's a user (direct student)
-      const userStudent = await db
+      // Check if payment already exists to prevent duplicates
+      const [existingPayment] = await db
         .select()
-        .from(users)
-        .where(and(eq(users.id, userId), eq(users.schoolId, schoolId)))
+        .from(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        )
         .limit(1);
 
-      if (userStudent.length === 0) {
-        // If not found in users, check children table (children use parent's userId)
-        const childStudent = await db
-          .select()
-          .from(children)
-          .where(
-            and(eq(children.parentId, userId), eq(children.schoolId, schoolId)),
-          )
-          .limit(1);
-        if (childStudent.length > 0) {
-          studentType = "child";
-        }
-      }
-
-      // Check if payment record exists
-      const existingPayment = await this.getStudentPaymentStatus(
-        userId,
-        year,
-        month,
-        schoolId,
-      );
-
       if (existingPayment) {
-        // Update existing record
-        const [updatedPayment] = await db
-          .update(studentMonthlyPayments)
-          .set({
-            isPaid,
-            amount: amount ? amount.toString() : existingPayment.amount,
-            paidAt: isPaid ? new Date() : null,
-            paidBy: isPaid ? paidBy : null,
-            notes,
-            updatedAt: new Date(),
-          })
-          .where(eq(studentMonthlyPayments.id, existingPayment.id))
-          .returning();
-        return updatedPayment;
-      } else {
-        // Create new record
-        const [newPayment] = await db
-          .insert(studentMonthlyPayments)
-          .values({
-            userId,
-            studentType, // Include the determined student type
-            year,
-            month,
-            isPaid,
-            amount: amount ? amount.toString() : null,
-            paidAt: isPaid ? new Date() : null,
-            paidBy: isPaid ? paidBy : null,
-            notes,
-            schoolId,
-          })
-          .returning();
-        return newPayment;
+        console.log(`Payment already exists for studentId ${studentId}, ${month}/${year}`);
+        return existingPayment;
       }
+
+      // Create new payment record
+      const [newPayment] = await db
+        .insert(studentMonthlyPayments)
+        .values({
+          userId,
+          studentId,
+          studentType,
+          year,
+          month,
+          isPaid: true, // Always true since we only create records for payments
+          amount: amount.toString(),
+          paidAt: new Date(),
+          paidBy,
+          notes,
+          schoolId,
+        })
+        .returning();
+      
+      console.log(`Created payment for studentId ${studentId}, ${month}/${year}, amount: ${amount}`);
+      return newPayment;
     } catch (error) {
-      console.error("Error marking student payment:", error);
+      console.error("Error creating student payment:", error);
       throw error;
+    }
+  }
+
+  async getStudentPaymentHistory(
+    studentId: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment[]> {
+    try {
+      return await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        )
+        .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
+    } catch (error) {
+      console.error("Error getting student payment history:", error);
+      return [];
     }
   }
 

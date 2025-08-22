@@ -3787,18 +3787,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Student Payment Status Routes
   app.get(
-    "/api/students/:userId/payment-status/:year/:month",
+    "/api/students/:studentId/payment-status/:year/:month",
     async (req, res) => {
       try {
         if (!req.session?.user) {
           return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
         }
 
-        const { userId, year, month } = req.params;
+        const { studentId, year, month } = req.params;
         const schoolId = req.session.user.schoolId;
 
         const paymentStatus = await storage.getStudentPaymentStatus(
-          parseInt(userId),
+          parseInt(studentId),
           parseInt(year),
           parseInt(month),
           schoolId,
@@ -3836,9 +3836,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parseInt(groupId),
         );
 
-        // Get all user IDs (both actual students and children) for payment processing
+        // Get all student IDs (both actual students and children) for payment processing
         const allStudentIds = groupAssignments.map(
-          (assignment: any) => assignment.userId,
+          (assignment: any) => assignment.studentId,
         );
 
         if (allStudentIds.length === 0) {
@@ -3878,71 +3878,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schoolId,
         );
 
-        // Process each student to determine payment requirement
+        // Build payment status for each student - NO VIRTUAL RECORDS
         const paymentStatuses = [];
 
-        for (const userId of allStudentIds) {
-          // Check if student has attendance in target month
-          const hasAttendanceThisMonth = attendanceData.some(
-            (record: any) => record.userId === userId,
-          );
-
-          // Find existing payment record
+        for (const assignment of groupAssignments) {
+          const studentId = assignment.studentId;
           const existingPayment = existingPayments.find(
-            (payment: any) => payment.userId === userId,
+            (p: any) => p.studentId === studentId,
           );
 
-          let paymentRequired = false;
-          let paymentNote = "";
-
-          // Apply smart payment logic - BUT respect existing payments regardless of attendance
-          if (hasAttendanceThisMonth || previousMonthEnded || existingPayment) {
-            paymentRequired = true;
-            // Don't set paymentNote here - we'll set it based on payment status
-          } else {
-            // Future month with no attendance yet AND no existing payment
-            paymentNote = "لا يوجد دفع مطلوب"; // Nothing to pay (Arabic)
-          }
-
-          // Set appropriate payment note based on payment status and requirement
-          if (paymentRequired) {
-            // If payment already exists, check if it's paid or not
-            if (existingPayment) {
-              if (existingPayment.isPaid) {
-                paymentNote = "مدفوع"; // Paid (Arabic)
-              } else {
-                paymentNote = "يجب الدفع"; // Must pay (Arabic)
-              }
-
-              paymentStatuses.push({
-                ...existingPayment,
-                paymentNote,
-                mustPay: paymentRequired,
-              });
-            } else {
-              // Return virtual record instead of creating database record
-              paymentNote = "يجب الدفع"; // Must pay (Arabic)
-
-              paymentStatuses.push({
-                studentId: userId,
-                year: targetYear,
-                month: targetMonth,
-                isPaid: false,
-                paymentNote,
-                mustPay: paymentRequired,
-                isVirtual: true, // Not stored in database - only for display
-              });
-            }
-          } else {
-            // Return virtual record for display purposes
+          if (existingPayment) {
+            // Payment record exists in database
             paymentStatuses.push({
-              studentId: userId,
+              studentId: studentId,
+              userId: existingPayment.userId,
+              year: targetYear,
+              month: targetMonth,
+              isPaid: true,
+              amount: existingPayment.amount,
+              paidAt: existingPayment.paidAt,
+              paymentNote: "مدفوع", // Paid
+              studentType: existingPayment.studentType,
+            });
+          } else {
+            // No payment record - student hasn't paid
+            paymentStatuses.push({
+              studentId: studentId,
+              userId: assignment.userId,
               year: targetYear,
               month: targetMonth,
               isPaid: false,
-              paymentNote,
-              mustPay: paymentRequired,
-              isVirtual: true, // Not stored in database
+              paymentNote: "يجب الدفع", // Must pay
+              studentType: assignment.studentType || "student",
             });
           }
         }
@@ -3955,7 +3922,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.post("/api/students/:userId/mark-payment", async (req, res) => {
+  // Create payment for multiple months
+  app.post("/api/students/create-payment", async (req, res) => {
     try {
       if (!req.session?.user || req.session.user.role !== "admin") {
         return res
@@ -3963,29 +3931,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "غير مسموح لك بتعديل حالة الدفع" });
       }
 
-      const { userId } = req.params;
-      const { year, month, isPaid, amount, notes } = req.body;
+      const { studentId, userId, studentType, months, amount, notes } = req.body;
       const schoolId = req.session.user.schoolId;
       const paidBy = req.session.user.id;
+      
+      if (!studentId || !userId || !studentType || !months || !amount) {
+        return res.status(400).json({ error: "معلومات ناقصة" });
+      }
 
-      // Set appropriate payment note based on status
-      const paymentNote = isPaid ? "مدفوع" : "يجب الدفع"; // Paid or Must pay in Arabic
+      const paymentRecords = [];
+      
+      // Create payment for each selected month
+      for (const monthData of months) {
+        const { year, month } = monthData;
+        
+        const paymentRecord = await storage.createStudentPayment(
+          parseInt(studentId),
+          parseInt(userId),
+          studentType,
+          parseInt(year),
+          parseInt(month),
+          parseFloat(amount),
+          schoolId,
+          paidBy,
+          notes,
+        );
+        
+        paymentRecords.push(paymentRecord);
+      }
 
-      const paymentRecord = await storage.markStudentPayment(
-        parseInt(userId),
-        parseInt(year),
-        parseInt(month),
-        isPaid,
+      res.json(paymentRecords);
+    } catch (error) {
+      console.error("Error creating payment:", error);
+      res.status(500).json({ error: "فشل في إنشاء الدفع" });
+    }
+  });
+  
+  // Get payment history for a student
+  app.get("/api/students/:studentId/payment-history", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { studentId } = req.params;
+      const schoolId = req.session.user.schoolId;
+
+      const paymentHistory = await storage.getStudentPaymentHistory(
+        parseInt(studentId),
         schoolId,
-        paidBy,
-        amount ? parseFloat(amount) : undefined,
-        notes || paymentNote,
       );
 
-      res.json(paymentRecord);
+      res.json(paymentHistory);
     } catch (error) {
-      console.error("Error marking payment:", error);
-      res.status(500).json({ error: "فشل في تحديث حالة الدفع" });
+      console.error("Error getting payment history:", error);
+      res.status(500).json({ error: "فشل في جلب سجل المدفوعات" });
     }
   });
 
@@ -5151,31 +5151,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`📝 Payment logic: studentId=${transaction.studentId}, studentType=${transaction.studentType}, determined userId=${userId}`);
 
-          // **FIX: Check if payment already exists for this specific school/user/year/month**
+          // Check if payment already exists for this specific school/student/year/month
           const existingPayment = await storage.getStudentPaymentStatus(
-            userId,
+            transaction.studentId,
             transaction.year,
             transaction.month,
             schoolId
           );
 
           if (existingPayment && existingPayment.isPaid) {
-            console.log(`⚠️ Payment already exists and is PAID for userId=${userId}, month=${transaction.month}/${transaction.year} - skipping`);
+            console.log(`⚠️ Payment already exists and is PAID for studentId=${transaction.studentId}, month=${transaction.month}/${transaction.year} - skipping`);
             continue; // Skip this transaction
           }
 
           console.log(
-            `📝 Creating payment record for userId=${userId} (studentId=${transaction.studentId}), month ${transaction.month}/${transaction.year}, amount: ${transaction.amount}`,
+            `📝 Creating payment record for studentId=${transaction.studentId}, userId=${userId}, month ${transaction.month}/${transaction.year}, amount: ${transaction.amount}`,
           );
           
-          const paymentRecord = await storage.markStudentPayment(
-            userId, // **FIX: Use correct userId instead of studentId**
+          const paymentRecord = await storage.createStudentPayment(
+            transaction.studentId, // Student or child ID
+            userId, // User ID (parent for children, same as studentId for direct students)
+            transaction.studentType as "student" | "child",
             transaction.year,
             transaction.month,
-            true, // Mark as paid
+            transaction.amount,
             schoolId,
             req.session.user.id,
-            transaction.amount,
             `${transaction.notes || ""} - إيصال: ${receiptId}`.trim(),
           );
           console.log("✅ Payment record created successfully:", {
@@ -5193,7 +5194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           setTimeout(async () => {
             try {
               const verificationCheck = await storage.getStudentPaymentStatus(
-                userId, // **FIX: Use userId for verification check**
+                transaction.studentId, // Use studentId for verification check
                 transaction.year,
                 transaction.month,
                 schoolId,

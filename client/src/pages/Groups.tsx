@@ -1026,22 +1026,27 @@ export default function Groups() {
     },
   });
 
-  // Payment status mutation
-  const markPaymentMutation = useMutation({
+  // Payment creation mutation
+  const createPaymentMutation = useMutation({
     mutationFn: async ({
       studentId,
-      isPaid,
+      userId,
+      studentType,
     }: {
       studentId: number;
-      isPaid: boolean;
+      userId: number;
+      studentType: "student" | "child";
     }) => {
       const response = await apiRequest(
         "POST",
-        `/api/students/${studentId}/mark-payment`,
+        `/api/students/create-payment`,
         {
-          year: currentViewingYear,
-          month: currentViewingMonth,
-          isPaid,
+          studentId,
+          userId,
+          studentType,
+          months: [{ year: currentViewingYear, month: currentViewingMonth }],
+          amount: 5000, // Default amount in DZD
+          notes: "دفعة شهرية",
         },
       );
       return response.json();
@@ -1454,35 +1459,39 @@ export default function Groups() {
     const paymentRecord = paymentStatuses.find(
       (payment: any) => payment.studentId === studentId,
     );
-    // Default to unpaid if no record exists
-    return paymentRecord || { studentId, isPaid: false };
+    // Return the payment record or undefined if not found
+    return paymentRecord;
   };
 
   // Helper function to toggle payment status
-  const handleTogglePayment = (userId: number) => {
+  const handleTogglePayment = (studentId: number) => {
     if (user?.role !== "admin") return;
 
-    // Find student in Group Assignments data using userId consistently
-    const student = groupAssignments.find((s: any) => s.userId === userId);
+    // Find student in Group Assignments data using studentId
+    const student = groupAssignments.find((s: any) => s.studentId === studentId);
 
     if (!student) {
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
       return;
     }
 
-    const currentPayment = getStudentPaymentStatus(userId);
+    const currentPayment = getStudentPaymentStatus(studentId);
 
-    // Only allow payment changes if payment is required (not virtual records)
-    if (currentPayment?.isVirtual && !currentPayment?.mustPay) {
+    // If payment already exists, don't allow toggling off
+    if (currentPayment?.isPaid) {
       toast({
-        title: "لا يوجد دفع مطلوب لهذا الشهر حتى الآن",
+        title: "الدفعة مسجلة بالفعل ولا يمكن إلغاؤها",
         variant: "destructive",
       });
       return;
     }
 
-    const isPaid = !currentPayment?.isPaid;
-    markPaymentMutation.mutate({ studentId: userId, isPaid });
+    // Create payment
+    createPaymentMutation.mutate({ 
+      studentId: studentId, 
+      userId: student.userId,
+      studentType: student.studentType || "student"
+    });
   };
 
   const getAvailableGrades = (level: string) => {
@@ -3496,7 +3505,7 @@ export default function Groups() {
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
                                           const paymentStatus =
-                                            getStudentPaymentStatus(userId);
+                                            getStudentPaymentStatus(studentId);
 
                                           // If it's a virtual record with no payment requirement
                                           if (
@@ -3520,7 +3529,7 @@ export default function Groups() {
                                                 <button
                                                   onClick={() =>
                                                     handleTogglePayment(
-                                                      userId,
+                                                      studentId,
                                                     )
                                                   }
                                                   className={`px-3 py-1 rounded text-sm font-medium ${

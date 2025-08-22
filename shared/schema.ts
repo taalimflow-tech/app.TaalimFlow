@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -239,22 +239,26 @@ export const groupTransactions = pgTable("group_transactions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Monthly payment status for students - simple paid/unpaid tracking - Uses only user_id for consistency
+// Monthly payment status for students - Database-only payment tracking
 export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
-  userId: integer("student_id").references(() => users.id).notNull(), // Use existing student_id column but reference as userId
-  studentType: text("student_type", { enum: ["student", "child"] }).notNull(), // Type to distinguish source table
+  userId: integer("user_id").notNull(), // User ID (parent ID for children, student ID for direct students)
+  studentId: integer("student_id").notNull(), // Student or child ID
+  studentType: text("student_type", { enum: ["student", "child"] }).notNull(),
   year: integer("year").notNull(),
   month: integer("month").notNull(), // 1-12
-  isPaid: boolean("is_paid").default(false).notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }),
-  paidAt: timestamp("paid_at"),
+  isPaid: boolean("is_paid").default(true).notNull(), // Always true since we only create records for payments
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paidAt: timestamp("paid_at").notNull(),
   paidBy: integer("paid_by").references(() => users.id), // admin who marked as paid
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Unique constraint to prevent duplicate payments
+  uniquePayment: unique().on(table.studentId, table.year, table.month, table.schoolId),
+}));
 
 // Manual Financial Entries table for gains and losses tracking
 export const financialEntries = pgTable("financial_entries", {
