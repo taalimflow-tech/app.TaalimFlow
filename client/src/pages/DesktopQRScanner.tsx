@@ -408,10 +408,15 @@ function GroupAttendanceTable({
                       const currentMonth = parseInt(currentMonthKey.split('-')[1]);
                       const currentYear = parseInt(currentMonthKey.split('-')[0]);
                       
-                      // Check payment status using the same format as payment section
-                      const isMonthPaid = groupPaymentStatus[groupId]?.[currentMonth] || false;
+                      // Check payment status by filtering payment records by year, month, and student
+                      let isMonthPaid = false;
                       
-                      console.log(`🔍 Attendance table month check: Group ${groupId}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
+                      // Look up payment record directly from paymentStatusByMonth with year/month key
+                      const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+                      const paymentRecord = paymentStatusByMonth[monthKey];
+                      isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
+                      
+                      console.log(`🔍 Attendance table payment check: Group ${groupId}, Year ${currentYear}, Month ${currentMonth}, MonthKey: ${monthKey}, Paid: ${isMonthPaid}`);
                       
                       return (
                         <>
