@@ -143,10 +143,22 @@ export default function Profile() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to add child');
+        let errorMessage = 'Failed to add child';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          errorMessage = text || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
       
-      return response.json();
+      try {
+        return await response.json();
+      } catch {
+        return { success: true };
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/children'] });
@@ -154,9 +166,10 @@ export default function Profile() {
       setShowAddChild(false);
       toast({ title: 'تم إضافة الطفل بنجاح' });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({ 
         title: 'خطأ في إضافة الطفل', 
+        description: error.message,
         variant: 'destructive' 
       });
     }
@@ -170,18 +183,31 @@ export default function Profile() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to delete child');
+        let errorMessage = 'Failed to delete child';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          errorMessage = text || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
       
-      return response.json();
+      try {
+        return await response.json();
+      } catch {
+        return { success: true };
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/children'] });
       toast({ title: 'تم حذف الطفل بنجاح' });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({ 
         title: 'خطأ في حذف الطفل', 
+        description: error.message,
         variant: 'destructive' 
       });
     }
@@ -203,10 +229,17 @@ export default function Profile() {
         }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // If response is not JSON, handle as plain text error
+        const text = await response.text();
+        throw new Error(response.ok ? 'تم التحديث بنجاح' : (text || 'حدث خطأ أثناء تحديث البيانات'));
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'حدث خطأ أثناء تحديث البيانات');
+        throw new Error(data?.error || 'حدث خطأ أثناء تحديث البيانات');
       }
 
       // Update the auth context with new user data
@@ -214,12 +247,13 @@ export default function Profile() {
       
       toast({ 
         title: 'تم تحديث الملف الشخصي بنجاح',
-        description: data.message 
+        description: data?.message || 'تم تحديث البيانات بنجاح'
       });
     } catch (error: any) {
+      console.error('Profile update error:', error);
       toast({ 
         title: 'حدث خطأ أثناء تحديث البيانات', 
-        description: error.message,
+        description: error.message || 'حدث خطأ غير متوقع',
         variant: 'destructive' 
       });
     } finally {
