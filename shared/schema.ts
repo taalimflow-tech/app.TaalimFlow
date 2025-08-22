@@ -696,6 +696,7 @@ export const insertGroupTransactionSchema = createInsertSchema(groupTransactions
 
 export const insertStudentMonthlyPaymentSchema = createInsertSchema(studentMonthlyPayments).pick({
   studentId: true,
+  userId: true,
   year: true,
   month: true,
   isPaid: true,
@@ -704,6 +705,7 @@ export const insertStudentMonthlyPaymentSchema = createInsertSchema(studentMonth
   paidBy: true,
   notes: true,
   schoolId: true,
+  studentType: true,
 });
 
 export const insertFinancialEntrySchema = createInsertSchema(financialEntries).pick({
