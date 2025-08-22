@@ -95,6 +95,7 @@ function GroupAttendanceTable({
   studentId, 
   studentType, 
   studentName,
+  userId,
   refreshTrigger,
   groupPaymentStatus
 }: { 
@@ -102,6 +103,7 @@ function GroupAttendanceTable({
   studentId: number;
   studentType: 'student' | 'child';
   studentName: string;
+  userId: number; // Add userId prop for attendance lookup
   refreshTrigger?: number; // Add optional refresh trigger prop
   groupPaymentStatus: {[groupId: number]: {[month: number]: boolean}}; // Payment status shared from parent
 }) {
@@ -431,11 +433,9 @@ function GroupAttendanceTable({
                 {currentMonthDates.map((date) => {
                   // Find attendance record by both userId and date - same logic as Groups.tsx
                   const attendanceRecord = attendanceHistory.find((record: any) => 
-                    record.userId === scannedProfile?.userId &&
+                    record.userId === userId &&
                     record.attendanceDate?.split('T')[0] === date
                   );
-                  
-                  console.log(`🔍 Attendance lookup for ${date}: userId=${scannedProfile?.userId}, found=`, attendanceRecord);
                   
                   return (
                     <td key={date} className="border border-gray-300 p-1 text-center">
@@ -462,7 +462,7 @@ function GroupAttendanceTable({
               <h5 className="font-medium text-green-800">حضور الشهر</h5>
               <p className="text-xl font-bold text-green-900">
                 {attendanceHistory.filter(r => 
-                  r.userId === scannedProfile?.userId &&
+                  r.userId === userId &&
                   r.status === 'present' && 
                   currentMonthDates.includes(r.attendanceDate?.split('T')[0])
                 ).length}
@@ -472,7 +472,7 @@ function GroupAttendanceTable({
               <h5 className="font-medium text-red-800">غياب الشهر</h5>
               <p className="text-xl font-bold text-red-900">
                 {attendanceHistory.filter(r => 
-                  r.userId === scannedProfile?.userId &&
+                  r.userId === userId &&
                   r.status === 'absent' && 
                   currentMonthDates.includes(r.attendanceDate?.split('T')[0])
                 ).length}
@@ -483,7 +483,7 @@ function GroupAttendanceTable({
               <p className="text-xl font-bold text-blue-900">
                 {(() => {
                   const monthRecords = attendanceHistory.filter(r => 
-                    r.userId === scannedProfile?.userId &&
+                    r.userId === userId &&
                     currentMonthDates.includes(r.attendanceDate?.split('T')[0])
                   );
                   const presentCount = monthRecords.filter(r => r.status === 'present').length;
@@ -2299,6 +2299,7 @@ function DesktopQRScanner() {
                           studentId={scannedProfile.id}
                           studentType={scannedProfile.type}
                           studentName={scannedProfile.name}
+                          userId={scannedProfile.id}
                           refreshTrigger={attendanceRefreshTrigger}
                           groupPaymentStatus={groupPaymentStatus}
                         />
