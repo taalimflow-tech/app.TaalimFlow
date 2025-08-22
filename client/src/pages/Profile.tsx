@@ -142,20 +142,22 @@ export default function Profile() {
         body: JSON.stringify(childData),
       });
       
+      // Read response text first, then try to parse as JSON
+      const responseText = await response.text();
+      
       if (!response.ok) {
         let errorMessage = 'Failed to add child';
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
+          const errorData = responseText ? JSON.parse(responseText) : {};
+          errorMessage = errorData.error || responseText || errorMessage;
         } catch {
-          const text = await response.text();
-          errorMessage = text || errorMessage;
+          errorMessage = responseText || errorMessage;
         }
         throw new Error(errorMessage);
       }
       
       try {
-        return await response.json();
+        return responseText ? JSON.parse(responseText) : { success: true };
       } catch {
         return { success: true };
       }
@@ -182,20 +184,22 @@ export default function Profile() {
         method: 'DELETE',
       });
       
+      // Read response text first, then try to parse as JSON
+      const responseText = await response.text();
+      
       if (!response.ok) {
         let errorMessage = 'Failed to delete child';
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
+          const errorData = responseText ? JSON.parse(responseText) : {};
+          errorMessage = errorData.error || responseText || errorMessage;
         } catch {
-          const text = await response.text();
-          errorMessage = text || errorMessage;
+          errorMessage = responseText || errorMessage;
         }
         throw new Error(errorMessage);
       }
       
       try {
-        return await response.json();
+        return responseText ? JSON.parse(responseText) : { success: true };
       } catch {
         return { success: true };
       }
@@ -229,13 +233,18 @@ export default function Profile() {
         }),
       });
 
+      // Read response text first, then try to parse as JSON
+      const responseText = await response.text();
       let data;
+      
       try {
-        data = await response.json();
+        data = responseText ? JSON.parse(responseText) : {};
       } catch (jsonError) {
-        // If response is not JSON, handle as plain text error
-        const text = await response.text();
-        throw new Error(response.ok ? 'تم التحديث بنجاح' : (text || 'حدث خطأ أثناء تحديث البيانات'));
+        // If response is not JSON, treat as plain text
+        if (!response.ok) {
+          throw new Error(responseText || 'حدث خطأ أثناء تحديث البيانات');
+        }
+        data = { message: 'تم التحديث بنجاح' };
       }
 
       if (!response.ok) {
