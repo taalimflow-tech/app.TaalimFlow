@@ -1467,18 +1467,26 @@ export default function Groups() {
   const handleTogglePayment = (studentId: number) => {
     if (user?.role !== "admin") return;
 
+    console.log("[DEBUG] handleTogglePayment called with studentId:", studentId);
+    console.log("[DEBUG] groupAssignments:", groupAssignments);
+
     // Find student in Group Assignments data using studentId
     const student = groupAssignments.find((s: any) => s.studentId === studentId);
 
+    console.log("[DEBUG] Found student:", student);
+
     if (!student) {
+      console.log("[DEBUG] Student not found in groupAssignments");
+      console.log("[DEBUG] Available studentIds:", groupAssignments.map((s: any) => s.studentId));
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
       return;
     }
 
     const currentPayment = getStudentPaymentStatus(studentId);
+    console.log("[DEBUG] Current payment:", currentPayment);
 
     // If payment already exists, don't allow toggling off
-    if (currentPayment?.isPaid) {
+    if (currentPayment) {
       toast({
         title: "الدفعة مسجلة بالفعل ولا يمكن إلغاؤها",
         variant: "destructive",
@@ -1487,6 +1495,12 @@ export default function Groups() {
     }
 
     // Create payment
+    console.log("[DEBUG] Creating payment mutation with:", {
+      studentId: studentId, 
+      userId: student.userId,
+      studentType: student.studentType || "student"
+    });
+    
     createPaymentMutation.mutate({ 
       studentId: studentId, 
       userId: student.userId,
