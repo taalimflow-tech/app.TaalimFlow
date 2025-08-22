@@ -3507,6 +3507,11 @@ export default function Groups() {
                                           const paymentStatus =
                                             getStudentPaymentStatus(studentId);
                                           
+                                          // DEBUG: Log payment lookup
+                                          console.log(`[DEBUG] Looking for payment for studentId: ${studentId}`);
+                                          console.log(`[DEBUG] Found payment:`, paymentStatus);
+                                          console.log(`[DEBUG] All payment statuses:`, paymentStatuses);
+                                          
                                           // New system: Record exists = paid, no record = unpaid
                                           const isPaid = paymentStatus ? true : false;
 
