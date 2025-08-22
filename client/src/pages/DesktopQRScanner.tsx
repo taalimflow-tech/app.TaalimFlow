@@ -429,9 +429,13 @@ function GroupAttendanceTable({
                   </div>
                 </td>
                 {currentMonthDates.map((date) => {
+                  // Find attendance record by both userId and date - same logic as Groups.tsx
                   const attendanceRecord = attendanceHistory.find((record: any) => 
+                    record.userId === scannedProfile?.userId &&
                     record.attendanceDate?.split('T')[0] === date
                   );
+                  
+                  console.log(`🔍 Attendance lookup for ${date}: userId=${scannedProfile?.userId}, found=`, attendanceRecord);
                   
                   return (
                     <td key={date} className="border border-gray-300 p-1 text-center">
@@ -458,7 +462,9 @@ function GroupAttendanceTable({
               <h5 className="font-medium text-green-800">حضور الشهر</h5>
               <p className="text-xl font-bold text-green-900">
                 {attendanceHistory.filter(r => 
-                  r.status === 'present' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+                  r.userId === scannedProfile?.userId &&
+                  r.status === 'present' && 
+                  currentMonthDates.includes(r.attendanceDate?.split('T')[0])
                 ).length}
               </p>
             </div>
@@ -466,7 +472,9 @@ function GroupAttendanceTable({
               <h5 className="font-medium text-red-800">غياب الشهر</h5>
               <p className="text-xl font-bold text-red-900">
                 {attendanceHistory.filter(r => 
-                  r.status === 'absent' && currentMonthDates.includes(r.attendanceDate?.split('T')[0])
+                  r.userId === scannedProfile?.userId &&
+                  r.status === 'absent' && 
+                  currentMonthDates.includes(r.attendanceDate?.split('T')[0])
                 ).length}
               </p>
             </div>
@@ -475,6 +483,7 @@ function GroupAttendanceTable({
               <p className="text-xl font-bold text-blue-900">
                 {(() => {
                   const monthRecords = attendanceHistory.filter(r => 
+                    r.userId === scannedProfile?.userId &&
                     currentMonthDates.includes(r.attendanceDate?.split('T')[0])
                   );
                   const presentCount = monthRecords.filter(r => r.status === 'present').length;
