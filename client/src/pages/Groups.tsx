@@ -3508,17 +3508,21 @@ export default function Groups() {
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
-                                          // Apply same logic as DesktopQRScanner: simple groupId/month lookup
+                                          // Apply exact same logic as DesktopQRScanner: year/month filtering
                                           const groupId = managementGroup?.id;
                                           const currentMonth = currentViewingMonth;
+                                          const currentYear = currentViewingYear;
                                           
-                                          // Check if payment exists for this student in the payment statuses array
+                                          // Check if payment exists for this specific student, year, and month
                                           const paymentRecord = paymentStatuses.find(
-                                            (payment: any) => payment.studentId === studentId
+                                            (payment: any) => 
+                                              payment.studentId === studentId &&
+                                              payment.year === currentYear &&
+                                              payment.month === currentMonth
                                           );
                                           const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                                           
-                                          console.log(`🔍 Groups attendance table payment check: Student ${studentId}, Group ${groupId}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
+                                          console.log(`🔍 Groups attendance table payment check: Student ${studentId}, Group ${groupId}, Year ${currentYear}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
 
                                           // Show payment status for admins with toggle functionality
                                           if (user?.role === "admin") {
