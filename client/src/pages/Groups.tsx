@@ -3506,23 +3506,11 @@ export default function Groups() {
                                         {(() => {
                                           const paymentStatus =
                                             getStudentPaymentStatus(studentId);
+                                          
+                                          // New system: Record exists = paid, no record = unpaid
+                                          const isPaid = paymentStatus ? true : false;
 
-                                          // If it's a virtual record with no payment requirement
-                                          if (
-                                            paymentStatus?.isVirtual &&
-                                            !paymentStatus?.mustPay
-                                          ) {
-                                            return (
-                                              <div className="flex flex-col items-center space-y-1">
-                                                <span className="px-2 py-1 rounded text-xs text-gray-500 bg-gray-50">
-                                                  {paymentStatus?.paymentNote ||
-                                                    "Nothing to pay"}
-                                                </span>
-                                              </div>
-                                            );
-                                          }
-
-                                          // Show payment status for actual payment records
+                                          // Show payment status for admins with toggle functionality
                                           if (user?.role === "admin") {
                                             return (
                                               <div className="flex flex-col items-center space-y-1">
@@ -3533,40 +3521,43 @@ export default function Groups() {
                                                     )
                                                   }
                                                   className={`px-3 py-1 rounded text-sm font-medium ${
-                                                    paymentStatus?.isPaid
+                                                    isPaid
                                                       ? "bg-green-100 text-green-800 hover:bg-green-200"
                                                       : "bg-red-100 text-red-800 hover:bg-red-200"
                                                   }`}
-                                                  title={`${paymentStatus?.isPaid ? "مدفوع" : "غير مدفوع"} - اضغط للتغيير`}
+                                                  title={`${isPaid ? "مدفوع" : "غير مدفوع"} - ${isPaid ? "الدفعة مسجلة" : "اضغط للدفع"}`}
                                                 >
-                                                  {paymentStatus?.isPaid
-                                                    ? "✅"
-                                                    : "❌"}
+                                                  {isPaid ? "✅" : "❌"}
                                                 </button>
-                                                {paymentStatus?.paymentNote && (
-                                                  <span className="text-xs text-gray-600">
-                                                    {paymentStatus.paymentNote}
+                                                <span className="text-xs text-gray-600">
+                                                  {isPaid ? "مدفوع" : "يجب الدفع"}
+                                                </span>
+                                                {paymentStatus?.amount && (
+                                                  <span className="text-xs text-blue-600">
+                                                    {paymentStatus.amount} د.ج
                                                   </span>
                                                 )}
                                               </div>
                                             );
                                           } else {
+                                            // Show payment status for non-admins (read-only)
                                             return (
                                               <div className="flex flex-col items-center space-y-1">
                                                 <span
                                                   className={`px-3 py-1 rounded text-sm font-medium ${
-                                                    paymentStatus?.isPaid
+                                                    isPaid
                                                       ? "bg-green-100 text-green-800"
                                                       : "bg-red-100 text-red-800"
                                                   }`}
                                                 >
-                                                  {paymentStatus?.isPaid
-                                                    ? "✅"
-                                                    : "❌"}
+                                                  {isPaid ? "✅" : "❌"}
                                                 </span>
-                                                {paymentStatus?.paymentNote && (
-                                                  <span className="text-xs text-gray-600">
-                                                    {paymentStatus.paymentNote}
+                                                <span className="text-xs text-gray-600">
+                                                  {isPaid ? "مدفوع" : "يجب الدفع"}
+                                                </span>
+                                                {paymentStatus?.amount && (
+                                                  <span className="text-xs text-blue-600">
+                                                    {paymentStatus.amount} د.ج
                                                   </span>
                                                 )}
                                               </div>
