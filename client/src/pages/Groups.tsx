@@ -1454,39 +1454,33 @@ export default function Groups() {
   };
 
   // Helper function to get available grades for each education level
-  // Helper function to get payment status for a student
-  const getStudentPaymentStatus = (studentId: number) => {
-    const paymentRecord = paymentStatuses.find(
-      (payment: any) => payment.studentId === studentId,
-    );
-    // Return the payment record or undefined if not found
-    return paymentRecord;
-  };
+  // Simplified payment status check - now using direct lookup in the render function
 
   // Helper function to toggle payment status
   const handleTogglePayment = (studentId: number) => {
     if (user?.role !== "admin") return;
 
-    console.log("[DEBUG] handleTogglePayment called with studentId:", studentId);
-    console.log("[DEBUG] groupAssignments:", groupAssignments);
+    console.log(`🔄 Payment toggle attempt: Student ${studentId}`);
 
     // Find student in Group Assignments data using studentId
     const student = groupAssignments.find((s: any) => s.studentId === studentId);
 
-    console.log("[DEBUG] Found student:", student);
-
     if (!student) {
-      console.log("[DEBUG] Student not found in groupAssignments");
-      console.log("[DEBUG] Available studentIds:", groupAssignments.map((s: any) => s.studentId));
+      console.log(`❌ Student ${studentId} not found in groupAssignments`);
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
       return;
     }
 
-    const currentPayment = getStudentPaymentStatus(studentId);
-    console.log("[DEBUG] Current payment:", currentPayment);
+    // Check if payment already exists using same logic as display
+    const paymentRecord = paymentStatuses.find(
+      (payment: any) => payment.studentId === studentId
+    );
+    const isAlreadyPaid = paymentRecord ? paymentRecord.isPaid : false;
+
+    console.log(`💰 Current payment status for student ${studentId}: ${isAlreadyPaid}`);
 
     // If payment already exists, don't allow toggling off
-    if (currentPayment) {
+    if (isAlreadyPaid) {
       toast({
         title: "الدفعة مسجلة بالفعل ولا يمكن إلغاؤها",
         variant: "destructive",
@@ -1494,12 +1488,8 @@ export default function Groups() {
       return;
     }
 
-    // Create payment
-    console.log("[DEBUG] Creating payment mutation with:", {
-      studentId: studentId, 
-      userId: student.userId,
-      studentType: student.studentType || "student"
-    });
+    // Create payment - use same mutation data as DesktopQRScanner
+    console.log(`✅ Creating payment for student ${studentId}, user ${student.userId}`);
     
     createPaymentMutation.mutate({ 
       studentId: studentId, 
@@ -3518,16 +3508,17 @@ export default function Groups() {
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
                                         {(() => {
-                                          const paymentStatus =
-                                            getStudentPaymentStatus(studentId);
+                                          // Apply same logic as DesktopQRScanner: simple groupId/month lookup
+                                          const groupId = managementGroup?.id;
+                                          const currentMonth = currentViewingMonth;
                                           
-                                          // DEBUG: Log payment lookup
-                                          console.log(`[DEBUG] Looking for payment for studentId: ${studentId}`);
-                                          console.log(`[DEBUG] Found payment:`, paymentStatus);
-                                          console.log(`[DEBUG] All payment statuses:`, paymentStatuses);
+                                          // Check if payment exists for this student in the payment statuses array
+                                          const paymentRecord = paymentStatuses.find(
+                                            (payment: any) => payment.studentId === studentId
+                                          );
+                                          const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                                           
-                                          // New system: Record exists = paid, no record = unpaid
-                                          const isPaid = paymentStatus ? true : false;
+                                          console.log(`🔍 Groups attendance table payment check: Student ${studentId}, Group ${groupId}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
 
                                           // Show payment status for admins with toggle functionality
                                           if (user?.role === "admin") {
@@ -3540,20 +3531,20 @@ export default function Groups() {
                                                     )
                                                   }
                                                   className={`px-3 py-1 rounded text-sm font-medium ${
-                                                    isPaid
+                                                    isMonthPaid
                                                       ? "bg-green-100 text-green-800 hover:bg-green-200"
                                                       : "bg-red-100 text-red-800 hover:bg-red-200"
                                                   }`}
-                                                  title={`${isPaid ? "مدفوع" : "غير مدفوع"} - ${isPaid ? "الدفعة مسجلة" : "اضغط للدفع"}`}
+                                                  title={`${isMonthPaid ? "مدفوع" : "غير مدفوع"} - ${isMonthPaid ? "الدفعة مسجلة" : "اضغط للدفع"}`}
                                                 >
-                                                  {isPaid ? "✅" : "❌"}
+                                                  {isMonthPaid ? "✅" : "❌"}
                                                 </button>
                                                 <span className="text-xs text-gray-600">
-                                                  {isPaid ? "مدفوع" : "يجب الدفع"}
+                                                  {isMonthPaid ? "مدفوع" : "يجب الدفع"}
                                                 </span>
-                                                {paymentStatus?.amount && (
+                                                {paymentRecord?.amount && (
                                                   <span className="text-xs text-blue-600">
-                                                    {paymentStatus.amount} د.ج
+                                                    {paymentRecord.amount} د.ج
                                                   </span>
                                                 )}
                                               </div>
@@ -3564,19 +3555,19 @@ export default function Groups() {
                                               <div className="flex flex-col items-center space-y-1">
                                                 <span
                                                   className={`px-3 py-1 rounded text-sm font-medium ${
-                                                    isPaid
+                                                    isMonthPaid
                                                       ? "bg-green-100 text-green-800"
                                                       : "bg-red-100 text-red-800"
                                                   }`}
                                                 >
-                                                  {isPaid ? "✅" : "❌"}
+                                                  {isMonthPaid ? "✅" : "❌"}
                                                 </span>
                                                 <span className="text-xs text-gray-600">
-                                                  {isPaid ? "مدفوع" : "يجب الدفع"}
+                                                  {isMonthPaid ? "مدفوع" : "يجب الدفع"}
                                                 </span>
-                                                {paymentStatus?.amount && (
+                                                {paymentRecord?.amount && (
                                                   <span className="text-xs text-blue-600">
-                                                    {paymentStatus.amount} د.ج
+                                                    {paymentRecord.amount} د.ج
                                                   </span>
                                                 )}
                                               </div>
