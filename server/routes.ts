@@ -1044,7 +1044,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedUser = await storage.updateUserProfile(req.session.user.id, updates);
 
-      // Update session
+      // Update session data
       req.session.user = { ...req.session.user, ...updates };
 
       // Remove password from response
@@ -4729,7 +4729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ error: "الطالب غير موجود" });
         }
         uniqueStudentId = student.uniqueStudentId;
-        userId = student?.userId || parseInt(studentId); // userId for direct students
+        userId = student?.userId || parseInt(studentId) || 0; // userId for direct students
       } else {
         const child = await storage.getChildById(parseInt(studentId));
         if (!child) {

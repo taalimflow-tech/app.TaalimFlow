@@ -2494,14 +2494,17 @@ export class DatabaseStorage implements IStorage {
     userId: number,
     updates: { name?: string; email?: string },
   ): Promise<User> {
+    // Build the update object explicitly
+    const updateData: any = {};
+    if (updates.name) updateData.name = updates.name;
+    if (updates.email) updateData.email = updates.email;
+    
     const [user] = await db
       .update(users)
-      .set({ 
-        ...(updates.name && { name: updates.name }),
-        ...(updates.email && { email: updates.email })
-      })
+      .set(updateData)
       .where(eq(users.id, userId))
       .returning();
+      
     return user;
   }
 
