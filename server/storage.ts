@@ -143,6 +143,10 @@ export interface IStorage {
     userId: number,
     profilePictureUrl: string,
   ): Promise<User>;
+  updateUserProfile(
+    userId: number,
+    updates: { name?: string; email?: string },
+  ): Promise<User>;
 
   // Phone verification methods
   savePhoneVerificationCode(
@@ -2481,6 +2485,21 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ profilePicture: profilePictureUrl })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateUserProfile(
+    userId: number,
+    updates: { name?: string; email?: string },
+  ): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        ...(updates.name && { name: updates.name }),
+        ...(updates.email && { email: updates.email })
+      })
       .where(eq(users.id, userId))
       .returning();
     return user;

@@ -192,11 +192,36 @@ export default function Profile() {
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({ title: 'تم تحديث الملف الشخصي بنجاح' });
-    } catch (error) {
-      toast({ title: 'حدث خطأ أثناء تحديث البيانات', variant: 'destructive' });
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'حدث خطأ أثناء تحديث البيانات');
+      }
+
+      // Update the auth context with new user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      toast({ 
+        title: 'تم تحديث الملف الشخصي بنجاح',
+        description: data.message 
+      });
+    } catch (error: any) {
+      toast({ 
+        title: 'حدث خطأ أثناء تحديث البيانات', 
+        description: error.message,
+        variant: 'destructive' 
+      });
     } finally {
       setLoading(false);
     }
@@ -433,7 +458,7 @@ export default function Profile() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 break-all">{user.email}</p>
+                    <p className="font-medium text-gray-900 break-all">{user?.email}</p>
                     <p className={`text-sm mt-1 ${
                       isEmailVerified ? 'text-green-600' : 'text-gray-500'
                     }`}>
@@ -456,11 +481,11 @@ export default function Profile() {
           </Card>
 
           {/* QR Code Section for Students - Only for verified students */}
-          {user.role === 'student' && currentStudent && 'id' in currentStudent && user.verified && (
+          {user?.role === 'student' && currentStudent && typeof currentStudent === 'object' && 'id' in currentStudent && user?.verified && (
             <QRCodeDisplay
-              studentId={currentStudent.id}
+              studentId={(currentStudent as any).id}
               type="student"
-              studentName={user.name}
+              studentName={user?.name || ''}
               isAdmin={false}
             />
           )}

@@ -1012,6 +1012,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Update user profile
+  app.put("/api/profile", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { name, email } = req.body;
+
+      if (!name && !email) {
+        return res.status(400).json({ error: "يجب تقديم الاسم أو البريد الإلكتروني للتحديث" });
+      }
+
+      // Validate email format if provided
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: "تنسيق البريد الإلكتروني غير صحيح" });
+      }
+
+      // Check if email already exists for another user in the same school
+      if (email) {
+        const existingUser = await storage.getUserByEmail(email, req.session.user.schoolId);
+        if (existingUser && existingUser.id !== req.session.user.id) {
+          return res.status(400).json({ error: "البريد الإلكتروني مستخدم من قبل مستخدم آخر" });
+        }
+      }
+
+      const updates: { name?: string; email?: string } = {};
+      if (name?.trim()) updates.name = name.trim();
+      if (email?.trim()) updates.email = email.trim();
+
+      const updatedUser = await storage.updateUserProfile(req.session.user.id, updates);
+
+      // Update session
+      req.session.user = { ...req.session.user, ...updates };
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      
+      res.json({ 
+        message: "تم تحديث الملف الشخصي بنجاح",
+        user: userWithoutPassword 
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ error: "فشل في تحديث الملف الشخصي" });
+    }
+  });
+
   // Content upload endpoint for blogs, groups, formations, and school logos
   app.post(
     "/api/upload-content",
@@ -3943,7 +3991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let uniqueStudentId: string;
       
       if (studentType === "student") {
-        const student = await storage.getStudentById(parseInt(studentId));
+        const student = await storage.getStudentByUserId(parseInt(studentId));
         if (!student) {
           return res.status(404).json({ error: "الطالب غير موجود" });
         }
@@ -4676,12 +4724,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userId: number;
       
       if (studentType === "student") {
-        const student = await storage.getStudentById(parseInt(studentId));
+        const student = await storage.getStudentByUserId(parseInt(studentId));
         if (!student) {
           return res.status(404).json({ error: "الطالب غير موجود" });
         }
         uniqueStudentId = student.uniqueStudentId;
-        userId = student.userId || student.id; // userId for direct students
+        userId = student?.userId || parseInt(studentId); // userId for direct students
       } else {
         const child = await storage.getChildById(parseInt(studentId));
         if (!child) {
