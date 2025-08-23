@@ -456,12 +456,14 @@ export interface IStorage {
     year: number,
     month: number,
     schoolId: number,
+    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment | undefined>;
   getStudentsPaymentStatusForMonth(
     studentIds: number[],
     year: number,
     month: number,
     schoolId: number,
+    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment[]>;
   createStudentPayment(
     studentId: number,
@@ -477,6 +479,7 @@ export interface IStorage {
   getStudentPaymentHistory(
     studentId: number,
     schoolId: number,
+    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment[]>;
   // REMOVED: createDefaultMonthlyPayments - caused bulk payment creation
 
@@ -4223,19 +4226,25 @@ export class DatabaseStorage implements IStorage {
     year: number,
     month: number,
     schoolId: number,
+    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment | undefined> {
     try {
+      const conditions = [
+        eq(studentMonthlyPayments.studentId, studentId),
+        eq(studentMonthlyPayments.year, year),
+        eq(studentMonthlyPayments.month, month),
+        eq(studentMonthlyPayments.schoolId, schoolId),
+      ];
+
+      // Add isPaid filter if specified
+      if (isPaid !== undefined) {
+        conditions.push(eq(studentMonthlyPayments.isPaid, isPaid));
+      }
+
       const [payment] = await db
         .select()
         .from(studentMonthlyPayments)
-        .where(
-          and(
-            eq(studentMonthlyPayments.studentId, studentId),
-            eq(studentMonthlyPayments.year, year),
-            eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId),
-          ),
-        )
+        .where(and(...conditions))
         .limit(1);
       return payment || undefined;
     } catch (error) {
@@ -4249,21 +4258,27 @@ export class DatabaseStorage implements IStorage {
     year: number,
     month: number,
     schoolId: number,
+    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment[]> {
     try {
       if (studentIds.length === 0) return [];
 
+      const conditions = [
+        inArray(studentMonthlyPayments.studentId, studentIds),
+        eq(studentMonthlyPayments.year, year),
+        eq(studentMonthlyPayments.month, month),
+        eq(studentMonthlyPayments.schoolId, schoolId),
+      ];
+
+      // Add isPaid filter if specified
+      if (isPaid !== undefined) {
+        conditions.push(eq(studentMonthlyPayments.isPaid, isPaid));
+      }
+
       return await db
         .select()
         .from(studentMonthlyPayments)
-        .where(
-          and(
-            inArray(studentMonthlyPayments.studentId, studentIds),
-            eq(studentMonthlyPayments.year, year),
-            eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId),
-          ),
-        );
+        .where(and(...conditions));
     } catch (error) {
       console.error("Error getting students payment status:", error);
       return [];
@@ -4330,17 +4345,23 @@ export class DatabaseStorage implements IStorage {
   async getStudentPaymentHistory(
     studentId: number,
     schoolId: number,
+    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment[]> {
     try {
+      const conditions = [
+        eq(studentMonthlyPayments.studentId, studentId),
+        eq(studentMonthlyPayments.schoolId, schoolId),
+      ];
+
+      // Add isPaid filter if specified
+      if (isPaid !== undefined) {
+        conditions.push(eq(studentMonthlyPayments.isPaid, isPaid));
+      }
+
       return await db
         .select()
         .from(studentMonthlyPayments)
-        .where(
-          and(
-            eq(studentMonthlyPayments.studentId, studentId),
-            eq(studentMonthlyPayments.schoolId, schoolId),
-          ),
-        )
+        .where(and(...conditions))
         .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
     } catch (error) {
       console.error("Error getting student payment history:", error);
