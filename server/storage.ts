@@ -93,6 +93,7 @@ import {
   or,
   ilike,
   and,
+  ne,
   aliasedTable,
   sql,
   asc,
@@ -2010,7 +2011,8 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(students, eq(users.id, students.userId))
       .where(
         and(
-          // Include any user role that has student data, not just 'student' role
+          // SAFETY: Exclude parent users from student selections
+          ne(users.role, "parent"),
           eq(students.verified, true), // Only include verified student records
           educationLevel === "جميع المستويات"
             ? sql`1=1`
