@@ -40,13 +40,13 @@ const getNotificationIcon = (type: string) => {
 
 const getNotificationColor = (type: string) => {
   switch (type) {
-    case 'suggestion': return 'bg-blue-100 text-blue-800';
-    case 'message': return 'bg-green-100 text-green-800';
-    case 'blog': return 'bg-purple-100 text-purple-800';
-    case 'announcement': return 'bg-orange-100 text-orange-800';
-    case 'group_update': return 'bg-indigo-100 text-indigo-800';
-    case 'formation_update': return 'bg-yellow-100 text-yellow-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'suggestion': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
+    case 'message': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
+    case 'blog': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300';
+    case 'announcement': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300';
+    case 'group_update': return 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300';
+    case 'formation_update': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
+    default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
   }
 };
 
@@ -130,12 +130,12 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] lg:flex lg:justify-center lg:items-center">
-      <div className="bg-white w-full h-full lg:w-full lg:max-w-md lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-2xl border overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-[9999] lg:flex lg:justify-center lg:items-center">
+      <div className="bg-white dark:bg-gray-900 w-full h-full lg:w-full lg:max-w-md lg:h-[80vh] lg:max-h-[600px] lg:rounded-xl shadow-2xl border dark:border-gray-700 overflow-hidden">
         <div className="h-full flex flex-col">
           {/* Header */}
-          <div className="flex flex-row items-center justify-between border-b bg-purple-50 p-4 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-purple-800">
+          <div className="flex flex-row items-center justify-between border-b dark:border-gray-700 bg-purple-50 dark:bg-gray-800 p-4 flex-shrink-0">
+            <h2 className="text-lg font-semibold text-purple-800 dark:text-purple-300">
               <Bell className="w-5 h-5 inline-block mr-2" />
               الإشعارات
             </h2>
@@ -146,7 +146,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                   disabled={markAllAsReadMutation.isPending}
                   variant="ghost"
                   size="sm"
-                  className="text-purple-600 hover:text-purple-800"
+                  className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300"
                 >
                   <CheckCheck className="w-4 h-4" />
                 </Button>
@@ -155,7 +155,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                 onClick={onClose}
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -165,12 +165,12 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
           {/* Scrollable Content */}
           <div className="overflow-y-auto flex-1">
             {isLoading ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                 جاري تحميل الإشعارات...
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>لا توجد إشعارات</p>
               </div>
             ) : (
@@ -179,8 +179,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-6 lg:p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer ${
-                      !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                    className={`p-6 lg:p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer ${
+                      !notification.read ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500 dark:border-l-blue-400' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4 lg:gap-3">
@@ -205,15 +205,15 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                           )}
                         </div>
                         
-                        <h4 className="font-semibold text-gray-900 mb-3 lg:mb-2 text-xl lg:text-base leading-7 lg:leading-6">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 lg:mb-2 text-xl lg:text-base leading-7 lg:leading-6">
                           {notification.title}
                         </h4>
                         
-                        <p className="text-gray-600 mb-3 text-lg lg:text-sm leading-6 lg:leading-5">
+                        <p className="text-gray-600 dark:text-gray-300 mb-3 text-lg lg:text-sm leading-6 lg:leading-5">
                           {notification.message}
                         </p>
                         
-                        <p className="text-gray-400 text-base lg:text-xs">
+                        <p className="text-gray-400 dark:text-gray-500 text-base lg:text-xs">
                           {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
                             year: 'numeric',
                             month: 'short',
@@ -233,7 +233,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                           disabled={markAsReadMutation.isPending}
                           variant="ghost"
                           size="sm"
-                          className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex-shrink-0"
                         >
                           <Check className="w-5 h-5 lg:w-4 lg:h-4" />
                         </Button>
