@@ -296,11 +296,11 @@ export default function GainLossCalculator() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-3">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center justify-center gap-3">
           <Calculator className="w-8 h-8 text-primary" />
           حاسبة الأرباح والخسائر
         </h1>
-        <p className="text-gray-600">أداة بسيطة لتتبع الأرباح والخسائر المالية</p>
+        <p className="text-gray-600 dark:text-gray-400">أداة بسيطة لتتبع الأرباح والخسائر المالية</p>
       </div>
 
       {/* Current Balance Display */}
@@ -315,7 +315,7 @@ export default function GainLossCalculator() {
           {/* Balance Filter Section */}
           <div className="flex items-center justify-center gap-3 pt-2 border-t border-primary/20">
             <Filter className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-gray-700">فلترة الرصيد:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">فلترة الرصيد:</span>
             <Select value={balanceFilter} onValueChange={(value: 'all' | 'today' | 'week' | 'month' | 'year') => setBalanceFilter(value)}>
               <SelectTrigger className="w-[160px] h-9">
                 <SelectValue />
@@ -334,15 +334,15 @@ export default function GainLossCalculator() {
           <div className={`text-4xl font-bold ${displayBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {displayBalance.toLocaleString('ar-DZ')} دج
           </div>
-          <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
             {balanceFilter === 'all' 
               ? 'النتيجة الصافية = إجمالي الدخل - إجمالي المصروفات'
               : `النتيجة الصافية لفترة ${getBalanceFilterLabel()}`
             }
           </p>
           {balanceFilter !== 'all' && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <p className="text-xs text-gray-500">
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 الرصيد الإجمالي: {currentBalance >= 0 ? '+' : ''}{currentBalance.toLocaleString('ar-DZ')} دج
               </p>
             </div>
@@ -439,9 +439,9 @@ export default function GainLossCalculator() {
             </div>
             
             {/* Time Filter Section */}
-            <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">فلترة حسب الفترة:</span>
+            <div className="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+              <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">فلترة حسب الفترة:</span>
               <Select value={timeFilter} onValueChange={(value: 'all' | 'today' | 'week' | 'month' | 'year') => setTimeFilter(value)}>
                 <SelectTrigger className="w-[160px] h-9">
                   <SelectValue />
@@ -458,31 +458,31 @@ export default function GainLossCalculator() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8 text-gray-500">جاري التحميل...</div>
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">جاري التحميل...</div>
             ) : error ? (
               <div className="text-center py-8">
-                <div className="text-red-500 mb-2">خطأ في تحميل البيانات</div>
-                <div className="text-sm text-gray-500">
+                <div className="text-red-500 dark:text-red-400 mb-2">خطأ في تحميل البيانات</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   {error.message.includes('401') ? 'يرجى تسجيل الدخول مرة أخرى' : 'تحقق من الاتصال'}
                 </div>
               </div>
             ) : filteredEntries.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 {timeFilter === 'all' ? 'لا توجد عمليات' : `لا توجد عمليات في ${getFilterLabel()}`}
               </div>
             ) : (
               <>
                 {/* Show filtered balance if different from total */}
                 {timeFilter !== 'all' && (
-                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-sm text-blue-700 font-medium mb-1">الرصيد لفترة: {getFilterLabel()}</div>
-                        <div className={`text-xl font-bold ${filteredBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className="text-sm text-blue-700 dark:text-blue-300 font-medium mb-1">الرصيد لفترة: {getFilterLabel()}</div>
+                        <div className={`text-xl font-bold ${filteredBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {filteredBalance >= 0 ? '+' : ''}{filteredBalance.toLocaleString('ar-DZ')} دج
                         </div>
                       </div>
-                      <div className="text-blue-500">
+                      <div className="text-blue-500 dark:text-blue-400">
                         <Calculator className="w-6 h-6" />
                       </div>
                     </div>
@@ -494,14 +494,14 @@ export default function GainLossCalculator() {
                     key={entry.id}
                     className={`p-4 rounded-lg border ${
                       entry.type === 'gain' 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-red-50 border-red-200'
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-3">
                         <div className={`p-1.5 rounded-full ${
-                          entry.type === 'gain' ? 'bg-green-100' : 'bg-red-100'
+                          entry.type === 'gain' ? 'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'
                         }`}>
                           {entry.type === 'gain' ? (
                             <TrendingUp className="w-3.5 h-3.5 text-green-600" />
@@ -511,20 +511,20 @@ export default function GainLossCalculator() {
                         </div>
                         <div>
                           <span className={`text-lg font-semibold ${
-                            entry.type === 'gain' ? 'text-green-700' : 'text-red-700'
+                            entry.type === 'gain' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
                           }`}>
                             {entry.type === 'gain' ? '+' : '-'}{parseFloat(entry.amount).toLocaleString('ar-DZ')} دج
                           </span>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {entry.type === 'gain' ? 'ربح' : 'خسارة'}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(entry.createdAt).toLocaleDateString('ar-DZ')}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                           {new Date(entry.createdAt).toLocaleTimeString('ar-DZ', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
@@ -532,7 +532,7 @@ export default function GainLossCalculator() {
                         </div>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 bg-white bg-opacity-50 p-2 rounded border-l-2 border-gray-300">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 bg-opacity-50 dark:bg-opacity-50 p-2 rounded border-l-2 border-gray-300 dark:border-gray-600">
                       {entry.remarks}
                     </p>
                   </div>
