@@ -5246,8 +5246,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let userId: number;
           
           if (transaction.studentType === "student") {
-            // For direct students, userId = studentId
-            userId = transaction.studentId;
+            // For direct students, get the actual user ID from the student record
+            const student = await storage.getStudentById(transaction.studentId);
+            if (!student || !student.userId) {
+              throw new Error(`Student with ID ${transaction.studentId} not found or has no userId`);
+            }
+            userId = student.userId; // Use the student's actual user ID
           } else if (transaction.studentType === "child") {
             // For children, get parent's userId
             const child = await storage.getChildById(transaction.studentId);
@@ -5256,8 +5260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             userId = child.parentId; // Parent's user ID
           } else {
-            // Default fallback
-            userId = transaction.studentId;
+            throw new Error(`Unknown student type: ${transaction.studentType}`);
           }
 
           console.log(`📝 Payment logic: studentId=${transaction.studentId}, studentType=${transaction.studentType}, determined userId=${userId}`);
