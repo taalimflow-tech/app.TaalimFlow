@@ -4711,17 +4711,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Add detailed debugging for child lookup issues
       console.log(`🔍 QR Scanner Debug - About to fetch profile:`);
-      console.log(`   - Student ID: ${studentId}`);
-      console.log(`   - Student Type: ${studentType}`);
-      console.log(`   - School ID: ${schoolId}`);
-      console.log(`   - User School ID: ${req.session.user.schoolId}`);
+      console.log(`   - Student ID: ${studentId} (type: ${typeof studentId})`);
+      console.log(`   - Student Type: ${studentType} (type: ${typeof studentType})`);
+      console.log(`   - School ID: ${schoolId} (type: ${typeof schoolId})`);
+      console.log(`   - User School ID: ${req.session.user.schoolId} (type: ${typeof req.session.user.schoolId})`);
       console.log(`   - QR Data: ${qrData}`);
+      
+      // Convert to proper types if needed
+      const numericStudentId = Number(studentId);
+      const numericSchoolId = Number(schoolId);
+      
+      console.log(`🔍 After type conversion:`);
+      console.log(`   - Student ID: ${numericStudentId} (type: ${typeof numericStudentId})`);
+      console.log(`   - School ID: ${numericSchoolId} (type: ${typeof numericSchoolId})`);
+      
+      if (isNaN(numericStudentId) || isNaN(numericSchoolId)) {
+        console.log(`❌ Invalid ID conversion - studentId: ${studentId} -> ${numericStudentId}, schoolId: ${schoolId} -> ${numericSchoolId}`);
+        return res.status(400).json({ error: "بيانات معرف غير صحيحة" });
+      }
 
       // Get complete student profile with attendance and payment data
       const studentProfile = await storage.getStudentCompleteProfile(
-        studentId,
+        numericStudentId,
         studentType,
-        schoolId,
+        numericSchoolId,
       );
 
       console.log(`🔍 QR Scanner Debug - Profile returned:`);

@@ -5631,7 +5631,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<any | null> {
     try {
       console.log(
-        `🔍 getStudentCompleteProfile called with studentId=${studentId}, studentType=${studentType}, schoolId=${schoolId}`,
+        `🔍 getStudentCompleteProfile called with studentId=${studentId} (type: ${typeof studentId}), studentType=${studentType}, schoolId=${schoolId} (type: ${typeof schoolId})`,
       );
       let studentProfile: any = null;
 
