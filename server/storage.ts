@@ -5714,13 +5714,30 @@ export class DatabaseStorage implements IStorage {
           verified: child.verified
         });
         
-        // Add type field and ensure verified status for children
-        // Children should be automatically considered verified if they exist
-        studentProfile = { 
-          ...child, 
-          type: "child",
-          verified: true  // Children are automatically verified if they exist
+        // Create child profile with explicit fields to avoid parent data confusion
+        // IMPORTANT: Child profile should ONLY contain child's data, never parent's data
+        studentProfile = {
+          id: child.id,                    // Child's ID (not parent ID)
+          userId: child.parentId,          // Parent's user ID for system reference
+          name: child.name,                // Child's name (not parent's name)
+          email: `child-${child.id}@child.local`, // Virtual email for child
+          phone: null,                     // Children don't have separate phone
+          role: "child",                   // Child role
+          educationLevel: child.educationLevel,
+          selectedSubjects: child.selectedSubjects || [],
+          profilePicture: child.profilePicture || null,
+          verified: true,                  // Children are automatically verified
+          type: "child",                   // Clearly mark as child
+          parentId: child.parentId,        // Reference to parent for admin purposes
+          schoolId: child.schoolId         // School reference
         };
+        
+        console.log("✅ Child profile created (NOT parent profile):", {
+          childId: studentProfile.id,
+          childName: studentProfile.name,
+          parentId: studentProfile.parentId,
+          type: studentProfile.type
+        });
       }
 
       console.log("✅ Student found, now fetching enrolled groups...");
