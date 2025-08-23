@@ -456,15 +456,31 @@ export interface IStorage {
     year: number,
     month: number,
     schoolId: number,
-    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment | undefined>;
+  isStudentPaidForMonth(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<boolean>;
+  isStudentUnpaidForMonth(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<boolean>;
   getStudentsPaymentStatusForMonth(
     studentIds: number[],
     year: number,
     month: number,
     schoolId: number,
-    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment[]>;
+  getStudentsPaymentStatusWithUnpaid(
+    studentIds: number[],
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<Array<{studentId: number, isPaid: boolean, amount?: string, paidAt?: Date}>>;
   createStudentPayment(
     studentId: number,
     userId: number,
@@ -479,7 +495,14 @@ export interface IStorage {
   getStudentPaymentHistory(
     studentId: number,
     schoolId: number,
-    isPaid?: boolean,
+  ): Promise<StudentMonthlyPayment[]>;
+  getStudentPaidHistory(
+    studentId: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment[]>;
+  getStudentUnpaidHistory(
+    studentId: number,
+    schoolId: number,
   ): Promise<StudentMonthlyPayment[]>;
   // REMOVED: createDefaultMonthlyPayments - caused bulk payment creation
 
@@ -4226,25 +4249,19 @@ export class DatabaseStorage implements IStorage {
     year: number,
     month: number,
     schoolId: number,
-    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment | undefined> {
     try {
-      const conditions = [
-        eq(studentMonthlyPayments.studentId, studentId),
-        eq(studentMonthlyPayments.year, year),
-        eq(studentMonthlyPayments.month, month),
-        eq(studentMonthlyPayments.schoolId, schoolId),
-      ];
-
-      // Add isPaid filter if specified
-      if (isPaid !== undefined) {
-        conditions.push(eq(studentMonthlyPayments.isPaid, isPaid));
-      }
-
       const [payment] = await db
         .select()
         .from(studentMonthlyPayments)
-        .where(and(...conditions))
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        )
         .limit(1);
       return payment || undefined;
     } catch (error) {
@@ -4253,35 +4270,94 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // New function: Check if student has PAID for a specific month
+  async isStudentPaidForMonth(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<boolean> {
+    try {
+      const payment = await this.getStudentPaymentStatus(studentId, year, month, schoolId);
+      // Paid only if record exists AND isPaid = true
+      return payment ? payment.isPaid : false;
+    } catch (error) {
+      console.error("Error checking if student is paid:", error);
+      return false;
+    }
+  }
+
+  // New function: Check if student is UNPAID for a specific month  
+  async isStudentUnpaidForMonth(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<boolean> {
+    try {
+      const payment = await this.getStudentPaymentStatus(studentId, year, month, schoolId);
+      // Unpaid if: 1) No record exists, OR 2) Record exists but isPaid = false
+      return payment ? !payment.isPaid : true;
+    } catch (error) {
+      console.error("Error checking if student is unpaid:", error);
+      return true; // Default to unpaid on error
+    }
+  }
+
   async getStudentsPaymentStatusForMonth(
     studentIds: number[],
     year: number,
     month: number,
     schoolId: number,
-    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment[]> {
     try {
       if (studentIds.length === 0) return [];
 
-      const conditions = [
-        inArray(studentMonthlyPayments.studentId, studentIds),
-        eq(studentMonthlyPayments.year, year),
-        eq(studentMonthlyPayments.month, month),
-        eq(studentMonthlyPayments.schoolId, schoolId),
-      ];
-
-      // Add isPaid filter if specified
-      if (isPaid !== undefined) {
-        conditions.push(eq(studentMonthlyPayments.isPaid, isPaid));
-      }
-
       return await db
         .select()
         .from(studentMonthlyPayments)
-        .where(and(...conditions));
+        .where(
+          and(
+            inArray(studentMonthlyPayments.studentId, studentIds),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        );
     } catch (error) {
       console.error("Error getting students payment status:", error);
       return [];
+    }
+  }
+
+  // New function: Get payment status for multiple students with proper unpaid logic
+  async getStudentsPaymentStatusWithUnpaid(
+    studentIds: number[],
+    year: number,
+    month: number,
+    schoolId: number,
+  ): Promise<Array<{studentId: number, isPaid: boolean, amount?: string, paidAt?: Date}>> {
+    try {
+      if (studentIds.length === 0) return [];
+
+      // Get existing payment records
+      const existingPayments = await this.getStudentsPaymentStatusForMonth(
+        studentIds, year, month, schoolId
+      );
+
+      // Create complete status array for all students
+      return studentIds.map(studentId => {
+        const payment = existingPayments.find(p => p.studentId === studentId);
+        return {
+          studentId,
+          isPaid: payment ? payment.isPaid : false, // No record = unpaid
+          amount: payment?.amount,
+          paidAt: payment?.paidAt,
+        };
+      });
+    } catch (error) {
+      console.error("Error getting students payment status with unpaid:", error);
+      return studentIds.map(studentId => ({studentId, isPaid: false}));
     }
   }
 
@@ -4345,26 +4421,66 @@ export class DatabaseStorage implements IStorage {
   async getStudentPaymentHistory(
     studentId: number,
     schoolId: number,
-    isPaid?: boolean,
   ): Promise<StudentMonthlyPayment[]> {
     try {
-      const conditions = [
-        eq(studentMonthlyPayments.studentId, studentId),
-        eq(studentMonthlyPayments.schoolId, schoolId),
-      ];
-
-      // Add isPaid filter if specified
-      if (isPaid !== undefined) {
-        conditions.push(eq(studentMonthlyPayments.isPaid, isPaid));
-      }
-
       return await db
         .select()
         .from(studentMonthlyPayments)
-        .where(and(...conditions))
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        )
         .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
     } catch (error) {
       console.error("Error getting student payment history:", error);
+      return [];
+    }
+  }
+
+  // New function: Get only PAID payment history
+  async getStudentPaidHistory(
+    studentId: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment[]> {
+    try {
+      return await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.isPaid, true),
+          ),
+        )
+        .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
+    } catch (error) {
+      console.error("Error getting student paid history:", error);
+      return [];
+    }
+  }
+
+  // New function: Get only UNPAID payment records (excludes non-existent records)
+  async getStudentUnpaidHistory(
+    studentId: number,
+    schoolId: number,
+  ): Promise<StudentMonthlyPayment[]> {
+    try {
+      return await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.isPaid, false),
+          ),
+        )
+        .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
+    } catch (error) {
+      console.error("Error getting student unpaid history:", error);
       return [];
     }
   }
