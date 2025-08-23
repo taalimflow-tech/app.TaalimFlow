@@ -3411,18 +3411,18 @@ export default function Groups() {
                                   <div key={index} className="bg-white p-2 rounded border text-xs">
                                     <div className="grid grid-cols-3 gap-2">
                                       <span><strong>ID:</strong> {payment.id}</span>
-                                      <span><strong>School ID:</strong> {payment.schoolId}</span>
-                                      <span><strong>Student ID:</strong> {payment.studentId}</span>
-                                      <span><strong>Student Type:</strong> {payment.studentType}</span>
+                                      <span><strong>School ID:</strong> {payment.school_id}</span>
+                                      <span><strong>Student ID:</strong> {payment.student_id}</span>
+                                      <span><strong>Student Type:</strong> {payment.student_type}</span>
                                       <span><strong>Year:</strong> {payment.year}</span>
                                       <span><strong>Month:</strong> {payment.month}</span>
                                       <span><strong>Amount:</strong> {payment.amount} DA</span>
-                                      <span><strong>Paid Status:</strong> {payment.isPaid ? '✅ Yes' : '❌ No'}</span>
-                                      <span><strong>Paid At:</strong> {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                      <span><strong>Paid By (User ID):</strong> {payment.paidBy || 'N/A'}</span>
+                                      <span><strong>Paid Status:</strong> {payment.is_paid ? '✅ Yes' : '❌ No'}</span>
+                                      <span><strong>Paid At:</strong> {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                      <span><strong>Paid By (User ID):</strong> {payment.paid_by || 'N/A'}</span>
                                       <span><strong>Notes:</strong> {payment.notes || 'N/A'}</span>
-                                      <span><strong>Created At:</strong> {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                      <span><strong>Updated At:</strong> {payment.updatedAt ? new Date(payment.updatedAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                      <span><strong>Created At:</strong> {payment.created_at ? new Date(payment.created_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                      <span><strong>Updated At:</strong> {payment.updated_at ? new Date(payment.updated_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
                                     </div>
                                   </div>
                                 ))}
@@ -3505,18 +3505,18 @@ export default function Groups() {
                                                   <div key={index} className="bg-white p-2 rounded border text-xs border-b border-purple-200">
                                                     <div className="grid grid-cols-3 gap-2">
                                                       <span><strong>ID:</strong> {payment.id}</span>
-                                                      <span><strong>School ID:</strong> {payment.schoolId}</span>
-                                                      <span><strong>Student ID:</strong> {payment.studentId}</span>
-                                                      <span><strong>Student Type:</strong> {payment.studentType}</span>
+                                                      <span><strong>School ID:</strong> {payment.school_id}</span>
+                                                      <span><strong>Student ID:</strong> {payment.student_id}</span>
+                                                      <span><strong>Student Type:</strong> {payment.student_type}</span>
                                                       <span><strong>Year:</strong> {payment.year}</span>
                                                       <span><strong>Month:</strong> {payment.month}</span>
                                                       <span><strong>Amount:</strong> {payment.amount} DA</span>
-                                                      <span><strong>Paid Status:</strong> {payment.isPaid ? '✅ Yes' : '❌ No'}</span>
-                                                      <span><strong>Paid At:</strong> {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                                      <span><strong>Paid By (User ID):</strong> {payment.paidBy || 'N/A'}</span>
+                                                      <span><strong>Paid Status:</strong> {payment.is_paid ? '✅ Yes' : '❌ No'}</span>
+                                                      <span><strong>Paid At:</strong> {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                                      <span><strong>Paid By (User ID):</strong> {payment.paid_by || 'N/A'}</span>
                                                       <span><strong>Notes:</strong> {payment.notes || 'N/A'}</span>
-                                                      <span><strong>Created At:</strong> {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                                      <span><strong>Updated At:</strong> {payment.updatedAt ? new Date(payment.updatedAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                                      <span><strong>Created At:</strong> {payment.created_at ? new Date(payment.created_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                                      <span><strong>Updated At:</strong> {payment.updated_at ? new Date(payment.updated_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
                                                     </div>
                                                   </div>
                                                 ))
