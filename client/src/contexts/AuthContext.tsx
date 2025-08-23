@@ -120,13 +120,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(error.error || 'خطأ في إنشاء الحساب');
     }
     
+    const { user } = await response.json();
+    
     // Only create Firebase user after database registration succeeds (if Firebase is available)
     try {
       const { auth } = await ensureFirebaseInitialized();
       if (auth) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+        
+        // Save Firebase UID to database
+        await fetch('/api/auth/update-firebase-uid', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ firebaseUid: firebaseUser.uid }),
+        });
+        
+        console.log('Firebase account created and UID saved:', firebaseUser.uid);
       }
     } catch (firebaseError: any) {
+      console.error('Firebase registration error details:', {
+        code: firebaseError.code,
+        message: firebaseError.message,
+        email: email
+      });
+      
       // If Firebase user already exists, that's okay - we'll use it
       if (firebaseError.code !== 'auth/email-already-in-use') {
         console.warn('Firebase registration failed:', firebaseError);
@@ -134,7 +155,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     
-    const { user } = await response.json();
     setUser(user);
   };
 
