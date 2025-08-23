@@ -3499,6 +3499,8 @@ export default function Groups() {
                                             );
                                             const isMonthPaid = paymentRecord ? paymentRecord.is_paid : false;
                                             
+                                            console.log(`🔍 Groups payment check: Student ${studentId}, Year ${currentYear}, Month ${currentMonth}, Record found:`, paymentRecord, `Paid: ${isMonthPaid}`);
+                                            
                                             return (
                                               <>
                                                 <span className={`px-3 py-1 rounded text-sm font-medium ${
