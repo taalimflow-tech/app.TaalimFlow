@@ -3505,16 +3505,24 @@ export default function Groups() {
                                               }
                                               
                                               try {
-                                                const response = await apiRequest(
-                                                  "DELETE",
-                                                  `/api/payments/delete`,
-                                                  {
+                                                console.log('Deleting payment for:', { studentId, year: currentYear, month: currentMonth, schoolId: user?.schoolId });
+                                                
+                                                const response = await fetch('/api/payments/delete', {
+                                                  method: 'DELETE',
+                                                  headers: {
+                                                    'Content-Type': 'application/json',
+                                                  },
+                                                  credentials: 'include',
+                                                  body: JSON.stringify({
                                                     studentId: studentId,
                                                     year: currentYear,
                                                     month: currentMonth,
                                                     schoolId: user?.schoolId
-                                                  }
-                                                );
+                                                  })
+                                                });
+                                                
+                                                const result = await response.json();
+                                                console.log('Delete response:', result);
                                                 
                                                 if (response.ok) {
                                                   toast({
@@ -3522,7 +3530,7 @@ export default function Groups() {
                                                     description: "تم حذف سجل الدفع بنجاح",
                                                   });
                                                   
-                                                  // Refresh payment status
+                                                  // Force refresh payment status
                                                   queryClient.invalidateQueries({
                                                     queryKey: [
                                                       "/api/groups",
@@ -3532,15 +3540,20 @@ export default function Groups() {
                                                       currentMonth,
                                                     ],
                                                   });
+                                                  
+                                                  // Also refresh the main group data
+                                                  queryClient.invalidateQueries({
+                                                    queryKey: ["/api/groups", managementGroup?.id],
+                                                  });
                                                 } else {
-                                                  const error = await response.json();
                                                   toast({
                                                     title: "خطأ في حذف الدفعة",
-                                                    description: error.error || "فشل حذف سجل الدفع",
+                                                    description: result.error || "فشل حذف سجل الدفع",
                                                     variant: "destructive",
                                                   });
                                                 }
                                               } catch (error) {
+                                                console.error('Delete error:', error);
                                                 toast({
                                                   title: "خطأ",
                                                   description: "حدث خطأ أثناء حذف الدفعة",

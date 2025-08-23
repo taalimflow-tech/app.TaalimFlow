@@ -4496,13 +4496,13 @@ export class DatabaseStorage implements IStorage {
     schoolId: number
   ): Promise<boolean> {
     try {
-      console.log(`🗑️ HARD DELETE - Finding payment record to delete:`, {
+      console.log(`🗑️ HARD DELETE - Attempting to delete payment record:`, {
         studentId, year, month, schoolId
       });
       
-      // First find the payment record to get its ID
-      const paymentRecord = await db
-        .select({ id: studentMonthlyPayments.id })
+      // Check if record exists before deletion
+      const beforeDelete = await db
+        .select()
         .from(studentMonthlyPayments)
         .where(
           and(
@@ -4511,31 +4511,72 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId)
           )
-        )
-        .limit(1);
+        );
       
-      if (paymentRecord.length === 0) {
+      console.log(`📊 Records found before deletion:`, beforeDelete.length);
+      if (beforeDelete.length === 0) {
         console.log(`❌ No payment record found to delete`);
         return false;
       }
       
-      const paymentId = paymentRecord[0].id;
-      console.log(`🎯 Found payment ID: ${paymentId}`);
+      console.log(`🔥 Record to delete:`, beforeDelete[0]);
       
-      // HARD DELETE using direct SQL query
-      await this.hardDeletePayment(paymentId);
+      // HARD DELETE - Direct deletion from database
+      const deleteResult = await db
+        .delete(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId)
+          )
+        );
       
-      return true;
+      console.log(`💥 Delete operation executed`);
+      
+      // Verify the record is gone
+      const afterDelete = await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId)
+          )
+        );
+      
+      console.log(`📊 Records found after deletion:`, afterDelete.length);
+      
+      if (afterDelete.length === 0) {
+        console.log(`✅ SUCCESS: Payment record PERMANENTLY DELETED from database`);
+        return true;
+      } else {
+        console.log(`❌ FAILURE: Record still exists in database:`, afterDelete[0]);
+        // Try raw SQL as fallback
+        const paymentId = afterDelete[0].id;
+        console.log(`🔄 Attempting raw SQL delete for payment ID: ${paymentId}`);
+        await this.hardDeletePaymentByRawSQL(paymentId);
+        return true;
+      }
     } catch (error) {
       console.error("❌ HARD DELETE ERROR:", error);
-      return false;
+      throw error; // Re-throw to see actual error
     }
   }
 
-  async hardDeletePayment(paymentId: number) {
-    const query = sql`DELETE FROM student_monthly_payments WHERE id = ${paymentId}`;
-    await db.execute(query);
-    console.log(`Payment ${paymentId} deleted permanently`);
+  async hardDeletePaymentByRawSQL(paymentId: number) {
+    try {
+      // Direct SQL execution to force deletion
+      const result = await db.execute(
+        sql`DELETE FROM student_monthly_payments WHERE id = ${paymentId}`
+      );
+      console.log(`🔥 RAW SQL DELETE executed for payment ID ${paymentId}:`, result);
+    } catch (error) {
+      console.error(`❌ RAW SQL DELETE failed:`, error);
+    }
   }
 
   async getStudentPaymentHistory(

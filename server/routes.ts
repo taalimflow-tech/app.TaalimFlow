@@ -4081,45 +4081,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { studentId, year, month, schoolId } = req.body;
       console.log("📝 Extracted parameters:", { studentId, year, month, schoolId });
       
-      if (!studentId || !year || !month || !schoolId) {
-        console.log("❌ Missing parameters:", { studentId, year, month, schoolId });
-        return res.status(400).json({ error: "معلومات ناقصة" });
+      // Convert all parameters to proper types
+      const parsedStudentId = parseInt(studentId);
+      const parsedYear = parseInt(year);
+      const parsedMonth = parseInt(month);
+      const parsedSchoolId = parseInt(schoolId);
+      
+      if (!parsedStudentId || !parsedYear || !parsedMonth || !parsedSchoolId) {
+        console.log("❌ Invalid parameters after parsing:", { parsedStudentId, parsedYear, parsedMonth, parsedSchoolId });
+        return res.status(400).json({ error: "معلومات غير صالحة" });
       }
 
       // Verify the school ID matches the admin's school
-      if (schoolId !== req.session.user.schoolId) {
-        console.log("❌ School ID mismatch:", schoolId, "vs", req.session.user.schoolId);
+      if (parsedSchoolId !== req.session.user.schoolId) {
+        console.log("❌ School ID mismatch:", parsedSchoolId, "vs", req.session.user.schoolId);
         return res.status(403).json({ error: "غير مسموح بحذف مدفوعات مدرسة أخرى" });
       }
 
       // Hard delete the payment record from database
-      console.log("🔄 Calling deletePaymentRecord with:", {
-        studentId: parseInt(studentId),
-        year: parseInt(year), 
-        month: parseInt(month),
-        schoolId: parseInt(schoolId)
+      console.log("🔄 Calling deletePaymentRecord with parsed values:", {
+        studentId: parsedStudentId,
+        year: parsedYear, 
+        month: parsedMonth,
+        schoolId: parsedSchoolId
       });
       
       const deleted = await storage.deletePaymentRecord(
-        parseInt(studentId),
-        parseInt(year),
-        parseInt(month),
-        parseInt(schoolId)
+        parsedStudentId,
+        parsedYear,
+        parsedMonth,
+        parsedSchoolId
       );
 
-      console.log("✅ Delete result:", deleted);
+      console.log("✅ Delete operation result:", deleted);
       
       if (deleted) {
         res.json({ 
           message: "تم حذف سجل الدفع بنجاح",
-          deleted: true 
+          deleted: true,
+          details: {
+            studentId: parsedStudentId,
+            year: parsedYear,
+            month: parsedMonth
+          }
         });
       } else {
-        res.status(404).json({ error: "لم يتم العثور على سجل الدفع" });
+        res.status(404).json({ error: "لم يتم العثور على سجل الدفع أو فشل الحذف" });
       }
     } catch (error) {
-      console.error("❌ Error deleting payment:", error);
-      res.status(500).json({ error: "فشل في حذف سجل الدفع" });
+      console.error("❌ Error deleting payment - Full error:", error);
+      res.status(500).json({ 
+        error: "فشل في حذف سجل الدفع",
+        details: error.message 
+      });
     }
   });
 
