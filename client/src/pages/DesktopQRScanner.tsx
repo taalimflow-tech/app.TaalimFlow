@@ -2555,11 +2555,11 @@ function DesktopQRScanner() {
                           </div>
                         ) : availableGroups.length > 0 ? (
                           <>
-                            <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
+                            <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm dark:text-blue-300">
                               <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
                             </div>
                             {availableGroups.map((group: any) => (
-                            <div key={group.id} className="border rounded-lg p-4">
+                            <div key={group.id} className="border dark:border-gray-700 rounded-lg p-4">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center space-x-3">
                                   <input
@@ -2570,8 +2570,8 @@ function DesktopQRScanner() {
                                     className="ml-2"
                                   />
                                   <label htmlFor={`group-${group.id}`} className="cursor-pointer">
-                                    <div className="font-medium">{group.name}</div>
-                                    <div className="text-sm text-gray-600">
+                                    <div className="font-medium dark:text-gray-200">{group.name}</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">
                                       {group.subjectName || group.nameAr} - {group.educationLevel}
                                     </div>
                                   </label>
@@ -2579,8 +2579,8 @@ function DesktopQRScanner() {
                               </div>
                               
                               {selectedGroups[group.id] && (
-                                <div className="border-t pt-3">
-                                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                                <div className="border-t dark:border-gray-600 pt-3">
+                                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                                     الأشهر المراد دفعها:
                                   </Label>
                                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
@@ -2599,9 +2599,9 @@ function DesktopQRScanner() {
                                             key={`${month}-${year}`} 
                                             className={`flex items-center space-x-2 cursor-pointer p-2 rounded text-sm transition-colors ${
                                               isPaid 
-                                                ? 'bg-green-100 text-green-800 border border-green-200' 
-                                                : 'bg-gray-50 hover:bg-gray-100'
-                                            } ${isSelected && !isPaid ? 'ring-2 ring-blue-400' : ''}`}
+                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800' 
+                                                : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300'
+                                            } ${isSelected && !isPaid ? 'ring-2 ring-blue-400 dark:ring-blue-500' : ''}`}
                                           >
                                             <input
                                               type="checkbox"
@@ -2621,10 +2621,10 @@ function DesktopQRScanner() {
                                   </div>
                                   
                                   {/* Payment Status Summary */}
-                                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+                                  <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs dark:text-gray-300">
                                     <div className="flex justify-between items-center mb-1">
                                       <span>الأشهر المدفوعة:</span>
-                                      <span className="text-green-600 font-medium">
+                                      <span className="text-green-600 dark:text-green-400 font-medium">
                                         {Object.values(groupPaymentStatus[group.id] || {}).filter(Boolean).length} من 12
                                       </span>
                                     </div>
@@ -2635,7 +2635,7 @@ function DesktopQRScanner() {
                                         .sort((a, b) => a - b);
                                       
                                       return unifiedPaidMonths.length > 0 && (
-                                        <div className="text-green-700">
+                                        <div className="text-green-700 dark:text-green-400">
                                           {unifiedPaidMonths.map(m => {
                                             // Determine correct year for academic year display
                                             const academicMonths = generateAcademicYearMonths(8, 2025);
@@ -2648,7 +2648,7 @@ function DesktopQRScanner() {
                                     })()}
                                   </div>
                                   {selectedGroups[group.id]?.months.length > 0 && (
-                                    <div className="mt-2 text-sm text-blue-600">
+                                    <div className="mt-2 text-sm text-blue-600 dark:text-blue-400">
                                       الأشهر المحددة: {selectedGroups[group.id].months.map(m => {
                                         // Determine correct year for academic year display
                                         const academicMonths = generateAcademicYearMonths(8, 2025);
@@ -2664,8 +2664,8 @@ function DesktopQRScanner() {
                             ))}
                           </>
                         ) : (
-                          <div className="text-center py-6 text-gray-500">
-                            <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded">
+                          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm rounded">
                               <strong>Debug Info:</strong><br/>
                               Available groups: {availableGroups.length}<br/>
                               Loading: {loadingGroups ? 'Yes' : 'No'}<br/>
@@ -2683,7 +2683,7 @@ function DesktopQRScanner() {
                     {/* Payment Details */}
                     <Separator />
                     <div className="mt-4">
-                      <Label htmlFor="amount">المبلغ الإجمالي (دج)</Label>
+                      <Label htmlFor="amount" className="dark:text-gray-300">المبلغ الإجمالي (دج)</Label>
                       <Input
                         id="amount"
                         type="number"
@@ -2713,23 +2713,23 @@ function DesktopQRScanner() {
       {/* Ticket Print Preview */}
         {showTicket && generatedTicket && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="mb-4">
-                <div className="font-semibold mb-2">معلومات الطالب:</div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div>الاسم: <span className="font-medium">{generatedTicket.studentName}</span></div>
+                <div className="font-semibold dark:text-gray-200 mb-2">معلومات الطالب:</div>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                  <div className="dark:text-gray-300">الاسم: <span className="font-medium">{generatedTicket.studentName}</span></div>
                 </div>
               </div>
 
               {/* Payment Details */}
               <div className="mb-4">
-                <div className="font-semibold mb-2">تفاصيل الدفع:</div>
+                <div className="font-semibold dark:text-gray-200 mb-2">تفاصيل الدفع:</div>
                 <div className="space-y-2">
                   {generatedTicket.groups.map((group: any, index: number) => (
-                    <div key={index} className="bg-blue-50 p-3 rounded">
-                      <div className="font-medium text-blue-800">{group.groupName}</div>
-                      <div className="text-sm text-blue-600">{group.subjectName}</div>
-                      <div className="text-sm text-gray-600 mt-1">
+                    <div key={index} className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                      <div className="font-medium text-blue-800 dark:text-blue-300">{group.groupName}</div>
+                      <div className="text-sm text-blue-600 dark:text-blue-400">{group.subjectName}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         الأشهر المدفوعة: {group.months.join(', ')}
                       </div>
                     </div>
@@ -2738,21 +2738,21 @@ function DesktopQRScanner() {
               </div>
 
               {/* Payment Summary */}
-              <div className="border-t pt-4 mb-4">
+              <div className="border-t dark:border-gray-600 pt-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span>المبلغ الإجمالي:</span>
-                  <span className="text-xl font-bold text-green-600">
+                  <span className="dark:text-gray-300">المبلغ الإجمالي:</span>
+                  <span className="text-xl font-bold text-green-600 dark:text-green-400">
                     {generatedTicket.amount.toFixed(2)} دج
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm text-gray-600">
+                <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
                   <span>طريقة الدفع:</span>
                   <span>نقدي</span>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="text-center text-xs text-gray-500 border-t pt-3">
+              <div className="text-center text-xs text-gray-500 dark:text-gray-400 border-t dark:border-gray-600 pt-3">
                 شكراً لكم على دفع الرسوم في الوقت المحدد
               </div>
 
