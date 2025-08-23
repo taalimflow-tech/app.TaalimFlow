@@ -4383,34 +4383,56 @@ export class DatabaseStorage implements IStorage {
       let correctUserId: number;
       
       if (studentType === "student") {
-        // For direct students: Get userId from students table
-        console.log(`🔍 Querying students table for studentId ${studentId}`);
+        // For direct students: Get userId from students table WITH SCHOOL VALIDATION
+        console.log(`🔍 Querying students table for studentId ${studentId} in school ${schoolId}`);
         const [studentRecord] = await db
-          .select({ userId: students.userId })
+          .select({ 
+            userId: students.userId,
+            schoolId: students.schoolId 
+          })
           .from(students)
-          .where(eq(students.id, studentId))
+          .where(
+            and(
+              eq(students.id, studentId),
+              eq(students.schoolId, schoolId) // ✅ Validate school ID
+            )
+          )
           .limit(1);
           
-        if (!studentRecord || !studentRecord.userId) {
-          throw new Error(`Student with ID ${studentId} not found or has no userId`);
+        if (!studentRecord) {
+          throw new Error(`Student with ID ${studentId} not found in school ${schoolId}`);
+        }
+        if (!studentRecord.userId) {
+          throw new Error(`Student with ID ${studentId} has no userId`);
         }
         correctUserId = studentRecord.userId;
-        console.log(`✅ Found userId ${correctUserId} for student ${studentId}`);
+        console.log(`✅ Found userId ${correctUserId} for student ${studentId} in school ${schoolId}`);
         
       } else if (studentType === "child") {
-        // For children: Get parentId from children table
-        console.log(`🔍 Querying children table for childId ${studentId}`);
+        // For children: Get parentId from children table WITH SCHOOL VALIDATION
+        console.log(`🔍 Querying children table for childId ${studentId} in school ${schoolId}`);
         const [childRecord] = await db
-          .select({ parentId: children.parentId })
+          .select({ 
+            parentId: children.parentId,
+            schoolId: children.schoolId 
+          })
           .from(children)
-          .where(eq(children.id, studentId))
+          .where(
+            and(
+              eq(children.id, studentId),
+              eq(children.schoolId, schoolId) // ✅ Validate school ID
+            )
+          )
           .limit(1);
           
-        if (!childRecord || !childRecord.parentId) {
-          throw new Error(`Child with ID ${studentId} not found or has no parentId`);
+        if (!childRecord) {
+          throw new Error(`Child with ID ${studentId} not found in school ${schoolId}`);
+        }
+        if (!childRecord.parentId) {
+          throw new Error(`Child with ID ${studentId} has no parentId`);
         }
         correctUserId = childRecord.parentId;
-        console.log(`✅ Found parentId ${correctUserId} for child ${studentId}`);
+        console.log(`✅ Found parentId ${correctUserId} for child ${studentId} in school ${schoolId}`);
         
       } else {
         throw new Error(`Invalid studentType: ${studentType}`);
