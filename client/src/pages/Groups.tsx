@@ -1471,13 +1471,17 @@ export default function Groups() {
       return;
     }
 
-    // Check if payment already exists using same logic as display
+    // Check if payment already exists using same logic as display (including year/month filtering)
+    const { year: currentViewingYear, month: currentViewingMonth } = getCurrentViewingMonth();
     const paymentRecord = paymentStatuses.find(
-      (payment: any) => payment.studentId === studentId
+      (payment: any) => 
+        payment.studentId === studentId &&
+        payment.year === currentViewingYear &&
+        payment.month === currentViewingMonth
     );
     const isAlreadyPaid = paymentRecord ? paymentRecord.isPaid : false;
 
-    console.log(`💰 Current payment status for student ${studentId}: ${isAlreadyPaid}`);
+    console.log(`💰 Current payment status for student ${studentId}: ${isAlreadyPaid}, Year: ${currentViewingYear}, Month: ${currentViewingMonth}`);
 
     // If payment already exists, don't allow toggling off
     if (isAlreadyPaid) {
