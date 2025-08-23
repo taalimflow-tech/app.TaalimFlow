@@ -1264,28 +1264,28 @@ export default function Groups() {
   };
 
   // Function to fetch payment history for debug display  
-  const fetchStudentPaymentHistory = async (userId: number) => {
+  const fetchStudentPaymentHistory = async (studentId: number) => {
     try {
-      console.log(`🔍 Fetching payment history for userId: ${userId}`);
-      const response = await fetch(`/api/student/payments/${userId}`, {
+      console.log(`🔍 Fetching payment history for studentId: ${studentId}`);
+      const response = await fetch(`/api/students/${studentId}/payment-history`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
       
       if (response.ok) {
         const paymentData = await response.json();
-        console.log(`✅ Payment data for userId ${userId}:`, paymentData);
+        console.log(`✅ Payment data for studentId ${studentId}:`, paymentData);
         setStudentPaymentHistory(prev => ({
           ...prev,
-          [userId]: paymentData || []
+          [studentId]: paymentData || []
         }));
         return paymentData;
       } else {
-        console.error(`❌ Failed to fetch payment history for userId ${userId}:`, response.status, await response.text());
+        console.error(`❌ Failed to fetch payment history for studentId ${studentId}:`, response.status, await response.text());
         return [];
       }
     } catch (error) {
-      console.error(`❌ Error fetching payment history for userId ${userId}:`, error);
+      console.error(`❌ Error fetching payment history for studentId ${studentId}:`, error);
       return [];
     }
   };
@@ -3483,18 +3483,18 @@ export default function Groups() {
                                         {/* DEBUG: Payment History */}
                                         <div className="text-xs text-purple-600 mt-1">
                                           <button 
-                                            onClick={() => fetchStudentPaymentHistory(userId)}
+                                            onClick={() => fetchStudentPaymentHistory(studentId)}
                                             className="underline hover:text-purple-800"
                                           >
                                             📋 عرض سجل المدفوعات
                                           </button>
-                                          {studentPaymentHistory[userId] && (
+                                          {studentPaymentHistory[studentId] && (
                                             <div className="mt-1 max-h-20 overflow-y-auto bg-purple-50 p-1 rounded border">
-                                              <div className="font-semibold">Payment History ({studentPaymentHistory[userId].length} records):</div>
-                                              {studentPaymentHistory[userId].length === 0 ? (
+                                              <div className="font-semibold">Payment History ({studentPaymentHistory[studentId].length} records):</div>
+                                              {studentPaymentHistory[studentId].length === 0 ? (
                                                 <div className="text-gray-500">No actual payment records found in database</div>
                                               ) : (
-                                                studentPaymentHistory[userId].map((payment: any, index: number) => (
+                                                studentPaymentHistory[studentId].map((payment: any, index: number) => (
                                                   <div key={index} className="flex justify-between text-xs border-b border-purple-200 py-1">
                                                     <span>{payment.description || `${payment.month}/${payment.year}`}</span>
                                                     <span className={payment.isPaid ? 'text-green-600' : 'text-red-600'}>
