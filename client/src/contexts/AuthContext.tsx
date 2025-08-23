@@ -29,6 +29,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (response.ok) {
           const { user } = await response.json();
           setUser(user);
+          
+          // If user has Firebase UID, try to restore Firebase authentication silently
+          if (user.firebase_uid) {
+            try {
+              const { auth } = await ensureFirebaseInitialized();
+              if (auth) {
+                // Check if Firebase user is already authenticated
+                const currentFirebaseUser = auth.currentUser;
+                if (!currentFirebaseUser || currentFirebaseUser.uid !== user.firebase_uid) {
+                  console.log('Firebase user needs re-authentication for email verification features');
+                  // Note: For email verification to work, user needs to login again or 
+                  // implement token-based Firebase re-authentication
+                }
+              }
+            } catch (firebaseError) {
+              console.log('Firebase check failed during session restore:', firebaseError);
+            }
+          }
         } else {
           setUser(null);
         }
