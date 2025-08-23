@@ -3496,6 +3496,7 @@ export default function Groups() {
                                               (payment: any) => payment.studentId === studentId
                                             );
                                             const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
+                                            const paymentAmount = paymentRecord?.amount;
                                             
                                             return (
                                               <>
@@ -3509,6 +3510,11 @@ export default function Groups() {
                                                 <span className="text-xs text-gray-600">
                                                   {isMonthPaid ? 'مدفوع' : 'غير مدفوع'}
                                                 </span>
+                                                {paymentAmount !== undefined && paymentAmount !== null && (
+                                                  <span className="text-xs font-semibold text-gray-700">
+                                                    {paymentAmount} دج
+                                                  </span>
+                                                )}
                                               </>
                                             );
                                           })()} 
