@@ -4709,7 +4709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "تعذر قراءة بيانات الرمز" });
       }
 
-      // Add detailed debugging for school ID 8 issues
+      // Add detailed debugging for child lookup issues
       console.log(`🔍 QR Scanner Debug - About to fetch profile:`);
       console.log(`   - Student ID: ${studentId}`);
       console.log(`   - Student Type: ${studentType}`);
@@ -4728,12 +4728,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`   - Profile exists: ${studentProfile ? 'Yes' : 'No'}`);
       if (studentProfile) {
         console.log(`   - Student name: ${studentProfile.name}`);
+        console.log(`   - Student type: ${studentProfile.type}`);
+        console.log(`   - Verified status: ${studentProfile.verified}`);
         console.log(`   - Enrolled groups count: ${studentProfile.enrolledGroups?.length || 0}`);
         console.log(`   - Enrolled groups data: ${JSON.stringify(studentProfile.enrolledGroups)}`);
+      } else {
+        console.log(`❌ QR Scanner: Failed to get profile for ${studentType} ID ${studentId} in school ${schoolId}`);
+        
+        // Additional debugging for children specifically
+        if (studentType === 'child') {
+          console.log(`🔍 Additional child debugging - checking if child exists anywhere...`);
+        }
       }
 
       if (!studentProfile) {
-        return res.status(404).json({ error: "لم يتم العثور على الطالب" });
+        return res.status(404).json({ error: `لم يتم العثور على ${studentType === 'child' ? 'الطفل' : 'الطالب'}` });
       }
 
       // For real QR codes (not test ones), verify the student is actually verified
