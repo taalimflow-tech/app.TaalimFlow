@@ -3490,16 +3490,12 @@ export default function Groups() {
                                             const currentMonth = currentViewingMonth;
                                             const currentYear = currentViewingYear;
                                             
-                                            // Find payment record for this student, year, and month using same logic as DesktopQRScanner
+                                            // Find payment record for this student using exact same logic as DesktopQRScanner
+                                            // API returns camelCase properties: studentId, isPaid
                                             const paymentRecord = paymentStatuses.find(
-                                              (payment: any) => 
-                                                payment.student_id === studentId &&
-                                                payment.year === currentYear &&
-                                                payment.month === currentMonth
+                                              (payment: any) => payment.studentId === studentId
                                             );
-                                            const isMonthPaid = paymentRecord ? paymentRecord.is_paid : false;
-                                            
-                                            console.log(`🔍 Groups payment check: Student ${studentId}, Year ${currentYear}, Month ${currentMonth}, Record found:`, paymentRecord, `Paid: ${isMonthPaid}`);
+                                            const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                                             
                                             return (
                                               <>
