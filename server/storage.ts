@@ -4496,7 +4496,33 @@ export class DatabaseStorage implements IStorage {
     schoolId: number
   ): Promise<boolean> {
     try {
-      console.log(`🗑️ Attempting to delete payment record: studentId=${studentId}, ${month}/${year}, schoolId=${schoolId}`);
+      console.log(`🗑️ Attempting to delete payment record with parameters:`, {
+        studentId: studentId,
+        year: year, 
+        month: month,
+        schoolId: schoolId
+      });
+      
+      // First check if record exists
+      const existingRecord = await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId)
+          )
+        )
+        .limit(1);
+        
+      console.log(`🔍 Found existing record:`, existingRecord);
+      
+      if (existingRecord.length === 0) {
+        console.log(`❌ No payment record found to delete`);
+        return false;
+      }
       
       // Perform HARD DELETE from database
       const result = await db
@@ -4510,10 +4536,10 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
-      console.log(`✅ Successfully deleted payment record for studentId=${studentId}, ${month}/${year}`);
+      console.log(`✅ DELETE operation completed. Deleted payment record for studentId=${studentId}, ${month}/${year}`);
       return true;
     } catch (error) {
-      console.error("Error deleting payment record:", error);
+      console.error("❌ Error deleting payment record:", error);
       return false;
     }
   }

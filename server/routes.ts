@@ -4069,31 +4069,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete payment record - HARD DELETE from database
   app.delete("/api/payments/delete", async (req, res) => {
     try {
+      console.log("🗑️ DELETE payment request received:", req.body);
+      
       if (!req.session?.user || req.session.user.role !== "admin") {
+        console.log("❌ Access denied - user not admin:", req.session?.user?.role);
         return res
           .status(403)
           .json({ error: "غير مسموح لك بحذف المدفوعات" });
       }
 
       const { studentId, year, month, schoolId } = req.body;
+      console.log("📝 Extracted parameters:", { studentId, year, month, schoolId });
       
       if (!studentId || !year || !month || !schoolId) {
+        console.log("❌ Missing parameters:", { studentId, year, month, schoolId });
         return res.status(400).json({ error: "معلومات ناقصة" });
       }
 
       // Verify the school ID matches the admin's school
       if (schoolId !== req.session.user.schoolId) {
+        console.log("❌ School ID mismatch:", schoolId, "vs", req.session.user.schoolId);
         return res.status(403).json({ error: "غير مسموح بحذف مدفوعات مدرسة أخرى" });
       }
 
       // Hard delete the payment record from database
+      console.log("🔄 Calling deletePaymentRecord with:", {
+        studentId: parseInt(studentId),
+        year: parseInt(year), 
+        month: parseInt(month),
+        schoolId: parseInt(schoolId)
+      });
+      
       const deleted = await storage.deletePaymentRecord(
-        studentId,
-        year,
-        month,
-        schoolId
+        parseInt(studentId),
+        parseInt(year),
+        parseInt(month),
+        parseInt(schoolId)
       );
 
+      console.log("✅ Delete result:", deleted);
+      
       if (deleted) {
         res.json({ 
           message: "تم حذف سجل الدفع بنجاح",
@@ -4103,7 +4118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(404).json({ error: "لم يتم العثور على سجل الدفع" });
       }
     } catch (error) {
-      console.error("Error deleting payment:", error);
+      console.error("❌ Error deleting payment:", error);
       res.status(500).json({ error: "فشل في حذف سجل الدفع" });
     }
   });
