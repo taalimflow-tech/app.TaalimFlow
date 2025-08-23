@@ -3441,6 +3441,9 @@ export default function Groups() {
                                   <th className="border border-gray-300 p-2 text-right font-medium">
                                     اسم الطالب
                                   </th>
+                                  <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                                    حالة الدفع
+                                  </th>
                                   {currentMonthDates.map((date) => (
                                     <th
                                       key={date}
@@ -3479,6 +3482,39 @@ export default function Groups() {
                                             {student.email}
                                           </div>
                                         )}
+                                      </td>
+                                      <td className="border border-gray-300 p-2 text-center">
+                                        <div className="flex flex-col items-center space-y-1">
+                                          {(() => {
+                                            // Extract month number from currentMonthKey (YYYY-MM format)
+                                            const currentMonth = currentViewingMonth;
+                                            const currentYear = currentViewingYear;
+                                            
+                                            // Find payment record for this student, year, and month using same logic as DesktopQRScanner
+                                            const paymentRecord = paymentStatuses.find(
+                                              (payment: any) => 
+                                                payment.student_id === studentId &&
+                                                payment.year === currentYear &&
+                                                payment.month === currentMonth
+                                            );
+                                            const isMonthPaid = paymentRecord ? paymentRecord.is_paid : false;
+                                            
+                                            return (
+                                              <>
+                                                <span className={`px-3 py-1 rounded text-sm font-medium ${
+                                                  isMonthPaid
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                  {isMonthPaid ? '✅' : '❌'}
+                                                </span>
+                                                <span className="text-xs text-gray-600">
+                                                  {isMonthPaid ? 'مدفوع' : 'غير مدفوع'}
+                                                </span>
+                                              </>
+                                            );
+                                          })()} 
+                                        </div>
                                       </td>
                                       {currentMonthDates.map((date) => {
                                         // Find attendance record by userId and date
