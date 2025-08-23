@@ -1,12 +1,14 @@
 
-import { Bell, Menu, LogOut, User, Settings } from 'lucide-react';
+import { Bell, Menu, LogOut, User, Settings, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 
 
 export function Header() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [location, navigate] = useLocation();
 
 
@@ -22,18 +24,18 @@ export function Header() {
   });
 
   return (
-    <header className="bg-gradient-to-r from-white via-white to-gray-50 border-b border-gray-100 sticky top-0 z-40 shadow-sm backdrop-blur-sm bg-white/95">
+    <header className="bg-gradient-to-r from-white via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-40 shadow-sm backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
       <div className="lg:max-w-none lg:px-8 max-w-md mx-auto px-4 py-4 flex items-center justify-between">
         <button 
           onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
-          className="lg:hidden p-2 rounded-lg hover:bg-gray-50 transition-colors"
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
-          <Menu className="w-6 h-6 text-gray-600" />
+          <Menu className="w-6 h-6 text-gray-600 dark:text-gray-400" />
         </button>
         
         {/* Desktop: Page title */}
         <div className="hidden lg:block">
-          <h1 className="text-2xl font-bold text-gray-800 bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 bg-gradient-to-l from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text">
             {location.includes('/home') ? 'الرئيسية' :
              location.includes('/schedule') ? 'الجدول الدراسي' :
              location.includes('/teachers') ? 'المعلمين' :
@@ -63,19 +65,31 @@ export function Header() {
             </div>
           )}
           <div>
-            <h1 className="text-lg font-bold text-gray-800">
+            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-200">
               {selectedSchool?.name || 'مدرستي'}
             </h1>
-            <p className="text-xs text-gray-500">منصة التعلم الذكية</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">منصة التعلم الذكية</p>
           </div>
         </div>
         
         <div className="flex items-center space-x-reverse space-x-2">
           <button 
-            onClick={() => navigate(schoolCode ? `/school/${schoolCode}/notifications` : '/notifications')}
-            className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors"
+            onClick={toggleTheme}
+            className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            title={theme === 'light' ? 'تفعيل الوضع الليلي' : 'تفعيل الوضع النهاري'}
           >
-            <Bell className="w-6 h-6 text-gray-600" />
+            {theme === 'light' ? (
+              <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <Sun className="w-5 h-5 text-yellow-500" />
+            )}
+          </button>
+          
+          <button 
+            onClick={() => navigate(schoolCode ? `/school/${schoolCode}/notifications` : '/notifications')}
+            className="relative p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             {unreadCount.count > 0 && (
               <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {unreadCount.count > 9 ? '9+' : unreadCount.count}
@@ -87,7 +101,7 @@ export function Header() {
             <>
               <button 
                 onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
-                className="p-1 rounded-lg hover:bg-gray-50 transition-colors"
+                className="p-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 {user.profilePicture ? (
                   <img 
@@ -106,10 +120,10 @@ export function Header() {
               
               <button 
                 onClick={() => logout()}
-                className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 title="تسجيل الخروج"
               >
-                <LogOut className="w-5 h-5 text-gray-600" />
+                <LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
             </>
           )}
