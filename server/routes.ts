@@ -3986,16 +3986,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
 
           if (existingPayment) {
-            // Payment record exists in database
+            // Payment record exists in database - use actual is_paid value
+            const isPaidStatus = existingPayment.isPaid ?? existingPayment.is_paid ?? true;
             paymentStatuses.push({
               studentId: studentId,
               userId: existingPayment.userId,
               year: targetYear,
               month: targetMonth,
-              isPaid: true,
+              isPaid: isPaidStatus,
               amount: existingPayment.amount,
               paidAt: existingPayment.paidAt,
-              paymentNote: "مدفوع", // Paid
+              paymentNote: isPaidStatus ? "مدفوع" : "غير مدفوع", // Paid or Not Paid based on actual status
               studentType: existingPayment.studentType,
             });
           } else {
