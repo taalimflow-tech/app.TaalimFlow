@@ -622,9 +622,46 @@ function DesktopQRScanner() {
   const handleSelectStudent = async (student: any) => {
     setIsProcessing(true);
     try {
-      // For users with role 'user', we need to find their children
-      if (student.role === 'user') {
-        // Get children for this parent
+      console.log('🔍 handleSelectStudent called with:', {
+        id: student.id,
+        type: student.type,
+        role: student.role,
+        name: student.name
+      });
+      
+      // Check if this is a child or a regular student
+      if (student.type === 'child') {
+        // Direct child selection - create child QR code
+        console.log('🔍 Handling child selection - creating child QR code');
+        const response = await fetch('/api/scan-student-qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            qrData: `child-${student.id}-${user?.schoolId}-verified`
+          })
+        });
+        
+        if (response.ok) {
+          const profileData = await response.json();
+          setScannedProfile(profileData);
+          setShowStudentList(false);
+          toast({
+            title: "تم تحميل ملف الطفل",
+            description: `تم تحميل ملف ${profileData.name} بنجاح`
+          });
+          return;
+        } else {
+          const errorData = await response.json();
+          toast({
+            title: "خطأ في تحميل ملف الطفل",
+            description: errorData.error || "فشل في تحميل ملف الطفل",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else if (student.role === 'user') {
+        // Parent user - get their children
+        console.log('🔍 Handling parent selection - fetching children');
         const childrenResponse = await fetch(`/api/children?parentId=${student.id}`);
         if (childrenResponse.ok) {
           const children = await childrenResponse.json();
@@ -635,7 +672,7 @@ function DesktopQRScanner() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                qrData: `child:${child.id}:${user?.schoolId}:verified`
+                qrData: `child-${child.id}-${user?.schoolId}-verified`
               })
             });
             
@@ -660,11 +697,12 @@ function DesktopQRScanner() {
         }
       } else {
         // Regular student selection
+        console.log('🔍 Handling regular student selection');
         const response = await fetch('/api/scan-student-qr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            qrData: `student:${student.id}:${user?.schoolId}:verified`
+            qrData: `student-${student.id}-${user?.schoolId}-verified`
           })
         });
 
