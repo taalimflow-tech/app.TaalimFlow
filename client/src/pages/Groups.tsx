@@ -3511,77 +3511,78 @@ export default function Groups() {
                                         </div>
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
-                                        {(() => {
-                                          // Apply exact same logic as DesktopQRScanner: year/month filtering
-                                          const groupId = managementGroup?.id;
-                                          const currentMonth = currentViewingMonth;
-                                          const currentYear = currentViewingYear;
-                                          
-                                          // Check if payment exists for this specific student, year, and month
-                                          const paymentRecord = paymentStatuses.find(
-                                            (payment: any) => 
-                                              payment.studentId === studentId &&
-                                              payment.year === currentYear &&
-                                              payment.month === currentMonth
-                                          );
-                                          const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
-                                          
-                                          console.log(`🔍 Groups attendance table payment check: Student ${studentId}, Group ${groupId}, Year ${currentYear}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
-
-                                          // Show payment status for admins with toggle functionality
-                                          if (user?.role === "admin") {
-                                            return (
-                                              <div className="flex flex-col items-center space-y-1">
-                                                <button
-                                                  onClick={() =>
-                                                    handleTogglePayment(
-                                                      studentId,
-                                                    )
-                                                  }
-                                                  className={`px-3 py-1 rounded text-sm font-medium ${
-                                                    isMonthPaid
-                                                      ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                                      : "bg-red-100 text-red-800 hover:bg-red-200"
-                                                  }`}
-                                                  title={`${isMonthPaid ? "مدفوع" : "غير مدفوع"} - ${isMonthPaid ? "الدفعة مسجلة" : "اضغط للدفع"}`}
-                                                >
-                                                  {isMonthPaid ? "✅" : "❌"}
-                                                </button>
-                                                <span className="text-xs text-gray-600">
-                                                  {isMonthPaid ? "مدفوع" : "يجب الدفع"}
-                                                </span>
-                                                {paymentRecord?.amount && (
-                                                  <span className="text-xs text-blue-600">
-                                                    {paymentRecord.amount} د.ج
-                                                  </span>
-                                                )}
-                                              </div>
+                                        <div className="flex flex-col items-center space-y-1">
+                                          {(() => {
+                                            // Use same logic as DesktopQRScanner: clean year/month filtering
+                                            const currentMonth = currentViewingMonth;
+                                            const currentYear = currentViewingYear;
+                                            
+                                            // Check if payment exists for this specific student, year, and month
+                                            const paymentRecord = paymentStatuses.find(
+                                              (payment: any) => 
+                                                payment.studentId === studentId &&
+                                                payment.year === currentYear &&
+                                                payment.month === currentMonth
                                             );
-                                          } else {
-                                            // Show payment status for non-admins (read-only)
-                                            return (
-                                              <div className="flex flex-col items-center space-y-1">
-                                                <span
-                                                  className={`px-3 py-1 rounded text-sm font-medium ${
-                                                    isMonthPaid
-                                                      ? "bg-green-100 text-green-800"
-                                                      : "bg-red-100 text-red-800"
-                                                  }`}
-                                                >
-                                                  {isMonthPaid ? "✅" : "❌"}
-                                                </span>
-                                                <span className="text-xs text-gray-600">
-                                                  {isMonthPaid ? "مدفوع" : "يجب الدفع"}
-                                                </span>
-                                                {paymentRecord?.amount && (
-                                                  <span className="text-xs text-blue-600">
-                                                    {paymentRecord.amount} د.ج
+                                            const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
+                                            
+                                            console.log(`🔍 Groups attendance table payment check: Student ${studentId}, Year ${currentYear}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
+                                            
+                                            // Show payment status for admins with toggle functionality
+                                            if (user?.role === "admin") {
+                                              return (
+                                                <>
+                                                  <button
+                                                    onClick={() =>
+                                                      handleTogglePayment(
+                                                        studentId,
+                                                      )
+                                                    }
+                                                    className={`px-3 py-1 rounded text-sm font-medium ${
+                                                      isMonthPaid
+                                                        ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                                        : "bg-red-100 text-red-800 hover:bg-red-200"
+                                                    }`}
+                                                    title={`${isMonthPaid ? "مدفوع" : "غير مدفوع"} - ${isMonthPaid ? "الدفعة مسجلة" : "اضغط للدفع"}`}
+                                                  >
+                                                    {isMonthPaid ? "✅" : "❌"}
+                                                  </button>
+                                                  <span className="text-xs text-gray-600">
+                                                    {isMonthPaid ? "مدفوع" : "غير مدفوع"}
                                                   </span>
-                                                )}
-                                              </div>
-                                            );
-                                          }
-                                        })()}
+                                                  {paymentRecord?.amount && (
+                                                    <span className="text-xs text-blue-600">
+                                                      {paymentRecord.amount} د.ج
+                                                    </span>
+                                                  )}
+                                                </>
+                                              );
+                                            } else {
+                                              // Show payment status for non-admins (read-only) - same as DesktopQRScanner
+                                              return (
+                                                <>
+                                                  <span
+                                                    className={`px-3 py-1 rounded text-sm font-medium ${
+                                                      isMonthPaid
+                                                        ? "bg-green-100 text-green-800"
+                                                        : "bg-red-100 text-red-800"
+                                                    }`}
+                                                  >
+                                                    {isMonthPaid ? "✅" : "❌"}
+                                                  </span>
+                                                  <span className="text-xs text-gray-600">
+                                                    {isMonthPaid ? "مدفوع" : "غير مدفوع"}
+                                                  </span>
+                                                  {paymentRecord?.amount && (
+                                                    <span className="text-xs text-blue-600">
+                                                      {paymentRecord.amount} د.ج
+                                                    </span>
+                                                  )}
+                                                </>
+                                              );
+                                            }
+                                          })()}
+                                        </div>
                                       </td>
                                       {currentMonthDates.map((date) => {
                                         // Find attendance record by userId and date
