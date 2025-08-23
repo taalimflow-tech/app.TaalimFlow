@@ -69,9 +69,9 @@ export function DesktopSidebar() {
   };
 
   return (
-    <aside className="w-80 bg-gradient-to-b from-white to-gray-50 border-l border-gray-200 min-h-screen flex flex-col shadow-lg">
+    <aside className="w-80 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-l border-gray-200 dark:border-gray-700 min-h-screen flex flex-col shadow-lg">
       {/* School Header */}
-      <div className="p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           {selectedSchool?.logoUrl ? (
             <div className="w-12 h-12 rounded-full overflow-hidden shadow-sm border-2 border-gray-200">
@@ -90,10 +90,10 @@ export function DesktopSidebar() {
             </div>
           )}
           <div>
-            <h1 className="text-lg font-bold text-gray-800">
+            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-200">
               {selectedSchool?.name || 'مدرستي'}
             </h1>
-            <p className="text-sm text-gray-500">منصة التعلم الذكية</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">منصة التعلم الذكية</p>
           </div>
         </div>
       </div>
@@ -112,7 +112,7 @@ export function DesktopSidebar() {
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-right transition-all duration-200 ${
                   isActive 
                     ? 'bg-gradient-to-l from-primary/15 to-primary/5 text-primary border border-primary/20 shadow-sm' 
-                    : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-md'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:shadow-md'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -124,7 +124,7 @@ export function DesktopSidebar() {
           {/* Notifications Button */}
           <button
             onClick={() => setShowNotifications(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-right transition-all duration-200 text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-md relative"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-right transition-all duration-200 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:shadow-md relative"
           >
             <div className="relative">
               <Bell className="w-5 h-5" />
@@ -140,15 +140,15 @@ export function DesktopSidebar() {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="mb-4">
-          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
               <User className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{user?.name || 'المستخدم'}</p>
-              <p className="text-xs text-gray-500">
+              <p className="font-medium text-gray-900 dark:text-gray-100">{user?.name || 'المستخدم'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {user?.role === 'admin' ? 'مدير' : 
                  user?.role === 'teacher' ? 'معلم' : 
                  user?.role === 'student' ? 'طالب' : 
@@ -170,7 +170,7 @@ export function DesktopSidebar() {
           
           <Button
             variant="outline"
-            className="w-full justify-start gap-2 text-red-600 border-red-200 hover:bg-red-50"
+            className="w-full justify-start gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
             onClick={handleLogout}
           >
             <LogOut className="w-4 h-4" />
