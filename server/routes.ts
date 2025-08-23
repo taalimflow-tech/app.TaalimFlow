@@ -1012,6 +1012,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // General profile update endpoint (name, email)
+  app.put("/api/profile", async (req, res) => {
+    try {
+      const currentUser = req.session.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const { name, email } = req.body;
+
+      if (!name && !email) {
+        return res.status(400).json({ error: "يجب توفير اسم أو بريد إلكتروني للتحديث" });
+      }
+
+      // Check if email already exists for another user
+      if (email) {
+        const existingUser = await storage.getUserByEmail(email, currentUser.schoolId);
+        if (existingUser && existingUser.id !== currentUser.id) {
+          return res.status(400).json({ error: "البريد الإلكتروني مستخدم من قبل مستخدم آخر" });
+        }
+      }
+
+      const updatedUser = await storage.updateUserProfile(currentUser.id, { name, email });
+
+      // Update current user session
+      req.session.user = updatedUser;
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ error: "فشل في تحديث الملف الشخصي" });
+    }
+  });
+
   // Content upload endpoint for blogs, groups, formations, and school logos
   app.post(
     "/api/upload-content",

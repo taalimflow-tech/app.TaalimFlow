@@ -192,11 +192,38 @@ export default function Profile() {
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({ title: 'تم تحديث الملف الشخصي بنجاح' });
-    } catch (error) {
-      toast({ title: 'حدث خطأ أثناء تحديث البيانات', variant: 'destructive' });
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'فشل في تحديث البيانات');
+      }
+
+      const { user: updatedUser } = await response.json();
+      
+      // Update the auth context with new user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      toast({ 
+        title: 'تم تحديث الملف الشخصي بنجاح',
+        description: 'تم حفظ تغييراتك بنجاح'
+      });
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      toast({ 
+        title: 'حدث خطأ أثناء تحديث البيانات', 
+        description: error.message || 'يرجى المحاولة مرة أخرى',
+        variant: 'destructive' 
+      });
     } finally {
       setLoading(false);
     }
