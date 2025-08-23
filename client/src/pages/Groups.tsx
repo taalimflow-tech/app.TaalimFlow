@@ -3441,9 +3441,6 @@ export default function Groups() {
                                   <th className="border border-gray-300 p-2 text-right font-medium">
                                     اسم الطالب
                                   </th>
-                                  <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
-                                    حالة الدفع
-                                  </th>
                                   {currentMonthDates.map((date) => (
                                     <th
                                       key={date}
@@ -3482,71 +3479,6 @@ export default function Groups() {
                                             {student.email}
                                           </div>
                                         )}
-                                      </td>
-                                      <td className="border border-gray-300 p-2 text-center">
-                                        {(() => {
-                                          const currentMonth = currentViewingMonth;
-                                          const currentYear = currentViewingYear;
-                                          
-                                          // Find payment record for this student, year, and month
-                                          const paymentRecord = paymentStatuses.find(
-                                            (payment: any) => 
-                                              payment.student_id === studentId &&
-                                              payment.year === currentYear &&
-                                              payment.month === currentMonth
-                                          );
-                                          const isMonthPaid = paymentRecord ? paymentRecord.is_paid : false;
-                                          
-                                          // Admin can toggle payment status
-                                          if (user?.role === "admin") {
-                                            return (
-                                              <div className="flex flex-col items-center space-y-1">
-                                                <button
-                                                  onClick={() => handleTogglePayment(studentId)}
-                                                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                                    isMonthPaid
-                                                      ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                                      : "bg-red-100 text-red-800 hover:bg-red-200"
-                                                  }`}
-                                                  title={`${isMonthPaid ? "مدفوع" : "غير مدفوع"} - اضغط للتبديل`}
-                                                >
-                                                  {isMonthPaid ? "✅" : "❌"}
-                                                </button>
-                                                <span className="text-xs text-gray-600">
-                                                  {isMonthPaid ? "مدفوع" : "غير مدفوع"}
-                                                </span>
-                                                {paymentRecord?.amount && (
-                                                  <span className="text-xs text-blue-600">
-                                                    {paymentRecord.amount} د.ج
-                                                  </span>
-                                                )}
-                                              </div>
-                                            );
-                                          } else {
-                                            // Read-only view for non-admins
-                                            return (
-                                              <div className="flex flex-col items-center space-y-1">
-                                                <span
-                                                  className={`px-3 py-1 rounded text-sm font-medium ${
-                                                    isMonthPaid
-                                                      ? "bg-green-100 text-green-800"
-                                                      : "bg-red-100 text-red-800"
-                                                  }`}
-                                                >
-                                                  {isMonthPaid ? "✅" : "❌"}
-                                                </span>
-                                                <span className="text-xs text-gray-600">
-                                                  {isMonthPaid ? "مدفوع" : "غير مدفوع"}
-                                                </span>
-                                                {paymentRecord?.amount && (
-                                                  <span className="text-xs text-blue-600">
-                                                    {paymentRecord.amount} د.ج
-                                                  </span>
-                                                )}
-                                              </div>
-                                            );
-                                          }
-                                        })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
                                         // Find attendance record by userId and date
