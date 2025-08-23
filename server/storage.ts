@@ -1915,6 +1915,7 @@ export class DatabaseStorage implements IStorage {
 
     const result = [];
     for (const assignment of assignments) {
+      // Handle cases where userId might be null for some reason
       if (assignment.userId) {
         // PRIMARY: Get user data first using userId (this ensures school isolation)
         const userData = await db
@@ -1977,6 +1978,68 @@ export class DatabaseStorage implements IStorage {
               type: "child",
               studentType: "child"
             });
+          }
+        }
+      } else {
+        // Handle assignments without userId - this shouldn't happen but let's be safe
+        if (assignment.studentType === "child" && assignment.studentId) {
+          // For children without userId, try to find the parent
+          const childWithParent = await db
+            .select({
+              childId: children.id,
+              childName: children.name,
+              childEducationLevel: children.educationLevel,
+              childGrade: children.grade,
+              parentId: children.parentId,
+            })
+            .from(children)
+            .where(eq(children.id, assignment.studentId))
+            .limit(1);
+
+          if (childWithParent[0] && childWithParent[0].parentId) {
+            // Get parent user data
+            const parentData = await db
+              .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                phone: users.phone,
+              })
+              .from(users)
+              .where(eq(users.id, childWithParent[0].parentId))
+              .limit(1);
+
+            if (parentData[0]) {
+              // Update the assignment record with the correct userId
+              try {
+                await db
+                  .update(groupMixedAssignments)
+                  .set({ userId: parentData[0].id })
+                  .where(
+                    and(
+                      eq(groupMixedAssignments.groupId, groupId),
+                      eq(groupMixedAssignments.studentId, assignment.studentId),
+                      eq(groupMixedAssignments.studentType, "child")
+                    )
+                  );
+                console.log(`✅ Updated userId for child assignment ${assignment.studentId} to ${parentData[0].id}`);
+              } catch (updateError) {
+                console.error(`❌ Failed to update userId for child assignment:`, updateError);
+              }
+
+              result.push({
+                id: assignment.studentId,
+                userId: parentData[0].id,
+                studentId: assignment.studentId,
+                name: childWithParent[0].childName,
+                email: parentData[0].email,
+                phone: parentData[0].phone,
+                educationLevel: childWithParent[0].childEducationLevel,
+                grade: childWithParent[0].childGrade,
+                type: "child",
+                studentType: "child"
+              });
+            }
           }
         }
       }

@@ -3423,18 +3423,31 @@ export default function Groups() {
                               </thead>
                               <tbody>
                                 {groupAssignments.map((student: any) => {
+                                  // For children, student.userId should be the parent's ID
+                                  // For students, student.userId should be the student's user ID
                                   const userId = student.userId || student.id;
                                   const studentName = student.name || `Student ${userId}`;
                                   const studentId = student.id;
                                   
+                                  // Skip rendering if essential data is missing
+                                  if (!studentId || !studentName) {
+                                    console.warn('⚠️ Skipping student with missing data:', student);
+                                    return null;
+                                  }
+                                  
                                   return (
                                     <tr
-                                      key={userId}
+                                      key={`${userId}-${studentId}`} // More unique key
                                       className="hover:bg-gray-50"
                                     >
                                       <td className="border border-gray-300 p-3 font-medium">
                                         <div className="font-medium text-gray-800">
                                           {studentName}
+                                          {(student.type === 'child' || student.studentType === 'child') && (
+                                            <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                              طفل
+                                            </span>
+                                          )}
                                         </div>
                                         {student.email && (
                                           <div className="text-xs text-gray-500 mt-1">
@@ -3445,19 +3458,20 @@ export default function Groups() {
                                       <td className="border border-gray-300 p-2 text-center">
                                         <div className="flex flex-col items-center space-y-1">
                                           {(() => {
-                                            // Extract month number from currentMonthKey (YYYY-MM format)
-                                            const currentMonth = currentViewingMonth;
-                                            const currentYear = currentViewingYear;
-                                            
-                                            // Find payment record for this student using exact same logic as DesktopQRScanner
-                                            // API returns camelCase properties: studentId, isPaid
-                                            const paymentRecord = paymentStatuses.find(
-                                              (payment: any) => payment.studentId === studentId
-                                            );
-                                            const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
-                                            const paymentAmount = paymentRecord?.amount;
-                                            
-                                            const handleDeletePayment = async () => {
+                                            try {
+                                              // Extract month number from currentMonthKey (YYYY-MM format)
+                                              const currentMonth = currentViewingMonth;
+                                              const currentYear = currentViewingYear;
+                                              
+                                              // Find payment record for this student using exact same logic as DesktopQRScanner
+                                              // API returns camelCase properties: studentId, isPaid
+                                              const paymentRecord = paymentStatuses.find(
+                                                (payment: any) => payment.studentId === studentId
+                                              );
+                                              const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
+                                              const paymentAmount = paymentRecord?.amount;
+                                              
+                                              const handleDeletePayment = async () => {
                                               if (!confirm(`هل أنت متأكد من حذف دفعة ${studentName} لشهر ${currentMonth}/${currentYear}؟`)) {
                                                 return;
                                               }
@@ -3550,19 +3564,28 @@ export default function Groups() {
                                                 )}
                                               </>
                                             );
+                                          } catch (error) {
+                                            console.error('🚨 Error in payment status rendering for student:', studentId, error);
+                                            return (
+                                              <div className="text-red-500 text-xs">
+                                                خطأ في عرض حالة الدفع
+                                              </div>
+                                            );
+                                          }
                                           })()} 
                                         </div>
                                       </td>
                                       {currentMonthDates.map((date) => {
                                         // Find attendance record by userId and date
-                                        const attendanceRecord =
+                                        // Ensure userId is valid before searching
+                                        const attendanceRecord = userId ? 
                                           attendanceHistory.find(
                                             (record: any) =>
                                               record.userId === userId &&
                                               record.attendanceDate?.split(
                                                 "T",
                                               )[0] === date,
-                                          );
+                                          ) : null;
 
                                         return (
                                           <td
