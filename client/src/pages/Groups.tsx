@@ -1461,12 +1461,14 @@ export default function Groups() {
     if (user?.role !== "admin") return;
 
     console.log(`🔄 Payment toggle attempt: Student ${studentId}`);
+    console.log(`📊 GroupAssignments available:`, groupAssignments.map(s => ({id: s.id, userId: s.userId, studentId: s.studentId, name: s.name})));
 
-    // Find student in Group Assignments data using studentId
-    const student = groupAssignments.find((s: any) => s.studentId === studentId);
+    // Find student in Group Assignments data using id field (since studentId in table is student.id)
+    const student = groupAssignments.find((s: any) => s.id === studentId);
 
     if (!student) {
       console.log(`❌ Student ${studentId} not found in groupAssignments`);
+      console.log(`Available IDs in groupAssignments:`, groupAssignments.map(s => s.id));
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
       return;
     }
@@ -1475,11 +1477,11 @@ export default function Groups() {
     const { year: currentViewingYear, month: currentViewingMonth } = getCurrentViewingMonth();
     const paymentRecord = paymentStatuses.find(
       (payment: any) => 
-        payment.studentId === studentId &&
+        payment.student_id === studentId &&
         payment.year === currentViewingYear &&
         payment.month === currentViewingMonth
     );
-    const isAlreadyPaid = paymentRecord ? paymentRecord.isPaid : false;
+    const isAlreadyPaid = paymentRecord ? paymentRecord.is_paid : false;
 
     console.log(`💰 Current payment status for student ${studentId}: ${isAlreadyPaid}, Year: ${currentViewingYear}, Month: ${currentViewingMonth}`);
 
