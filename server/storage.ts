@@ -492,6 +492,12 @@ export interface IStorage {
     paidBy: number,
     notes?: string,
   ): Promise<StudentMonthlyPayment>;
+  deletePaymentRecord(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number
+  ): Promise<boolean>;
   getStudentPaymentHistory(
     studentId: number,
     schoolId: number,
@@ -4480,6 +4486,35 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating student payment:", error);
       throw error;
+    }
+  }
+
+  async deletePaymentRecord(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number
+  ): Promise<boolean> {
+    try {
+      console.log(`🗑️ Attempting to delete payment record: studentId=${studentId}, ${month}/${year}, schoolId=${schoolId}`);
+      
+      // Perform HARD DELETE from database
+      const result = await db
+        .delete(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId)
+          )
+        );
+      
+      console.log(`✅ Successfully deleted payment record for studentId=${studentId}, ${month}/${year}`);
+      return true;
+    } catch (error) {
+      console.error("Error deleting payment record:", error);
+      return false;
     }
   }
 

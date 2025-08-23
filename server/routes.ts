@@ -4066,6 +4066,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete payment record - HARD DELETE from database
+  app.delete("/api/payments/delete", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "غير مسموح لك بحذف المدفوعات" });
+      }
+
+      const { studentId, year, month, schoolId } = req.body;
+      
+      if (!studentId || !year || !month || !schoolId) {
+        return res.status(400).json({ error: "معلومات ناقصة" });
+      }
+
+      // Verify the school ID matches the admin's school
+      if (schoolId !== req.session.user.schoolId) {
+        return res.status(403).json({ error: "غير مسموح بحذف مدفوعات مدرسة أخرى" });
+      }
+
+      // Hard delete the payment record from database
+      const deleted = await storage.deletePaymentRecord(
+        studentId,
+        year,
+        month,
+        schoolId
+      );
+
+      if (deleted) {
+        res.json({ 
+          message: "تم حذف سجل الدفع بنجاح",
+          deleted: true 
+        });
+      } else {
+        res.status(404).json({ error: "لم يتم العثور على سجل الدفع" });
+      }
+    } catch (error) {
+      console.error("Error deleting payment:", error);
+      res.status(500).json({ error: "فشل في حذف سجل الدفع" });
+    }
+  });
+
   // Get payment history for a student
   app.get("/api/students/:studentId/payment-history", async (req, res) => {
     try {

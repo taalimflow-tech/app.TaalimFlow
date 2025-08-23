@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Group } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   Users,
@@ -22,6 +22,7 @@ import {
   XCircle,
   Clock,
   CreditCard,
+  Trash2,
 } from "lucide-react";
 
 // Component for displaying scheduled dates attendance carousel
@@ -3498,15 +3499,76 @@ export default function Groups() {
                                             const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                                             const paymentAmount = paymentRecord?.amount;
                                             
+                                            const handleDeletePayment = async () => {
+                                              if (!confirm(`هل أنت متأكد من حذف دفعة ${studentName} لشهر ${currentMonth}/${currentYear}؟`)) {
+                                                return;
+                                              }
+                                              
+                                              try {
+                                                const response = await apiRequest(
+                                                  "DELETE",
+                                                  `/api/payments/delete`,
+                                                  {
+                                                    studentId: studentId,
+                                                    year: currentYear,
+                                                    month: currentMonth,
+                                                    schoolId: user?.schoolId
+                                                  }
+                                                );
+                                                
+                                                if (response.ok) {
+                                                  toast({
+                                                    title: "تم حذف الدفعة",
+                                                    description: "تم حذف سجل الدفع بنجاح",
+                                                  });
+                                                  
+                                                  // Refresh payment status
+                                                  queryClient.invalidateQueries({
+                                                    queryKey: [
+                                                      "/api/groups",
+                                                      managementGroup?.id,
+                                                      "payment-status",
+                                                      currentYear,
+                                                      currentMonth,
+                                                    ],
+                                                  });
+                                                } else {
+                                                  const error = await response.json();
+                                                  toast({
+                                                    title: "خطأ في حذف الدفعة",
+                                                    description: error.error || "فشل حذف سجل الدفع",
+                                                    variant: "destructive",
+                                                  });
+                                                }
+                                              } catch (error) {
+                                                toast({
+                                                  title: "خطأ",
+                                                  description: "حدث خطأ أثناء حذف الدفعة",
+                                                  variant: "destructive",
+                                                });
+                                              }
+                                            };
+                                            
                                             return (
                                               <>
-                                                <span className={`px-3 py-1 rounded text-sm font-medium ${
-                                                  isMonthPaid
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                  {isMonthPaid ? '✅' : '❌'}
-                                                </span>
+                                                <div className="flex items-center gap-1">
+                                                  <span className={`px-3 py-1 rounded text-sm font-medium ${
+                                                    isMonthPaid
+                                                      ? 'bg-green-100 text-green-800'
+                                                      : 'bg-red-100 text-red-800'
+                                                  }`}>
+                                                    {isMonthPaid ? '✅' : '❌'}
+                                                  </span>
+                                                  {isMonthPaid && user?.role === 'admin' && (
+                                                    <button
+                                                      onClick={handleDeletePayment}
+                                                      className="p-1 hover:bg-red-100 rounded transition-colors"
+                                                      title="حذف الدفعة"
+                                                    >
+                                                      <Trash2 className="w-4 h-4 text-red-600" />
+                                                    </button>
+                                                  )}
+                                                </div>
                                                 <span className="text-xs text-gray-600">
                                                   {isMonthPaid ? 'مدفوع' : 'غير مدفوع'}
                                                 </span>
