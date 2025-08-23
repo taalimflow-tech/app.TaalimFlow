@@ -1685,15 +1685,15 @@ export class DatabaseStorage implements IStorage {
         allStudentIds.size > 0
           ? await db
               .select({
-                id: users.id,
+                id: students.id, // Use student ID, not user ID
                 name: users.name,
                 educationLevel: students.educationLevel,
                 grade: students.grade,
                 email: users.email,
               })
-              .from(users)
-              .leftJoin(students, eq(users.id, students.userId))
-              .where(inArray(users.id, Array.from(allStudentIds)))
+              .from(students)
+              .leftJoin(users, eq(students.userId, users.id))
+              .where(inArray(students.id, Array.from(allStudentIds)))
           : [];
 
       // Get all children in one query

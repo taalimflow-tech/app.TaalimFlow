@@ -3307,83 +3307,41 @@ export default function Groups() {
               </div>
 
               <div className="p-6">
-                {/* DEBUG: Complete raw data debugging */}
-                {(() => {
-                  console.log('[DEBUG] =================== COMPLETE TABLE DATA ===================');
-                  console.log('[DEBUG] Management Group (ALL FIELDS):', JSON.stringify(managementGroup, null, 2));
-                  console.log('[DEBUG] Group Assignments (ALL FIELDS):', JSON.stringify(groupAssignments, null, 2));
-                  console.log('[DEBUG] Attendance History (ALL FIELDS):', JSON.stringify(attendanceHistory, null, 2));
-                  console.log('[DEBUG] Scheduled Dates Data (ALL FIELDS):', JSON.stringify(scheduledDatesData, null, 2));
-                  console.log('[DEBUG] Payment Statuses (ALL FIELDS):', JSON.stringify(paymentStatuses, null, 2));
-                  console.log('[DEBUG] Month Keys:', monthKeys);
-                  console.log('[DEBUG] Current Month Key:', currentMonthKey);
-                  console.log('[DEBUG] Current Month Dates:', currentMonthDates);
-                  console.log('[DEBUG] ============================================================');
-                  return null;
-                })()}
-                
-                {/* Show debugging info directly on the page */}
-                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-xs max-h-96 overflow-y-auto">
-                  <h4 className="font-semibold text-yellow-800 mb-2">بيانات الجداول الكاملة - Raw Table Data:</h4>
-                  <div className="space-y-4 text-yellow-700 font-mono">
-                    
-                    {/* Management Group Raw Data */}
-                    <div className="border-l-2 border-yellow-400 pl-2">
-                      <div className="font-bold text-yellow-900">Management Group (كاملة):</div>
-                      <pre className="text-xs bg-yellow-100 p-2 rounded mt-1 whitespace-pre-wrap">
-                        {JSON.stringify(managementGroup, null, 2)}
-                      </pre>
-                    </div>
-
-                    {/* Group Assignments Raw Data */}
-                    <div className="border-l-2 border-blue-400 pl-2">
-                      <div className="font-bold text-blue-900">Group Assignments (كاملة) - Count: {groupAssignments?.length || 0}</div>
-                      <pre className="text-xs bg-blue-100 p-2 rounded mt-1 whitespace-pre-wrap">
-                        {JSON.stringify(groupAssignments, null, 2)}
-                      </pre>
-                    </div>
-
-                    {/* Attendance History Raw Data */}
-                    <div className="border-l-2 border-green-400 pl-2">
-                      <div className="font-bold text-green-900">Attendance History (كاملة) - Count: {attendanceHistory?.length || 0}</div>
-                      <pre className="text-xs bg-green-100 p-2 rounded mt-1 whitespace-pre-wrap">
-                        {JSON.stringify(attendanceHistory, null, 2)}
-                      </pre>
-                    </div>
-
-                    {/* Scheduled Dates Raw Data */}
-                    <div className="border-l-2 border-purple-400 pl-2">
-                      <div className="font-bold text-purple-900">Scheduled Dates (كاملة):</div>
-                      <pre className="text-xs bg-purple-100 p-2 rounded mt-1 whitespace-pre-wrap">
-                        {JSON.stringify(scheduledDatesData, null, 2)}
-                      </pre>
-                    </div>
-
-                    {/* Payment Statuses Raw Data */}
-                    <div className="border-l-2 border-red-400 pl-2">
-                      <div className="font-bold text-red-900">Payment Statuses (كاملة) - Count: {paymentStatuses?.length || 0}</div>
-                      <pre className="text-xs bg-red-100 p-2 rounded mt-1 whitespace-pre-wrap">
-                        {JSON.stringify(paymentStatuses, null, 2)}
-                      </pre>
-                    </div>
-
-                    {/* Processed Data */}
-                    <div className="border-l-2 border-gray-400 pl-2">
-                      <div className="font-bold text-gray-900">Processed Data:</div>
-                      <div className="text-xs bg-gray-100 p-2 rounded mt-1">
-                        <div>Month Keys: {JSON.stringify(monthKeys)}</div>
-                        <div>Current Month Key: {currentMonthKey || 'NULL'}</div>
-                        <div>Current Month Dates: {JSON.stringify(currentMonthDates)}</div>
-                        <div>Month Keys Length: {monthKeys?.length || 0}</div>
-                        <div>Current Month Dates Length: {currentMonthDates?.length || 0}</div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
                 
                 {groupAssignments && groupAssignments.length > 0 ? (
                   <div className="space-y-6">
+                    {/* Currently Assigned Students Summary */}
+                    <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+                      <h4 className="font-semibold text-blue-800 mb-3">
+                        الطلاب المسجلين في المجموعة ({groupAssignments.length})
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {groupAssignments.map((student: any) => (
+                          <div
+                            key={student.id}
+                            className="bg-white rounded-lg border border-blue-200 p-3"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">{student.name}</p>
+                                <p className="text-sm text-gray-600">
+                                  المستوى: {student.educationLevel}
+                                  {student.grade && ` - ${student.grade}`}
+                                </p>
+                              </div>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                student.type === 'child' 
+                                  ? 'bg-purple-100 text-purple-800' 
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {student.type === 'child' ? 'طفل' : 'طالب'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Monthly Attendance and Payment Status View */}
                     <div className="bg-white rounded-lg border p-4">
                       <div className="flex items-center justify-between mb-4">
