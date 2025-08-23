@@ -539,6 +539,7 @@ export interface IStorage {
   resetFinancialEntries(schoolId: number): Promise<void>;
 
   // Child-specific queries for parent access
+  getStudentById(studentId: number): Promise<Student | undefined>;
   getChildById(childId: number): Promise<Child | undefined>;
   getChildAttendanceRecords(childId: number, schoolId: number): Promise<any[]>;
   getChildPaymentRecords(childId: number, schoolId: number): Promise<any[]>;
@@ -4378,6 +4379,43 @@ export class DatabaseStorage implements IStorage {
     notes?: string,
   ): Promise<StudentMonthlyPayment> {
     try {
+      // QUERY DATABASE TO GET CORRECT USER ID BASED ON STUDENT ID AND TYPE
+      let correctUserId: number;
+      
+      if (studentType === "student") {
+        // For direct students: Get userId from students table
+        console.log(`🔍 Querying students table for studentId ${studentId}`);
+        const [studentRecord] = await db
+          .select({ userId: students.userId })
+          .from(students)
+          .where(eq(students.id, studentId))
+          .limit(1);
+          
+        if (!studentRecord || !studentRecord.userId) {
+          throw new Error(`Student with ID ${studentId} not found or has no userId`);
+        }
+        correctUserId = studentRecord.userId;
+        console.log(`✅ Found userId ${correctUserId} for student ${studentId}`);
+        
+      } else if (studentType === "child") {
+        // For children: Get parentId from children table
+        console.log(`🔍 Querying children table for childId ${studentId}`);
+        const [childRecord] = await db
+          .select({ parentId: children.parentId })
+          .from(children)
+          .where(eq(children.id, studentId))
+          .limit(1);
+          
+        if (!childRecord || !childRecord.parentId) {
+          throw new Error(`Child with ID ${studentId} not found or has no parentId`);
+        }
+        correctUserId = childRecord.parentId;
+        console.log(`✅ Found parentId ${correctUserId} for child ${studentId}`);
+        
+      } else {
+        throw new Error(`Invalid studentType: ${studentType}`);
+      }
+
       // Check if payment already exists to prevent duplicates
       const [existingPayment] = await db
         .select()
@@ -4397,12 +4435,12 @@ export class DatabaseStorage implements IStorage {
         return existingPayment;
       }
 
-      // Create new payment record
+      // Create new payment record with CORRECT USER ID from database lookup
       const [newPayment] = await db
         .insert(studentMonthlyPayments)
         .values({
-          userId,
-          studentId,
+          userId: correctUserId, // ✅ Use database-queried userId
+          studentId, // ✅ Student ID (different from userId)
           studentType,
           year,
           month,
@@ -4415,7 +4453,7 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
       
-      console.log(`Created payment for studentId ${studentId}, ${month}/${year}, amount: ${amount}`);
+      console.log(`✅ Created payment: studentId=${studentId}, userId=${correctUserId}, ${month}/${year}, amount=${amount}`);
       return newPayment;
     } catch (error) {
       console.error("Error creating student payment:", error);
@@ -4735,6 +4773,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Child-specific methods for parent access
+  async getStudentById(studentId: number): Promise<Student | undefined> {
+    try {
+      const [student] = await db
+        .select()
+        .from(students)
+        .where(eq(students.id, studentId))
+        .limit(1);
+
+      return student;
+    } catch (error) {
+      console.error("Error fetching student by ID:", error);
+      return undefined;
+    }
+  }
+
   async getChildById(childId: number): Promise<Child | undefined> {
     try {
       const [child] = await db
