@@ -3389,14 +3389,38 @@ export default function Groups() {
 
                       {/* All Payments Debug Section */}
                       <div className="mb-4">
-                        <Button 
-                          onClick={fetchAllPayments}
-                          variant="outline" 
-                          size="sm"
-                          className="mb-2"
-                        >
-                          📊 عرض جميع المدفوعات
-                        </Button>
+                        <div className="flex gap-2 mb-2">
+                          <Button 
+                            onClick={fetchAllPayments}
+                            variant="outline" 
+                            size="sm"
+                          >
+                            📊 عرض جميع المدفوعات
+                          </Button>
+                          <Button 
+                            onClick={() => {
+                              // Clear all payment-related caches
+                              queryClient.invalidateQueries({ queryKey: ['/api/groups', managementGroup?.id, 'payment-status'] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/students'] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/all-payments'] });
+                              // Clear individual student payment history caches
+                              Object.keys(studentPaymentHistory).forEach(studentId => {
+                                queryClient.invalidateQueries({ queryKey: [`/api/students/${studentId}/payment-history`] });
+                              });
+                              // Show success message
+                              toast({
+                                title: "تم تحديث البيانات",
+                                description: "تم تحديث بيانات المدفوعات من قاعدة البيانات",
+                              });
+                              // Optionally refetch all payments to show immediately
+                              fetchAllPayments();
+                            }}
+                            variant="default" 
+                            size="sm"
+                          >
+                            🔄 تحديث البيانات
+                          </Button>
+                        </div>
                         
                         {showAllPayments && (
                           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-h-60 overflow-y-auto">
