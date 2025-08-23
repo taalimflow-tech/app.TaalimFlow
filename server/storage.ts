@@ -5842,6 +5842,9 @@ export class DatabaseStorage implements IStorage {
           const user = result.users;
 
           if (!user) continue;
+          
+          // SAFETY: Exclude parent users from student search results
+          if (user.role === "parent") continue;
 
           // Apply search filter
           if (filters.search) {
@@ -5869,7 +5872,7 @@ export class DatabaseStorage implements IStorage {
             name: user.name,
             email: user.email,
             phone: user.phone,
-            role: user.role,
+            role: "student", // Always set as "student" for student records
             educationLevel: student.educationLevel,
             verified: student.verified,
             type: "student",
