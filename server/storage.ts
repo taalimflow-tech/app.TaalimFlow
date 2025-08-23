@@ -4496,15 +4496,26 @@ export class DatabaseStorage implements IStorage {
     schoolId: number
   ): Promise<boolean> {
     try {
-      console.log(`🗑️ Attempting to delete payment record with parameters:`, {
-        studentId: studentId,
-        year: year, 
-        month: month,
-        schoolId: schoolId
+      console.log(`🗑️ HARD DELETE - Deleting payment record:`, {
+        studentId, year, month, schoolId
       });
       
-      // First check if record exists
-      const existingRecord = await db
+      // HARD DELETE from database - completely remove the record
+      const deleteResult = await db
+        .delete(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId)
+          )
+        );
+      
+      console.log(`🗑️ DELETE RESULT:`, deleteResult);
+      
+      // Verify deletion by checking if record still exists
+      const verifyDeleted = await db
         .select()
         .from(studentMonthlyPayments)
         .where(
@@ -4516,30 +4527,16 @@ export class DatabaseStorage implements IStorage {
           )
         )
         .limit(1);
-        
-      console.log(`🔍 Found existing record:`, existingRecord);
       
-      if (existingRecord.length === 0) {
-        console.log(`❌ No payment record found to delete`);
+      if (verifyDeleted.length === 0) {
+        console.log(`✅ HARD DELETE SUCCESSFUL - Record completely removed from database`);
+        return true;
+      } else {
+        console.log(`❌ HARD DELETE FAILED - Record still exists:`, verifyDeleted);
         return false;
       }
-      
-      // Perform HARD DELETE from database
-      const result = await db
-        .delete(studentMonthlyPayments)
-        .where(
-          and(
-            eq(studentMonthlyPayments.studentId, studentId),
-            eq(studentMonthlyPayments.year, year),
-            eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId)
-          )
-        );
-      
-      console.log(`✅ DELETE operation completed. Deleted payment record for studentId=${studentId}, ${month}/${year}`);
-      return true;
     } catch (error) {
-      console.error("❌ Error deleting payment record:", error);
+      console.error("❌ HARD DELETE ERROR:", error);
       return false;
     }
   }
