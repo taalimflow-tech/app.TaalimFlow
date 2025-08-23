@@ -147,6 +147,7 @@ export interface IStorage {
     userId: number,
     data: { name?: string; email?: string }
   ): Promise<User>;
+  updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
 
   // Phone verification methods
   savePhoneVerificationCode(
@@ -2487,6 +2488,20 @@ export class DatabaseStorage implements IStorage {
       .set({ profilePicture: profilePictureUrl })
       .where(eq(users.id, userId))
       .returning();
+    return user;
+  }
+
+  async updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ firebaseUid })
+      .where(eq(users.id, userId))
+      .returning();
+
+    if (!user) {
+      throw new Error('المستخدم غير موجود');
+    }
+
     return user;
   }
 

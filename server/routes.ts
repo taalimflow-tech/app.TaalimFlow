@@ -904,6 +904,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update Firebase UID route
+  app.put("/api/auth/update-firebase-uid", async (req, res) => {
+    const currentUser = req.session.user;
+    if (!currentUser) {
+      return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+    }
+
+    try {
+      const { firebaseUid } = req.body;
+
+      if (!firebaseUid) {
+        return res.status(400).json({ error: "Firebase UID مطلوب" });
+      }
+
+      const updatedUser = await storage.updateUserFirebaseUid(currentUser.id, firebaseUid);
+      
+      // Update session
+      req.session.user = updatedUser;
+      
+      res.json({ 
+        user: updatedUser,
+        message: "تم تحديث Firebase UID بنجاح" 
+      });
+    } catch (error) {
+      console.error("Firebase UID update error:", error);
+      res.status(500).json({ error: "خطأ في تحديث Firebase UID" });
+    }
+  });
+
   app.post("/api/auth/verify-email", async (req, res) => {
     try {
       const currentUser = req.session.user;

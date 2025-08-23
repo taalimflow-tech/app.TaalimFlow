@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirebaseEmailVerification } from '@/lib/firebase-email';
+import { ensureFirebaseInitialized } from '@/lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Settings, Shield, GraduationCap, Users, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar, Bell } from 'lucide-react';
 import { GroupDetailsModal } from '@/components/GroupDetailsModal';
@@ -186,6 +188,64 @@ export default function Profile() {
       });
     }
   });
+
+  const setupFirebaseAccount = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Initialize Firebase
+      const { auth } = await ensureFirebaseInitialized();
+      if (!auth) {
+        throw new Error('Failed to initialize Firebase');
+      }
+
+      // Create Firebase account with user's email and a default password
+      const defaultPassword = 'TempPass123!';
+      const userCredential = await createUserWithEmailAndPassword(auth, user.email, defaultPassword);
+      const firebaseUser = userCredential.user;
+
+      // Update the database with the Firebase UID
+      const response = await fetch('/api/auth/update-firebase-uid', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ firebaseUid: firebaseUser.uid }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update Firebase UID');
+      }
+
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+
+      toast({
+        title: 'تم إعداد التحقق بنجاح',
+        description: 'تم إنشاء حساب Firebase. يمكنك الآن استخدام التحقق من البريد الإلكتروني.',
+      });
+
+    } catch (error: any) {
+      let errorMessage = 'حدث خطأ في إعداد التحقق';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'هذا البريد الإلكتروني مستخدم بالفعل في Firebase';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'كلمة المرور ضعيفة';
+      }
+
+      toast({
+        title: 'خطأ في الإعداد',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -466,18 +526,36 @@ export default function Profile() {
                     }`}>
                       {isEmailVerified ? 'تم التحقق من البريد الإلكتروني عبر Firebase' : 'لم يتم التحقق من البريد الإلكتروني'}
                     </p>
+                    {!user.firebaseUid && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        يجب إعداد حساب Firebase للتحقق من البريد الإلكتروني
+                      </p>
+                    )}
                   </div>
                 </div>
-                {!isEmailVerified && (
-                  <Button 
-                    onClick={() => setShowEmailVerification(true)}
-                    size="sm"
-                    className="flex items-center gap-2 flex-shrink-0"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    تحقق الآن
-                  </Button>
-                )}
+                <div className="flex-shrink-0 flex gap-2">
+                  {!user.firebaseUid ? (
+                    <Button 
+                      onClick={() => setupFirebaseAccount()}
+                      disabled={loading}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Mail className="w-4 h-4" />
+                      {loading ? 'جاري الإعداد...' : 'إعداد التحقق'}
+                    </Button>
+                  ) : !isEmailVerified ? (
+                    <Button 
+                      onClick={() => setShowEmailVerification(true)}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      تحقق الآن
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </CardContent>
           </Card>
