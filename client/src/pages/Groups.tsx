@@ -616,6 +616,8 @@ export default function Groups() {
   const [studentPaymentHistory, setStudentPaymentHistory] = useState<{[userId: number]: any[]}>({});
   const [allPayments, setAllPayments] = useState<any[]>([]);
   const [showAllPayments, setShowAllPayments] = useState(false);
+  const [showDatabasePayments, setShowDatabasePayments] = useState(false);
+  const [databasePayments, setDatabasePayments] = useState<any[]>([]);
 
   // Helper function to group dates by month
   const groupDatesByMonth = (dates: string[]) => {
@@ -1303,6 +1305,43 @@ export default function Groups() {
       }
     } catch (error) {
       console.error('Error fetching all payments:', error);
+    }
+  };
+
+  // Test function to pull ALL payments from student_monthly_payments table
+  const fetchAllPaymentsFromDatabase = async () => {
+    try {
+      console.log("🧪 Testing direct database fetch");
+      setShowDatabasePayments(!showDatabasePayments);
+      
+      if (!showDatabasePayments) {
+        const response = await fetch('/api/test-all-payments', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const result = await response.json();
+          console.log("🧪 Database test result:", result);
+          setDatabasePayments(result.payments || []);
+          toast({
+            title: "تم الاتصال بقاعدة البيانات",
+            description: `تم العثور على ${result.count} سجل مدفوعات`,
+          });
+        } else {
+          console.error("❌ Database test failed:", response.statusText);
+          toast({
+            title: "خطأ في الاتصال",
+            description: "فشل في الاتصال بقاعدة البيانات",
+            variant: "destructive"
+          });
+        }
+      }
+    } catch (error) {
+      console.error("❌ Database test error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء الاتصال بقاعدة البيانات",
+        variant: "destructive"
+      });
     }
   };
 
@@ -3422,6 +3461,13 @@ export default function Groups() {
                           >
                             🔄 تحديث البيانات
                           </Button>
+                          <Button 
+                            onClick={fetchAllPaymentsFromDatabase}
+                            variant="secondary" 
+                            size="sm"
+                          >
+                            🧪 اختبار قاعدة البيانات
+                          </Button>
                         </div>
                         
                         {showAllPayments && (
@@ -3434,6 +3480,39 @@ export default function Groups() {
                             ) : (
                               <div className="space-y-1">
                                 {allPayments.map((payment, index) => (
+                                  <div key={index} className="bg-white p-2 rounded border text-xs">
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <span><strong>ID:</strong> {payment.id}</span>
+                                      <span><strong>School ID:</strong> {payment.school_id}</span>
+                                      <span><strong>Student ID:</strong> {payment.student_id}</span>
+                                      <span><strong>Student Type:</strong> {payment.student_type}</span>
+                                      <span><strong>Year:</strong> {payment.year}</span>
+                                      <span><strong>Month:</strong> {payment.month}</span>
+                                      <span><strong>Amount:</strong> {payment.amount} DA</span>
+                                      <span><strong>Paid Status:</strong> {payment.is_paid ? '✅ Yes' : '❌ No'}</span>
+                                      <span><strong>Paid At:</strong> {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                      <span><strong>Paid By (User ID):</strong> {payment.paid_by || 'N/A'}</span>
+                                      <span><strong>Notes:</strong> {payment.notes || 'N/A'}</span>
+                                      <span><strong>Created At:</strong> {payment.created_at ? new Date(payment.created_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                      <span><strong>Updated At:</strong> {payment.updated_at ? new Date(payment.updated_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {showDatabasePayments && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 max-h-60 overflow-y-auto">
+                            <h5 className="font-semibold text-green-800 mb-2">
+                              🧪 اختبار قاعدة البيانات - جدول student_monthly_payments ({databasePayments.length} records)
+                            </h5>
+                            {databasePayments.length === 0 ? (
+                              <p className="text-gray-600">No payment records found in database</p>
+                            ) : (
+                              <div className="space-y-1">
+                                {databasePayments.map((payment, index) => (
                                   <div key={index} className="bg-white p-2 rounded border text-xs">
                                     <div className="grid grid-cols-3 gap-2">
                                       <span><strong>ID:</strong> {payment.id}</span>

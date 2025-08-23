@@ -4889,6 +4889,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test endpoint to verify API is working
+  // Test endpoint to get ALL payments from database
+  app.get("/api/test-all-payments", async (req, res) => {
+    try {
+      console.log("🧪 Test all-payments endpoint called");
+      
+      const schoolId = req.session.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "School ID not found in session" });
+      }
+
+      const allPayments = await storage.getAllPaymentsFromDatabase(schoolId);
+      
+      res.json({
+        success: true,
+        count: allPayments.length,
+        payments: allPayments
+      });
+
+    } catch (error) {
+      console.error("❌ Error in test-all-payments endpoint:", error);
+      res.status(500).json({ error: "Failed to fetch payments" });
+    }
+  });
+
   app.post("/api/test-payment", async (req, res) => {
     console.log("🧪 Test payment endpoint called");
     console.log("Session:", req.session?.user ? "Valid" : "None");

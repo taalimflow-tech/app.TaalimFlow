@@ -513,6 +513,9 @@ export interface IStorage {
     schoolId: number,
   ): Promise<any[]>;
   getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]>;
+  
+  // Test function to get all payments from database
+  getAllPaymentsFromDatabase(schoolId: number): Promise<any[]>;
   getStudentGroupPayments(
     studentId: number,
     groupId: number,
@@ -5341,6 +5344,24 @@ export class DatabaseStorage implements IStorage {
       return financialData;
     } catch (error) {
       console.error("Error generating financial report:", error);
+      throw error;
+    }
+  }
+
+  // Test function to get ALL payments from student_monthly_payments table
+  async getAllPaymentsFromDatabase(schoolId: number): Promise<any[]> {
+    try {
+      console.log("🧪 getAllPaymentsFromDatabase called for schoolId:", schoolId);
+      
+      const allPayments = await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(eq(studentMonthlyPayments.schoolId, schoolId));
+
+      console.log(`✅ Found ${allPayments.length} payment records in database`);
+      return allPayments;
+    } catch (error) {
+      console.error("❌ Error fetching all payments:", error);
       throw error;
     }
   }
