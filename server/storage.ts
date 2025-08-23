@@ -5689,10 +5689,38 @@ export class DatabaseStorage implements IStorage {
         console.log("🔍 Child query result:", child);
         if (!child) {
           console.log("❌ No child found with the given criteria");
+          
+          // Enhanced debugging - check if child exists in any school
+          const anyChild = await db
+            .select()
+            .from(children)
+            .where(eq(children.id, studentId))
+            .limit(1);
+            
+          if (anyChild.length > 0) {
+            console.log(`⚠️ Child ${studentId} exists but in school ${anyChild[0].schoolId}, not ${schoolId}`);
+          } else {
+            console.log(`❌ Child ${studentId} does not exist in any school`);
+          }
+          
           return null;
         }
-        // Add type field for consistency with student records
-        studentProfile = { ...child, type: "child" };
+        
+        console.log("✅ Child found:", {
+          id: child.id,
+          name: child.name,
+          schoolId: child.schoolId,
+          parentId: child.parentId,
+          verified: child.verified
+        });
+        
+        // Add type field and ensure verified status for children
+        // Children should be automatically considered verified if they exist
+        studentProfile = { 
+          ...child, 
+          type: "child",
+          verified: true  // Children are automatically verified if they exist
+        };
       }
 
       console.log("✅ Student found, now fetching enrolled groups...");

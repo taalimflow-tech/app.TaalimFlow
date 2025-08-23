@@ -1199,9 +1199,22 @@ export default function Groups() {
     const nextStatus = currentStatus === "present" ? "absent" : "present";
 
     // Find student in Group Assignments data (not legacy studentsAssigned)
-    const student = groupAssignments.find((s: any) => s.userId === userId || s.id === userId);
+    // For children, look by userId (parent's ID) or studentId 
+    const student = groupAssignments.find((s: any) => 
+      s.userId === userId || 
+      s.id === userId || 
+      s.studentId === userId
+    );
 
     if (!student) {
+      console.log('🔍 Attendance: Failed to find student with userId:', userId);
+      console.log('🔍 Available assignments:', groupAssignments.map(s => ({
+        id: s.id,
+        studentId: s.studentId,
+        userId: s.userId,
+        name: s.name,
+        type: s.type || s.studentType
+      })));
       toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
       return;
     }
@@ -1503,13 +1516,19 @@ export default function Groups() {
     console.log(`🔄 Payment toggle attempt: Student ${studentId}`);
     console.log(`📊 GroupAssignments available:`, groupAssignments.map(s => ({id: s.id, userId: s.userId, studentId: s.studentId, name: s.name})));
 
-    // Find student in Group Assignments data using id field (since studentId in table is student.id)
-    const student = groupAssignments.find((s: any) => s.id === studentId);
+    // Find student in Group Assignments data using id field or studentId field
+    // For children, the id field is the child's ID, studentId is also the child's ID
+    const student = groupAssignments.find((s: any) => s.id === studentId || s.studentId === studentId);
 
     if (!student) {
       console.log(`❌ Student ${studentId} not found in groupAssignments`);
-      console.log(`Available IDs in groupAssignments:`, groupAssignments.map(s => s.id));
-      toast({ title: "لم يتم العثور على الطالب", variant: "destructive" });
+      console.log(`Available IDs in groupAssignments:`, groupAssignments.map(s => ({
+        id: s.id,
+        studentId: s.studentId,
+        name: s.name,
+        type: s.type || s.studentType
+      })));
+      toast({ title: "لم يتم العثور على الطالب أو الطفل", variant: "destructive" });
       return;
     }
 
