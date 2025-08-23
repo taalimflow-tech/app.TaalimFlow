@@ -3409,13 +3409,20 @@ export default function Groups() {
                               <div className="space-y-1">
                                 {allPayments.map((payment, index) => (
                                   <div key={index} className="bg-white p-2 rounded border text-xs">
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <span><strong>ID:</strong> {payment.id}</span>
+                                      <span><strong>School ID:</strong> {payment.schoolId}</span>
                                       <span><strong>Student ID:</strong> {payment.studentId}</span>
-                                      <span><strong>Year/Month:</strong> {payment.year}/{payment.month}</span>
+                                      <span><strong>Student Type:</strong> {payment.studentType}</span>
+                                      <span><strong>Year:</strong> {payment.year}</span>
+                                      <span><strong>Month:</strong> {payment.month}</span>
                                       <span><strong>Amount:</strong> {payment.amount} DA</span>
-                                      <span><strong>Paid:</strong> {payment.isPaid ? '✅ Yes' : '❌ No'}</span>
-                                      <span><strong>Note:</strong> {payment.paymentNote}</span>
-                                      <span><strong>Virtual:</strong> {payment.isVirtual ? 'Yes' : 'No'}</span>
+                                      <span><strong>Paid Status:</strong> {payment.isPaid ? '✅ Yes' : '❌ No'}</span>
+                                      <span><strong>Paid At:</strong> {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                      <span><strong>Paid By (User ID):</strong> {payment.paidBy || 'N/A'}</span>
+                                      <span><strong>Notes:</strong> {payment.notes || 'N/A'}</span>
+                                      <span><strong>Created At:</strong> {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
+                                      <span><strong>Updated At:</strong> {payment.updatedAt ? new Date(payment.updatedAt).toLocaleDateString('ar-DZ') : 'N/A'}</span>
                                     </div>
                                   </div>
                                 ))}
