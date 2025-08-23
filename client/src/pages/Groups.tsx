@@ -3559,11 +3559,11 @@ export default function Groups() {
                                             // Check if payment exists for this specific student, year, and month
                                             const paymentRecord = paymentStatuses.find(
                                               (payment: any) => 
-                                                payment.studentId === studentId &&
+                                                payment.student_id === studentId &&
                                                 payment.year === currentYear &&
                                                 payment.month === currentMonth
                                             );
-                                            const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
+                                            const isMonthPaid = paymentRecord ? paymentRecord.is_paid : false;
                                             
                                             console.log(`🔍 Groups attendance table payment check: Student ${studentId}, Year ${currentYear}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
                                             
