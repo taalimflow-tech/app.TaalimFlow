@@ -4496,27 +4496,13 @@ export class DatabaseStorage implements IStorage {
     schoolId: number
   ): Promise<boolean> {
     try {
-      console.log(`🗑️ HARD DELETE - Deleting payment record:`, {
+      console.log(`🗑️ HARD DELETE - Finding payment record to delete:`, {
         studentId, year, month, schoolId
       });
       
-      // HARD DELETE from database - completely remove the record
-      const deleteResult = await db
-        .delete(studentMonthlyPayments)
-        .where(
-          and(
-            eq(studentMonthlyPayments.studentId, studentId),
-            eq(studentMonthlyPayments.year, year),
-            eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId)
-          )
-        );
-      
-      console.log(`🗑️ DELETE RESULT:`, deleteResult);
-      
-      // Verify deletion by checking if record still exists
-      const verifyDeleted = await db
-        .select()
+      // First find the payment record to get its ID
+      const paymentRecord = await db
+        .select({ id: studentMonthlyPayments.id })
         .from(studentMonthlyPayments)
         .where(
           and(
@@ -4528,17 +4514,28 @@ export class DatabaseStorage implements IStorage {
         )
         .limit(1);
       
-      if (verifyDeleted.length === 0) {
-        console.log(`✅ HARD DELETE SUCCESSFUL - Record completely removed from database`);
-        return true;
-      } else {
-        console.log(`❌ HARD DELETE FAILED - Record still exists:`, verifyDeleted);
+      if (paymentRecord.length === 0) {
+        console.log(`❌ No payment record found to delete`);
         return false;
       }
+      
+      const paymentId = paymentRecord[0].id;
+      console.log(`🎯 Found payment ID: ${paymentId}`);
+      
+      // HARD DELETE using direct SQL query
+      await this.hardDeletePayment(paymentId);
+      
+      return true;
     } catch (error) {
       console.error("❌ HARD DELETE ERROR:", error);
       return false;
     }
+  }
+
+  async hardDeletePayment(paymentId: number) {
+    const query = sql`DELETE FROM student_monthly_payments WHERE id = ${paymentId}`;
+    await db.execute(query);
+    console.log(`Payment ${paymentId} deleted permanently`);
   }
 
   async getStudentPaymentHistory(
