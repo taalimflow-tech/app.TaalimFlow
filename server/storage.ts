@@ -1934,15 +1934,16 @@ export class DatabaseStorage implements IStorage {
               .limit(1);
 
             result.push({ 
-              id: userData[0].id, // Use userId as primary ID
-              userId: userData[0].id,
+              id: assignment.studentId, // Use studentId as primary ID for UI consistency
+              userId: userData[0].id, // Keep actual userId for payment records
               studentId: assignment.studentId,
               name: userData[0].name,
               email: userData[0].email,
               phone: userData[0].phone,
               educationLevel: studentDetails[0]?.educationLevel,
               grade: studentDetails[0]?.grade,
-              type: "student" 
+              type: "student",
+              studentType: "student"
             });
           } else if (assignment.studentType === "child") {
             // Get child details
@@ -1957,15 +1958,16 @@ export class DatabaseStorage implements IStorage {
               .limit(1);
 
             result.push({ 
-              id: userData[0].id, // Use userId (parent) as primary ID
-              userId: userData[0].id,
+              id: assignment.studentId, // Use child ID as primary ID for UI consistency
+              userId: userData[0].id, // Parent's userId for payment records
               studentId: assignment.studentId,
               name: childDetails[0]?.name || userData[0].name,
               email: userData[0].email,
               phone: userData[0].phone,
               educationLevel: childDetails[0]?.educationLevel,
               grade: childDetails[0]?.grade,
-              type: "child" 
+              type: "child",
+              studentType: "child"
             });
           }
         }
