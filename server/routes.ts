@@ -3986,8 +3986,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
 
           if (existingPayment) {
-            // Payment record exists in database - use actual is_paid value
-            const isPaidStatus = existingPayment.isPaid ?? existingPayment.is_paid ?? true;
+            // Payment record exists in database - use actual isPaid value
+            const isPaidStatus = existingPayment.isPaid ?? true;
             paymentStatuses.push({
               studentId: studentId,
               userId: existingPayment.userId,
