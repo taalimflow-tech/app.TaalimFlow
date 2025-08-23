@@ -3304,6 +3304,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date().toISOString(),
       });
 
+      // Check for master super admin account (not in database)
+      const MASTER_SUPER_ADMIN_EMAIL = process.env.MASTER_SUPER_ADMIN_EMAIL || "master@superadmin.com";
+      const MASTER_SUPER_ADMIN_PASSWORD = process.env.MASTER_SUPER_ADMIN_PASSWORD || "Master@SuperAdmin2024!";
+      
+      if (email === MASTER_SUPER_ADMIN_EMAIL && password === MASTER_SUPER_ADMIN_PASSWORD) {
+        console.log("✅ Master super admin login successful (no DB)");
+        
+        // Create a virtual super admin user object (not from database)
+        const masterSuperAdmin = {
+          id: -1, // Special ID to indicate this is not a DB user
+          email: MASTER_SUPER_ADMIN_EMAIL,
+          name: "Master Super Administrator",
+          phone: "0000000000",
+          role: "super_admin",
+          schoolId: null,
+          phoneVerified: true,
+          emailVerified: true,
+          verified: true,
+          banned: false,
+          gender: null,
+          profilePicture: null,
+          firebaseUid: null,
+          createdAt: new Date(),
+        };
+        
+        req.session.user = masterSuperAdmin;
+        req.session.userId = masterSuperAdmin.id;
+        
+        const { ...userWithoutPassword } = masterSuperAdmin;
+        return res.json({ user: userWithoutPassword });
+      }
+
+      // Normal database authentication for regular super admins
       const user = await storage.authenticateUser(email, password);
 
       console.log("🔍 Authentication result:", {
