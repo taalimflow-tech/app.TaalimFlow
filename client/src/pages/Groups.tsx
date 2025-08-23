@@ -3383,11 +3383,11 @@ export default function Groups() {
                 
                 {groupAssignments && groupAssignments.length > 0 ? (
                   <div className="space-y-6">
-                    {/* Monthly Carousel Attendance View */}
+                    {/* Monthly Attendance and Payment Status View */}
                     <div className="bg-white rounded-lg border p-4">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-semibold text-gray-800">
-                          جدول الحضور الشهري - المواعيد المجدولة
+                          جدول الحضور والدفع الشهري
                         </h4>
 
                         {monthKeys.length > 0 && (
@@ -3428,115 +3428,6 @@ export default function Groups() {
                         )}
                       </div>
 
-                      {/* All Payments Debug Section */}
-                      <div className="mb-4">
-                        <div className="flex gap-2 mb-2">
-                          <Button 
-                            onClick={fetchAllPayments}
-                            variant="outline" 
-                            size="sm"
-                          >
-                            📊 عرض جميع المدفوعات
-                          </Button>
-                          <Button 
-                            onClick={() => {
-                              // Clear all payment-related caches
-                              queryClient.invalidateQueries({ queryKey: ['/api/groups', managementGroup?.id, 'payment-status'] });
-                              queryClient.invalidateQueries({ queryKey: ['/api/students'] });
-                              queryClient.invalidateQueries({ queryKey: ['/api/all-payments'] });
-                              // Clear individual student payment history caches
-                              Object.keys(studentPaymentHistory).forEach(studentId => {
-                                queryClient.invalidateQueries({ queryKey: [`/api/students/${studentId}/payment-history`] });
-                              });
-                              // Show success message
-                              toast({
-                                title: "تم تحديث البيانات",
-                                description: "تم تحديث بيانات المدفوعات من قاعدة البيانات",
-                              });
-                              // Optionally refetch all payments to show immediately
-                              fetchAllPayments();
-                            }}
-                            variant="default" 
-                            size="sm"
-                          >
-                            🔄 تحديث البيانات
-                          </Button>
-                          <Button 
-                            onClick={fetchAllPaymentsFromDatabase}
-                            variant="secondary" 
-                            size="sm"
-                          >
-                            🧪 اختبار قاعدة البيانات
-                          </Button>
-                        </div>
-                        
-                        {showAllPayments && (
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-h-60 overflow-y-auto">
-                            <h5 className="font-semibold text-yellow-800 mb-2">
-                              جميع المدفوعات ({allPayments.length} records)
-                            </h5>
-                            {allPayments.length === 0 ? (
-                              <p className="text-gray-600">No payments found</p>
-                            ) : (
-                              <div className="space-y-1">
-                                {allPayments.map((payment, index) => (
-                                  <div key={index} className="bg-white p-2 rounded border text-xs">
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <span><strong>ID:</strong> {payment.id}</span>
-                                      <span><strong>School ID:</strong> {payment.school_id}</span>
-                                      <span><strong>Student ID:</strong> {payment.student_id}</span>
-                                      <span><strong>Student Type:</strong> {payment.student_type}</span>
-                                      <span><strong>Year:</strong> {payment.year}</span>
-                                      <span><strong>Month:</strong> {payment.month}</span>
-                                      <span><strong>Amount:</strong> {payment.amount} DA</span>
-                                      <span><strong>Paid Status:</strong> {payment.is_paid ? '✅ Yes' : '❌ No'}</span>
-                                      <span><strong>Paid At:</strong> {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                      <span><strong>Paid By (User ID):</strong> {payment.paid_by || 'N/A'}</span>
-                                      <span><strong>Notes:</strong> {payment.notes || 'N/A'}</span>
-                                      <span><strong>Created At:</strong> {payment.created_at ? new Date(payment.created_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                      <span><strong>Updated At:</strong> {payment.updated_at ? new Date(payment.updated_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        {showDatabasePayments && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 max-h-60 overflow-y-auto">
-                            <h5 className="font-semibold text-green-800 mb-2">
-                              🧪 اختبار قاعدة البيانات - جدول student_monthly_payments ({databasePayments.length} records)
-                            </h5>
-                            {databasePayments.length === 0 ? (
-                              <p className="text-gray-600">No payment records found in database</p>
-                            ) : (
-                              <div className="space-y-1">
-                                {databasePayments.map((payment, index) => (
-                                  <div key={index} className="bg-white p-2 rounded border text-xs">
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <span><strong>ID:</strong> {payment.id}</span>
-                                      <span><strong>School ID:</strong> {payment.school_id}</span>
-                                      <span><strong>Student ID:</strong> {payment.student_id}</span>
-                                      <span><strong>Student Type:</strong> {payment.student_type}</span>
-                                      <span><strong>Year:</strong> {payment.year}</span>
-                                      <span><strong>Month:</strong> {payment.month}</span>
-                                      <span><strong>Amount:</strong> {payment.amount} DA</span>
-                                      <span><strong>Paid Status:</strong> {payment.is_paid ? '✅ Yes' : '❌ No'}</span>
-                                      <span><strong>Paid At:</strong> {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                      <span><strong>Paid By (User ID):</strong> {payment.paid_by || 'N/A'}</span>
-                                      <span><strong>Notes:</strong> {payment.notes || 'N/A'}</span>
-                                      <span><strong>Created At:</strong> {payment.created_at ? new Date(payment.created_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                      <span><strong>Updated At:</strong> {payment.updated_at ? new Date(payment.updated_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
                       {scheduledDatesData?.dates &&
                       scheduledDatesData.dates.length > 0 ? (
                         monthKeys.length > 0 ? (
@@ -3572,12 +3463,10 @@ export default function Groups() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {/* NEW FLOW: Use Group Assignments to display students */}
                                 {groupAssignments.map((student: any) => {
-                                  // Use data from Group Assignments API
                                   const userId = student.userId || student.id;
                                   const studentName = student.name || `Student ${userId}`;
-                                  const studentId = student.id; // This should be the userId for attendance
+                                  const studentId = student.id;
                                   
                                   return (
                                     <tr
@@ -3585,124 +3474,79 @@ export default function Groups() {
                                       className="hover:bg-gray-50"
                                     >
                                       <td className="border border-gray-300 p-3 font-medium">
-                                        <div className="font-medium">
+                                        <div className="font-medium text-gray-800">
                                           {studentName}
                                         </div>
-                                        {/* DEBUG: Show Group Assignments data */}
-                                        <div className="text-xs text-green-600 mt-1">
-                                          FROM ASSIGNMENTS: User ID = {userId}, Student ID = {studentId}, Email = {student.email}
-                                        </div>
-                                        {/* DEBUG: Payment History */}
-                                        <div className="text-xs text-purple-600 mt-1">
-                                          <button 
-                                            onClick={() => fetchStudentPaymentHistory(studentId)}
-                                            className="underline hover:text-purple-800"
-                                          >
-                                            📋 عرض سجل المدفوعات
-                                          </button>
-                                          {studentPaymentHistory[studentId] && (
-                                            <div className="mt-1 max-h-20 overflow-y-auto bg-purple-50 p-1 rounded border">
-                                              <div className="font-semibold">Payment History ({studentPaymentHistory[studentId].length} records):</div>
-                                              {studentPaymentHistory[studentId].length === 0 ? (
-                                                <div className="text-gray-500">No actual payment records found in database</div>
-                                              ) : (
-                                                studentPaymentHistory[studentId].map((payment: any, index: number) => (
-                                                  <div key={index} className="bg-white p-2 rounded border text-xs border-b border-purple-200">
-                                                    <div className="grid grid-cols-3 gap-2">
-                                                      <span><strong>ID:</strong> {payment.id}</span>
-                                                      <span><strong>School ID:</strong> {payment.school_id}</span>
-                                                      <span><strong>Student ID:</strong> {payment.student_id}</span>
-                                                      <span><strong>Student Type:</strong> {payment.student_type}</span>
-                                                      <span><strong>Year:</strong> {payment.year}</span>
-                                                      <span><strong>Month:</strong> {payment.month}</span>
-                                                      <span><strong>Amount:</strong> {payment.amount} DA</span>
-                                                      <span><strong>Paid Status:</strong> {payment.is_paid ? '✅ Yes' : '❌ No'}</span>
-                                                      <span><strong>Paid At:</strong> {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                                      <span><strong>Paid By (User ID):</strong> {payment.paid_by || 'N/A'}</span>
-                                                      <span><strong>Notes:</strong> {payment.notes || 'N/A'}</span>
-                                                      <span><strong>Created At:</strong> {payment.created_at ? new Date(payment.created_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                                      <span><strong>Updated At:</strong> {payment.updated_at ? new Date(payment.updated_at).toLocaleDateString('ar-DZ') : 'N/A'}</span>
-                                                    </div>
-                                                  </div>
-                                                ))
-                                              )}
-                                            </div>
-                                          )}
-                                        </div>
+                                        {student.email && (
+                                          <div className="text-xs text-gray-500 mt-1">
+                                            {student.email}
+                                          </div>
+                                        )}
                                       </td>
                                       <td className="border border-gray-300 p-2 text-center">
-                                        <div className="flex flex-col items-center space-y-1">
-                                          {(() => {
-                                            // Use same logic as DesktopQRScanner: clean year/month filtering
-                                            const currentMonth = currentViewingMonth;
-                                            const currentYear = currentViewingYear;
-                                            
-                                            // Check if payment exists for this specific student, year, and month
-                                            const paymentRecord = paymentStatuses.find(
-                                              (payment: any) => 
-                                                payment.student_id === studentId &&
-                                                payment.year === currentYear &&
-                                                payment.month === currentMonth
+                                        {(() => {
+                                          const currentMonth = currentViewingMonth;
+                                          const currentYear = currentViewingYear;
+                                          
+                                          // Find payment record for this student, year, and month
+                                          const paymentRecord = paymentStatuses.find(
+                                            (payment: any) => 
+                                              payment.student_id === studentId &&
+                                              payment.year === currentYear &&
+                                              payment.month === currentMonth
+                                          );
+                                          const isMonthPaid = paymentRecord ? paymentRecord.is_paid : false;
+                                          
+                                          // Admin can toggle payment status
+                                          if (user?.role === "admin") {
+                                            return (
+                                              <div className="flex flex-col items-center space-y-1">
+                                                <button
+                                                  onClick={() => handleTogglePayment(studentId)}
+                                                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                                    isMonthPaid
+                                                      ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                                      : "bg-red-100 text-red-800 hover:bg-red-200"
+                                                  }`}
+                                                  title={`${isMonthPaid ? "مدفوع" : "غير مدفوع"} - اضغط للتبديل`}
+                                                >
+                                                  {isMonthPaid ? "✅" : "❌"}
+                                                </button>
+                                                <span className="text-xs text-gray-600">
+                                                  {isMonthPaid ? "مدفوع" : "غير مدفوع"}
+                                                </span>
+                                                {paymentRecord?.amount && (
+                                                  <span className="text-xs text-blue-600">
+                                                    {paymentRecord.amount} د.ج
+                                                  </span>
+                                                )}
+                                              </div>
                                             );
-                                            const isMonthPaid = paymentRecord ? paymentRecord.is_paid : false;
-                                            
-                                            console.log(`🔍 Groups attendance table payment check: Student ${studentId}, Year ${currentYear}, Month ${currentMonth}, Paid: ${isMonthPaid}`);
-                                            
-                                            // Show payment status for admins with toggle functionality
-                                            if (user?.role === "admin") {
-                                              return (
-                                                <>
-                                                  <button
-                                                    onClick={() =>
-                                                      handleTogglePayment(
-                                                        studentId,
-                                                      )
-                                                    }
-                                                    className={`px-3 py-1 rounded text-sm font-medium ${
-                                                      isMonthPaid
-                                                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                                        : "bg-red-100 text-red-800 hover:bg-red-200"
-                                                    }`}
-                                                    title={`${isMonthPaid ? "مدفوع" : "غير مدفوع"} - ${isMonthPaid ? "الدفعة مسجلة" : "اضغط للدفع"}`}
-                                                  >
-                                                    {isMonthPaid ? "✅" : "❌"}
-                                                  </button>
-                                                  <span className="text-xs text-gray-600">
-                                                    {isMonthPaid ? "مدفوع" : "غير مدفوع"}
+                                          } else {
+                                            // Read-only view for non-admins
+                                            return (
+                                              <div className="flex flex-col items-center space-y-1">
+                                                <span
+                                                  className={`px-3 py-1 rounded text-sm font-medium ${
+                                                    isMonthPaid
+                                                      ? "bg-green-100 text-green-800"
+                                                      : "bg-red-100 text-red-800"
+                                                  }`}
+                                                >
+                                                  {isMonthPaid ? "✅" : "❌"}
+                                                </span>
+                                                <span className="text-xs text-gray-600">
+                                                  {isMonthPaid ? "مدفوع" : "غير مدفوع"}
+                                                </span>
+                                                {paymentRecord?.amount && (
+                                                  <span className="text-xs text-blue-600">
+                                                    {paymentRecord.amount} د.ج
                                                   </span>
-                                                  {paymentRecord?.amount && (
-                                                    <span className="text-xs text-blue-600">
-                                                      {paymentRecord.amount} د.ج
-                                                    </span>
-                                                  )}
-                                                </>
-                                              );
-                                            } else {
-                                              // Show payment status for non-admins (read-only) - same as DesktopQRScanner
-                                              return (
-                                                <>
-                                                  <span
-                                                    className={`px-3 py-1 rounded text-sm font-medium ${
-                                                      isMonthPaid
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
-                                                    }`}
-                                                  >
-                                                    {isMonthPaid ? "✅" : "❌"}
-                                                  </span>
-                                                  <span className="text-xs text-gray-600">
-                                                    {isMonthPaid ? "مدفوع" : "غير مدفوع"}
-                                                  </span>
-                                                  {paymentRecord?.amount && (
-                                                    <span className="text-xs text-blue-600">
-                                                      {paymentRecord.amount} د.ج
-                                                    </span>
-                                                  )}
-                                                </>
-                                              );
-                                            }
-                                          })()}
-                                        </div>
+                                                )}
+                                              </div>
+                                            );
+                                          }
+                                        })()}
                                       </td>
                                       {currentMonthDates.map((date) => {
                                         // Find attendance record by userId and date
