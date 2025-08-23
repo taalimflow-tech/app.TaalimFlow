@@ -2120,22 +2120,22 @@ function DesktopQRScanner() {
           <CardContent>
             {isSearching ? (
               <div className="text-center py-8">
-                <p className="text-gray-600">جاري البحث...</p>
+                <p className="text-gray-600 dark:text-gray-400">جاري البحث...</p>
               </div>
             ) : searchResults.length > 0 ? (
               <div className="space-y-2">
                 {searchResults.map((student) => (
-                  <div key={student.id} className="border rounded-lg p-4 bg-white">
+                  <div key={student.id} className="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-gray-600" />
+                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium">{student.name}</h3>
-                          <div className="text-sm text-gray-600">#{student.id}</div>
+                          <h3 className="font-medium dark:text-gray-200">{student.name}</h3>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">#{student.id}</div>
                           {student.email && (
-                            <div className="text-xs text-gray-500">{student.email}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-500">{student.email}</div>
                           )}
                         </div>
                       </div>
@@ -2144,7 +2144,7 @@ function DesktopQRScanner() {
                           {student.type === 'student' ? 'طالب مسجل' : 'طفل'}
                         </Badge>
                         {student.verified && (
-                          <Badge className="bg-green-100 text-green-800">
+                          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                             محقق
                           </Badge>
                         )}
@@ -2162,7 +2162,7 @@ function DesktopQRScanner() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <p>لا توجد نتائج. جرب البحث بكلمات مختلفة أو غير الفلاتر</p>
               </div>
             )}
@@ -2184,13 +2184,13 @@ function DesktopQRScanner() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h2 className="text-xl font-semibold">{scannedProfile.name}</h2>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <h2 className="text-xl font-semibold dark:text-gray-200">{scannedProfile.name}</h2>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Badge variant={scannedProfile.type === 'student' ? 'default' : 'secondary'}>
                         {scannedProfile.type === 'student' ? 'طالب' : 'طفل'}
                       </Badge>
                       {scannedProfile.verified && (
-                        <Badge className="bg-green-100 text-green-800">
+                        <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                           <UserCheck className="h-3 w-3 ml-1" />
                           محقق
                         </Badge>
@@ -2204,32 +2204,32 @@ function DesktopQRScanner() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {scannedProfile.email && (
                   <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{scannedProfile.email}</span>
+                    <Mail className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm dark:text-gray-300">{scannedProfile.email}</span>
                   </div>
                 )}
                 {scannedProfile.phone && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{scannedProfile.phone}</span>
+                    <Phone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm dark:text-gray-300">{scannedProfile.phone}</span>
                   </div>
                 )}
                 {scannedProfile.parentName && (
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">ولي الأمر: {scannedProfile.parentName}</span>
+                    <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm dark:text-gray-300">ولي الأمر: {scannedProfile.parentName}</span>
                   </div>
                 )}
                 {scannedProfile.parentPhone && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">هاتف ولي الأمر: {scannedProfile.parentPhone}</span>
+                    <Phone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm dark:text-gray-300">هاتف ولي الأمر: {scannedProfile.parentPhone}</span>
                   </div>
                 )}
                 {scannedProfile.educationLevel && (
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">المستوى: {scannedProfile.educationLevel}</span>
+                    <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm dark:text-gray-300">المستوى: {scannedProfile.educationLevel}</span>
                   </div>
                 )}
               </div>
@@ -2247,7 +2247,7 @@ function DesktopQRScanner() {
             <CardContent>
               <div className="space-y-6">
                 {/* Debug Info */}
-                <div className="mb-4 p-3 bg-yellow-50 text-yellow-800 text-sm rounded">
+                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-sm rounded">
                   <strong>Debug Info:</strong><br/>
                   Student ID: {scannedProfile.id}, Type: {scannedProfile.type}<br/>
                   Enrolled groups count: {scannedProfile.enrolledGroups?.length || 0}<br/>
@@ -2261,25 +2261,25 @@ function DesktopQRScanner() {
                 </div>
                 {scannedProfile.enrolledGroups?.length > 0 ? (
                   scannedProfile.enrolledGroups.map((group) => (
-                    <div key={group.id} className="bg-white rounded-lg border shadow-sm">
+                    <div key={group.id} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm">
                       {/* Group Header */}
-                      <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+                      <div className="p-4 border-b dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-lg text-gray-800 mb-1">{group.name}</h4>
+                            <h4 className="font-semibold text-lg text-gray-800 dark:text-gray-200 mb-1">{group.name}</h4>
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                                <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full font-medium">
                                   {group.subjectName || 'مادة غير محددة'}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                                 <span>📚 المستوى:</span>
                                 <span className="font-medium">{group.educationLevel}</span>
                               </div>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-600 text-right">
+                          <div className="text-sm text-gray-600 dark:text-gray-400 text-right">
                             <div className="flex items-center gap-1">
                               <span>👨‍🏫</span>
                               <span className="font-medium">{group.teacherName || 'معلم غير محدد'}</span>
@@ -2289,10 +2289,10 @@ function DesktopQRScanner() {
                         </div>
                         
                         {/* Group Stats Row */}
-                        <div className="mt-3 pt-3 border-t border-blue-100">
+                        <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-800">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="text-gray-500">رمز المجموعة: {group.id}</span>
-                            <span className="text-green-600 font-medium">نشط</span>
+                            <span className="text-gray-500 dark:text-gray-400">رمز المجموعة: {group.id}</span>
+                            <span className="text-green-600 dark:text-green-400 font-medium">نشط</span>
                           </div>
                         </div>
                       </div>
@@ -2312,16 +2312,16 @@ function DesktopQRScanner() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500 py-8">
-                    <div className="bg-gray-50 rounded-lg p-6 border-2 border-dashed border-gray-200">
+                  <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border-2 border-dashed border-gray-200 dark:border-gray-700">
                       <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-lg font-medium text-gray-600 mb-2">لا توجد مجموعات مسجل فيها</p>
-                      <p className="text-sm text-gray-500 mb-3">
+                      <p className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-2">لا توجد مجموعات مسجل فيها</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                         هذا الطالب غير مسجل في أي مجموعة تعليمية حالياً
                       </p>
                       
                       {/* Debug Information */}
-                      <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200 text-left text-xs">
+                      <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800 text-left text-xs dark:text-yellow-300">
                         <strong>Debug Info:</strong><br/>
                         Student ID: {scannedProfile?.id}<br/>
                         Student Type: {scannedProfile?.type}<br/>
@@ -2343,27 +2343,27 @@ function DesktopQRScanner() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-2 border rounded">
-                    <span className="text-sm">حاضر</span>
-                    <span className="font-semibold text-green-600">
+                  <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
+                    <span className="text-sm dark:text-gray-300">حاضر</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">
                       {scannedProfile.attendanceStats?.presentCount || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-2 border rounded">
-                    <span className="text-sm">غائب</span>
-                    <span className="font-semibold text-red-600">
+                  <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
+                    <span className="text-sm dark:text-gray-300">غائب</span>
+                    <span className="font-semibold text-red-600 dark:text-red-400">
                       {scannedProfile.attendanceStats?.absentCount || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-2 border rounded">
-                    <span className="text-sm">متأخر</span>
-                    <span className="font-semibold text-yellow-600">
+                  <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
+                    <span className="text-sm dark:text-gray-300">متأخر</span>
+                    <span className="font-semibold text-yellow-600 dark:text-yellow-400">
                       {scannedProfile.attendanceStats?.lateCount || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-2 border rounded">
-                    <span className="text-sm">إجمالي الحصص</span>
-                    <span className="font-semibold text-blue-600">
+                  <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
+                    <span className="text-sm dark:text-gray-300">إجمالي الحصص</span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">
                       {scannedProfile.attendanceStats?.totalClasses || 0}
                     </span>
                   </div>
@@ -2377,21 +2377,21 @@ function DesktopQRScanner() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-2 border rounded">
-                    <span className="text-sm">مدفوع</span>
-                    <span className="font-semibold text-green-600">
+                  <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
+                    <span className="text-sm dark:text-gray-300">مدفوع</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">
                       {scannedProfile.paymentStats?.paidCount || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-2 border rounded">
-                    <span className="text-sm">غير مدفوع</span>
-                    <span className="font-semibold text-red-600">
+                  <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
+                    <span className="text-sm dark:text-gray-300">غير مدفوع</span>
+                    <span className="font-semibold text-red-600 dark:text-red-400">
                       {scannedProfile.paymentStats?.unpaidCount || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-2 border rounded">
-                    <span className="text-sm">إجمالي المبلغ</span>
-                    <span className="font-semibold text-blue-600">
+                  <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
+                    <span className="text-sm dark:text-gray-300">إجمالي المبلغ</span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">
                       {scannedProfile.paymentStats?.totalAmount || 0} دج
                     </span>
                   </div>
@@ -2420,28 +2420,28 @@ function DesktopQRScanner() {
                 <CardContent>
                   <div className="space-y-4">
                     {/* DEBUG: Show enrolled groups data structure */}
-                    <div className="mb-4 p-3 bg-blue-50 rounded text-xs">
+                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded text-xs dark:text-blue-300">
                       <strong>Debug - Enrolled Groups Data:</strong><br/>
                       Has enrolledGroups: {scannedProfile.enrolledGroups ? 'Yes' : 'No'}<br/>
                       Enrolled groups count: {scannedProfile.enrolledGroups?.length || 0}<br/>
                       Raw data: {JSON.stringify(scannedProfile.enrolledGroups, null, 2)}
                     </div>
                     {scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0 ? scannedProfile.enrolledGroups.map((group) => (
-                      <div key={group.id} className="border rounded-lg p-4">
+                      <div key={group.id} className="border dark:border-gray-700 rounded-lg p-4">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="font-semibold">{group.name}</h4>
-                            <p className="text-sm text-gray-600">{group.subjectName}</p>
-                            <p className="text-sm text-gray-500">{group.educationLevel}</p>
+                            <h4 className="font-semibold dark:text-gray-200">{group.name}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{group.subjectName}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-500">{group.educationLevel}</p>
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             المعلم: {group.teacherName}
                           </div>
                         </div>
                       </div>
                     )) : (
-                      <div className="text-center text-gray-500 py-4">
-                        <div className="mb-3 p-2 bg-red-50 text-red-700 text-xs rounded">
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                        <div className="mb-3 p-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded">
                           <strong>Debug - Why no groups shown:</strong><br/>
                           scannedProfile exists: {scannedProfile ? 'Yes' : 'No'}<br/>
                           enrolledGroups property exists: {scannedProfile?.enrolledGroups !== undefined ? 'Yes' : 'No'}<br/>
