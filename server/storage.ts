@@ -5353,12 +5353,31 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("🧪 getAllPaymentsFromDatabase called for schoolId:", schoolId);
       
+      // First, let's check if the table exists and has any data at all
+      console.log("🔍 Checking if student_monthly_payments table has any data...");
+      const totalCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(studentMonthlyPayments);
+      console.log("📊 Total records in student_monthly_payments table:", totalCount[0]?.count || 0);
+      
+      // Check records for this specific school
       const allPayments = await db
         .select()
         .from(studentMonthlyPayments)
         .where(eq(studentMonthlyPayments.schoolId, schoolId));
 
-      console.log(`✅ Found ${allPayments.length} payment records in database`);
+      console.log(`✅ Found ${allPayments.length} payment records for schoolId ${schoolId}`);
+      
+      // If no records for this school, let's see what schools exist
+      if (allPayments.length === 0) {
+        console.log("🔍 No records for this school. Checking what school IDs exist...");
+        const existingSchools = await db
+          .select({ schoolId: studentMonthlyPayments.schoolId })
+          .from(studentMonthlyPayments)
+          .groupBy(studentMonthlyPayments.schoolId);
+        console.log("🏫 School IDs with payment records:", existingSchools.map(s => s.schoolId));
+      }
+      
       return allPayments;
     } catch (error) {
       console.error("❌ Error fetching all payments:", error);

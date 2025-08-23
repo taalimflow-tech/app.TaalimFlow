@@ -4893,23 +4893,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/test-all-payments", async (req, res) => {
     try {
       console.log("🧪 Test all-payments endpoint called");
+      console.log("🧪 Session data:", {
+        schoolId: req.session.schoolId,
+        userId: req.session.userId,
+        user: req.session.user ? 'exists' : 'none'
+      });
       
       const schoolId = req.session.schoolId;
       if (!schoolId) {
-        return res.status(400).json({ error: "School ID not found in session" });
+        console.log("❌ No school ID in session");
+        return res.status(400).json({ 
+          error: "School ID not found in session",
+          session: {
+            hasSchoolId: !!req.session.schoolId,
+            hasUserId: !!req.session.userId,
+            hasUser: !!req.session.user
+          }
+        });
       }
 
+      console.log(`🔍 Fetching payments for schoolId: ${schoolId}`);
       const allPayments = await storage.getAllPaymentsFromDatabase(schoolId);
       
       res.json({
         success: true,
         count: allPayments.length,
-        payments: allPayments
+        schoolId: schoolId,
+        payments: allPayments,
+        debug: {
+          sessionSchoolId: req.session.schoolId,
+          totalRecordsFound: allPayments.length
+        }
       });
 
     } catch (error) {
       console.error("❌ Error in test-all-payments endpoint:", error);
-      res.status(500).json({ error: "Failed to fetch payments" });
+      res.status(500).json({ 
+        error: "Failed to fetch payments",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
