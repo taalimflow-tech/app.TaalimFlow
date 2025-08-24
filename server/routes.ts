@@ -5364,6 +5364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Process each transaction
       const createdTransactions = [];
+      const failedTransactions = [];
 
       for (const transaction of transactions) {
         console.log("💰 Processing transaction:", transaction);
@@ -5505,20 +5506,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
             paymentRecord,
             transactionRecord,
           });
-        } catch (transactionError) {
+        } catch (transactionError: any) {
           console.error("❌ Error processing transaction:", transactionError);
-          throw transactionError;
+          console.error("❌ Failed transaction details:", {
+            studentId: transaction.studentId,
+            studentType: transaction.studentType,
+            groupId: transaction.groupId,
+            month: transaction.month,
+            year: transaction.year,
+            amount: transaction.amount
+          });
+          
+          // Log the failed transaction but continue processing others
+          failedTransactions.push({
+            transaction,
+            error: transactionError?.message || transactionError
+          });
+          
+          // Continue to next transaction instead of breaking the entire loop
+          continue;
         }
       }
 
-      console.log("✅ All transactions processed successfully");
+      // Log processing results
+      console.log(`✅ Transaction processing completed: ${createdTransactions.length} successful, ${failedTransactions.length} failed`);
+      
+      if (failedTransactions.length > 0) {
+        console.log("❌ Failed transactions:", failedTransactions);
+      }
+      
       const response = {
-        success: true,
-        message: "تم إنشاء إيصال الدفع بنجاح",
+        success: createdTransactions.length > 0, // Success if at least one transaction succeeded
+        message: failedTransactions.length === 0 
+          ? "تم إنشاء إيصال الدفع بنجاح" 
+          : `تم إنشاء إيصال الدفع جزئياً: ${createdTransactions.length} نجح، ${failedTransactions.length} فشل`,
         receiptId,
         totalAmount,
-        transactionCount: createdTransactions.length,
+        successCount: createdTransactions.length,
+        failedCount: failedTransactions.length,
         transactions: createdTransactions,
+        failures: failedTransactions,
       };
 
       console.log("📤 Sending response:", response);
