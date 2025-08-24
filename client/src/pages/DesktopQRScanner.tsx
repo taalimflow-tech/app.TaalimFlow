@@ -1318,15 +1318,16 @@ function DesktopQRScanner() {
       
       // Fetch fresh payment data for each group
       const freshPaymentStatus: {[groupId: number]: {[month: number]: boolean}} = {};
+      const academicMonths = generateAcademicYearMonths(8, 2025); // Use academic year logic
       
       await Promise.all(
         groups.map(async (group: any) => {
           try {
-            const currentYear = new Date().getFullYear();
             const paymentPromises = [];
             
-            for (let month = 1; month <= 12; month++) {
-              const promise = fetch(`/api/groups/${group.id}/payment-status/${currentYear}/${month}`, {
+            // Use academic year months instead of hardcoded current year
+            for (const {month, year} of academicMonths) {
+              const promise = fetch(`/api/groups/${group.id}/payment-status/${year}/${month}`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -1337,6 +1338,9 @@ function DesktopQRScanner() {
                 .then(paymentData => {
                   const studentPayment = paymentData.find((record: any) => 
                     record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
+                  );
+                  console.log(`🔍 Smart refresh check - Group ${group.id} Month ${month} Year ${year}:`, 
+                    studentPayment?.isPaid ? 'PAID ✅' : 'NOT PAID ❌'
                   );
                   return { month, isPaid: studentPayment?.isPaid || false };
                 })
@@ -1644,11 +1648,17 @@ function DesktopQRScanner() {
         // Additional verification: Double-check payment status via API after local update
         setTimeout(async () => {
           console.log('🔍 Final verification: checking payment status after 1 second...');
+          const academicMonths = generateAcademicYearMonths(8, 2025); // Get correct years for verification
+          
           for (const [groupIdStr, groupData] of paymentDetails) {
             const groupId = parseInt(groupIdStr);
             for (const month of groupData.months) {
               try {
-                const verifyResponse = await fetch(`/api/groups/${groupId}/payment-status/2025/${month}`, {
+                // Use correct academic year for verification (same as transaction creation)
+                const academicMonth = academicMonths.find(am => am.month === month);
+                const correctYear = academicMonth ? academicMonth.year : new Date().getFullYear();
+                
+                const verifyResponse = await fetch(`/api/groups/${groupId}/payment-status/${correctYear}/${month}`, {
                   method: 'GET',
                   credentials: 'include', // Include session cookies for authentication
                   headers: {
@@ -1660,7 +1670,7 @@ function DesktopQRScanner() {
                   const studentVerify = verifyData.find((record: any) => 
                     record.studentId === scannedProfile.id && record.studentType === scannedProfile.type
                   );
-                  console.log(`🎯 Final check - Group ${groupId} Month ${month}:`, 
+                  console.log(`🎯 Final check - Group ${groupId} Month ${month} Year ${correctYear}:`, 
                     studentVerify?.isPaid ? 'PAID ✅' : 'NOT PAID ❌'
                   );
                 }
