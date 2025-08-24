@@ -4510,6 +4510,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Check if payment already exists to prevent duplicates
+      console.log(`🔍 DUPLICATE CHECK: Looking for existing payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}`);
       const [existingPayment] = await db
         .select()
         .from(studentMonthlyPayments)
@@ -4522,6 +4523,20 @@ export class DatabaseStorage implements IStorage {
           ),
         )
         .limit(1);
+      
+      console.log(`🔍 DUPLICATE CHECK RESULT: Found ${existingPayment ? 'EXISTING' : 'NONE'} payment record`);
+      if (existingPayment) {
+        console.log(`🔍 EXISTING PAYMENT DETAILS:`, {
+          id: existingPayment.id,
+          studentId: existingPayment.studentId,
+          year: existingPayment.year,
+          month: existingPayment.month,
+          amount: existingPayment.amount,
+          isPaid: existingPayment.isPaid,
+          paidAt: existingPayment.paidAt,
+          schoolId: existingPayment.schoolId
+        });
+      }
 
       if (existingPayment) {
         console.log(`🚫 DUPLICATE PAYMENT DETECTED: Payment already exists for studentId ${studentId}, ${month}/${year}`);

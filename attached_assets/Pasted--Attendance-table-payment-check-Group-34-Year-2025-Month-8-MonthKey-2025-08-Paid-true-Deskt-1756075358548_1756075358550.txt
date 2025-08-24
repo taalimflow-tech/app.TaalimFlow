@@ -1,0 +1,52 @@
+🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:1317 ✅ Fresh groups fetched for smart refresh: (2) [{…}, {…}]
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 8 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 9 Year 2025: PAID ✅
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 10 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 2 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 1 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 3 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 4 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 5 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 6 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 7 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 9 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 1 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 2 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 3 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 8 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 4 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 5 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 6 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 7 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 11 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 34 Month 12 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 12 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 10 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1342 🔍 Smart refresh check - Group 35 Month 11 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1368 📊 Fresh payment status from API: {34: {…}, 35: {…}}
+DesktopQRScanner.tsx:1395 ✅ API confirmed: Group 34 Month 12 is PAID
+DesktopQRScanner.tsx:1393 🔄 Preserving local update: Group 35 Month 1 remains PAID
+DesktopQRScanner.tsx:1393 🔄 Preserving local update: Group 35 Month 2 remains PAID
+DesktopQRScanner.tsx:1400 🎯 Final merged payment status: {34: {…}, 35: {…}}
+DesktopQRScanner.tsx:1411 ✅ Smart refresh completed with merged data
+DesktopQRScanner.tsx:1684 ✅ Student payment data refreshed and local state updated
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 34, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:422 🔍 Attendance table payment check: Group 35, Year 2025, Month 8, MonthKey: 2025-08, Paid: true
+DesktopQRScanner.tsx:1650 🔍 Final verification: checking payment status after 1 second...
+DesktopQRScanner.tsx:1673 🎯 Final check - Group 35 Month 12 Year 2025: PAID ✅
+DesktopQRScanner.tsx:1673 🎯 Final check - Group 35 Month 1 Year 2026: NOT PAID ❌
+DesktopQRScanner.tsx:1673 🎯 Final check - Group 35 Month 2 Year 2026: NOT PAID ❌

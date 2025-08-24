@@ -4976,6 +4976,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DEBUG: Get all payment records for debugging
+  app.get("/api/debug/payments/:schoolId", async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const payments = await storage.getAllPaymentsFromDatabase(schoolId);
+      res.json(payments);
+    } catch (error) {
+      console.error("Error getting debug payments:", error);
+      res.status(500).json({ error: "Failed to get payment records" });
+    }
+  });
+
   // Debug endpoint to check student group assignments
   app.get("/api/debug/student/:studentId/groups", async (req, res) => {
     try {
