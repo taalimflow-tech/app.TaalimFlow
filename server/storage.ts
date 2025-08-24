@@ -490,6 +490,7 @@ export interface IStorage {
     month: number,
     amount: number,
     schoolId: number,
+    groupId: number,
     paidBy: number,
     notes?: string,
   ): Promise<StudentMonthlyPayment>;
@@ -4449,6 +4450,7 @@ export class DatabaseStorage implements IStorage {
     month: number,
     amount: number,
     schoolId: number,
+    groupId: number,
     paidBy: number,
     notes?: string,
   ): Promise<StudentMonthlyPayment> {
@@ -4512,8 +4514,8 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Invalid studentType: ${studentType}`);
       }
 
-      // Check if payment already exists to prevent duplicates
-      console.log(`🔍 DUPLICATE CHECK: Looking for existing payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}`);
+      // Check if payment already exists to prevent duplicates (NOW GROUP-SPECIFIC)
+      console.log(`🔍 DUPLICATE CHECK: Looking for existing payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}, groupId: ${groupId}`);
       const [existingPayment] = await db
         .select()
         .from(studentMonthlyPayments)
@@ -4523,6 +4525,7 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.groupId, groupId), // CRITICAL: Check group-specific duplicates
           ),
         )
         .limit(1);
@@ -4548,13 +4551,14 @@ export class DatabaseStorage implements IStorage {
         return existingPayment;
       }
 
-      // Create new payment record with CORRECT USER ID from database lookup
+      // Create new payment record with CORRECT USER ID and GROUP ID from database lookup
       const [newPayment] = await db
         .insert(studentMonthlyPayments)
         .values({
           userId: correctUserId, // ✅ Use database-queried userId
           studentId, // ✅ Student ID (different from userId)
           studentType,
+          groupId, // ✅ CRITICAL: Group-specific payment
           year,
           month,
           isPaid: true, // Always true since we only create records for payments

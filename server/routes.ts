@@ -4052,6 +4052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parseInt(month),
           parseFloat(amount),
           schoolId,
+          groupId, // ✅ CRITICAL: Pass groupId for group-specific payments
           paidBy,
           notes,
         );
@@ -5430,6 +5431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             transaction.month,
             transaction.amount,
             schoolId,
+            transaction.groupId, // ✅ CRITICAL: Pass groupId for group-specific payments
             req.session.user.id,
             `${transaction.notes || ""} - إيصال: ${receiptId}`.trim(),
           );

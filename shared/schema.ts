@@ -243,6 +243,7 @@ export const groupTransactions = pgTable("group_transactions", {
 export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
+  groupId: integer("group_id").references(() => groups.id).notNull(), // CRITICAL: Group-specific payments
   userId: integer("user_id").notNull(), // User ID (parent ID for children, student ID for direct students)
   studentId: integer("student_id").notNull(), // Student or child ID
   studentType: text("student_type", { enum: ["student", "child"] }).notNull(),
@@ -256,8 +257,8 @@ export const studentMonthlyPayments = pgTable("student_monthly_payments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
-  // Unique constraint to prevent duplicate payments
-  uniquePayment: unique().on(table.studentId, table.year, table.month, table.schoolId),
+  // Unique constraint to prevent duplicate payments PER GROUP
+  uniquePayment: unique().on(table.studentId, table.year, table.month, table.schoolId, table.groupId),
 }));
 
 // Manual Financial Entries table for gains and losses tracking
