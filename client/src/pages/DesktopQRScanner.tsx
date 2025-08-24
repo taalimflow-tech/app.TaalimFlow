@@ -637,7 +637,7 @@ function DesktopQRScanner() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            qrData: `child-${student.id}-${user?.schoolId}-verified`
+            qrData: `child:${student.id}:${user?.schoolId}:verified`
           })
         });
         
@@ -672,7 +672,7 @@ function DesktopQRScanner() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                qrData: `child-${child.id}-${user?.schoolId}-verified`
+                qrData: `child:${child.id}:${user?.schoolId}:verified`
               })
             });
             
@@ -702,7 +702,7 @@ function DesktopQRScanner() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            qrData: `student-${student.id}-${user?.schoolId}-verified`
+            qrData: `student:${student.id}:${user?.schoolId}:verified`
           })
         });
 
