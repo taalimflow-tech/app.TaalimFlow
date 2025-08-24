@@ -1484,17 +1484,23 @@ function DesktopQRScanner() {
 
       // Create transactions for each selected group/month combination
       const transactions = [];
+      const academicMonths = generateAcademicYearMonths(8, 2025); // Get correct year for each month
+      
       for (const [groupId, groupData] of Object.entries(selectedGroups)) {
         for (const month of groupData.months) {
+          // Find the correct year for this month in the academic year
+          const academicMonth = academicMonths.find(am => am.month === month);
+          const correctYear = academicMonth ? academicMonth.year : new Date().getFullYear();
+          
           const transaction = {
             studentId: scannedProfile.id,
             studentType: scannedProfile.type,
             groupId: parseInt(groupId),
-            amount: Math.round(parseFloat(paymentAmount) / getTotalSelectedMonths()), // Keep amount as dinars (no conversion)
+            amount: Math.round(parseFloat(paymentAmount)), // Each month gets the full amount, not divided
             paymentMethod: 'cash', // Always cash
             notes: paymentNotes,
             month,
-            year: new Date().getFullYear()
+            year: correctYear // Use correct academic year (2025 for Aug-Dec, 2026 for Jan-July)
           };
           transactions.push(transaction);
         }
