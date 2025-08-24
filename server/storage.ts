@@ -3255,7 +3255,10 @@ export class DatabaseStorage implements IStorage {
     // Determine userId based on studentId and studentType
     let userId: number;
     
-    if (transaction.studentType === "student") {
+    // Ensure studentType exists
+    const studentType = (transaction as any).studentType || "student";
+    
+    if (studentType === "student") {
       // For direct students, userId = studentId
       userId = transaction.studentId;
     } else {
@@ -3266,14 +3269,14 @@ export class DatabaseStorage implements IStorage {
         .where(eq(children.id, transaction.studentId))
         .limit(1);
       
-      userId = child.length > 0 ? child[0].parentId : transaction.studentId;
+      userId = child.length > 0 && child[0].parentId ? child[0].parentId : transaction.studentId;
     }
 
     // Add missing fields
     const finalTransaction = {
       ...transaction,
       userId, // Add the determined userId
-      studentType: transaction.studentType || "student" as "student" | "child",
+      studentType: studentType as "student" | "child",
     };
     
     const [result] = await db
