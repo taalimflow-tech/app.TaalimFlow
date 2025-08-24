@@ -540,8 +540,8 @@ function DesktopQRScanner() {
   const [availableGroups, setAvailableGroups] = useState<any[]>([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
 
-  // Unified payment status for all groups and months
-  const [groupPaymentStatus, setGroupPaymentStatus] = useState<{[groupId: number]: {[month: number]: boolean}}>({});
+  // Unified payment status for all groups and months - ✅ FIX: Use year-month keys
+  const [groupPaymentStatus, setGroupPaymentStatus] = useState<{[groupId: number]: {[yearMonth: string]: boolean}}>({});
   
   // Ticket state
   const [generatedTicket, setGeneratedTicket] = useState<any>(null);
@@ -1182,12 +1182,13 @@ function DesktopQRScanner() {
             console.log(`🔄 Fetching unified payment status for group ${group.id}`);
             
             // Use the same API that attendance table uses for consistency
-            const currentYear = new Date().getFullYear();
+            // ✅ FIX: Use academic year months instead of just current year
+            const academicMonths = generateAcademicYearMonths(8, 2025);
             const paymentPromises = [];
             
-            // Check payment status for all 12 months using the same API as attendance table with authentication
-            for (let month = 1; month <= 12; month++) {
-              const promise = fetch(`/api/groups/${group.id}/payment-status/${currentYear}/${month}`, {
+            // Check payment status for all academic year months with correct years
+            for (const {month, year} of academicMonths) {
+              const promise = fetch(`/api/groups/${group.id}/payment-status/${year}/${month}`, {
                 method: 'GET',
                 credentials: 'include', // Include session cookies for authentication
                 headers: {
@@ -1231,14 +1232,16 @@ function DesktopQRScanner() {
 
             const paymentResults = await Promise.all(paymentPromises);
             
-            // Build payment status map for this group
-            const groupPaymentMap: {[month: number]: boolean} = {};
-            const paidMonths: number[] = [];
+            // Build payment status map for this group - ✅ FIX: Use year-month keys
+            const groupPaymentMap: {[yearMonth: string]: boolean} = {};
+            const paidMonths: {month: number, year: number}[] = [];
             
-            paymentResults.forEach(result => {
-              groupPaymentMap[result.month] = result.isPaid;
+            paymentResults.forEach((result, index) => {
+              const academicMonth = academicMonths[index];
+              const yearMonthKey = `${academicMonth.year}-${academicMonth.month}`;
+              groupPaymentMap[yearMonthKey] = result.isPaid;
               if (result.isPaid) {
-                paidMonths.push(result.month);
+                paidMonths.push({month: academicMonth.month, year: academicMonth.year});
               }
             });
 
@@ -1619,13 +1622,16 @@ function DesktopQRScanner() {
         
         setGroupPaymentStatus(prev => {
           const updated = { ...prev };
-          // Update all groups that were involved in this payment
+          // Update all groups that were involved in this payment - ✅ FIX: Use year-month keys
+          const academicMonths = generateAcademicYearMonths(8, 2025);
           Object.entries(selectedGroups).forEach(([groupIdStr, groupData]) => {
             const groupId = parseInt(groupIdStr);
             if (!updated[groupId]) updated[groupId] = {};
             groupData.months.forEach(month => {
-              updated[groupId][month] = true;
-              console.log(`✅ Immediately marked Group ${groupId} Month ${month} as PAID`);
+              const academicMonth = academicMonths.find(am => am.month === month);
+              const yearMonthKey = `${academicMonth?.year || new Date().getFullYear()}-${month}`;
+              updated[groupId][yearMonthKey] = true;
+              console.log(`✅ Immediately marked Group ${groupId} Month ${month}/${academicMonth?.year} as PAID`);
             });
           });
           return updated;
@@ -2647,8 +2653,9 @@ function DesktopQRScanner() {
                                       const academicMonths = generateAcademicYearMonths(8, 2025);
                                       
                                       return academicMonths.map(({month, year}) => {
-                                        // Use unified payment status for consistent data across components
-                                        const isPaid = groupPaymentStatus[group.id]?.[month] === true;
+                                        // Use unified payment status for consistent data across components - ✅ FIX: Use year-month key
+                                        const yearMonthKey = `${year}-${month}`;
+                                        const isPaid = groupPaymentStatus[group.id]?.[yearMonthKey] === true;
                                         const isSelected = selectedGroups[group.id]?.months.includes(month) || false;
                                         
                                         return (
@@ -2686,19 +2693,19 @@ function DesktopQRScanner() {
                                       </span>
                                     </div>
                                     {(() => {
+                                      // ✅ FIX: Parse year-month keys to show both 2025 and 2026 payments
                                       const unifiedPaidMonths = Object.entries(groupPaymentStatus[group.id] || {})
                                         .filter(([_, isPaid]) => isPaid)
-                                        .map(([month, _]) => parseInt(month))
-                                        .sort((a, b) => a - b);
+                                        .map(([yearMonth, _]) => {
+                                          const [year, month] = yearMonth.split('-');
+                                          return {month: parseInt(month), year: parseInt(year)};
+                                        })
+                                        .sort((a, b) => a.month - b.month);
                                       
                                       return unifiedPaidMonths.length > 0 && (
                                         <div className="text-green-700 dark:text-green-400">
-                                          {unifiedPaidMonths.map(m => {
-                                            // Determine correct year for academic year display
-                                            const academicMonths = generateAcademicYearMonths(8, 2025);
-                                            const academicMonth = academicMonths.find(am => am.month === m);
-                                            const displayYear = academicMonth ? academicMonth.year : new Date().getFullYear();
-                                            return getMonthName(m, displayYear);
+                                          {unifiedPaidMonths.map(({month, year}) => {
+                                            return getMonthName(month, year);
                                           }).join(', ')}
                                         </div>
                                       );
