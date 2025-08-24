@@ -2342,7 +2342,7 @@ function DesktopQRScanner() {
                           studentId={scannedProfile.id}
                           studentType={scannedProfile.type}
                           studentName={scannedProfile.name}
-                          userId={scannedProfile.id}
+                          userId={scannedProfile.type === 'child' ? scannedProfile.userId : scannedProfile.id}
                           refreshTrigger={attendanceRefreshTrigger}
                           groupPaymentStatus={groupPaymentStatus}
                         />
