@@ -256,10 +256,15 @@ function GroupAttendanceTable({
         });
         if (attendanceResponse.ok) {
           const attendanceData = await attendanceResponse.json();
-          // Filter for this specific student
+          // Filter for this specific student using userId for lookup (consistent with attendance table logic)
           const studentAttendance = attendanceData.filter((record: any) => 
-            record.studentId === studentId && record.studentType === studentType
+            record.userId === userId && record.studentType === studentType
           );
+          console.log(`🔍 Attendance filtering for userId ${userId}, studentType ${studentType}:`, {
+            totalRecords: attendanceData.length,
+            filteredRecords: studentAttendance.length,
+            studentAttendance
+          });
           setAttendanceHistory(studentAttendance);
         }
 
@@ -286,7 +291,7 @@ function GroupAttendanceTable({
             if (response.ok) {
               const paymentData = await response.json();
               const studentPayment = paymentData.find((record: any) => 
-                record.studentId === studentId && record.studentType === studentType
+                record.userId === userId && record.studentType === studentType
               );
               return { monthKey, payment: studentPayment };
             }
