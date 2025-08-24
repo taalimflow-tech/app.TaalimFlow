@@ -256,16 +256,14 @@ function GroupAttendanceTable({
         });
         if (attendanceResponse.ok) {
           const attendanceData = await attendanceResponse.json();
-          // Filter for this specific student using userId for lookup (consistent with attendance table logic)
-          const studentAttendance = attendanceData.filter((record: any) => 
-            record.userId === userId && record.studentType === studentType
-          );
-          console.log(`🔍 Attendance filtering for userId ${userId}, studentType ${studentType}:`, {
+          // Store ALL attendance history (same as Groups.tsx) - no filtering at fetch time
+          // The frontend will filter by userId when needed (same logic as Groups.tsx)
+          console.log(`🔍 Fetched ALL attendance history for group ${groupId}:`, {
             totalRecords: attendanceData.length,
-            filteredRecords: studentAttendance.length,
-            studentAttendance
+            userId,
+            studentType
           });
-          setAttendanceHistory(studentAttendance);
+          setAttendanceHistory(attendanceData);
         }
 
         // Only fetch payment data if we have dates
