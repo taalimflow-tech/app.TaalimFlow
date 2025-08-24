@@ -475,6 +475,7 @@ export interface IStorage {
     year: number,
     month: number,
     schoolId: number,
+    groupId?: number, // ✅ Add groupId parameter to filter by group
   ): Promise<StudentMonthlyPayment[]>;
   getStudentsPaymentStatusWithUnpaid(
     studentIds: number[],
@@ -4390,21 +4391,27 @@ export class DatabaseStorage implements IStorage {
     year: number,
     month: number,
     schoolId: number,
+    groupId?: number, // ✅ Add groupId parameter to filter by group
   ): Promise<StudentMonthlyPayment[]> {
     try {
       if (studentIds.length === 0) return [];
 
+      const conditions = [
+        inArray(studentMonthlyPayments.studentId, studentIds),
+        eq(studentMonthlyPayments.year, year),
+        eq(studentMonthlyPayments.month, month),
+        eq(studentMonthlyPayments.schoolId, schoolId),
+      ];
+
+      // ✅ CRITICAL: Add groupId filter to prevent cross-group contamination
+      if (groupId !== undefined) {
+        conditions.push(eq(studentMonthlyPayments.groupId, groupId));
+      }
+
       return await db
         .select()
         .from(studentMonthlyPayments)
-        .where(
-          and(
-            inArray(studentMonthlyPayments.studentId, studentIds),
-            eq(studentMonthlyPayments.year, year),
-            eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId),
-          ),
-        );
+        .where(and(...conditions));
     } catch (error) {
       console.error("Error getting students payment status:", error);
       return [];

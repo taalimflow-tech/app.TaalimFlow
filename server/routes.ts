@@ -3968,12 +3968,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           targetMonth,
         );
 
-        // Get existing payment records
+        // Get existing payment records - ✅ CRITICAL: Filter by groupId to prevent cross-group contamination
         const existingPayments = await storage.getStudentsPaymentStatusForMonth(
           allStudentIds,
           targetYear,
           targetMonth,
           schoolId,
+          parseInt(groupId), // ✅ Pass groupId to filter payments for this specific group only
         );
 
         // Build payment status for each student - NO VIRTUAL RECORDS
@@ -4030,7 +4031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "غير مسموح لك بتعديل حالة الدفع" });
       }
 
-      const { studentId, userId, studentType, months, amount, notes } = req.body;
+      const { studentId, userId, studentType, months, amount, notes, groupId } = req.body;
       const schoolId = req.session.user.schoolId;
       const paidBy = req.session.user.id;
       
