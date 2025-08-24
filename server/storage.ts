@@ -4524,7 +4524,9 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
 
       if (existingPayment) {
-        console.log(`Payment already exists for studentId ${studentId}, ${month}/${year}`);
+        console.log(`🚫 DUPLICATE PAYMENT DETECTED: Payment already exists for studentId ${studentId}, ${month}/${year}`);
+        console.log(`🚫 Existing payment:`, existingPayment);
+        console.log(`🚫 This is why the payment appears temporary - database prevents duplicates!`);
         return existingPayment;
       }
 
