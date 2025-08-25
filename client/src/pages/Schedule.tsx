@@ -340,10 +340,10 @@ export default function Schedule() {
   const filteredTeachers = useMemo(() => {
     if (!teachers || teachers.length === 0) return [];
     
-    return teachers.filter((teacher: Teacher) => {
-      // If no education level selected, show all teachers
-      if (cellForm.educationLevel === '') return true;
-      
+    // If no education level selected or "all levels" selected, show all teachers
+    if (cellForm.educationLevel === '' || cellForm.educationLevel === 'all') return teachers;
+    
+    const matchingTeachers = teachers.filter((teacher: Teacher) => {
       // If teacher has no specializations, show them (they can be assigned to any level)
       if (!teacher.specializations || teacher.specializations.length === 0) return true;
       
@@ -355,6 +355,9 @@ export default function Schedule() {
         (cellForm.educationLevel === 'الثانوي' && spec.educationLevel === 'Secondary')
       );
     });
+    
+    // If no matching teachers found, return all teachers
+    return matchingTeachers.length > 0 ? matchingTeachers : teachers;
   }, [teachers, cellForm.educationLevel]);
 
   // Memoized available grades for the selected education level
