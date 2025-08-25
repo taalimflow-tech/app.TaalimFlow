@@ -1091,6 +1091,7 @@ export default function Schedule() {
                     <SelectValue placeholder="اختر المستوى التعليمي" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">جميع المستويات</SelectItem>
                     {educationLevels.map((level) => (
                       <SelectItem key={level.level} value={level.level}>
                         {level.level}
