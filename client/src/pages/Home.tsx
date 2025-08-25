@@ -35,7 +35,7 @@ export default function Home() {
     : baseQuickActions;
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen lg:bg-gradient-to-br lg:from-white lg:via-gray-50/50 lg:to-gray-100/30">
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen lg:bg-gradient-to-br lg:from-white lg:via-gray-50/50 lg:to-gray-100/30 dark:lg:from-gray-900 dark:lg:via-gray-800/50 dark:lg:to-gray-700/30">
       <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6 lg:space-y-10 max-w-7xl mx-auto">
         {/* Latest Announcements Section */}
         <section className="space-y-6 lg:space-y-8 max-w-none">
@@ -89,17 +89,17 @@ export default function Home() {
                 key={action.path}
                 variant="outline"
                 onClick={() => navigate(action.path)}
-                className={`bg-gradient-to-br from-white to-gray-50 rounded-2xl p-4 lg:p-6 h-24 lg:h-28 flex flex-col items-center justify-center space-y-2 lg:space-y-3 shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-105 group relative overflow-hidden ${
-                  index === 0 ? 'hover:from-blue-50 hover:to-blue-100' :
-                  index === 1 ? 'hover:from-green-50 hover:to-green-100' :
-                  index === 2 ? 'hover:from-purple-50 hover:to-purple-100' :
-                  'hover:from-yellow-50 hover:to-yellow-100'
+                className={`bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-4 lg:p-6 h-24 lg:h-28 flex flex-col items-center justify-center space-y-2 lg:space-y-3 shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-105 group relative overflow-hidden ${
+                  index === 0 ? 'hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-900/20 dark:hover:to-blue-800/20' :
+                  index === 1 ? 'hover:from-green-50 hover:to-green-100 dark:hover:from-green-900/20 dark:hover:to-green-800/20' :
+                  index === 2 ? 'hover:from-purple-50 hover:to-purple-100 dark:hover:from-purple-900/20 dark:hover:to-purple-800/20' :
+                  'hover:from-yellow-50 hover:to-yellow-100 dark:hover:from-yellow-900/20 dark:hover:to-yellow-800/20'
                 }`}
               >
                 <div className="text-3xl lg:text-4xl transition-all duration-300 group-hover:drop-shadow-[0_0_15px_rgba(168,85,247,0.5)] group-hover:scale-110 filter">
                   {action.icon}
                 </div>
-                <p className="text-sm lg:text-base font-semibold text-gray-700 group-hover:text-gray-800">{action.label}</p>
+                <p className="text-sm lg:text-base font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100">{action.label}</p>
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
               </Button>
             ))}
