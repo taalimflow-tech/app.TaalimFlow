@@ -1102,7 +1102,7 @@ export default function Schedule() {
               </div>
               
               {/* Grade Selection */}
-              {cellForm.educationLevel && (
+              {cellForm.educationLevel && cellForm.educationLevel !== 'all' && (
                 <div>
                   <Label htmlFor="grade">الصف</Label>
                   <Select
