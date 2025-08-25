@@ -720,25 +720,30 @@ export default function Groups() {
     enabled: !!user && user.role === "admin",
   });
 
-  // Query for available subjects based on selected education level for group creation
-  const availableSubjectsQuery = useQuery<any[]>({
-    queryKey: ["/api/teaching-modules", createGroupData.educationLevel],
-    queryFn: async () => {
-      if (!createGroupData.educationLevel) return [];
-      
-      // Fetch all modules and filter by education level
-      const response = await fetch("/api/teaching-modules");
-      if (!response.ok) throw new Error("Failed to fetch modules");
-      const modules = await response.json();
-      
-      // Filter modules by education level, including "جميع المستويات" subjects
-      return modules.filter((module: any) => 
-        module.educationLevel === createGroupData.educationLevel || 
-        module.educationLevel === "جميع المستويات"
+  // State for filtered modules in group creation (same as TeacherSpecializationForm)
+  const [filteredModulesForGroup, setFilteredModulesForGroup] = useState<any[]>([]);
+
+  // Filter modules when education level changes (same logic as TeacherSpecializationForm)
+  useEffect(() => {
+    if (createGroupData.educationLevel && teachingModules.length > 0) {
+      const filtered = teachingModules.filter((module: any) => 
+        module.educationLevel === createGroupData.educationLevel
       );
-    },
-    enabled: !!user && user.role === "admin" && !!createGroupData.educationLevel && createGroupData.subjectType === "existing",
-  });
+      
+      // Remove duplicates by keeping only one module per nameAr (same as TeacherSpecializationForm)
+      const uniqueModules = filtered.reduce((acc: any[], current: any) => {
+        const existingModule = acc.find(m => m.nameAr === current.nameAr);
+        if (!existingModule) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+
+      setFilteredModulesForGroup(uniqueModules);
+    } else {
+      setFilteredModulesForGroup([]);
+    }
+  }, [createGroupData.educationLevel, teachingModules]);
 
   // ChatGPT's solution: Fetch modules with their year mappings
   const { data: modulesWithYears = [] } = useQuery<any[]>({
@@ -3389,19 +3394,20 @@ export default function Groups() {
                       required={createGroupData.subjectType === "existing"}
                     >
                       <option value="">اختر المادة...</option>
-                      {availableSubjectsQuery.data?.map((subject: any) => (
-                        <option key={subject.id} value={subject.id}>
-                          {subject.nameAr} - {subject.educationLevel}
-                          {subject.grade && ` (${subject.grade})`}
+                      {filteredModulesForGroup.map((module: any) => (
+                        <option key={module.id} value={module.id}>
+                          {module.nameAr}
                         </option>
                       ))}
                     </select>
-                    {availableSubjectsQuery.isLoading && (
-                      <p className="text-sm text-gray-500 mt-1">جاري تحميل المواد...</p>
-                    )}
-                    {availableSubjectsQuery.data?.length === 0 && (
+                    {filteredModulesForGroup.length === 0 && createGroupData.educationLevel && (
                       <p className="text-sm text-orange-600 mt-1">
                         لا توجد مواد متاحة لهذا المستوى. يمكنك إنشاء مادة مخصصة بدلاً من ذلك.
+                      </p>
+                    )}
+                    {filteredModulesForGroup.length > 0 && createGroupData.educationLevel && (
+                      <p className="text-sm text-green-600 mt-1">
+                        {filteredModulesForGroup.length} مادة متاحة في هذا المستوى
                       </p>
                     )}
                   </div>
