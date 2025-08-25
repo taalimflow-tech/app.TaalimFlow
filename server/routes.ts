@@ -2341,6 +2341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: isAllLevels 
           ? `مادة مخصصة عامة تم إنشاؤها بواسطة الإدارة - متاحة لجميع المستويات`
           : `مادة مخصصة تم إنشاؤها بواسطة الإدارة - ${educationLevel} ${grade}`,
+        schoolId: req.session.user.schoolId, // ✅ FIX: Add schoolId for proper assignment
       });
 
       let createdSubjects = [customSubject];
@@ -4135,7 +4136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("❌ Error deleting payment - Full error:", error);
       res.status(500).json({ 
         error: "فشل في حذف سجل الدفع",
-        details: error.message 
+        details: error instanceof Error ? error.message : String(error)
       });
     }
   });

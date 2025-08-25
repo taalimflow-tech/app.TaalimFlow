@@ -317,6 +317,7 @@ export interface IStorage {
     educationLevel: string;
     grade?: string;
     description?: string;
+    schoolId?: number; // ✅ FIX: Add schoolId to interface
   }): Promise<any>;
 
   // ChatGPT's solution: Module Years mapping methods
@@ -3888,6 +3889,7 @@ export class DatabaseStorage implements IStorage {
     educationLevel: string;
     grade?: string;
     description?: string;
+    schoolId?: number; // ✅ FIX: Add schoolId parameter
   }) {
     const [customSubject] = await db
       .insert(teachingModules)
@@ -3897,6 +3899,7 @@ export class DatabaseStorage implements IStorage {
         educationLevel: subjectData.educationLevel,
         grade: subjectData.grade,
         description: subjectData.description,
+        schoolId: subjectData.schoolId, // ✅ FIX: Include schoolId in database insert
       }])
       .returning();
     return customSubject;
