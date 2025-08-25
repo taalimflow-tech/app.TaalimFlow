@@ -142,13 +142,39 @@ function GroupAttendanceTable({
   const currentMonthDates = currentMonthKey ? monthGroups[currentMonthKey].sort() : [];
 
   const getMonthDisplayName = (monthKey: string) => {
-    const [year, month] = monthKey.split('-');
+    if (!monthKey || typeof monthKey !== 'string') {
+      console.warn('Invalid monthKey:', monthKey);
+      return '';
+    }
+    
+    const parts = monthKey.split('-');
+    if (parts.length !== 2) {
+      console.warn('Invalid monthKey format:', monthKey, 'Expected YYYY-MM');
+      return monthKey;
+    }
+    
+    const [year, month] = parts;
+    
+    // Ensure year is exactly 4 digits and month is 1-2 digits
+    if (year.length !== 4 || !/^\d{4}$/.test(year)) {
+      console.warn('Invalid year in monthKey:', year);
+      return monthKey;
+    }
+    
     const monthNames = [
       'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
-    const monthIndex = parseInt(month) - 1;
-    return `${monthNames[monthIndex]} ${year}`;
+    
+    const monthIndex = parseInt(month, 10) - 1;
+    if (monthIndex < 0 || monthIndex > 11) {
+      console.warn('Invalid month index:', monthIndex, 'from month:', month);
+      return monthKey;
+    }
+    
+    const result = `${monthNames[monthIndex]} ${year}`;
+    console.log('getMonthDisplayName:', monthKey, '->', result);
+    return result;
   };
 
   const goToPreviousMonth = () => {
