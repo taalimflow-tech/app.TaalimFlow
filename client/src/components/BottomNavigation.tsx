@@ -41,7 +41,7 @@ export function BottomNavigation() {
   const navItems = [...baseNavItems, ...roleSpecificItems];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 z-30">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-around py-2">
           {navItems.map((item) => {
@@ -53,7 +53,7 @@ export function BottomNavigation() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={`nav-item flex flex-col items-center py-3 px-4 relative transition-colors ${
-                  isActive ? 'active text-primary' : 'text-gray-500 hover:text-gray-700'
+                  isActive ? 'active text-primary' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
               >
                 <Icon className="w-6 h-6 mb-1" />

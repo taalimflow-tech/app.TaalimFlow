@@ -187,10 +187,10 @@ export default function Teachers() {
 
   return (
     <div className="px-4 py-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">المعلمون</h2>
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">المعلمون</h2>
       
       {/* Level Filter Bar */}
-      <div className="flex flex-wrap gap-2 mb-6 p-3 bg-gray-50 rounded-lg">
+      <div className="flex flex-wrap gap-2 mb-6 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
         {educationLevels.map((level) => {
           const levelColors = getLevelColors(level.value);
           return (
@@ -200,7 +200,7 @@ export default function Teachers() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 selectedLevel === level.value
                   ? `${levelColors.badge} font-bold`
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               {level.label}
@@ -336,7 +336,7 @@ export default function Teachers() {
         ) : (
           <div className="text-center py-12">
             <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
               {selectedLevel === 'all' 
                 ? 'لا يوجد معلمين متاحين حالياً' 
                 : `لا يوجد معلمين لمستوى ${educationLevels.find(l => l.value === selectedLevel)?.label}`
@@ -349,19 +349,19 @@ export default function Teachers() {
       {/* Custom Modal */}
       {selectedTeacher && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">إرسال رسالة إلى {selectedTeacher.gender === 'male' ? 'الأستاذ ' : selectedTeacher.gender === 'female' ? 'الأستاذة ' : ''}{selectedTeacher.name}</h2>
+              <h2 className="text-lg font-semibold dark:text-white">إرسال رسالة إلى {selectedTeacher.gender === 'male' ? 'الأستاذ ' : selectedTeacher.gender === 'female' ? 'الأستاذة ' : ''}{selectedTeacher.name}</h2>
               <button
                 onClick={() => setSelectedTeacher(null)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded dark:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             {/* Teacher Info in Modal */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="flex items-center space-x-reverse space-x-3">
                 {selectedTeacher.profilePicture ? (
                   <img 

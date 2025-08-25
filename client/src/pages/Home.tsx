@@ -43,7 +43,7 @@ export default function Home() {
             <div className="p-2 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl">
               <Megaphone className="w-6 h-6 lg:w-7 lg:h-7 text-primary" />
             </div>
-            <h2 className="text-xl lg:text-3xl font-bold text-gray-800 bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text">آخر الإعلانات</h2>
+            <h2 className="text-xl lg:text-3xl font-bold text-gray-800 dark:text-gray-200 bg-gradient-to-l from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text">آخر الإعلانات</h2>
           </div>
           
           {loading ? (
@@ -57,13 +57,13 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <Card className="bg-white rounded-2xl shadow-lg border-0 lg:shadow-xl backdrop-blur-sm">
+            <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-0 lg:shadow-xl backdrop-blur-sm">
               <CardContent className="p-8 lg:p-12 text-center">
-                <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Megaphone className="w-10 h-10 lg:w-12 lg:h-12 text-gray-400" />
+                <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Megaphone className="w-10 h-10 lg:w-12 lg:h-12 text-gray-400 dark:text-gray-500" />
                 </div>
-                <h3 className="text-lg lg:text-xl font-semibold text-gray-800 mb-3">لا توجد إعلانات حالياً</h3>
-                <p className="text-gray-500 text-sm lg:text-base mb-8">سيتم عرض الإعلانات الجديدة هنا عند توفرها</p>
+                <h3 className="text-lg lg:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">لا توجد إعلانات حالياً</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm lg:text-base mb-8">سيتم عرض الإعلانات الجديدة هنا عند توفرها</p>
                 <Button 
                   className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white rounded-xl px-8 py-3 lg:px-10 lg:py-4 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   onClick={() => navigate(`${basePath}/announcements`)}
@@ -81,7 +81,7 @@ export default function Home() {
             <div className="p-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/5 rounded-xl">
               <span className="text-xl">⚡</span>
             </div>
-            <h3 className="text-lg lg:text-2xl font-bold text-gray-800 bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text">الخدمات السريعة</h3>
+            <h3 className="text-lg lg:text-2xl font-bold text-gray-800 dark:text-gray-200 bg-gradient-to-l from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text">الخدمات السريعة</h3>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
             {quickActions.map((action, index) => (

@@ -126,8 +126,8 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl font-semibold flex items-center">
@@ -152,7 +152,7 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
           {group.studentsAssigned && group.studentsAssigned.length > 0 ? (
             <div className="space-y-6">
               {/* Monthly Carousel Attendance View */}
-              <div className="bg-white rounded-lg border p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold text-gray-800">جدول الحضور الشهري - المواعيد المجدولة</h4>
                   

@@ -27,7 +27,7 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
       
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-reverse space-x-2">
-          <div className="w-2 h-2 bg-white rounded-full"></div>
+          <div className="w-2 h-2 bg-white dark:bg-gray-300 rounded-full"></div>
           <span className="text-sm opacity-90">
             {formatDistanceToNow(new Date(announcement.createdAt), { 
               addSuffix: true, 
@@ -49,7 +49,7 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
       {isLongContent && (
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-3 lg:mt-4 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm lg:text-base font-medium hover:bg-white/30 transition-colors"
+          className="mt-3 lg:mt-4 bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm lg:text-base font-medium hover:bg-white/30 dark:hover:bg-gray-700/60 transition-colors"
         >
           {isExpanded ? 'إخفاء' : 'اقرأ المزيد'}
         </button>
