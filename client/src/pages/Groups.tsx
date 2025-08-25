@@ -1015,6 +1015,8 @@ export default function Groups() {
       customSubjectName?: string;
       customSubjectNameAr?: string;
     }) => {
+      console.log("Creating group with data:", groupData);
+      
       const response = await apiRequest(
         "POST",
         "/api/admin/create-group",
@@ -1043,8 +1045,14 @@ export default function Groups() {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teaching-modules"] });
     },
-    onError: () => {
-      toast({ title: "خطأ في إنشاء المجموعة", variant: "destructive" });
+    onError: (error: any) => {
+      console.error("Group creation error:", error);
+      const errorMessage = error?.message || "خطأ غير معروف في إنشاء المجموعة";
+      toast({ 
+        title: "خطأ في إنشاء المجموعة", 
+        description: errorMessage,
+        variant: "destructive" 
+      });
     },
   });
 
@@ -3452,7 +3460,13 @@ export default function Groups() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={createGroupMutation.isPending || !createGroupData.name || !createGroupData.educationLevel || (createGroupData.subjectType === "custom" && (!createGroupData.customSubjectName || !createGroupData.customSubjectNameAr))}
+                    disabled={
+                      createGroupMutation.isPending || 
+                      !createGroupData.name || 
+                      !createGroupData.educationLevel || 
+                      (createGroupData.subjectType === "custom" && (!createGroupData.customSubjectName || !createGroupData.customSubjectNameAr)) ||
+                      (createGroupData.subjectType === "existing" && !createGroupData.subjectId)
+                    }
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     {createGroupMutation.isPending ? "جاري الإنشاء..." : "إنشاء المجموعة"}
