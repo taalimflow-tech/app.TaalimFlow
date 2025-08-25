@@ -56,31 +56,31 @@ export default function Teachers() {
     switch (educationLevel) {
       case 'الابتدائي':
         return {
-          bg: 'bg-green-50',
-          text: 'text-green-800',
-          border: 'border-green-200',
-          badge: 'bg-green-100 text-green-800'
+          bg: 'bg-green-50 dark:bg-green-900/20',
+          text: 'text-green-800 dark:text-green-200',
+          border: 'border-green-200 dark:border-green-700',
+          badge: 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200'
         };
       case 'المتوسط':
         return {
-          bg: 'bg-blue-50',
-          text: 'text-blue-800',
-          border: 'border-blue-200',
-          badge: 'bg-blue-100 text-blue-800'
+          bg: 'bg-blue-50 dark:bg-blue-900/20',
+          text: 'text-blue-800 dark:text-blue-200',
+          border: 'border-blue-200 dark:border-blue-700',
+          badge: 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
         };
       case 'الثانوي':
         return {
-          bg: 'bg-purple-50',
-          text: 'text-purple-800',
-          border: 'border-purple-200',
-          badge: 'bg-purple-100 text-purple-800'
+          bg: 'bg-purple-50 dark:bg-purple-900/20',
+          text: 'text-purple-800 dark:text-purple-200',
+          border: 'border-purple-200 dark:border-purple-700',
+          badge: 'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200'
         };
       default:
         return {
-          bg: 'bg-gray-50',
-          text: 'text-gray-800',
-          border: 'border-gray-200',
-          badge: 'bg-gray-100 text-gray-800'
+          bg: 'bg-gray-50 dark:bg-gray-700/20',
+          text: 'text-gray-800 dark:text-gray-200',
+          border: 'border-gray-200 dark:border-gray-700',
+          badge: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
         };
     }
   };
@@ -229,23 +229,23 @@ export default function Teachers() {
                       />
                     ) : (
                       <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                        primaryLevel === 'الابتدائي' ? 'bg-green-100' :
-                        primaryLevel === 'المتوسط' ? 'bg-blue-100' :
-                        primaryLevel === 'الثانوي' ? 'bg-purple-100' :
-                        'bg-gray-100'
+                        primaryLevel === 'الابتدائي' ? 'bg-green-100 dark:bg-green-800' :
+                        primaryLevel === 'المتوسط' ? 'bg-blue-100 dark:bg-blue-800' :
+                        primaryLevel === 'الثانوي' ? 'bg-purple-100 dark:bg-purple-800' :
+                        'bg-gray-100 dark:bg-gray-700'
                       }`}>
                         <User className={`w-8 h-8 ${
-                          primaryLevel === 'الابتدائي' ? 'text-green-600' :
-                          primaryLevel === 'المتوسط' ? 'text-blue-600' :
-                          primaryLevel === 'الثانوي' ? 'text-purple-600' :
-                          'text-gray-600'
+                          primaryLevel === 'الابتدائي' ? 'text-green-600 dark:text-green-200' :
+                          primaryLevel === 'المتوسط' ? 'text-blue-600 dark:text-blue-200' :
+                          primaryLevel === 'الثانوي' ? 'text-purple-600 dark:text-purple-200' :
+                          'text-gray-600 dark:text-gray-300'
                         }`} />
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-reverse space-x-2 mb-2">
-                      <h3 className="font-bold text-gray-800 text-lg">
+                      <h3 className="font-bold text-gray-800 dark:text-gray-200 text-lg">
                         {teacher.gender === 'male' ? 'الأستاذ ' : teacher.gender === 'female' ? 'الأستاذة ' : ''}{teacher.name}
                       </h3>
                     </div>
@@ -260,7 +260,7 @@ export default function Teachers() {
                             primaryLevel === 'Secondary' ? 'text-purple-500' :
                             'text-gray-500'
                           }`} />
-                          <span className="text-sm text-gray-600">{teacher.email}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-300">{teacher.email}</span>
                         </div>
                         
                         {teacher.phone && (
@@ -271,7 +271,7 @@ export default function Teachers() {
                               primaryLevel === 'Secondary' ? 'text-purple-500' :
                               'text-gray-500'
                             }`} />
-                            <span className="text-sm text-gray-600">{teacher.phone}</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">{teacher.phone}</span>
                           </div>
                         )}
                       </>
@@ -287,7 +287,7 @@ export default function Teachers() {
                             primaryLevel === 'Secondary' ? 'text-purple-600' :
                             'text-gray-600'
                           }`} />
-                          <span className="text-sm font-medium text-gray-700">التخصصات:</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">التخصصات:</span>
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {teacher.specializations.map((spec, index) => {
@@ -308,7 +308,7 @@ export default function Teachers() {
                     
                     {teacher.specializations.length === 0 && (
                       <div className="mb-3">
-                        <span className="text-sm text-gray-500 italic">لم يتم تحديد التخصصات بعد</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 italic">لم يتم تحديد التخصصات بعد</span>
                       </div>
                     )}
                   </div>
@@ -372,30 +372,30 @@ export default function Teachers() {
                 ) : (
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                     selectedTeacher.specializations.length > 0 ? 
-                      (selectedTeacher.specializations[0].educationLevel === 'الابتدائي' ? 'bg-green-100' :
-                       selectedTeacher.specializations[0].educationLevel === 'المتوسط' ? 'bg-blue-100' :
-                       selectedTeacher.specializations[0].educationLevel === 'الثانوي' ? 'bg-purple-100' :
-                       'bg-gray-100') :
-                      'bg-gray-100'
+                      (selectedTeacher.specializations[0].educationLevel === 'الابتدائي' ? 'bg-green-100 dark:bg-green-800' :
+                       selectedTeacher.specializations[0].educationLevel === 'المتوسط' ? 'bg-blue-100 dark:bg-blue-800' :
+                       selectedTeacher.specializations[0].educationLevel === 'الثانوي' ? 'bg-purple-100 dark:bg-purple-800' :
+                       'bg-gray-100 dark:bg-gray-700') :
+                      'bg-gray-100 dark:bg-gray-700'
                   }`}>
                     <User className={`w-6 h-6 ${
                       selectedTeacher.specializations.length > 0 ? 
-                        (selectedTeacher.specializations[0].educationLevel === 'الابتدائي' ? 'text-green-600' :
-                         selectedTeacher.specializations[0].educationLevel === 'المتوسط' ? 'text-blue-600' :
-                         selectedTeacher.specializations[0].educationLevel === 'الثانوي' ? 'text-purple-600' :
-                         'text-gray-600') :
-                        'text-gray-600'
+                        (selectedTeacher.specializations[0].educationLevel === 'الابتدائي' ? 'text-green-600 dark:text-green-200' :
+                         selectedTeacher.specializations[0].educationLevel === 'المتوسط' ? 'text-blue-600 dark:text-blue-200' :
+                         selectedTeacher.specializations[0].educationLevel === 'الثانوي' ? 'text-purple-600 dark:text-purple-200' :
+                         'text-gray-600 dark:text-gray-300') :
+                        'text-gray-600 dark:text-gray-300'
                     }`} />
                   </div>
                 )}
                 <div className="flex-1">
                   <div className="flex items-center space-x-reverse space-x-2 mb-1">
-                    <h3 className="font-medium text-gray-800">
+                    <h3 className="font-medium text-gray-800 dark:text-gray-200">
                       {selectedTeacher.gender === 'male' ? 'الأستاذ ' : selectedTeacher.gender === 'female' ? 'الأستاذة ' : ''}{selectedTeacher.name}
                     </h3>
                   </div>
                   {user?.role === 'admin' && (
-                    <p className="text-sm text-gray-600">{selectedTeacher.email}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{selectedTeacher.email}</p>
                   )}
                 </div>
               </div>

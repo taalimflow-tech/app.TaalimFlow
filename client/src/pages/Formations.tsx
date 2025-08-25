@@ -112,12 +112,12 @@ export default function Formations() {
       {/* Join Formation Modal */}
       {showJoinForm && selectedFormation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">التسجيل في {selectedFormation.title}</h2>
+              <h2 className="text-xl font-semibold dark:text-white">التسجيل في {selectedFormation.title}</h2>
               <button
                 onClick={() => setShowJoinForm(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 ✕
               </button>
@@ -125,10 +125,10 @@ export default function Formations() {
             
             <form onSubmit={handleJoinFormation} className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                   هل تريد التسجيل في هذا التكوين؟
                 </p>
-                <div className="bg-gray-50 p-3 rounded mb-4">
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded mb-4">
                   <p className="text-sm text-gray-700 mb-2">
                     <strong>الوصف:</strong> {selectedFormation.description}
                   </p>

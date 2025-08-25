@@ -395,10 +395,10 @@ function MonthlyAttendanceCarousel({
   };
 
   return (
-    <div className="bg-white rounded-lg border">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
       {scheduledDates.length > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-sm text-blue-800">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+          <div className="text-sm text-blue-800 dark:text-blue-200">
             📅 هذه المجموعة مرتبطة بالجدول الدراسي - يتم عرض الإحصائيات حسب
             مواعيد الحصص المجدولة
           </div>
@@ -406,11 +406,11 @@ function MonthlyAttendanceCarousel({
       )}
 
       {/* Month Navigation Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+      <div className="flex items-center justify-between p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
         <button
           onClick={prevMonth}
           disabled={currentMonthIndex === 0}
-          className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -419,13 +419,13 @@ function MonthlyAttendanceCarousel({
           <h3 className="text-lg font-semibold text-gray-800">
             {currentMonth?.monthNameEn}
           </h3>
-          <p className="text-sm text-gray-600">{currentMonth?.monthName}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{currentMonth?.monthName}</p>
         </div>
 
         <button
           onClick={nextMonth}
           disabled={currentMonthIndex === monthsData.length - 1}
-          className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -433,7 +433,7 @@ function MonthlyAttendanceCarousel({
 
       {/* Mini Calendar */}
       <div className="p-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           التقويم الشهري
         </h4>
         <div className="grid grid-cols-7 gap-1 text-center">
@@ -449,7 +449,7 @@ function MonthlyAttendanceCarousel({
           ].map((day, index) => (
             <div
               key={index}
-              className="text-xs font-medium text-gray-500 p-2 truncate"
+              className="text-xs font-medium text-gray-500 dark:text-gray-400 p-2 truncate"
             >
               {day.slice(0, 3)}
             </div>

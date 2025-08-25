@@ -160,12 +160,12 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
   };
 
   return (
-    <Card className="w-full max-w-md bg-white border-2 border-gray-200 shadow-lg">
+    <Card className="w-full max-w-md bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg">
       <CardContent className="p-6">
         {/* School Header */}
-        <div className="text-center mb-4 pb-3 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900">{schoolInfo.name}</h2>
-          <p className="text-sm text-gray-600">بطاقة هوية طالب</p>
+        <div className="text-center mb-4 pb-3 border-b border-gray-200 dark:border-gray-600">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{schoolInfo.name}</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300">بطاقة هوية طالب</p>
         </div>
 
         <div className="flex gap-4" dir="rtl">

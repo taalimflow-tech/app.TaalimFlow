@@ -173,31 +173,31 @@ export default function Schedule() {
     switch (level) {
       case 'الابتدائي':
         return {
-          bg: 'bg-green-50',
-          border: 'border-green-200',
-          text: 'text-green-800',
-          badge: 'bg-green-100 text-green-800'
+          bg: 'bg-green-50 dark:bg-green-900/20',
+          border: 'border-green-200 dark:border-green-700',
+          text: 'text-green-800 dark:text-green-200',
+          badge: 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200'
         };
       case 'المتوسط':
         return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-800',
-          badge: 'bg-blue-100 text-blue-800'
+          bg: 'bg-blue-50 dark:bg-blue-900/20',
+          border: 'border-blue-200 dark:border-blue-700',
+          text: 'text-blue-800 dark:text-blue-200',
+          badge: 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
         };
       case 'الثانوي':
         return {
-          bg: 'bg-purple-50',
-          border: 'border-purple-200',
-          text: 'text-purple-800',
-          badge: 'bg-purple-100 text-purple-800'
+          bg: 'bg-purple-50 dark:bg-purple-900/20',
+          border: 'border-purple-200 dark:border-purple-700',
+          text: 'text-purple-800 dark:text-purple-200',
+          badge: 'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200'
         };
       default:
         return {
-          bg: 'bg-gray-50',
-          border: 'border-gray-200',
-          text: 'text-gray-800',
-          badge: 'bg-gray-100 text-gray-800'
+          bg: 'bg-gray-50 dark:bg-gray-700/20',
+          border: 'border-gray-200 dark:border-gray-700',
+          text: 'text-gray-800 dark:text-gray-200',
+          badge: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
         };
     }
   };
