@@ -720,7 +720,7 @@ export default function Schedule() {
               </div>
             )}
 
-            <div className="overflow-x-auto rounded-xl shadow-2xl border border-gray-200 bg-white">
+            <div className="overflow-x-auto rounded-xl shadow-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
               <table className="w-full border-collapse">
                 <thead className="bg-slate-900">
                   <tr>
@@ -747,10 +747,10 @@ export default function Schedule() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-600">
                   {daysOfWeek.map((day, dayIndex) => (
-                    <tr key={dayIndex} className="hover:bg-gray-50/50 transition-colors duration-200">
-                      <td className="border-r border-gray-200 p-2 bg-gray-100 text-center font-bold text-slate-700 shadow-sm">
+                    <tr key={dayIndex} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors duration-200">
+                      <td className="border-r border-gray-200 dark:border-gray-600 p-2 bg-gray-100 dark:bg-gray-700 text-center font-bold text-slate-700 dark:text-gray-200 shadow-sm">
                         <div className="flex items-center justify-center">
                           <div className="bg-slate-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold tracking-wide border border-slate-700">
                             {day}
@@ -796,11 +796,11 @@ export default function Schedule() {
                           return (
                             <td
                               key={slot.period}
-                              className={`border-r border-gray-200 p-1 ${levelColors.bg} relative shadow-sm hover:shadow-md transition-all duration-300 group`}
+                              className={`border-r border-gray-200 dark:border-gray-600 p-1 ${levelColors.bg} relative shadow-sm hover:shadow-md transition-all duration-300 group`}
                               colSpan={actualColSpan}
                             >
-                              <div className="relative h-full min-h-[60px] rounded-md p-1 bg-gradient-to-br from-white/20 to-transparent backdrop-blur-sm border border-white/30 shadow-inner">
-                                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                              <div className="relative h-full min-h-[60px] rounded-md p-1 bg-gradient-to-br from-white/20 dark:from-gray-800/40 to-transparent backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-inner">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/10 dark:from-gray-700/20 to-transparent rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 
                                 <div className="relative space-y-1">
                                   <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${levelColors.badge} shadow-sm`}>
@@ -811,19 +811,19 @@ export default function Schedule() {
                                   </div>
                                   
                                   {cell.subject && (
-                                    <div className="font-bold text-xs text-gray-800 bg-white/50 px-1 py-0.5 rounded shadow-sm backdrop-blur-sm">
+                                    <div className="font-bold text-xs text-gray-800 dark:text-gray-200 bg-white/50 dark:bg-gray-800/70 px-1 py-0.5 rounded shadow-sm backdrop-blur-sm">
                                       {cell.subject.nameAr}
                                     </div>
                                   )}
                                   
                                   {cell.teacher && (
-                                    <div className="text-xs text-gray-700 bg-white/40 px-1 py-0.5 rounded font-medium">
+                                    <div className="text-xs text-gray-700 dark:text-gray-300 bg-white/40 dark:bg-gray-800/60 px-1 py-0.5 rounded font-medium">
                                       <span className="font-bold">{cell.teacher.name}</span>
                                     </div>
                                   )}
                                   
                                   {(cell.startTime || cell.endTime) && (
-                                    <div className="text-xs text-blue-700 font-bold bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-200/50">
+                                    <div className="text-xs text-blue-700 dark:text-blue-300 font-bold bg-blue-50/80 dark:bg-blue-900/50 px-1 py-0.5 rounded shadow-sm border border-blue-200/50 dark:border-blue-700/50">
                                       <span className="inline-flex items-center">
                                         <Clock className="w-2 h-2 mr-1" />
                                         <span className="text-xs">
@@ -839,7 +839,7 @@ export default function Schedule() {
 
                                   {/* Linked Groups Display */}
                                   {getCellLinkedGroups(cell.id).length > 0 && (
-                                    <div className="text-xs text-purple-700 bg-purple-50/80 px-1 py-0.5 rounded shadow-sm border border-purple-200/50">
+                                    <div className="text-xs text-purple-700 dark:text-purple-300 bg-purple-50/80 dark:bg-purple-900/50 px-1 py-0.5 rounded shadow-sm border border-purple-200/50 dark:border-purple-700/50">
                                       <span className="inline-flex items-center">
                                         <Users className="w-2 h-2 mr-1" />
                                         <span className="text-xs">
@@ -906,11 +906,11 @@ export default function Schedule() {
                         return (
                           <td
                             key={slot.period}
-                            className="border-r border-gray-200 p-1 text-center h-16 bg-gradient-to-br from-gray-50/50 to-white hover:from-gray-100/50 hover:to-gray-50 transition-all duration-300 group"
+                            className="border-r border-gray-200 dark:border-gray-600 p-1 text-center h-16 bg-gradient-to-br from-gray-50/50 dark:from-gray-700/50 to-white dark:to-gray-800 hover:from-gray-100/50 dark:hover:from-gray-600/50 hover:to-gray-50 dark:hover:to-gray-700 transition-all duration-300 group"
                           >
                             <div className="h-full flex items-center justify-center">
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-400 text-xs font-bold opacity-30 group-hover:opacity-60 transition-opacity duration-300">
-                                <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-200 dark:from-gray-600 to-gray-300 dark:to-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs font-bold opacity-30 group-hover:opacity-60 transition-opacity duration-300">
+                                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500"></div>
                               </div>
                             </div>
                           </td>
@@ -928,9 +928,9 @@ export default function Schedule() {
       {/* Table Form Modal - Admin Only */}
       {isAdmin && (showTableForm || editingTable) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-lg font-semibold dark:text-white">
                 {editingTable ? 'تعديل الجدول' : 'إنشاء جدول جديد'}
               </h3>
               <Button
@@ -988,9 +988,9 @@ export default function Schedule() {
       {/* Cell Form Modal - Admin Only */}
       {isAdmin && (showCellForm || editingCell) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-lg font-semibold dark:text-white">
                 {editingCell ? 'تعديل الحصة' : 'إضافة حصة جديدة'}
               </h3>
               <Button
@@ -1180,7 +1180,7 @@ export default function Schedule() {
               
               {/* Duration is automatically calculated based on start and end times */}
               {cellForm.startTime && cellForm.endTime && (
-                <div className="text-sm text-gray-600 text-center p-2 bg-gray-50 rounded">
+                <div className="text-sm text-gray-600 dark:text-gray-300 text-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
                   مدة الحصة: {
                     (() => {
                       const [startHour, startMin] = cellForm.startTime.split(':').map(Number);
