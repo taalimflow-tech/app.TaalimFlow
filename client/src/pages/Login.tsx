@@ -83,7 +83,7 @@ export default function Login() {
 
   // New state for step-by-step flow
   const [currentStep, setCurrentStep] = useState<'action' | 'userType' | 'form'>('action');
-  const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
+  const [selectedAction, setSelectedAction] = useState<'login' | 'register' | 'student-claim' | null>(null);
   const [selectedUserType, setSelectedUserType] = useState<'admin' | 'teacher' | 'parent' | 'student' | null>(null);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   
