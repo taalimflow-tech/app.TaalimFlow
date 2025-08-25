@@ -2307,48 +2307,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { name, nameAr, educationLevel, grade } = req.body;
 
-      if (!name || !nameAr || !educationLevel || !grade) {
+      // ✅ FIX: Allow "All Levels" subjects without requiring grade
+      const isAllLevels = educationLevel === "جميع المستويات";
+      
+      if (!name || !nameAr || !educationLevel || (!isAllLevels && !grade)) {
         return res.status(400).json({
-          error: "اسم المادة والمستوى التعليمي والسنة الدراسية مطلوبان",
+          error: isAllLevels 
+            ? "اسم المادة والمستوى التعليمي مطلوبان"
+            : "اسم المادة والمستوى التعليمي والسنة الدراسية مطلوبان",
         });
-      }
-
-      // Prevent creating subjects with "جميع المستويات" - each subject must be year-specific
-      if (educationLevel === "جميع المستويات") {
-        return res
-          .status(400)
-          .json({ error: "يجب تحديد مستوى تعليمي محدد وليس جميع المستويات" });
       }
 
       // Check if custom subject already exists for this specific education level and grade
       const existingSubject = await storage.getTeachingModuleByNameAndGrade(
         nameAr,
         educationLevel,
-        grade,
+        grade || "جميع الصفوف", // Use default for universal subjects
       );
       if (existingSubject) {
         return res.status(400).json({
-          error: `المادة "${nameAr}" موجودة بالفعل للمستوى "${educationLevel}" - ${grade}`,
+          error: isAllLevels 
+            ? `المادة "${nameAr}" موجودة بالفعل للمستوى "${educationLevel}"`
+            : `المادة "${nameAr}" موجودة بالفعل للمستوى "${educationLevel}" - ${grade}`,
         });
       }
 
-      // Create subject for specific education level and grade
+      // Create subject for specific education level and grade (or universal)
       const customSubject = await storage.createCustomSubject({
         name,
         nameAr,
         educationLevel,
-        grade,
-        description: `مادة مخصصة تم إنشاؤها بواسطة الإدارة - ${educationLevel} ${grade}`,
+        grade: grade || "جميع الصفوف", // Use default for universal subjects
+        description: isAllLevels 
+          ? `مادة مخصصة عامة تم إنشاؤها بواسطة الإدارة - متاحة لجميع المستويات`
+          : `مادة مخصصة تم إنشاؤها بواسطة الإدارة - ${educationLevel} ${grade}`,
       });
 
       let createdSubjects = [customSubject];
 
       res.status(201).json({
         subjects: createdSubjects,
-        message:
-          educationLevel === "جميع المستويات"
-            ? `تم إنشاء المادة "${nameAr}" لجميع المستويات التعليمية`
-            : `تم إنشاء المادة "${nameAr}" للمستوى "${educationLevel}"`,
+        message: isAllLevels
+          ? `تم إنشاء المادة العامة "${nameAr}" بنجاح - متاحة لجميع المستويات التعليمية`
+          : `تم إنشاء المادة "${nameAr}" للمستوى "${educationLevel} - ${grade}" بنجاح`,
       });
     } catch (error) {
       console.error("Error creating custom subject:", error);

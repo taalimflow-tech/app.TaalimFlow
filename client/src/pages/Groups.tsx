@@ -1155,17 +1155,21 @@ export default function Groups() {
 
   const handleCreateCustomSubject = (e: React.FormEvent) => {
     e.preventDefault();
+    // ✅ FIX: Allow creation for "All Levels" without requiring grade
+    const isAllLevels = customSubjectLevel === "جميع المستويات";
+    const isValidSpecificLevel = customSubjectLevel && customSubjectGrade;
+    
     if (
       customSubjectName &&
       customSubjectNameAr &&
       customSubjectLevel &&
-      customSubjectGrade
+      (isAllLevels || isValidSpecificLevel)
     ) {
       createCustomSubjectMutation.mutate({
         name: customSubjectName,
         nameAr: customSubjectNameAr,
         educationLevel: customSubjectLevel,
-        grade: customSubjectGrade,
+        grade: isAllLevels ? undefined : customSubjectGrade,
       });
     }
   };
@@ -1614,15 +1618,24 @@ export default function Groups() {
     if (!selectedLevel || !teachingModules) return [];
 
     if (selectedLevel === "جميع المستويات") {
-      // For universal view, show subjects that exist across all education levels
-      // Group by subject name and show only subjects that appear in all three levels
+      // ✅ FIX: Show universal subjects and subjects that exist across all education levels
+      const universalSubjects: any[] = [];
+
+      // First, add subjects that are specifically marked as "جميع المستويات"
+      const directUniversalSubjects = adminGroups.filter(
+        (group) => group.educationLevel === "جميع المستويات"
+      );
+      universalSubjects.push(...directUniversalSubjects);
+
+      // Then, count how many education levels each other subject appears in
       const subjectCounts: {
         [key: string]: { count: number; group: any; levels: string[] };
       } = {};
-      const universalSubjects: any[] = [];
 
-      // Count how many education levels each subject appears in
       adminGroups.forEach((group) => {
+        // Skip universal subjects (already added) and focus on level-specific ones
+        if (group.educationLevel === "جميع المستويات") return;
+        
         const subjectKey = group.nameAr || group.subjectName;
         if (!subjectCounts[subjectKey]) {
           subjectCounts[subjectKey] = {
@@ -3177,6 +3190,7 @@ export default function Groups() {
                     required
                   >
                     <option value="">اختر المستوى...</option>
+                    <option value="جميع المستويات">جميع المستويات (مادة عامة)</option>
                     <option value="الابتدائي">الابتدائي</option>
                     <option value="المتوسط">المتوسط</option>
                     <option value="الثانوي">الثانوي</option>
@@ -3195,7 +3209,7 @@ export default function Groups() {
                       customSubjectLevel === "جميع المستويات"
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    required
+                    required={customSubjectLevel !== "جميع المستويات"}
                   >
                     <option value="">اختر السنة...</option>
                     {customSubjectLevel !== "جميع المستويات" &&
@@ -3206,9 +3220,8 @@ export default function Groups() {
                       ))}
                   </select>
                   {customSubjectLevel === "جميع المستويات" && (
-                    <p className="text-sm text-amber-600 mt-1">
-                      💡 لإنشاء مواد لجميع المستويات، قم بإنشاء مادة منفصلة لكل
-                      سنة دراسية
+                    <p className="text-sm text-green-600 mt-1">
+                      ✅ سيتم إنشاء مادة عامة متاحة لجميع المستويات التعليمية
                     </p>
                   )}
                 </div>
