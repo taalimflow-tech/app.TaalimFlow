@@ -307,6 +307,7 @@ export default function Schedule() {
     let filtered = modules.filter((module: TeachingModule) => {
       // Match education level (both Arabic and English formats)
       const levelMatch = cellForm.educationLevel === '' || 
+        cellForm.educationLevel === 'all' ||
         module.educationLevel === cellForm.educationLevel ||
         (cellForm.educationLevel === 'الابتدائي' && module.educationLevel === 'Primary') ||
         (cellForm.educationLevel === 'المتوسط' && module.educationLevel === 'Middle') ||
