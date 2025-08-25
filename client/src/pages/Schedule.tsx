@@ -171,6 +171,13 @@ export default function Schedule() {
   // Get level colors function
   const getLevelColors = (level: string) => {
     switch (level) {
+      case 'all':
+        return {
+          bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+          border: 'border-yellow-200 dark:border-yellow-700',
+          text: 'text-yellow-800 dark:text-yellow-200',
+          badge: 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200'
+        };
       case 'الابتدائي':
         return {
           bg: 'bg-green-50 dark:bg-green-900/20',
@@ -206,7 +213,8 @@ export default function Schedule() {
   const getSimpleLevelFormat = (educationLevel: string, grade?: string, subject?: any, gender?: string): string => {
     let levelShort = '';
     
-    if (educationLevel === 'الثانوي') levelShort = 'ثانوي';
+    if (educationLevel === 'all') return 'جميع المستويات';
+    else if (educationLevel === 'الثانوي') levelShort = 'ثانوي';
     else if (educationLevel === 'المتوسط') levelShort = 'متوسط';
     else if (educationLevel === 'الابتدائي') levelShort = 'ابتدائي';
     else return educationLevel;
