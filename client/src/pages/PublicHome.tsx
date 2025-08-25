@@ -1,13 +1,32 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { School, BookOpen, GraduationCap, Users, ArrowRight } from "lucide-react";
+import { School, BookOpen, GraduationCap, Users, ArrowRight, Moon, Sun } from "lucide-react";
 import { useLocation } from "wouter";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function PublicHome() {
   const [, setLocation] = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" dir="rtl">
+      {/* Dark Mode Toggle */}
+      <div className="absolute top-4 left-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleTheme}
+          className="p-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+          title={theme === 'light' ? 'تفعيل الوضع الليلي' : 'تفعيل الوضع النهاري'}
+        >
+          {theme === 'light' ? (
+            <Moon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          ) : (
+            <Sun className="w-4 h-4 text-yellow-500" />
+          )}
+        </Button>
+      </div>
+      
       <div className="container mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
