@@ -720,6 +720,26 @@ export default function Groups() {
     enabled: !!user && user.role === "admin",
   });
 
+  // Query for available subjects based on selected education level for group creation
+  const availableSubjectsQuery = useQuery<any[]>({
+    queryKey: ["/api/teaching-modules", createGroupData.educationLevel],
+    queryFn: async () => {
+      if (!createGroupData.educationLevel) return [];
+      
+      // Fetch all modules and filter by education level
+      const response = await fetch("/api/teaching-modules");
+      if (!response.ok) throw new Error("Failed to fetch modules");
+      const modules = await response.json();
+      
+      // Filter modules by education level, including "جميع المستويات" subjects
+      return modules.filter((module: any) => 
+        module.educationLevel === createGroupData.educationLevel || 
+        module.educationLevel === "جميع المستويات"
+      );
+    },
+    enabled: !!user && user.role === "admin" && !!createGroupData.educationLevel && createGroupData.subjectType === "existing",
+  });
+
   // ChatGPT's solution: Fetch modules with their year mappings
   const { data: modulesWithYears = [] } = useQuery<any[]>({
     queryKey: ["/api/modules-with-years"],
@@ -3348,6 +3368,36 @@ export default function Groups() {
                     </button>
                   </div>
                 </div>
+
+                {createGroupData.subjectType === "existing" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      اختر المادة *
+                    </label>
+                    <select
+                      value={createGroupData.subjectId}
+                      onChange={(e) => setCreateGroupData(prev => ({...prev, subjectId: e.target.value}))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required={createGroupData.subjectType === "existing"}
+                    >
+                      <option value="">اختر المادة...</option>
+                      {availableSubjectsQuery.data?.map((subject: any) => (
+                        <option key={subject.id} value={subject.id}>
+                          {subject.nameAr} - {subject.educationLevel}
+                          {subject.grade && ` (${subject.grade})`}
+                        </option>
+                      ))}
+                    </select>
+                    {availableSubjectsQuery.isLoading && (
+                      <p className="text-sm text-gray-500 mt-1">جاري تحميل المواد...</p>
+                    )}
+                    {availableSubjectsQuery.data?.length === 0 && (
+                      <p className="text-sm text-orange-600 mt-1">
+                        لا توجد مواد متاحة لهذا المستوى. يمكنك إنشاء مادة مخصصة بدلاً من ذلك.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {createGroupData.subjectType === "custom" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
