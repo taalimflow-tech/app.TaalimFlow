@@ -1,58 +1,246 @@
 import { db } from './db';
 import { teachingModules } from '@shared/schema';
-import { eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
-// Standardized Algerian National Curriculum
+// Comprehensive Algerian curriculum based on the standardized system
 export const ALGERIAN_CURRICULUM = {
-  // 📘 Primary Education (التعليم الابتدائي) - Years 1-5
-  primary: [
-    { name: 'Arabic Language', nameAr: 'اللغة العربية' },
-    { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
-    { name: 'Civic Education', nameAr: 'التربية المدنية' },
-    { name: 'Mathematics', nameAr: 'الرياضيات' },
-    { name: 'French Language', nameAr: 'اللغة الفرنسية' },
-    { name: 'Scientific and Technological Education', nameAr: 'التربية العلمية والتكنولوجية (علوم)' },
-    { name: 'Arts Education', nameAr: 'التربية الفنية (تشكيلية + موسيقية)' },
-    { name: 'Physical Education', nameAr: 'التربية البدنية والرياضية' },
-    { name: 'Amazigh Language', nameAr: 'اللغة الأمازيغية (في بعض الولايات)' }
-  ],
+  // Primary Education (الابتدائي)
+  primary: {
+    'الأولى ابتدائي': [
+      { name: 'Arabic and Mathematics', nameAr: 'العربية والرياضيات' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' }
+    ],
+    'الثانية ابتدائي': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'الثالثة ابتدائي': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'History and Geography', nameAr: 'التاريخ والجغرافيا' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'الرابعة ابتدائي': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'الخامسة ابتدائي': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'جميع المستويات': [
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ]
+  },
 
-  // 📗 Middle School Education (التعليم المتوسط) - Years 1-4
-  middle: [
-    { name: 'Arabic Language', nameAr: 'اللغة العربية' },
-    { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
-    { name: 'Civic Education', nameAr: 'التربية المدنية' },
-    { name: 'Mathematics', nameAr: 'الرياضيات' },
-    { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
-    { name: 'Physics and Technology', nameAr: 'العلوم الفيزيائية والتكنولوجيا' },
-    { name: 'French Language', nameAr: 'اللغة الفرنسية' },
-    { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
-    { name: 'History', nameAr: 'التاريخ' },
-    { name: 'Geography', nameAr: 'الجغرافيا' },
-    { name: 'Computer Science', nameAr: 'الإعلام الآلي (مقرر محدود)' },
-    { name: 'Arts Education', nameAr: 'التربية التشكيلية' },
-    { name: 'Music Education', nameAr: 'التربية الموسيقية' },
-    { name: 'Physical Education', nameAr: 'التربية البدنية' },
-    { name: 'Amazigh Language', nameAr: 'اللغة الأمازيغية (في بعض الولايات)' }
-  ],
+  // Middle School Education (المتوسط)
+  middle: {
+    'الأولى متوسط': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'Arabic Language', nameAr: 'اللغة العربية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'الثانية متوسط': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Arabic Language', nameAr: 'اللغة العربية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'الثالثة متوسط': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Arabic Language', nameAr: 'اللغة العربية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'الرابعة متوسط': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'Civic Education', nameAr: 'التربية المدنية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Chemistry', nameAr: 'الكيمياء' },
+      { name: 'Biology', nameAr: 'علم الأحياء' },
+      { name: 'Arabic Language', nameAr: 'اللغة العربية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'جميع المستويات': [
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Arabic Language', nameAr: 'اللغة العربية' }
+    ]
+  },
 
-  // 📕 Secondary Education (التعليم الثانوي) - Common Core (First Year)
-  secondary: [
-    { name: 'Arabic Language', nameAr: 'اللغة العربية' },
-    { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
-    { name: 'Civic Education', nameAr: 'التربية المدنية' },
-    { name: 'Mathematics', nameAr: 'الرياضيات' },
-    { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
-    { name: 'Physics Sciences', nameAr: 'العلوم الفيزيائية' },
-    { name: 'French Language', nameAr: 'اللغة الفرنسية' },
-    { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
-    { name: 'History and Geography', nameAr: 'التاريخ والجغرافيا' },
-    { name: 'Philosophy', nameAr: 'الفلسفة (مقدمة بسيطة)' },
-    { name: 'Computer Science', nameAr: 'الإعلام الآلي (أساسي)' },
-    { name: 'Physical Education', nameAr: 'التربية البدنية' },
-    { name: 'Arts Education', nameAr: 'التربية الفنية (في بعض التخصصات)' },
-    { name: 'Amazigh Language', nameAr: 'اللغة الأمازيغية (حسب المناطق)' }
-  ]
+  // Secondary Education (الثانوي)
+  secondary: {
+    'الأولى ثانوي': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Chemistry', nameAr: 'الكيمياء' },
+      { name: 'Biology', nameAr: 'الأحياء' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'Natural Sciences and Life', nameAr: 'العلوم الطبيعية والحياة' },
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'الثانية ثانوي': [
+      { name: 'Arabic Language', nameAr: 'العربية' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'French Language', nameAr: 'الفرنسية' },
+      { name: 'English Language', nameAr: 'الإنجليزية' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Natural Sciences', nameAr: 'العلوم الطبيعية' },
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Chemistry', nameAr: 'الكيمياء' },
+      { name: 'Biology', nameAr: 'الأحياء' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'Natural Sciences and Life', nameAr: 'العلوم الطبيعية والحياة' },
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'علمي': [
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Chemistry', nameAr: 'الكيمياء' },
+      { name: 'Biology', nameAr: 'الأحياء' },
+      { name: 'Natural Sciences and Life', nameAr: 'العلوم الطبيعية والحياة' },
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' }
+    ],
+    'أدبي': [
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'تسيير واقتصاد': [
+      { name: 'Economics', nameAr: 'الاقتصاد' },
+      { name: 'Management', nameAr: 'التسيير' },
+      { name: 'Accounting', nameAr: 'المحاسبة' },
+      { name: 'Commercial Law', nameAr: 'القانون التجاري' },
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' }
+    ],
+    'تقني رياضي': [
+      { name: 'Mathematics', nameAr: 'الرياضيات' },
+      { name: 'Physics', nameAr: 'الفيزياء' },
+      { name: 'Chemistry', nameAr: 'الكيمياء' },
+      { name: 'Engineering Sciences', nameAr: 'العلوم الهندسية' },
+      { name: 'Technical Drawing', nameAr: 'الرسم التقني' },
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' }
+    ],
+    'آداب وفلسفة': [
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' }
+    ],
+    'لغات أجنبية': [
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'English Language', nameAr: 'اللغة الإنجليزية' },
+      { name: 'French Language', nameAr: 'اللغة الفرنسية' },
+      { name: 'German Language', nameAr: 'اللغة الألمانية' },
+      { name: 'Spanish Language', nameAr: 'اللغة الإسبانية' },
+      { name: 'Italian Language', nameAr: 'اللغة الإيطالية' },
+      { name: 'Philosophy', nameAr: 'الفلسفة' },
+      { name: 'History', nameAr: 'التاريخ' },
+      { name: 'Geography', nameAr: 'الجغرافيا' },
+      { name: 'Islamic Education', nameAr: 'التربية الإسلامية' }
+    ],
+    'جميع المستويات': [
+      { name: 'Arabic Language and Literature', nameAr: 'اللغة العربية وآدابها' },
+      { name: 'Amazigh Language', nameAr: 'اللغة الأمازيغية' },
+      { name: 'German Language', nameAr: 'اللغة الألمانية' },
+      { name: 'Spanish Language', nameAr: 'اللغة الإسبانية' }
+    ]
+  }
 };
 
 /**
@@ -61,53 +249,49 @@ export const ALGERIAN_CURRICULUM = {
 export async function seedStandardizedCurriculum(): Promise<void> {
   console.log('🌱 Starting curriculum standardization...');
 
-  // Get existing global subjects to avoid duplicates
-  const existingModules = await db.select().from(teachingModules).where(isNull(teachingModules.schoolId));
-  const existingNames = new Set(existingModules.map(m => `${m.nameAr}-${m.educationLevel}`));
+  // First, clear existing global subjects to avoid duplicates
+  await db.delete(teachingModules).where(eq(teachingModules.schoolId, null));
   
   const modulesToInsert = [];
 
-  // Primary Education (الابتدائي)
-  for (const subject of ALGERIAN_CURRICULUM.primary) {
-    const key = `${subject.nameAr}-الابتدائي`;
-    if (!existingNames.has(key)) {
+  // Primary Education
+  for (const [grade, subjects] of Object.entries(ALGERIAN_CURRICULUM.primary)) {
+    for (const subject of subjects) {
       modulesToInsert.push({
         schoolId: null, // Global subjects
         name: subject.name,
         nameAr: subject.nameAr,
         educationLevel: 'الابتدائي',
-        grade: null, // No specific grade - applies to all primary years
-        description: `${subject.nameAr} - التعليم الابتدائي`
+        grade: grade,
+        description: `${subject.nameAr} - ${grade}`
       });
     }
   }
 
-  // Middle School Education (المتوسط)
-  for (const subject of ALGERIAN_CURRICULUM.middle) {
-    const key = `${subject.nameAr}-المتوسط`;
-    if (!existingNames.has(key)) {
+  // Middle School Education
+  for (const [grade, subjects] of Object.entries(ALGERIAN_CURRICULUM.middle)) {
+    for (const subject of subjects) {
       modulesToInsert.push({
         schoolId: null,
         name: subject.name,
         nameAr: subject.nameAr,
         educationLevel: 'المتوسط',
-        grade: null, // No specific grade - applies to all middle years
-        description: `${subject.nameAr} - التعليم المتوسط`
+        grade: grade,
+        description: `${subject.nameAr} - ${grade}`
       });
     }
   }
 
-  // Secondary Education (الثانوي)
-  for (const subject of ALGERIAN_CURRICULUM.secondary) {
-    const key = `${subject.nameAr}-الثانوي`;
-    if (!existingNames.has(key)) {
+  // Secondary Education
+  for (const [grade, subjects] of Object.entries(ALGERIAN_CURRICULUM.secondary)) {
+    for (const subject of subjects) {
       modulesToInsert.push({
         schoolId: null,
         name: subject.name,
         nameAr: subject.nameAr,
         educationLevel: 'الثانوي',
-        grade: null, // No specific grade - common core subjects
-        description: `${subject.nameAr} - التعليم الثانوي`
+        grade: grade,
+        description: `${subject.nameAr} - ${grade}`
       });
     }
   }

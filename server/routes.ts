@@ -30,7 +30,6 @@ import {
   insertGroupAttendanceSchema,
   insertGroupTransactionSchema,
   insertFinancialEntrySchema,
-  insertCustomSubjectSchema,
 } from "@shared/schema";
 import { db } from "./db";
 import { users } from "@shared/schema";
@@ -2356,82 +2355,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating custom subject:", error);
       res.status(500).json({ error: "Failed to create custom subject" });
-    }
-  });
-
-  // Create group endpoint with optional custom subject creation
-  app.post("/api/admin/create-group", async (req, res) => {
-    try {
-      if (!req.session?.user || req.session.user.role !== "admin") {
-        return res
-          .status(403)
-          .json({ error: "غير مسموح لك بإنشاء المجموعات" });
-      }
-
-      const { 
-        name, 
-        description, 
-        educationLevel, 
-        grade, 
-        subjectType, 
-        subjectId,
-        customSubjectName,
-        customSubjectNameAr 
-      } = req.body;
-
-      if (!name || !educationLevel || !subjectType) {
-        return res.status(400).json({
-          error: "اسم المجموعة والمستوى التعليمي ونوع المادة مطلوبان",
-        });
-      }
-
-      let finalSubjectId = null;
-
-      // Handle custom subject creation
-      if (subjectType === "custom") {
-        if (!customSubjectName || !customSubjectNameAr) {
-          return res.status(400).json({
-            error: "اسم المادة المخصصة مطلوب بالعربية والإنجليزية",
-          });
-        }
-
-        // Create the custom subject first using the existing custom subjects endpoint logic
-        const customSubject = await storage.createCustomSubject({
-          name: customSubjectName,
-          nameAr: customSubjectNameAr,
-          educationLevel,
-          grade: grade || null,
-          description: `مادة مخصصة تم إنشاؤها مع المجموعة: ${name}`,
-          schoolId: req.session.user.schoolId, // School-specific custom subject
-        });
-
-        finalSubjectId = customSubject.id;
-      } else {
-        // For existing subjects, we would need subjectId
-        finalSubjectId = subjectId ? parseInt(subjectId) : null;
-      }
-
-      // Create the group
-      const groupData = {
-        schoolId: req.session.user.schoolId,
-        name,
-        description: description || `مجموعة تعليمية لمادة ${customSubjectNameAr || 'مادة محددة'}`,
-        category: "دراسية",
-        educationLevel,
-        subjectId: finalSubjectId,
-        isAdminManaged: true,
-        studentsAssigned: [],
-      };
-
-      const group = await storage.createGroup(groupData);
-
-      res.status(201).json({
-        group,
-        message: `تم إنشاء المجموعة "${name}" بنجاح`,
-      });
-    } catch (error) {
-      console.error("Error creating group:", error);
-      res.status(500).json({ error: "فشل في إنشاء المجموعة" });
     }
   });
 
