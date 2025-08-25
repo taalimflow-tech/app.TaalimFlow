@@ -386,9 +386,13 @@ export default function Schedule() {
       
       const params = new URLSearchParams({
         subjectId: linkingCell.subject.id.toString(),
-        teacherId: linkingCell.teacher.id.toString(),
-        educationLevel: linkingCell.educationLevel
+        teacherId: linkingCell.teacher.id.toString()
       });
+      
+      // Only add education level filter if it's not "all"
+      if (linkingCell.educationLevel !== 'all') {
+        params.append('educationLevel', linkingCell.educationLevel);
+      }
       
       const response = await apiRequest('GET', `/api/groups/compatible?${params.toString()}`);
       return await response.json();
