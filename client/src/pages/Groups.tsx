@@ -725,10 +725,18 @@ export default function Groups() {
 
   // Filter modules when education level changes (same logic as TeacherSpecializationForm)
   useEffect(() => {
+    console.log("🔍 Filtering modules for group creation:", {
+      educationLevel: createGroupData.educationLevel,
+      totalModules: teachingModules.length,
+      sampleModules: teachingModules.slice(0, 3)
+    });
+
     if (createGroupData.educationLevel && teachingModules.length > 0) {
       const filtered = teachingModules.filter((module: any) => 
         module.educationLevel === createGroupData.educationLevel
       );
+      
+      console.log("✅ Filtered modules:", filtered);
       
       // Remove duplicates by keeping only one module per nameAr (same as TeacherSpecializationForm)
       const uniqueModules = filtered.reduce((acc: any[], current: any) => {
@@ -739,6 +747,7 @@ export default function Groups() {
         return acc;
       }, []);
 
+      console.log("🎯 Final unique modules for group:", uniqueModules);
       setFilteredModulesForGroup(uniqueModules);
     } else {
       setFilteredModulesForGroup([]);
@@ -3400,6 +3409,13 @@ export default function Groups() {
                         </option>
                       ))}
                     </select>
+                    {/* Debug info */}
+                    <div className="mt-2 text-xs text-gray-500">
+                      تصحيح: المستوى = "{createGroupData.educationLevel}" | 
+                      المواد المحملة = {teachingModules.length} | 
+                      المواد المفلترة = {filteredModulesForGroup.length}
+                    </div>
+                    
                     {filteredModulesForGroup.length === 0 && createGroupData.educationLevel && (
                       <p className="text-sm text-orange-600 mt-1">
                         لا توجد مواد متاحة لهذا المستوى. يمكنك إنشاء مادة مخصصة بدلاً من ذلك.
