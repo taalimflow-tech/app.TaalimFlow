@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useLocation, Link } from 'wouter';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 import PasswordResetModal from '@/components/PasswordResetModal';
 import { StudentClaimForm } from '@/components/StudentClaimForm';
 
@@ -86,6 +86,11 @@ export default function Login() {
   const [selectedAction, setSelectedAction] = useState<'login' | 'register' | null>(null);
   const [selectedUserType, setSelectedUserType] = useState<'admin' | 'teacher' | 'parent' | 'student' | null>(null);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showAdminSecret, setShowAdminSecret] = useState(false);
+  const [showTeacherSecret, setShowTeacherSecret] = useState(false);
 
   const educationLevels = {
     'الابتدائي': [
@@ -634,14 +639,30 @@ export default function Login() {
                     
                     <div>
                       <Label htmlFor="password">كلمة المرور</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="أدخل كلمة المرور"
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة المرور"
+                          className="pr-10"
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-500" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                     
                     <div className="text-right">
@@ -713,14 +734,30 @@ export default function Login() {
                       
                       <div>
                         <Label htmlFor="password">كلمة المرور</Label>
-                        <Input
-                          id="password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="أدخل كلمة المرور"
-                          required
-                        />
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="أدخل كلمة المرور"
+                            className="pr-10"
+                            required
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-gray-500" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-gray-500" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     
@@ -895,14 +932,30 @@ export default function Login() {
                       
                       <div>
                         <Label htmlFor="student-password">كلمة المرور</Label>
-                        <Input
-                          id="student-password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="أدخل كلمة المرور"
-                          required
-                        />
+                        <div className="relative">
+                          <Input
+                            id="student-password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="أدخل كلمة المرور"
+                            className="pr-10"
+                            required
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-gray-500" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-gray-500" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     
@@ -1029,27 +1082,59 @@ export default function Login() {
                       
                       <div>
                         <Label htmlFor="admin-password">كلمة المرور</Label>
-                        <Input
-                          id="admin-password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="أدخل كلمة المرور"
-                          required
-                        />
+                        <div className="relative">
+                          <Input
+                            id="admin-password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="أدخل كلمة المرور"
+                            className="pr-10"
+                            required
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-gray-500" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-gray-500" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     
                     <div>
                       <Label htmlFor="admin-secret">المفتاح السري للإدارة</Label>
-                      <Input
-                        id="admin-secret"
-                        type="password"
-                        value={secretKey}
-                        onChange={(e) => setSecretKey(e.target.value)}
-                        placeholder="أدخل المفتاح السري للإدارة"
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="admin-secret"
+                          type={showAdminSecret ? "text" : "password"}
+                          value={secretKey}
+                          onChange={(e) => setSecretKey(e.target.value)}
+                          placeholder="أدخل المفتاح السري للإدارة"
+                          className="pr-10"
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowAdminSecret(!showAdminSecret)}
+                        >
+                          {showAdminSecret ? (
+                            <EyeOff className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-500" />
+                          )}
+                        </Button>
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">يجب الحصول على المفتاح السري من إدارة المدرسة</p>
                     </div>
                     
@@ -1111,14 +1196,30 @@ export default function Login() {
                       
                       <div>
                         <Label htmlFor="teacher-password">كلمة المرور</Label>
-                        <Input
-                          id="teacher-password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="أدخل كلمة المرور"
-                          required
-                        />
+                        <div className="relative">
+                          <Input
+                            id="teacher-password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="أدخل كلمة المرور"
+                            className="pr-10"
+                            required
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-gray-500" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-gray-500" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     
@@ -1140,14 +1241,30 @@ export default function Login() {
                     
                     <div>
                       <Label htmlFor="teacher-secret">المفتاح السري للمعلمين</Label>
-                      <Input
-                        id="teacher-secret"
-                        type="password"
-                        value={secretKey}
-                        onChange={(e) => setSecretKey(e.target.value)}
-                        placeholder="أدخل المفتاح السري للمعلمين"
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="teacher-secret"
+                          type={showTeacherSecret ? "text" : "password"}
+                          value={secretKey}
+                          onChange={(e) => setSecretKey(e.target.value)}
+                          placeholder="أدخل المفتاح السري للمعلمين"
+                          className="pr-10"
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowTeacherSecret(!showTeacherSecret)}
+                        >
+                          {showTeacherSecret ? (
+                            <EyeOff className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-500" />
+                          )}
+                        </Button>
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">يجب الحصول على المفتاح السري من إدارة المدرسة</p>
                     </div>
                     
