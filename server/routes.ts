@@ -2674,6 +2674,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current school information
+  app.get("/api/school/current", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      if (!req.session.user.schoolId) {
+        return res.status(404).json({ error: "لا توجد مدرسة مرتبطة بالحساب" });
+      }
+
+      const school = await storage.getSchoolById(req.session.user.schoolId);
+
+      if (!school) {
+        return res.status(404).json({ error: "لم يتم العثور على بيانات المدرسة" });
+      }
+
+      res.json({
+        id: school.id,
+        name: school.name,
+        code: school.code
+      });
+    } catch (error) {
+      console.error("Error getting school data:", error);
+      res.status(500).json({ error: "فشل في جلب بيانات المدرسة" });
+    }
+  });
+
   app.post("/api/notifications/:id/read", async (req, res) => {
     try {
       if (!req.session?.user) {

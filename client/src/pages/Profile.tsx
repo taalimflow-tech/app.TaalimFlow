@@ -91,9 +91,9 @@ export default function Profile() {
     enabled: user?.role === 'student'
   });
 
-  // Fetch school data
+  // Fetch current school information
   const { data: schoolData } = useQuery({
-    queryKey: ['/api/schools/current'],
+    queryKey: ['/api/school/current'],
     enabled: !!user?.schoolId
   });
 
@@ -461,7 +461,7 @@ export default function Profile() {
             onUpdate={handleProfilePictureUpdate}
           />
 
-          {/* Student ID Card Section - Only show for students */}
+          {/* Student ID Card Section - Only show for verified students */}
           {user.role === 'student' && studentData && studentData.verified && (
             <Card>
               <CardHeader>
