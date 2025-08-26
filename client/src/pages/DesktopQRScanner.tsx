@@ -338,7 +338,7 @@ function GroupAttendanceTable({
   if (isLoading) {
     return (
       <div className="text-center py-4">
-        <p className="text-gray-600">جاري تحميل بيانات الحضور...</p>
+        <p className="text-gray-600 dark:text-gray-400">جاري تحميل بيانات الحضور...</p>
       </div>
     );
   }
@@ -346,15 +346,15 @@ function GroupAttendanceTable({
   if (scheduledDates.length === 0) {
     return (
       <div className="text-center py-4">
-        <p className="text-gray-600">لا توجد مواعيد مجدولة لهذه المجموعة</p>
+        <p className="text-gray-600 dark:text-gray-400">لا توجد مواعيد مجدولة لهذه المجموعة</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold text-gray-800">جدول الحضور الشهري - المواعيد المجدولة</h4>
+        <h4 className="font-semibold text-gray-800 dark:text-gray-200">جدول الحضور الشهري - المواعيد المجدولة</h4>
         
         {monthKeys.length > 0 && (
           <div className="flex items-center gap-2">
@@ -2306,19 +2306,6 @@ function DesktopQRScanner() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Debug Info */}
-                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-sm rounded">
-                  <strong>Debug Info:</strong><br/>
-                  Student ID: {scannedProfile.id}, Type: {scannedProfile.type}<br/>
-                  Enrolled groups count: {scannedProfile.enrolledGroups?.length || 0}<br/>
-                  Available groups count: {availableGroups.length}<br/>
-                  {scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0 && (
-                    <span>Enrolled: {scannedProfile.enrolledGroups.map(g => `${g.name} (${g.subjectName})`).join(', ')}<br/></span>
-                  )}
-                  {availableGroups.length > 0 && (
-                    <span>Available: {availableGroups.map(g => `${g.name} (${g.subjectName || g.nameAr})`).join(', ')}</span>
-                  )}
-                </div>
                 {scannedProfile.enrolledGroups?.length > 0 ? (
                   scannedProfile.enrolledGroups.map((group) => (
                     <div key={group.id} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm">
@@ -2380,14 +2367,6 @@ function DesktopQRScanner() {
                         هذا الطالب غير مسجل في أي مجموعة تعليمية حالياً
                       </p>
                       
-                      {/* Debug Information */}
-                      <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800 text-left text-xs dark:text-yellow-300">
-                        <strong>Debug Info:</strong><br/>
-                        Student ID: {scannedProfile?.id}<br/>
-                        Student Type: {scannedProfile?.type}<br/>
-                        enrolledGroups length: {scannedProfile?.enrolledGroups?.length || 'N/A'}<br/>
-                        enrolledGroups value: {JSON.stringify(scannedProfile?.enrolledGroups)}
-                      </div>
                     </div>
                   </div>
                 )}
@@ -2479,13 +2458,6 @@ function DesktopQRScanner() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* DEBUG: Show enrolled groups data structure */}
-                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded text-xs dark:text-blue-300">
-                      <strong>Debug - Enrolled Groups Data:</strong><br/>
-                      Has enrolledGroups: {scannedProfile.enrolledGroups ? 'Yes' : 'No'}<br/>
-                      Enrolled groups count: {scannedProfile.enrolledGroups?.length || 0}<br/>
-                      Raw data: {JSON.stringify(scannedProfile.enrolledGroups, null, 2)}
-                    </div>
                     {scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0 ? scannedProfile.enrolledGroups.map((group) => (
                       <div key={group.id} className="border dark:border-gray-700 rounded-lg p-4">
                         <div className="flex justify-between items-start">
@@ -2501,13 +2473,6 @@ function DesktopQRScanner() {
                       </div>
                     )) : (
                       <div className="text-center text-gray-500 dark:text-gray-400 py-4">
-                        <div className="mb-3 p-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded">
-                          <strong>Debug - Why no groups shown:</strong><br/>
-                          scannedProfile exists: {scannedProfile ? 'Yes' : 'No'}<br/>
-                          enrolledGroups property exists: {scannedProfile?.enrolledGroups !== undefined ? 'Yes' : 'No'}<br/>
-                          enrolledGroups length: {scannedProfile?.enrolledGroups?.length || 'N/A'}<br/>
-                          enrolledGroups value: {JSON.stringify(scannedProfile?.enrolledGroups)}
-                        </div>
                         لا توجد مجموعات مسجل فيها
                       </div>
                     )}
