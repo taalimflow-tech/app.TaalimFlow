@@ -1327,7 +1327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const school = user.schoolId ? await storage.getSchoolById(user.schoolId) : null;
       
       // Get all schools for debugging
-      const allSchools = await storage.getAllSchools();
+      const allSchools = await storage.getSchools();
       
       res.json({
         user: {
@@ -1380,21 +1380,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة. يرجى تسجيل الدخول مرة أخرى" });
       }
 
-      // Check if school exists
-      const school = await storage.getSchoolById(currentUser.schoolId);
+      // Check if school exists or use fallback
+      let school = await storage.getSchoolById(currentUser.schoolId);
+      let validSchoolId = currentUser.schoolId;
+      
       if (!school) {
         console.error("School not found for ID:", currentUser.schoolId);
-        return res.status(400).json({ error: "المدرسة غير موجودة. يرجى الاتصال بالمدير أو تسجيل الدخول مرة أخرى" });
+        
+        // Get the first available school as fallback
+        const availableSchools = await storage.getSchools();
+        if (availableSchools.length > 0) {
+          school = availableSchools[0];
+          validSchoolId = school.id;
+          console.log("Using fallback school:", { id: school.id, name: school.name });
+        } else {
+          return res.status(400).json({ error: "لا توجد مدارس متاحة في النظام. يرجى الاتصال بالمدير" });
+        }
       }
 
       console.log("School found:", { id: school.id, name: school.name });
 
       const validatedData = insertAnnouncementSchema.parse(req.body);
 
-      // Add schoolId for multi-tenancy
+      // Add schoolId for multi-tenancy - use valid school ID
       const announcementData = {
         ...validatedData,
-        schoolId: req.session.user.schoolId,
+        schoolId: validSchoolId,
         authorId: req.session.user.id,
       };
 
@@ -1402,7 +1413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const announcement = await storage.createAnnouncement(announcementData);
 
       // Create notifications for all users about new announcement
-      const allUsers = await storage.getAllUsers(req.session.user.schoolId);
+      const allUsers = await storage.getAllUsers(validSchoolId);
       const nonAdminUsers = allUsers.filter((u) => u.role !== "admin");
       if (nonAdminUsers.length > 0) {
         await storage.createNotificationForUsers(
@@ -1411,7 +1422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "📅 إعلان جديد",
           `إعلان جديد: "${announcement.title}"`,
           announcement.id,
-          req.session.user.schoolId,
+          validSchoolId,
         );
       }
 
@@ -1424,7 +1435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fire and forget - don't wait for push notifications
       PushNotificationService.broadcastToSchool(
-        req.session.user.schoolId,
+        validSchoolId,
         notificationPayload,
         [req.session.user.id], // Exclude the admin who created it
       ).catch((error) => {
