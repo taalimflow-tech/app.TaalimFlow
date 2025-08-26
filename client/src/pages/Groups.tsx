@@ -129,7 +129,7 @@ function ScheduledDatesCarousel({
                     year: "numeric",
                   })}
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   {dateObj.toLocaleDateString("en-US", { weekday: "long" })}
                 </div>
 
@@ -2359,7 +2359,7 @@ export default function Groups() {
                                     "مادة غير محددة"}
                                 </h3>
 
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-gray-600 dark:text-gray-300">
                                   <span className="font-medium">المعلم:</span>{" "}
                                   {getTeacherName()}
                                 </div>
@@ -2400,8 +2400,8 @@ export default function Groups() {
         {/* Admin-Created Groups Section */}
         {user?.role === "admin" && (
           <div className="mb-8">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <div className="bg-gradient-to-r from-blue-50 dark:from-blue-900/20 to-purple-50 dark:to-purple-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
                 <Settings className="h-5 w-5 ml-2 text-blue-600" />
                 المجموعات الموجودة (مصنفة حسب المستوى)
               </h2>
@@ -2422,7 +2422,7 @@ export default function Groups() {
                         existingGroupsFilter ===
                         (level === "مجموعات مخصصة" ? "custom" : level)
                           ? "bg-blue-600 text-white"
-                          : "bg-white text-gray-700 hover:bg-blue-50"
+                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700"
                       }`}
                     >
                       {level}
@@ -2433,8 +2433,8 @@ export default function Groups() {
 
               {/* Statistics about available groups */}
               {existingGroupsFilter && existingGroupsFilter !== "custom" && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-sm text-blue-700">
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                  <div className="text-sm text-blue-700 dark:text-blue-200">
                     <p className="font-medium mb-1">إحصائيات المجموعات:</p>
                     <p>
                       • إجمالي المجموعات في {existingGroupsFilter}:{" "}
@@ -2482,13 +2482,13 @@ export default function Groups() {
               {/* Year Level Filter - Only show for specific education levels */}
               {existingGroupsFilter && existingGroupsFilter !== "custom" && (
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     فلترة حسب السنة الدراسية
                   </label>
                   <select
                     value={selectedYearFilter}
                     onChange={(e) => setSelectedYearFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">جميع السنوات</option>
                     {existingGroupsFilter === "الابتدائي" && (
@@ -2733,7 +2733,7 @@ export default function Groups() {
                         return (
                           <Card
                             key={group.id || group.name}
-                            className="border border-gray-200 hover:shadow-md transition-shadow"
+                            className="border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                           >
                             <CardContent className="p-4">
                               <div className="space-y-3">
@@ -2747,7 +2747,7 @@ export default function Groups() {
                                 </div>
 
                                 {/* Title */}
-                                <h3 className="font-semibold text-gray-800">
+                                <h3 className="font-semibold text-gray-800 dark:text-gray-200">
                                   {group.nameAr ||
                                     group.subjectName ||
                                     group.subjectNameAr ||
@@ -2756,13 +2756,13 @@ export default function Groups() {
                                 </h3>
 
                                 {/* Teacher */}
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-gray-600 dark:text-gray-300">
                                   <span className="font-medium">المعلم:</span>{" "}
                                   {getTeacherName()}
                                 </div>
 
                                 {/* Student Count */}
-                                <div className="flex items-center text-sm text-gray-600">
+                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                                   <Users className="h-4 w-4 ml-1" />
                                   <span>
                                     {group.studentsAssigned?.length || 0} طالب
@@ -2828,14 +2828,14 @@ export default function Groups() {
         {/* Join Group Modal */}
         {showJoinForm && selectedGroup && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                   الانضمام إلى {selectedGroup.name}
                 </h2>
                 <button
                   onClick={() => setShowJoinForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   ✕
                 </button>
@@ -2878,9 +2878,9 @@ export default function Groups() {
         {/* Admin Assignment Modal */}
         {showAssignmentModal && selectedAdminGroup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                   إدارة تعيينات المجموعة
                 </h3>
                 <Button
@@ -2892,9 +2892,9 @@ export default function Groups() {
                 </Button>
               </div>
 
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">تفاصيل المجموعة</h4>
-                <div className="text-sm text-gray-600">
+              <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h4 className="font-medium mb-2 text-gray-800 dark:text-gray-200">تفاصيل المجموعة</h4>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   <p>
                     <strong>الاسم:</strong> {selectedAdminGroup.name}
                   </p>
