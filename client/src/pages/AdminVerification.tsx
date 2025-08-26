@@ -922,7 +922,7 @@ export default function AdminVerification() {
         {/* Custom Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="p-6">
                 {selectedItem?.type.startsWith('verified') ? (
                   // Details modal for verified items
