@@ -2531,6 +2531,12 @@ export default function Groups() {
                     );
 
                     if (existingGroupsFilter === "custom") {
+                      console.log("🔍 AFTER FIX: Filtering custom groups...");
+                      console.log("🔍 Available admin groups:", adminCreatedGroups.length);
+                      console.log("🔍 Available teaching modules:", teachingModules?.length);
+                      console.log("🔍 Chess group subjectId 1413 module:", teachingModules?.find(m => m.id === 1413));
+                      console.log("🔍 Programming group subjectId 1414 module:", teachingModules?.find(m => m.id === 1414));
+
                       // Show groups based on custom subjects (subjects created by this school)
                       // These are subjects that have a schoolId AND are not part of standard curriculum
                       filteredGroups = adminCreatedGroups.filter((group) => {
@@ -2539,8 +2545,16 @@ export default function Groups() {
                           (module: any) => module.id === group.subjectId,
                         );
 
+                        console.log(`🔍 Group "${group.name}":`, {
+                          subjectId: group.subjectId,
+                          hasModule: !!teachingModule,
+                          moduleSchoolId: teachingModule?.schoolId,
+                          moduleName: teachingModule?.nameAr || teachingModule?.name
+                        });
+
                         // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
                         if (!teachingModule || !teachingModule.schoolId) {
+                          console.log(`❌ "${group.name}" excluded - No module or schoolId`);
                           return false;
                         }
 
