@@ -6114,7 +6114,7 @@ export class DatabaseStorage implements IStorage {
         },
         enrolledGroups: enrolledGroups,
         recentAttendance: [],
-        recentPayments: [], // Add this missing field
+        recentPayments: await this.getStudentPaidHistory(studentId, schoolId), // Fetch actual payment history
       };
       
       console.log("🎯 FINAL PROFILE OBJECT:", JSON.stringify(finalProfile, null, 2));

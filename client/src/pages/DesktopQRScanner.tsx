@@ -2351,7 +2351,7 @@ function DesktopQRScanner() {
                           studentId={scannedProfile.id}
                           studentType={scannedProfile.type}
                           studentName={scannedProfile.name}
-                          userId={scannedProfile.type === 'child' ? scannedProfile.userId : scannedProfile.id}
+                          userId={(scannedProfile as any).userId || scannedProfile.id}
                           refreshTrigger={attendanceRefreshTrigger}
                           groupPaymentStatus={groupPaymentStatus}
                         />
@@ -2458,32 +2458,37 @@ function DesktopQRScanner() {
                 <CardContent>
                   <div className="space-y-3">
                     {scannedProfile.recentPayments?.length > 0 ? scannedProfile.recentPayments.map((payment) => (
-                      <div key={payment.id} className="flex justify-between items-center p-3 border rounded">
+                      <div key={payment.id} className="flex justify-between items-center p-3 border dark:border-gray-600 rounded">
                         <div>
-                          <div className="font-medium">
+                          <div className="font-medium dark:text-gray-200">
                             {getMonthName(payment.month, payment.year)}
                           </div>
                           {payment.amount && (
-                            <div className="text-sm text-gray-600">{payment.amount} دج</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">{payment.amount} دج</div>
                           )}
                           {payment.notes && (
-                            <div className="text-sm text-gray-500">{payment.notes}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-500">{payment.notes}</div>
+                          )}
+                          {(payment as any).groupId && (
+                            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                              مجموعة رقم: {(payment as any).groupId}
+                            </div>
                           )}
                         </div>
                         <div className="text-right">
-                          <Badge className={payment.isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                            {payment.isPaid ? 'مدفوع' : 'غير مدفوع'}
+                          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                            مدفوع
                           </Badge>
                           {payment.paidAt && (
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                               {new Date(payment.paidAt).toLocaleDateString('ar-DZ')}
                             </div>
                           )}
                         </div>
                       </div>
                     )) : (
-                      <div className="text-center text-gray-500 py-4">
-                        لا توجد سجلات دفع حديثة
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                        لا توجد مدفوعات مسجلة
                       </div>
                     )}
                   </div>
