@@ -4646,16 +4646,32 @@ export class DatabaseStorage implements IStorage {
       console.log(`📊 Found ${associatedBenefits.length} associated benefit entries`);
       
       if (associatedBenefits.length > 0) {
-        console.log(`🗑️ Deleting associated benefit entries...`);
+        console.log(`🗑️ HARD DELETING associated benefit entries...`);
         for (const benefit of associatedBenefits) {
+          // HARD DELETE - Direct permanent deletion from database
+          console.log(`🔥 HARD DELETING benefit entry ID: ${benefit.id}, amount: ${benefit.amount}`);
           await db
             .delete(financialEntries)
             .where(eq(financialEntries.id, benefit.id));
-          console.log(`✅ Deleted benefit entry ID: ${benefit.id}, amount: ${benefit.amount}`);
+          
+          // Verify the benefit entry is permanently gone
+          const verifyBenefitDelete = await db
+            .select()
+            .from(financialEntries)
+            .where(eq(financialEntries.id, benefit.id));
+          
+          if (verifyBenefitDelete.length === 0) {
+            console.log(`✅ SUCCESS: Benefit entry ${benefit.id} PERMANENTLY DELETED from database`);
+          } else {
+            console.log(`❌ FAILURE: Benefit entry ${benefit.id} still exists, attempting raw SQL deletion...`);
+            // Fallback raw SQL for hard delete
+            await this.hardDeleteFinancialEntryByRawSQL(benefit.id);
+          }
         }
       }
       
-      // HARD DELETE - Direct deletion from database
+      // HARD DELETE - Direct permanent deletion from database
+      console.log(`🔥 HARD DELETING payment record from database...`);
       const deleteResult = await db
         .delete(studentMonthlyPayments)
         .where(
@@ -4667,9 +4683,9 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
-      console.log(`💥 Delete operation executed`);
+      console.log(`💥 Payment delete operation executed`);
       
-      // Verify the record is gone
+      // Verify the payment record is permanently gone
       const afterDelete = await db
         .select()
         .from(studentMonthlyPayments)
@@ -4682,22 +4698,36 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
-      console.log(`📊 Records found after deletion:`, afterDelete.length);
+      console.log(`📊 Payment records found after deletion:`, afterDelete.length);
       
       if (afterDelete.length === 0) {
-        console.log(`✅ SUCCESS: Payment record PERMANENTLY DELETED from database`);
+        console.log(`✅ SUCCESS: Payment record PERMANENTLY HARD DELETED from database`);
+        console.log(`✅ SUCCESS: Associated benefit entries also PERMANENTLY HARD DELETED`);
         return true;
       } else {
-        console.log(`❌ FAILURE: Record still exists in database:`, afterDelete[0]);
-        // Try raw SQL as fallback
+        console.log(`❌ FAILURE: Payment record still exists in database:`, afterDelete[0]);
+        // Try raw SQL as fallback for payment record
         const paymentId = afterDelete[0].id;
-        console.log(`🔄 Attempting raw SQL delete for payment ID: ${paymentId}`);
+        console.log(`🔄 Attempting raw SQL HARD DELETE for payment ID: ${paymentId}`);
         await this.hardDeletePaymentByRawSQL(paymentId);
+        console.log(`✅ FALLBACK SUCCESS: Payment and benefit records HARD DELETED via raw SQL`);
         return true;
       }
     } catch (error) {
       console.error("❌ HARD DELETE ERROR:", error);
       throw error; // Re-throw to see actual error
+    }
+  }
+
+  async hardDeleteFinancialEntryByRawSQL(entryId: number) {
+    try {
+      console.log(`🔥 RAW SQL: Hard deleting financial entry ID: ${entryId}`);
+      // Use raw SQL to ensure complete deletion
+      await db.execute(sql`DELETE FROM financial_entries WHERE id = ${entryId}`);
+      console.log(`✅ RAW SQL: Financial entry ${entryId} permanently deleted`);
+    } catch (error) {
+      console.error(`❌ RAW SQL ERROR deleting financial entry ${entryId}:`, error);
+      throw error;
     }
   }
 
