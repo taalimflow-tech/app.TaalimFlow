@@ -354,27 +354,27 @@ export default function AdminUsers() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-900">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2 text-red-600">غير مسموح</h2>
-          <p className="text-gray-600">ليس لديك صلاحية للوصول إلى هذه الصفحة</p>
+          <h2 className="text-xl font-semibold mb-2 text-red-600 dark:text-red-400">غير مسموح</h2>
+          <p className="text-gray-600 dark:text-gray-400">ليس لديك صلاحية للوصول إلى هذه الصفحة</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-gray-900 mb-1 flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2">
                 <Users className="w-5 h-5" />
                 إدارة المستخدمين
               </h1>
-              <p className="text-sm text-gray-600">عرض وإدارة جميع المستخدمين المسجلين</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">عرض وإدارة جميع المستخدمين المسجلين</p>
             </div>
             
             <div className="flex items-center gap-3">
@@ -394,9 +394,9 @@ export default function AdminUsers() {
           
           {/* Action Buttons Row */}
           {selectedUsers.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 mr-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">
                   تم تحديد {selectedUsers.length} مستخدم:
                 </span>
                 <button
@@ -419,18 +419,18 @@ export default function AdminUsers() {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 mb-6">
           {/* Search Bar */}
-          <div className="p-4 border-b">
+          <div className="p-4 border-b dark:border-gray-700">
             <form onSubmit={handleSearch} className="flex gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="البحث بالاسم أو الإيميل أو رقم الهاتف..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 />
               </div>
               <button
@@ -445,9 +445,9 @@ export default function AdminUsers() {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-md border text-sm ${
                   showFilters || hasActiveFilters 
-                    ? 'bg-gray-100 border-gray-400 text-gray-700' 
-                    : 'bg-white border-gray-300 text-gray-600'
-                } hover:bg-gray-100`}
+                    ? 'bg-gray-100 dark:bg-gray-600 border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-200' 
+                    : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'
+                } hover:bg-gray-100 dark:hover:bg-gray-600`}
               >
                 <Filter className="w-4 h-4" />
                 فلترة
@@ -462,18 +462,18 @@ export default function AdminUsers() {
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="p-4 bg-gray-50">
+            <div className="p-4 bg-gray-50 dark:bg-gray-700">
               <div className="space-y-4">
                 {/* First Row: Role and Education Level */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       الدور
                     </label>
                     <select
                       value={filters.role}
                       onChange={(e) => handleFilterChange('role', e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">جميع الأدوار</option>
                       <option value="admin">مدير</option>
@@ -484,13 +484,13 @@ export default function AdminUsers() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       المستوى التعليمي
                     </label>
                     <select
                       value={filters.educationLevel}
                       onChange={(e) => handleFilterChange('educationLevel', e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">جميع المستويات</option>
                       <option value="الابتدائي">الابتدائي</option>
@@ -503,13 +503,13 @@ export default function AdminUsers() {
                 {/* Second Row: Subject and Teacher */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       المادة
                     </label>
                     <select
                       value={filters.subject}
                       onChange={(e) => handleFilterChange('subject', e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">جميع المواد</option>
                       {teachingModules.map((module) => (
@@ -521,13 +521,13 @@ export default function AdminUsers() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       المعلم المسؤول
                     </label>
                     <select
                       value={filters.assignedTeacher}
                       onChange={(e) => handleFilterChange('assignedTeacher', e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">جميع المعلمين</option>
                       {teacherUsers.map((teacher) => (
@@ -544,7 +544,7 @@ export default function AdminUsers() {
                   <div className="flex justify-end pt-2">
                     <button
                       onClick={clearFilters}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 bg-white"
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 bg-white dark:bg-gray-700"
                     >
                       <X className="w-4 h-4" />
                       مسح الفلاتر
@@ -557,14 +557,14 @@ export default function AdminUsers() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="px-4 py-3 border-b bg-gray-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700">
+          <div className="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-medium text-gray-900">المستخدمون ({users.length})</h3>
+              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">المستخدمون ({users.length})</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleSelectAll}
-                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+                  className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                 >
                   {selectedUsers.length === users.length ? (
                     <CheckSquare className="w-4 h-4" />
@@ -580,43 +580,43 @@ export default function AdminUsers() {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-              <p className="text-sm text-gray-500 mt-2">جاري تحميل المستخدمين...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">جاري تحميل المستخدمين...</p>
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-8">
-              <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">لا يوجد مستخدمون</h3>
-              <p className="text-sm text-gray-500">لم يتم العثور على مستخدمين</p>
+              <Users className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">لا يوجد مستخدمون</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">لم يتم العثور على مستخدمين</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       اختيار
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       المستخدم
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       الدور
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       تاريخ التسجيل
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       الإجراءات
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-4 py-4 whitespace-nowrap">
                         <button
                           onClick={() => toggleUserSelection(user.id)}
-                          className="text-purple-600 hover:text-purple-700"
+                          className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
                         >
                           {selectedUsers.includes(user.id) ? (
                             <CheckSquare className="w-4 h-4" />
@@ -633,12 +633,12 @@ export default function AdminUsers() {
                             </span>
                           </div>
                           <div className="mr-3">
-                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-xs text-gray-500 flex items-center gap-1">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                               <Mail className="w-3 h-3" />
                               {user.email}
                             </div>
-                            <div className="text-xs text-gray-500 flex items-center gap-1">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                               <Phone className="w-3 h-3" />
                               {user.phone}
                             </div>
@@ -647,17 +647,17 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                          user.role === 'teacher' ? 'bg-blue-100 text-blue-800' :
-                          user.role === 'student' ? 'bg-purple-100 text-purple-800' :
-                          'bg-green-100 text-green-800'
+                          user.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' :
+                          user.role === 'teacher' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
+                          user.role === 'student' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' :
+                          'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                         }`}>
                           {user.role === 'admin' ? 'مدير' : 
                            user.role === 'teacher' ? 'معلم' :
                            user.role === 'student' ? 'طالب' : 'ولي أمر'}
                         </span>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {formatDate(user.createdAt)}
@@ -667,7 +667,7 @@ export default function AdminUsers() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => fetchUserDetails(user.id)}
-                            className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-xs"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 text-xs"
                           >
                             <Eye className="w-3 h-3" />
                             عرض
@@ -675,7 +675,7 @@ export default function AdminUsers() {
                           {user.role !== 'admin' && (
                             <button
                               onClick={() => handleBanUser(user.id, user.name)}
-                              className="text-red-600 hover:text-red-700 flex items-center gap-1 text-xs"
+                              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 text-xs"
                             >
                               <Ban className="w-3 h-3" />
                               حظر
@@ -693,13 +693,13 @@ export default function AdminUsers() {
 
         {/* User Details Modal */}
         {viewingUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">تفاصيل المستخدم</h2>
+                <h2 className="text-xl font-semibold dark:text-gray-100">تفاصيل المستخدم</h2>
                 <button
                   onClick={() => setViewingUser(null)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 >
                   ✕
                 </button>
@@ -708,29 +708,29 @@ export default function AdminUsers() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* User Info */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">المعلومات الشخصية</h3>
+                  <h3 className="text-lg font-semibold mb-3 dark:text-gray-200">المعلومات الشخصية</h3>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">الاسم:</span>
-                      <span>{viewingUser.name}</span>
+                      <span className="font-medium dark:text-gray-300">الاسم:</span>
+                      <span className="dark:text-gray-200">{viewingUser.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      <span className="font-medium">الإيميل:</span>
-                      <span>{viewingUser.email}</span>
+                      <span className="font-medium dark:text-gray-300">الإيميل:</span>
+                      <span className="dark:text-gray-200">{viewingUser.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      <span className="font-medium">الهاتف:</span>
-                      <span>{viewingUser.phone}</span>
+                      <span className="font-medium dark:text-gray-300">الهاتف:</span>
+                      <span className="dark:text-gray-200">{viewingUser.phone}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">الدور:</span>
+                      <span className="font-medium dark:text-gray-300">الدور:</span>
                       <span className={`px-2 py-1 rounded text-xs ${
-                        viewingUser.role === 'admin' ? 'bg-red-100 text-red-800' :
-                        viewingUser.role === 'teacher' ? 'bg-blue-100 text-blue-800' :
-                        viewingUser.role === 'student' ? 'bg-purple-100 text-purple-800' :
-                        'bg-green-100 text-green-800'
+                        viewingUser.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' :
+                        viewingUser.role === 'teacher' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
+                        viewingUser.role === 'student' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' :
+                        'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                       }`}>
                         {viewingUser.role === 'admin' ? 'مدير' : 
                          viewingUser.role === 'teacher' ? 'معلم' :
@@ -739,8 +739,8 @@ export default function AdminUsers() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      <span className="font-medium">تاريخ التسجيل:</span>
-                      <span>{formatDate(viewingUser.createdAt)}</span>
+                      <span className="font-medium dark:text-gray-300">تاريخ التسجيل:</span>
+                      <span className="dark:text-gray-200">{formatDate(viewingUser.createdAt)}</span>
                     </div>
                   </div>
                   

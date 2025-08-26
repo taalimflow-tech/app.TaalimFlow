@@ -34,9 +34,9 @@ export default function AdminPanel() {
           <Link href="admin/users">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6 text-center">
-                <Users className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">إدارة المستخدمين</h3>
-                <p className="text-sm text-gray-600">عرض وإدارة جميع المستخدمين المسجلين</p>
+                <Users className="w-12 h-12 text-purple-600 dark:text-purple-400 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">إدارة المستخدمين</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">عرض وإدارة جميع المستخدمين المسجلين</p>
               </CardContent>
             </Card>
           </Link>
