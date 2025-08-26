@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ProfilePicture } from '@/components/ProfilePicture';
 import { EmailVerificationModal } from '@/components/EmailVerificationModal';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
+import { StudentIDCard } from '@/components/StudentIDCard';
 
 interface Child {
   id: number;
@@ -83,6 +84,24 @@ export default function Profile() {
     
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch student data for ID card (only for students)
+  const { data: studentData } = useQuery({
+    queryKey: ['/api/students/me'],
+    enabled: user?.role === 'student'
+  });
+
+  // Fetch school data
+  const { data: schoolData } = useQuery({
+    queryKey: ['/api/schools/current'],
+    enabled: !!user?.schoolId
+  });
+
+  // Fetch teaching modules for subjects
+  const { data: teachingModules } = useQuery({
+    queryKey: ['/api/teaching-modules'],
+    enabled: user?.role === 'student'
+  });
 
   const handleProfilePictureUpdate = (pictureUrl: string) => {
     // Update the user context with the new profile picture
@@ -441,6 +460,41 @@ export default function Profile() {
             userName={user?.name || ''}
             onUpdate={handleProfilePictureUpdate}
           />
+
+          {/* Student ID Card Section - Only show for students */}
+          {user.role === 'student' && studentData && studentData.verified && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  بطاقة الهوية
+                </CardTitle>
+                <CardDescription>
+                  بطاقة هويتك كطالب في المدرسة
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-center">
+                  <StudentIDCard
+                    student={{
+                      id: studentData.id,
+                      name: studentData.name,
+                      educationLevel: studentData.educationLevel,
+                      grade: studentData.grade,
+                      selectedSubjects: studentData.selectedSubjects || [],
+                      type: 'student',
+                      profilePicture: user.profilePicture || undefined
+                    }}
+                    schoolInfo={{
+                      id: user.schoolId || 0,
+                      name: schoolData?.name || 'مدرستي'
+                    }}
+                    subjects={teachingModules || []}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
