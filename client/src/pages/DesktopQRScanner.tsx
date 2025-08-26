@@ -143,13 +143,11 @@ function GroupAttendanceTable({
 
   const getMonthDisplayName = (monthKey: string) => {
     if (!monthKey || typeof monthKey !== 'string') {
-      console.warn('Invalid monthKey:', monthKey);
       return '';
     }
     
     const parts = monthKey.split('-');
     if (parts.length !== 2) {
-      console.warn('Invalid monthKey format:', monthKey, 'Expected YYYY-MM');
       return monthKey;
     }
     
@@ -157,7 +155,6 @@ function GroupAttendanceTable({
     
     // Ensure year is exactly 4 digits and month is 1-2 digits
     if (year.length !== 4 || !/^\d{4}$/.test(year)) {
-      console.warn('Invalid year in monthKey:', year);
       return monthKey;
     }
     
@@ -168,12 +165,10 @@ function GroupAttendanceTable({
     
     const monthIndex = parseInt(month, 10) - 1;
     if (monthIndex < 0 || monthIndex > 11) {
-      console.warn('Invalid month index:', monthIndex, 'from month:', month);
       return monthKey;
     }
     
     const result = `${monthNames[monthIndex]} ${year}`;
-    console.log('getMonthDisplayName:', monthKey, '->', result);
     return result;
   };
 
@@ -193,7 +188,6 @@ function GroupAttendanceTable({
   useEffect(() => {
     // Force refresh payment data when refreshTrigger changes
     if (refreshTrigger && refreshTrigger > 0) {
-      console.log(`🔄 Attendance table refresh triggered (trigger: ${refreshTrigger}) for group ${groupId}`);
       
       // Re-fetch payment data for all relevant months immediately
       const currentYear = new Date().getFullYear();
@@ -216,11 +210,9 @@ function GroupAttendanceTable({
                 const studentPayment = paymentData.find((record: any) => 
                   record.studentId === studentId && record.studentType === studentType
                 );
-                console.log(`🔍 Refreshed payment status for ${monthKey}:`, studentPayment?.isPaid ? 'PAID' : 'NOT PAID');
                 return { monthKey, payment: studentPayment };
               }
             } catch (error) {
-              console.error(`Error fetching payment for ${monthKey}:`, error);
             }
             return { monthKey, payment: null };
           });
@@ -235,14 +227,12 @@ function GroupAttendanceTable({
           });
           
           if (Object.keys(refreshedPayments).length > 0) {
-            console.log(`✅ Updating attendance table with refreshed payment data:`, refreshedPayments);
             setPaymentStatusByMonth(prev => ({
               ...prev,
               ...refreshedPayments
             }));
           }
         } catch (error) {
-          console.error('Error refreshing payment status:', error);
         }
       };
       
@@ -284,11 +274,6 @@ function GroupAttendanceTable({
           const attendanceData = await attendanceResponse.json();
           // Store ALL attendance history (same as Groups.tsx) - no filtering at fetch time
           // The frontend will filter by userId when needed (same logic as Groups.tsx)
-          console.log(`🔍 Fetched ALL attendance history for group ${groupId}:`, {
-            totalRecords: attendanceData.length,
-            userId,
-            studentType
-          });
           setAttendanceHistory(attendanceData);
         }
 
@@ -335,7 +320,6 @@ function GroupAttendanceTable({
           setPaymentStatus(paymentsByMonth[currentMonthKey]);
         }
       } catch (error) {
-        console.error('Error fetching group data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -385,10 +369,10 @@ function GroupAttendanceTable({
             </Button>
             
             <div className="flex items-center gap-2">
-              <div className="text-sm font-medium px-3 py-1 bg-blue-50 rounded-lg text-blue-700">
+              <div className="text-sm font-medium px-3 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-700 dark:text-blue-300">
                 {currentMonthKey ? getMonthDisplayName(currentMonthKey) : ''}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
                 {currentMonthIndex + 1} / {monthKeys.length}
               </div>
             </div>
@@ -408,13 +392,13 @@ function GroupAttendanceTable({
 
       {monthKeys.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300" dir="rtl">
+          <table className="w-full border-collapse border border-gray-300 dark:border-gray-600" dir="rtl">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
-                <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">حالة الدفع</th>
+              <tr className="bg-gray-100 dark:bg-gray-700">
+                <th className="border border-gray-300 dark:border-gray-600 p-2 text-right font-medium dark:text-gray-200">اسم الطالب</th>
+                <th className="border border-gray-300 dark:border-gray-600 p-2 text-center font-medium min-w-[80px] dark:text-gray-200">حالة الدفع</th>
                 {currentMonthDates.map((date) => (
-                  <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                  <th key={date} className="border border-gray-300 dark:border-gray-600 p-2 text-center font-medium min-w-[80px] dark:text-gray-200">
                     <div className="text-xs">
                       {new Date(date).toLocaleDateString('en-US', { 
                         day: 'numeric', 
@@ -426,11 +410,11 @@ function GroupAttendanceTable({
               </tr>
             </thead>
             <tbody>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 p-3 font-medium">
-                  <div className="font-medium">{studentName}</div>
+              <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="border border-gray-300 dark:border-gray-600 p-3 font-medium">
+                  <div className="font-medium dark:text-gray-200">{studentName}</div>
                 </td>
-                <td className="border border-gray-300 p-2 text-center">
+                <td className="border border-gray-300 dark:border-gray-600 p-2 text-center">
                   <div className="flex flex-col items-center space-y-1">
                     {(() => {
                       // Extract month number from currentMonthKey (YYYY-MM format)
@@ -445,18 +429,17 @@ function GroupAttendanceTable({
                       const paymentRecord = paymentStatusByMonth[monthKey];
                       isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                       
-                      console.log(`🔍 Attendance table payment check: Group ${groupId}, Year ${currentYear}, Month ${currentMonth}, MonthKey: ${monthKey}, Paid: ${isMonthPaid}`);
                       
                       return (
                         <>
                           <span className={`px-3 py-1 rounded text-sm font-medium ${
                             isMonthPaid
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                              : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                           }`}>
                             {isMonthPaid ? '✅' : '❌'}
                           </span>
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
                             {isMonthPaid ? 'مدفوع' : 'غير مدفوع'}
                           </span>
                         </>
@@ -472,13 +455,13 @@ function GroupAttendanceTable({
                   );
                   
                   return (
-                    <td key={date} className="border border-gray-300 p-1 text-center">
+                    <td key={date} className="border border-gray-300 dark:border-gray-600 p-1 text-center">
                       <div className={`w-8 h-8 rounded text-xs font-bold mx-auto flex items-center justify-center ${
                         attendanceRecord?.status === 'present' 
                           ? 'bg-green-500 text-white' 
                           : attendanceRecord?.status === 'absent'
                           ? 'bg-red-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
+                          : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                       }`}>
                         {attendanceRecord?.status === 'present' ? '✓' : 
                          attendanceRecord?.status === 'absent' ? '✗' : '?'}
@@ -492,9 +475,9 @@ function GroupAttendanceTable({
 
           {/* Monthly Statistics */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-green-100 rounded-lg p-3 text-center">
-              <h5 className="font-medium text-green-800">حضور الشهر</h5>
-              <p className="text-xl font-bold text-green-900">
+            <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
+              <h5 className="font-medium text-green-800 dark:text-green-300">حضور الشهر</h5>
+              <p className="text-xl font-bold text-green-900 dark:text-green-100">
                 {attendanceHistory.filter(r => 
                   r.userId === userId &&
                   r.status === 'present' && 
@@ -502,9 +485,9 @@ function GroupAttendanceTable({
                 ).length}
               </p>
             </div>
-            <div className="bg-red-100 rounded-lg p-3 text-center">
-              <h5 className="font-medium text-red-800">غياب الشهر</h5>
-              <p className="text-xl font-bold text-red-900">
+            <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 text-center">
+              <h5 className="font-medium text-red-800 dark:text-red-300">غياب الشهر</h5>
+              <p className="text-xl font-bold text-red-900 dark:text-red-100">
                 {attendanceHistory.filter(r => 
                   r.userId === userId &&
                   r.status === 'absent' && 
@@ -512,9 +495,9 @@ function GroupAttendanceTable({
                 ).length}
               </p>
             </div>
-            <div className="bg-blue-100 rounded-lg p-3 text-center">
-              <h5 className="font-medium text-blue-800">نسبة حضور الشهر</h5>
-              <p className="text-xl font-bold text-blue-900">
+            <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-3 text-center">
+              <h5 className="font-medium text-blue-800 dark:text-blue-300">نسبة حضور الشهر</h5>
+              <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
                 {(() => {
                   const monthRecords = attendanceHistory.filter(r => 
                     r.userId === userId &&
@@ -630,7 +613,6 @@ function DesktopQRScanner() {
         });
       }
     } catch (error) {
-      console.error('Search error:', error);
       toast({
         title: "خطأ في الشبكة",
         description: "فشل في الاتصال بالخادم",
@@ -651,17 +633,10 @@ function DesktopQRScanner() {
   const handleSelectStudent = async (student: any) => {
     setIsProcessing(true);
     try {
-      console.log('🔍 handleSelectStudent called with:', {
-        id: student.id,
-        type: student.type,
-        role: student.role,
-        name: student.name
-      });
       
       // Check if this is a child or a regular student
       if (student.type === 'child') {
         // Direct child selection - create child QR code
-        console.log('🔍 Handling child selection - creating child QR code');
         const response = await fetch('/api/scan-student-qr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -690,7 +665,6 @@ function DesktopQRScanner() {
         }
       } else if (student.role === 'user') {
         // Parent user - get their children
-        console.log('🔍 Handling parent selection - fetching children');
         const childrenResponse = await fetch(`/api/children?parentId=${student.id}`);
         if (childrenResponse.ok) {
           const children = await childrenResponse.json();
@@ -726,7 +700,6 @@ function DesktopQRScanner() {
         }
       } else {
         // Regular student selection
-        console.log('🔍 Handling regular student selection');
         const response = await fetch('/api/scan-student-qr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -753,7 +726,6 @@ function DesktopQRScanner() {
         }
       }
     } catch (error) {
-      console.error('Student selection error:', error);
       toast({
         title: "خطأ في الشبكة",
         description: "فشل في الاتصال بالخادم",
@@ -770,7 +742,6 @@ function DesktopQRScanner() {
       try {
         controlsRef.current.stop();
       } catch (err) {
-        console.log('Scanner cleanup error:', err);
       }
     }
     // Also stop all video streams
