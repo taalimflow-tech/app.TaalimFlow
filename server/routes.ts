@@ -169,6 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schoolId: user.schoolId || undefined,
           phone: user.phone,
           gender: user.gender,
+          profilePicture: user.profilePicture,
         };
         req.session.userId = user.id;
         req.session.schoolId = user.schoolId || undefined;
@@ -670,10 +671,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user info (for role verification)
   app.get("/api/auth/me", requireAuth, async (req, res) => {
     try {
-      const currentUser = req.session.user;
-      // Check if the current user is banned
+      // Get fresh user data from database including profile picture
       const latestUserData = await storage.getUser(req.session.user.id);
-      if (latestUserData && latestUserData.banned) {
+      if (!latestUserData) {
+        req.session.user = null; // Clear the session
+        return res.status(401).json({ error: "المستخدم غير موجود" });
+      }
+
+      // Check if the current user is banned
+      if (latestUserData.banned) {
         req.session.user = null; // Clear the session
         return res.status(403).json({
           error:
@@ -682,9 +688,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { password: _, ...userWithoutPassword } = currentUser;
+      // Update session with fresh data including profile picture
+      req.session.user = {
+        id: latestUserData.id,
+        email: latestUserData.email,
+        name: latestUserData.name,
+        role: latestUserData.role,
+        schoolId: latestUserData.schoolId,
+        phone: latestUserData.phone,
+        gender: latestUserData.gender,
+        profilePicture: latestUserData.profilePicture,
+      };
+
+      const { password: _, ...userWithoutPassword } = latestUserData;
       res.json({ user: userWithoutPassword });
     } catch (error) {
+      console.error("Error in /api/auth/me:", error);
       res.status(500).json({ error: "خطأ في الخادم" });
     }
   });
