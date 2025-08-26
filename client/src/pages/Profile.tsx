@@ -483,7 +483,7 @@ export default function Profile() {
                       grade: studentData.grade,
                       selectedSubjects: studentData.selectedSubjects || [],
                       type: 'student',
-                      profilePicture: user.profilePicture || undefined
+                      profilePicture: user.profilePicture
                     }}
                     schoolInfo={{
                       id: user.schoolId || 0,
