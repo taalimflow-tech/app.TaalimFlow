@@ -2531,20 +2531,6 @@ export default function Groups() {
                     );
 
                     if (existingGroupsFilter === "custom") {
-                      console.log("🔍 DEBUG: Filtering custom groups...");
-                      console.log("🔍 Available admin groups:", adminCreatedGroups.map(g => ({
-                        id: g.id,
-                        name: g.name,
-                        subjectId: g.subjectId,
-                        educationLevel: g.educationLevel
-                      })));
-                      console.log("🔍 Available teaching modules:", teachingModules?.map(m => ({
-                        id: m.id,
-                        name: m.name,
-                        nameAr: m.nameAr,
-                        schoolId: m.schoolId
-                      })));
-
                       // Show groups based on custom subjects (subjects created by this school)
                       // These are subjects that have a schoolId AND are not part of standard curriculum
                       filteredGroups = adminCreatedGroups.filter((group) => {
@@ -2553,19 +2539,8 @@ export default function Groups() {
                           (module: any) => module.id === group.subjectId,
                         );
 
-                        console.log(`🔍 Group "${group.name}" (ID: ${group.id}):`, {
-                          subjectId: group.subjectId,
-                          teachingModule: teachingModule ? {
-                            id: teachingModule.id,
-                            name: teachingModule.name,
-                            nameAr: teachingModule.nameAr,
-                            schoolId: teachingModule.schoolId
-                          } : 'NOT FOUND'
-                        });
-
                         // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
                         if (!teachingModule || !teachingModule.schoolId) {
-                          console.log(`❌ Group "${group.name}" excluded: No teaching module or no schoolId`);
                           return false;
                         }
 
@@ -2596,10 +2571,7 @@ export default function Groups() {
                             subjectName.includes(standard.toLowerCase()),
                         );
 
-                        const isCustom = !isStandardSubject;
-                        console.log(`${isCustom ? '✅' : '❌'} Group "${group.name}" - Subject: "${subjectName}" - ${isCustom ? 'CUSTOM' : 'STANDARD'}`);
-
-                        return isCustom;
+                        return !isStandardSubject;
                       });
                     } else {
                       // Show admin groups by education level - include ALL groups for that level

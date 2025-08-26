@@ -1,0 +1,48 @@
+stallwart: failed ping 1
+quillbot-content.js:2 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'id')
+    at Object.s [as onDocumentFocus] (quillbot-content.js:2:1728405)
+    at V._onDocumentFocus (quillbot-content.js:2:887436)
+s @ quillbot-content.js:2
+V._onDocumentFocus @ quillbot-content.js:2Understand this error
+Groups.tsx:2534 🔍 DEBUG: Filtering custom groups...
+Groups.tsx:2535 🔍 Available admin groups: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Groups.tsx:2541 🔍 Available teaching modules: (127) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, …]
+Groups.tsx:2556 🔍 Group "مجموعة اللغة الإنجليزية" (ID: 33): {subjectId: 1317, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة اللغة الإنجليزية" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الرياضيات" (ID: 27): {subjectId: 1375, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الرياضيات" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الرياضيات" (ID: 34): {subjectId: 1343, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الرياضيات" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الرياضيات" (ID: 29): {subjectId: 1346, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الرياضيات" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة العلوم الطبيعية" (ID: 35): {subjectId: 1347, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة العلوم الطبيعية" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة chesss" (ID: 36): {subjectId: 1413, teachingModule: 'NOT FOUND'}
+Groups.tsx:2568 ❌ Group "مجموعة chesss" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الإعلام الآلي" (ID: 37): {subjectId: 1392, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الإعلام الآلي" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة برمجة dev" (ID: 38): {subjectId: 1414, teachingModule: 'NOT FOUND'}
+Groups.tsx:2568 ❌ Group "مجموعة برمجة dev" excluded: No teaching module or no schoolId
+Groups.tsx:2718 DEBUG: Final filtered groups: []
+Groups.tsx:2726 DEBUG: About to render 0 groups
+Groups.tsx:2534 🔍 DEBUG: Filtering custom groups...
+Groups.tsx:2535 🔍 Available admin groups: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Groups.tsx:2541 🔍 Available teaching modules: (127) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, …]
+Groups.tsx:2556 🔍 Group "مجموعة اللغة الإنجليزية" (ID: 33): {subjectId: 1317, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة اللغة الإنجليزية" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الرياضيات" (ID: 27): {subjectId: 1375, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الرياضيات" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الرياضيات" (ID: 34): {subjectId: 1343, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الرياضيات" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الرياضيات" (ID: 29): {subjectId: 1346, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الرياضيات" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة العلوم الطبيعية" (ID: 35): {subjectId: 1347, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة العلوم الطبيعية" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة chesss" (ID: 36): {subjectId: 1413, teachingModule: 'NOT FOUND'}
+Groups.tsx:2568 ❌ Group "مجموعة chesss" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة الإعلام الآلي" (ID: 37): {subjectId: 1392, teachingModule: {…}}
+Groups.tsx:2568 ❌ Group "مجموعة الإعلام الآلي" excluded: No teaching module or no schoolId
+Groups.tsx:2556 🔍 Group "مجموعة برمجة dev" (ID: 38): {subjectId: 1414, teachingModule: 'NOT FOUND'}
+Groups.tsx:2568 ❌ Group "مجموعة برمجة dev" excluded: No teaching module or no schoolId
+Groups.tsx:2718 DEBUG: Final filtered groups: []
+Groups.tsx:2726 DEBUG: About to render 0 groups
