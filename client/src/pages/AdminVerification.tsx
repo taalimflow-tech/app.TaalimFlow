@@ -1017,7 +1017,8 @@ export default function AdminVerification() {
                                 educationLevel: selectedItem.data.educationLevel,
                                 grade: selectedItem.data.grade,
                                 selectedSubjects: selectedItem.data.selectedSubjects,
-                                type: selectedItem.type === 'verified-child' ? 'child' : 'student'
+                                type: selectedItem.type === 'verified-child' ? 'child' : 'student',
+                                profilePicture: selectedItem.data.profilePicture
                               }}
                               schoolInfo={{
                                 id: user?.schoolId || 0,
