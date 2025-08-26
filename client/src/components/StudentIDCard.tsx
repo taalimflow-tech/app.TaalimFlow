@@ -66,6 +66,17 @@ export function StudentIDCard({
   const [isGenerating, setIsGenerating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Debug log to check profile picture data
+  useEffect(() => {
+    console.log('StudentIDCard received data:', {
+      studentId: student.id,
+      studentName: student.name,
+      profilePicture: student.profilePicture,
+      profilePictureType: typeof student.profilePicture,
+      profilePictureLength: student.profilePicture?.length
+    });
+  }, [student]);
+
   // Generate QR code data
   const generateQRCodeData = () => {
     return `${student.type}:${student.id}:${schoolInfo.id}:verified`;
@@ -255,6 +266,16 @@ export function StudentIDCard({
                   src={student.profilePicture}
                   alt={student.name}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('Profile picture failed to load:', student.profilePicture);
+                    // Hide the image and show default icon on error
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    if (parent) {
+                      parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>';
+                    }
+                  }}
+                  onLoad={() => console.log('Profile picture loaded successfully:', student.profilePicture)}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
