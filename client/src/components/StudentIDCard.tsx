@@ -93,7 +93,7 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
 
   // Download ID card as image
   const downloadIDCard = () => {
-    // Create a canvas to draw the ID card (real ID card dimensions: 85.6mm x 53.98mm)
+    // Create a canvas to draw the ID card matching the current UI design
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -102,51 +102,82 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     canvas.width = 600;
     canvas.height = 375;
 
-    // Fill background with gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#f8fafc');
-    gradient.addColorStop(1, '#e2e8f0');
-    ctx.fillStyle = gradient;
+    // Fill white background
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Add main border
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
-    // Add school header background
-    ctx.fillStyle = '#1e40af';
-    ctx.fillRect(15, 15, canvas.width - 30, 60);
+    // Draw logo circle in top corner
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath();
+    ctx.arc(canvas.width - 40, 40, 20, 0, 2 * Math.PI);
+    ctx.fill();
 
-    // Add school name
+    // Add school header background (simple blue rectangle)
+    ctx.fillStyle = '#2563eb';
+    ctx.fillRect(0, 0, canvas.width, 80);
+
+    // Add school name in header
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px Arial';
+    ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(schoolInfo.name, canvas.width / 2, 40);
-    ctx.font = '12px Arial';
-    ctx.fillText('بطاقة هوية طالب', canvas.width / 2, 60);
-
-    // Add student info section
-    ctx.fillStyle = '#1f2937';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'right';
-    ctx.fillText(`الاسم: ${student.name}`, canvas.width - 140, 110);
+    const schoolName = schoolInfo?.name || 'اسم المدرسة';
+    ctx.fillText(schoolName, canvas.width / 2, 35);
     
-    ctx.font = '12px Arial';
-    ctx.fillText(`المستوى: ${formatEducationLevel(student.educationLevel, student.grade)}`, canvas.width - 140, 135);
-    ctx.fillText(`الرقم: ${student.id}`, canvas.width - 140, 155);
-    ctx.fillText(`النوع: ${student.type === 'student' ? 'طالب' : 'طفل'}`, canvas.width - 140, 175);
+    ctx.font = '16px Arial';
+    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 60);
 
-    // Add subjects if available
+    // Main content area
+    ctx.fillStyle = '#1f2937';
+    ctx.textAlign = 'right';
+    
+    // Student name
+    ctx.font = '12px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('الاسم', canvas.width - 40, 120);
+    ctx.font = 'bold 18px Arial';
+    ctx.fillStyle = '#1f2937';
+    ctx.fillText(student.name, canvas.width - 40, 145);
+
+    // Student type badge (simulate with text)
+    ctx.font = '12px Arial';
+    ctx.fillStyle = '#2563eb';
+    ctx.fillText(student.type === 'student' ? 'طالب' : 'طفل', 60, 135);
+
+    // Education level and student ID
+    ctx.font = '12px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('المستوى', canvas.width - 40, 180);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = '#1f2937';
+    ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), canvas.width - 40, 200);
+
+    ctx.font = '12px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('الرقم', canvas.width - 200, 180);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = '#2563eb';
+    ctx.fillText(student.id.toString(), canvas.width - 200, 200);
+
+    // Subjects
     const subjectNames = getSubjectNames();
     if (subjectNames.length > 0) {
-      ctx.fillText('المواد المسجلة:', canvas.width - 140, 200);
-      subjectNames.slice(0, 2).forEach((subject, index) => {
-        ctx.font = '10px Arial';
-        ctx.fillText(`• ${subject}`, canvas.width - 140, 220 + (index * 15));
-      });
-      if (subjectNames.length > 2) {
-        ctx.fillText(`+${subjectNames.length - 2} أخرى`, canvas.width - 140, 250);
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#6b7280';
+      ctx.fillText('المواد', canvas.width - 40, 240);
+      
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#1f2937';
+      const subjectsText = subjectNames.slice(0, 3).join(' • ');
+      ctx.fillText(subjectsText, canvas.width - 40, 260);
+      
+      if (subjectNames.length > 3) {
+        ctx.fillStyle = '#2563eb';
+        ctx.fillText(`و ${subjectNames.length - 3} أخرى`, canvas.width - 40, 280);
       }
     }
 
@@ -154,13 +185,8 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     if (qrCodeImage) {
       const qrImg = new Image();
       qrImg.onload = () => {
-        // QR code positioned on the left side
-        ctx.drawImage(qrImg, 30, 100, 100, 100);
-        
-        // Add QR code label
-        ctx.font = '10px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('رمز التحقق', 80, 220);
+        // Draw QR code
+        ctx.drawImage(qrImg, 40, 250, 80, 80);
         
         // Download the canvas as image
         const link = document.createElement('a');
