@@ -92,7 +92,7 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     generateQRCode();
   }, [student.id, student.type, schoolInfo.id]);
 
-  const downloadIDCard = async () => {
+  const downloadIDCard = () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -100,159 +100,151 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     canvas.width = 600;
     canvas.height = 350;
 
-    // Try to load Arabic font, fallback to Arial if fails
-    let fontFamily = 'Arial';
-    try {
-      const font = new FontFace(
-        'NotoArabic',
-        'url(https://fonts.gstatic.com/s/notosansarabic/v17/3q2b8AJk6y2izaplaR2gLA.woff2)'
-      );
-      await font.load();
-      document.fonts.add(font);
-      fontFamily = 'NotoArabic';
-    } catch (error) {
-      console.log('Font loading failed, using fallback');
-    }
-
-    // Helper function for rounded rectangles (browser compatibility)
-    const roundRect = (x: number, y: number, w: number, h: number, r: number) => {
-      if (w < 2 * r) r = w / 2;
-      if (h < 2 * r) r = h / 2;
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r);
-      ctx.arcTo(x, y + h, x, y, r);
-      ctx.arcTo(x, y, x + w, y, r);
-      ctx.closePath();
-    };
-
-    // White background with rounded corners
+    // White background
     ctx.fillStyle = '#ffffff';
-    roundRect(0, 0, canvas.width, canvas.height, 20);
-    ctx.fill();
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Gradient header
-    const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    headerGradient.addColorStop(0, '#2563eb');
-    headerGradient.addColorStop(1, '#3b82f6');
-    ctx.fillStyle = headerGradient;
+    // Border
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+    // Blue header
+    ctx.fillStyle = '#2563eb';
     ctx.fillRect(0, 0, canvas.width, 60);
 
-    // School name
-    ctx.fillStyle = '#fff';
+    // School name - center aligned
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'center';
-    ctx.font = `bold 20px ${fontFamily}`;
-    ctx.fillText(schoolInfo?.name || 'اسم المدرسة', canvas.width / 2, 35);
-    ctx.font = `14px ${fontFamily}`;
-    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 50);
+    const schoolName = schoolInfo?.name || 'اسم المدرسة';
+    ctx.fillText(schoolName, canvas.width / 2, 28);
+    
+    ctx.font = '12px Arial';
+    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 48);
 
-    // Profile photo
+    // Photo frame - left side
     const photoX = 30;
-    const photoY = 90;
+    const photoY = 80;
     const photoSize = 80;
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(photoX, photoY, photoSize, photoSize);
     ctx.fillStyle = '#f3f4f6';
-    ctx.beginPath();
-    ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, 2 * Math.PI);
-    ctx.fill();
+    ctx.fillRect(photoX, photoY, photoSize, photoSize);
 
-    const drawCardDetails = () => {
-      const rightX = canvas.width - 30;
+    // Content - right side
+    const contentX = 140; // Start content after photo
+    const rightX = canvas.width - 30; // Right edge for Arabic text
 
-      // Student name
+    // Student name
+    ctx.textAlign = 'right';
+    ctx.font = '10px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('الاسم:', rightX, 90);
+    
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#1f2937';
+    ctx.fillText(student.name, rightX, 110);
+
+    // Student type badge
+    ctx.fillStyle = '#2563eb';
+    ctx.fillRect(rightX - 80, 115, 60, 20);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(student.type === 'student' ? 'طالب' : 'طفل', rightX - 50, 127);
+
+    // Education level
+    ctx.textAlign = 'right';
+    ctx.font = '10px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('المستوى:', rightX, 150);
+    
+    ctx.font = 'bold 12px Arial';
+    ctx.fillStyle = '#1f2937';
+    ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightX, 170);
+
+    // Student ID
+    ctx.font = '10px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('الرقم:', rightX - 120, 150);
+    
+    ctx.font = 'bold 12px Arial';
+    ctx.fillStyle = '#2563eb';
+    ctx.fillText(`#${student.id}`, rightX - 120, 170);
+
+    // Subjects
+    const subjectNames = getSubjectNames();
+    if (subjectNames.length > 0) {
       ctx.textAlign = 'right';
-      ctx.fillStyle = '#1f2937';
-      ctx.font = `bold 18px ${fontFamily}`;
-      ctx.fillText(student.name, rightX, 110);
-
-      // Student type badge
-      const typeText = student.type === 'student' ? 'طالب' : 'طفل';
-      const badgeWidth = 60;
-      ctx.fillStyle = '#2563eb';
-      ctx.fillRect(rightX - badgeWidth, 95, badgeWidth, 24);
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold 12px ${fontFamily}`;
-      ctx.textAlign = 'center';
-      ctx.fillText(typeText, rightX - badgeWidth / 2, 109);
-
-      // Education level
-      ctx.textAlign = 'right';
+      ctx.font = '10px Arial';
       ctx.fillStyle = '#6b7280';
-      ctx.font = `12px ${fontFamily}`;
-      ctx.fillText('المستوى', rightX, 140);
-      ctx.fillStyle = '#1f2937';
-      ctx.font = `bold 14px ${fontFamily}`;
-      ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightX, 160);
-
-      // Student ID
-      ctx.fillStyle = '#6b7280';
-      ctx.font = `12px ${fontFamily}`;
-      ctx.fillText('الرقم', rightX - 150, 140);
-      ctx.fillStyle = '#2563eb';
-      ctx.font = `bold 14px ${fontFamily}`;
-      ctx.fillText(`#${student.id}`, rightX - 150, 160);
-
-      // Subjects
-      const subjectNames = getSubjectNames();
-      if (subjectNames.length > 0) {
-        ctx.fillStyle = '#6b7280';
-        ctx.font = `12px ${fontFamily}`;
-        ctx.fillText('المواد', rightX, 185);
-        ctx.fillStyle = '#374151';
-        ctx.font = `12px ${fontFamily}`;
-        ctx.fillText(subjectNames.slice(0, 3).join(' • '), rightX, 205);
-        if (subjectNames.length > 3) {
-          ctx.fillStyle = '#2563eb';
-          ctx.fillText(`و ${subjectNames.length - 3} أخرى`, rightX, 225);
-        }
+      ctx.fillText('المواد:', rightX, 195);
+      
+      ctx.font = '10px Arial';
+      ctx.fillStyle = '#374151';
+      const subjectsText = subjectNames.slice(0, 3).join(' • ');
+      ctx.fillText(subjectsText, rightX, 212);
+      
+      if (subjectNames.length > 3) {
+        ctx.fillStyle = '#2563eb';
+        ctx.fillText(`+ ${subjectNames.length - 3} مواد أخرى`, rightX, 228);
       }
+    }
 
-      // QR code
-      const qrX = 30;
-      const qrY = 190;
-      const qrSize = 90;
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(qrX, qrY, qrSize, qrSize);
-      ctx.strokeStyle = '#d1d5db';
-      ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+    // QR code - bottom left
+    const qrX = 30;
+    const qrY = 250;
+    const qrSize = 80;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(qrX, qrY, qrSize, qrSize);
 
-      if (qrCodeImage) {
-        const qrImg = new Image();
-        qrImg.onload = () => {
-          ctx.drawImage(qrImg, qrX + 5, qrY + 5, qrSize - 10, qrSize - 10);
-          downloadCanvas();
-        };
-        qrImg.src = qrCodeImage;
-      } else {
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = `14px ${fontFamily}`;
-        ctx.textAlign = 'center';
-        ctx.fillText('QR', qrX + qrSize / 2, qrY + qrSize / 1.7);
-        downloadCanvas();
-      }
-    };
-
+    // Draw profile image or placeholder
     if (student.profilePicture) {
       const img = new Image();
       img.onload = () => {
         ctx.save();
         ctx.beginPath();
-        ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, 2 * Math.PI);
+        ctx.rect(photoX, photoY, photoSize, photoSize);
         ctx.clip();
         ctx.drawImage(img, photoX, photoY, photoSize, photoSize);
         ctx.restore();
-        drawCardDetails();
+        finishWithQR();
       };
       img.src = student.profilePicture;
     } else {
       ctx.fillStyle = '#9ca3af';
-      ctx.font = `36px ${fontFamily}`;
+      ctx.font = '24px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('👤', photoX + photoSize / 2, photoY + photoSize / 1.5);
-      drawCardDetails();
+      ctx.fillText('👤', photoX + photoSize/2, photoY + photoSize/1.5);
+      finishWithQR();
     }
 
-    function downloadCanvas() {
+    function finishWithQR() {
+      if (!ctx) return;
+      
+      if (qrCodeImage) {
+        const qrImg = new Image();
+        qrImg.onload = () => {
+          if (!ctx) return;
+          ctx.drawImage(qrImg, qrX + 5, qrY + 5, qrSize - 10, qrSize - 10);
+          downloadImage();
+        };
+        qrImg.src = qrCodeImage;
+      } else {
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('QR Code', qrX + qrSize/2, qrY + qrSize/2);
+        downloadImage();
+      }
+    }
+
+    function downloadImage() {
       const link = document.createElement('a');
       link.download = `student_id_${student.name.replace(/\s+/g, '_')}.png`;
       link.href = canvas.toDataURL('image/png', 0.9);
