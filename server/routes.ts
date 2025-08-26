@@ -1326,6 +1326,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.session.user;
       const school = user.schoolId ? await storage.getSchoolById(user.schoolId) : null;
       
+      // Get all schools for debugging
+      const allSchools = await storage.getAllSchools();
+      
       res.json({
         user: {
           id: user.id,
@@ -1337,10 +1340,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: school.id,
           name: school.name,
           code: school.code
-        } : null
+        } : null,
+        allSchools: allSchools.map(s => ({ id: s.id, name: s.name, code: s.code }))
       });
     } catch (error) {
-      res.status(500).json({ error: "Debug info failed" });
+      console.error("Debug endpoint error:", error);
+      res.status(500).json({ error: "Debug info failed", message: error.message });
     }
   });
 
@@ -1369,12 +1374,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: currentUser.role
       });
 
+      // Check if schoolId exists
+      if (!currentUser.schoolId) {
+        console.error("User has no school ID:", currentUser.id);
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة. يرجى تسجيل الدخول مرة أخرى" });
+      }
+
       // Check if school exists
       const school = await storage.getSchoolById(currentUser.schoolId);
       if (!school) {
         console.error("School not found for ID:", currentUser.schoolId);
-        return res.status(400).json({ error: "المدرسة غير موجودة. يرجى الاتصال بالمدير" });
+        return res.status(400).json({ error: "المدرسة غير موجودة. يرجى الاتصال بالمدير أو تسجيل الدخول مرة أخرى" });
       }
+
+      console.log("School found:", { id: school.id, name: school.name });
 
       const validatedData = insertAnnouncementSchema.parse(req.body);
 
