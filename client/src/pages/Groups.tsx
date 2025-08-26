@@ -73,7 +73,7 @@ function ScheduledDatesCarousel({
         </button>
 
         <div className="text-center">
-          <h5 className="font-medium text-gray-800">
+          <h5 className="font-medium text-gray-800 dark:text-gray-200">
             المواعيد المجدولة ({currentIndex * datesPerPage + 1} -{" "}
             {Math.min((currentIndex + 1) * datesPerPage, scheduledDates.length)}{" "}
             من {scheduledDates.length})
@@ -119,10 +119,10 @@ function ScheduledDatesCarousel({
               : 0;
 
           return (
-            <div key={date} className="border rounded-lg p-4 bg-gray-50">
+            <div key={date} className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
               {/* Date Header */}
-              <div className="text-center mb-4 pb-3 border-b border-gray-200">
-                <div className="text-lg font-bold text-gray-800">
+              <div className="text-center mb-4 pb-3 border-b border-gray-200 dark:border-gray-600">
+                <div className="text-lg font-bold text-gray-800 dark:text-gray-100">
                   {dateObj.toLocaleDateString("en-US", {
                     month: "long",
                     day: "numeric",
@@ -159,7 +159,7 @@ function ScheduledDatesCarousel({
                   return (
                     <div key={student.id} className="text-center">
                       <div
-                        className="text-xs font-medium text-gray-700 mb-1 truncate"
+                        className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 truncate"
                         title={student.name}
                       >
                         {student.name.split(" ")[0]}
@@ -1807,23 +1807,23 @@ export default function Groups() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen lg:bg-gradient-to-br lg:from-white lg:via-gray-50/50 lg:to-gray-100/30">
+    <div className="bg-gradient-to-br from-gray-50 dark:from-gray-900 to-gray-100 dark:to-gray-800 min-h-screen lg:bg-gradient-to-br lg:from-white dark:lg:from-gray-900 lg:via-gray-50/50 dark:lg:via-gray-800/50 lg:to-gray-100/30 dark:lg:to-gray-700/30">
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-7xl mx-auto">
         <div className="lg:hidden">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
             المجموعات التعليمية
           </h2>
         </div>
 
         {/* Desktop: Enhanced header with stats */}
         <div className="hidden lg:block mb-10">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-l from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3">
+                <h1 className="text-4xl font-bold bg-gradient-to-l from-gray-800 dark:from-gray-200 to-gray-600 dark:to-gray-400 bg-clip-text text-transparent mb-3">
                   إدارة المجموعات التعليمية
                 </h1>
-                <p className="text-gray-600 text-lg">
+                <p className="text-gray-600 dark:text-gray-300 text-lg">
                   إنشاء وإدارة المجموعات الدراسية للطلاب
                 </p>
               </div>
@@ -1856,9 +1856,9 @@ export default function Groups() {
         {/* Super Admin School Selection */}
         {user?.role === "super_admin" && (
           <div className="mb-8">
-            <Card className="border-2 border-orange-200 bg-orange-50">
+            <Card className="border-2 border-orange-200 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20">
               <CardHeader className="pb-4">
-                <CardTitle className="text-xl text-orange-800 flex items-center">
+                <CardTitle className="text-xl text-orange-800 dark:text-orange-200 flex items-center">
                   <Settings className="h-5 w-5 ml-2" />
                   اختيار المدرسة لإدارة المجموعات
                 </CardTitle>
@@ -1876,7 +1876,7 @@ export default function Groups() {
                           e.target.value ? parseInt(e.target.value) : null,
                         )
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
                       <option value="">اختر مدرسة...</option>
                       {schools.map((school: any) => (
@@ -1904,15 +1904,15 @@ export default function Groups() {
         {(user?.role === "admin" ||
           (user?.role === "super_admin" && selectedSchoolId)) && (
           <div className="mb-8">
-            <Card className="border-2 border-blue-200 bg-blue-50">
+            <Card className="border-2 border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Settings className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-blue-800">
+                    <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">
                       إدارة المجموعات الموجودة
                       {user?.role === "super_admin" && selectedSchoolId && (
-                        <span className="text-sm text-gray-600 mr-2 font-normal">
+                        <span className="text-sm text-gray-600 dark:text-gray-400 mr-2 font-normal">
                           -{" "}
                           {
                             schools.find((s: any) => s.id === selectedSchoolId)
@@ -2013,15 +2013,15 @@ export default function Groups() {
                   ) : (
                     <div className="space-y-6">
                       {/* Modern Hierarchical Selection */}
-                      <div className="bg-white rounded-lg border p-6">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                           اختر المستوى والسنة
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                           {/* Education Level Selection */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                               المستوى التعليمي
                             </label>
                             <select
@@ -2029,7 +2029,7 @@ export default function Groups() {
                               onChange={(e) =>
                                 handleLevelChange(e.target.value)
                               }
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="">اختر المستوى...</option>
                               <option value="جميع المستويات">
@@ -2043,7 +2043,7 @@ export default function Groups() {
 
                           {/* Grade Selection */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                               السنة الدراسية
                             </label>
                             <select
@@ -2052,7 +2052,7 @@ export default function Groups() {
                                 handleGradeChange(e.target.value)
                               }
                               disabled={!selectedLevel}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-600"
                             >
                               <option value="">اختر السنة...</option>
                               {getAvailableGrades(selectedLevel).map(
@@ -2070,8 +2070,8 @@ export default function Groups() {
                         {selectedLevel &&
                           selectedLevel !== "جميع المستويات" &&
                           !selectedGrade && (
-                            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                              <p className="text-sm text-yellow-800">
+                            <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                              <p className="text-sm text-yellow-800 dark:text-yellow-200">
                                 الرجاء اختيار السنة الدراسية لعرض المواد المتاحة
                               </p>
                             </div>
@@ -2079,8 +2079,8 @@ export default function Groups() {
 
                         {/* Universal Level Message */}
                         {selectedLevel === "جميع المستويات" && (
-                          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-sm text-blue-800">
+                          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
                               عرض المواد العامة المتاحة لجميع المستويات
                               التعليمية
                             </p>
@@ -2091,7 +2091,7 @@ export default function Groups() {
                       {/* Subject Groups Grid */}
                       {((selectedLevel && selectedGrade) ||
                         selectedLevel === "جميع المستويات") && (
-                        <div className="bg-white rounded-lg border p-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
                           <div className="flex items-center mb-4">
                             <div
                               className={`px-3 py-1 rounded-full text-sm font-medium ${getEducationLevelColor(selectedLevel)}`}
@@ -2100,14 +2100,14 @@ export default function Groups() {
                               {selectedLevel}
                             </div>
                             {selectedGrade && (
-                              <div className="ml-3 px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
+                              <div className="ml-3 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300">
                                 {selectedGrade}
                               </div>
                             )}
                           </div>
 
                           <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-800">
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                               المواد المتاحة
                             </h3>
                             {user?.role === "admin" && (
@@ -2132,10 +2132,10 @@ export default function Groups() {
                             {getSubjectGroups().map((group) => (
                               <div
                                 key={group.id || group.subjectId}
-                                className="border rounded-lg p-4 bg-white shadow-sm"
+                                className="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm"
                               >
                                 <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-medium text-gray-900">
+                                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
                                     {group.nameAr ||
                                       group.subjectName ||
                                       group.subjectNameAr ||
@@ -2149,7 +2149,7 @@ export default function Groups() {
                                   </span>
                                 </div>
 
-                                <div className="text-sm text-gray-600 space-y-1">
+                                <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                                   <div className="flex items-center gap-2">
                                     <User className="w-4 h-4" />
                                     <span>
