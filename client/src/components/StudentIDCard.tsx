@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,7 @@ export function StudentIDCard({
 }: StudentIDCardProps) {
   const [qrCodeImage, setQrCodeImage] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Generate QR code data
   const generateQRCodeData = () => {
@@ -100,41 +101,69 @@ export function StudentIDCard({
   }, [student.id, student.type, schoolInfo.id]);
 
   const downloadIDCard = async () => {
-    const scale = window.devicePixelRatio || 2;
+    if (!cardRef.current) return;
+
+    try {
+      // Dynamically import html2canvas
+      const html2canvas = (await import('https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.js')).default;
+      
+      // Create a temporary visible clone
+      const tempCard = cardRef.current.cloneNode(true) as HTMLElement;
+      tempCard.style.position = 'absolute';
+      tempCard.style.left = '-9999px';
+      tempCard.style.top = '0';
+      tempCard.style.width = '600px';
+      tempCard.style.height = '350px';
+      tempCard.style.background = 'white';
+      document.body.appendChild(tempCard);
+
+      // Add Google Fonts to the temporary element
+      const fontLink = document.createElement('link');
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap';
+      fontLink.rel = 'stylesheet';
+      document.head.appendChild(fontLink);
+
+      // Wait for fonts to load
+      await document.fonts.ready;
+
+      // Capture the element
+      const dataUrl = await html2canvas.toPng(tempCard, {
+        width: 600,
+        height: 350,
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        fontEmbedCSS: `
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
+          * { font-family: 'Noto Sans Arabic', Arial, sans-serif !important; }
+        `
+      });
+
+      // Clean up
+      document.body.removeChild(tempCard);
+      document.head.removeChild(fontLink);
+
+      // Download
+      const link = document.createElement('a');
+      link.download = `بطاقة_طالب_${student.name.replace(/\s+/g, '_')}.png`;
+      link.href = dataUrl;
+      link.click();
+
+    } catch (error) {
+      console.error('Screenshot failed:', error);
+      // Fallback to canvas method
+      fallbackCanvasDownload();
+    }
+  };
+
+  const fallbackCanvasDownload = async () => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const width = 600;
     const height = 350;
-
-    canvas.width = width * scale;
-    canvas.height = height * scale;
-    ctx.scale(scale, scale);
-    ctx.imageSmoothingEnabled = false;
-
-    // Load Noto Sans Arabic font
-    let fontFamily = "Arial, sans-serif";
-    try {
-      const font = new FontFace(
-        "Noto Sans Arabic",
-        "url(https://fonts.gstatic.com/s/notosansarabic/v18/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHmeibL0Y7Y.woff2)",
-      );
-      await font.load();
-      document.fonts.add(font);
-      fontFamily = '"Noto Sans Arabic", Arial, sans-serif';
-    } catch (error) {
-      console.warn("Failed to load Noto Sans Arabic. Using fallback.");
-    }
-
-    // Wait for font to be ready
-    await new Promise((resolve) => {
-      if (document.fonts.check(`16px ${fontFamily}`)) {
-        resolve(true);
-      } else {
-        document.fonts.ready.then(resolve);
-      }
-    });
+    canvas.width = width;
+    canvas.height = height;
 
     // Background
     ctx.fillStyle = "#ffffff";
@@ -343,7 +372,15 @@ export function StudentIDCard({
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="relative bg-white border-2 border-gray-300 rounded-xl shadow-lg overflow-hidden">
+      <div 
+        ref={cardRef}
+        className="relative bg-white border-2 border-gray-300 rounded-xl shadow-lg overflow-hidden"
+        style={{ 
+          fontFamily: "'Noto Sans Arabic', Arial, sans-serif",
+          width: '600px',
+          height: '350px'
+        }}
+      >
         {/* Decorative corners */}
         <div className="absolute top-0 left-0 w-20 h-20 opacity-10">
           <div className="absolute top-2 left-2">
