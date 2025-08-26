@@ -645,31 +645,31 @@ export default function AdminVerification() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto p-6 max-w-6xl">
         {/* Header Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             لوحة التحقق من الأطفال والطلاب
           </h1>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 dark:text-gray-300 text-sm">
             راجع وتحقق من الأطفال والطلاب الذين قدموا وثائقهم في المدرسة
           </p>
         </div>
 
         <Tabs defaultValue="unverified" className="w-full">
           <div className="w-full mb-6">
-            <TabsList className="grid w-full grid-cols-2 bg-white border border-gray-200 rounded-lg">
+            <TabsList className="grid w-full grid-cols-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
               <TabsTrigger 
                 value="unverified" 
-                className="flex items-center gap-2 p-3 text-sm font-medium text-gray-700 data-[state=active]:bg-orange-600 data-[state=active]:text-white"
+                className="flex items-center gap-2 p-3 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-orange-600 data-[state=active]:text-white"
               >
                 <Clock className="w-4 h-4" />
                 غير متحقق منهم ({unverifiedChildren.length + unverifiedStudents.length})
               </TabsTrigger>
               <TabsTrigger 
                 value="verified" 
-                className="flex items-center gap-2 p-3 text-sm font-medium text-gray-700 data-[state=active]:bg-green-600 data-[state=active]:text-white"
+                className="flex items-center gap-2 p-3 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-green-600 data-[state=active]:text-white"
               >
                 <CheckCircle className="w-4 h-4" />
                 متحقق منهم ({verifiedChildren.length + verifiedStudents.length})
@@ -678,13 +678,13 @@ export default function AdminVerification() {
           </div>
 
           <TabsContent value="unverified" className="space-y-4 mt-2">
-            <Card className="bg-white border border-gray-200 rounded-lg shadow-sm">
-              <CardHeader className="pb-3 bg-gray-50 border-b border-gray-200" dir="rtl">
-                <CardTitle className="flex items-center gap-2 text-sm text-gray-900">
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+              <CardHeader className="pb-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600" dir="rtl">
+                <CardTitle className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
                   <Clock className="w-4 h-4 text-orange-600" />
                   الأطفال والطلاب غير المتحقق منهم
                 </CardTitle>
-                <CardDescription className="text-gray-600 text-xs">
+                <CardDescription className="text-gray-600 dark:text-gray-300 text-xs">
                   قائمة الأطفال والطلاب الذين يحتاجون للتحقق من وثائقهم
                 </CardDescription>
               </CardHeader>
@@ -692,8 +692,8 @@ export default function AdminVerification() {
                 {unverifiedChildren.length === 0 && unverifiedStudents.length === 0 ? (
                   <div className="text-center py-12">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <p className="text-gray-600 text-lg">لا توجد أطفال أو طلاب بحاجة للتحقق</p>
-                    <p className="text-gray-400 text-sm mt-2">جميع الطلبات قد تم التحقق منها بنجاح</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-lg">لا توجد أطفال أو طلاب بحاجة للتحقق</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">جميع الطلبات قد تم التحقق منها بنجاح</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -701,16 +701,16 @@ export default function AdminVerification() {
                     {unverifiedChildren.map((child) => (
                       <div 
                         key={`child-${child.id}`} 
-                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
                             <Badge className="bg-blue-100 text-blue-800 text-xs border border-blue-300">
                               طفل
                             </Badge>
-                            <h3 className="font-medium text-gray-900">{child.name}</h3>
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100">{child.name}</h3>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             {formatEducationLevel(child.educationLevel, child.grade)}
                           </p>
                         </div>
@@ -728,16 +728,16 @@ export default function AdminVerification() {
                     {unverifiedStudents.map((student) => (
                       <div 
                         key={`student-${student.id}`} 
-                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
                             <Badge className="bg-purple-100 text-purple-800 text-xs border border-purple-300">
                               طالب
                             </Badge>
-                            <h3 className="font-medium text-gray-900">{student.name}</h3>
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100">{student.name}</h3>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             {formatEducationLevel(student.educationLevel, student.grade)}
                           </p>
                         </div>
@@ -757,15 +757,15 @@ export default function AdminVerification() {
           </TabsContent>
 
           <TabsContent value="verified" className="space-y-4 mt-2">
-            <Card className="bg-white border border-gray-200 rounded-lg shadow-sm">
-              <CardHeader className="pb-3 bg-gray-50 border-b border-gray-200" dir="rtl">
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+              <CardHeader className="pb-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600" dir="rtl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2 text-sm text-gray-900">
+                    <CardTitle className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
                       <CheckCircle className="w-4 h-4 text-green-600" />
                       الأطفال والطلاب المتحقق منهم
                     </CardTitle>
-                    <CardDescription className="text-gray-600 text-xs">
+                    <CardDescription className="text-gray-600 dark:text-gray-300 text-xs">
                       قائمة الأطفال والطلاب الذين تم التحقق من وثائقهم بنجاح
                     </CardDescription>
                   </div>
@@ -797,8 +797,8 @@ export default function AdminVerification() {
                 {verifiedChildren.length === 0 && verifiedStudents.length === 0 ? (
                   <div className="text-center py-12">
                     <XCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 text-lg">لا توجد أطفال أو طلاب متحقق منهم بعد</p>
-                    <p className="text-gray-400 text-sm mt-2">ابدأ بالتحقق من الطلبات المعلقة</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-lg">لا توجد أطفال أو طلاب متحقق منهم بعد</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">ابدأ بالتحقق من الطلبات المعلقة</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -806,16 +806,16 @@ export default function AdminVerification() {
                     {verifiedChildren.map((child) => (
                       <div 
                         key={`verified-child-${child.id}`} 
-                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
                             <Badge className="bg-blue-100 text-blue-800 text-xs border border-blue-300">
                               طفل
                             </Badge>
-                            <h3 className="font-medium text-gray-900">{child.name}</h3>
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100">{child.name}</h3>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             {formatEducationLevel(child.educationLevel, child.grade)}
                           </p>
                           {/* Show selected subjects in verified child card */}
@@ -860,16 +860,16 @@ export default function AdminVerification() {
                     {verifiedStudents.map((student) => (
                       <div 
                         key={`verified-student-${student.id}`} 
-                        className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
                             <Badge className="bg-purple-100 text-purple-800 text-xs border border-purple-300">
                               طالب
                             </Badge>
-                            <h3 className="font-medium text-gray-900">{student.name}</h3>
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100">{student.name}</h3>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             {formatEducationLevel(student.educationLevel, student.grade)}
                           </p>
                           {/* Show selected subjects in verified student card */}
@@ -919,7 +919,7 @@ export default function AdminVerification() {
         {/* Custom Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-lg border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="p-6">
                 {selectedItem?.type.startsWith('verified') ? (
                   // Details modal for verified items
@@ -929,41 +929,41 @@ export default function AdminVerification() {
                         <CheckCircle className="w-4 h-4" />
                         <span className="font-semibold text-sm">تفاصيل التحقق</span>
                       </div>
-                      <h2 className="text-base font-bold mt-4 text-gray-900">
+                      <h2 className="text-base font-bold mt-4 text-gray-900 dark:text-gray-100">
                         {selectedItem?.type === 'verified-child' ? 'الطفل' : 'الطالب'}
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200" dir="rtl">
+                      <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800" dir="rtl">
                         <div className="flex items-center gap-2 mb-3">
                           <CheckCircle className="w-5 h-5 text-green-600" />
-                          <span className="font-semibold text-green-800 text-sm">تم التحقق بنجاح</span>
+                          <span className="font-semibold text-green-800 dark:text-green-200 text-sm">تم التحقق بنجاح</span>
                         </div>
-                        <p className="text-xs text-gray-700">
+                        <p className="text-xs text-gray-700 dark:text-gray-300">
                           تم التحقق من هذا {selectedItem?.type === 'verified-child' ? 'الطفل' : 'الطالب'} وتأكيد صحة البيانات المقدمة.
                         </p>
                       </div>
                       
                       {/* Verification Details */}
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200" dir="rtl">
-                        <h3 className="font-semibold mb-4 text-gray-900 text-sm">
+                      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600" dir="rtl">
+                        <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100 text-sm">
                           تفاصيل التحقق
                         </h3>
                         <div className="space-y-3">
-                          <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
                             <Calendar className="w-5 h-5 text-blue-500" />
                             <span className="text-sm">
-                              <strong className="text-gray-900">تاريخ التحقق:</strong> 
-                              <span className="text-gray-700 mr-1">
+                              <strong className="text-gray-900 dark:text-gray-100">تاريخ التحقق:</strong> 
+                              <span className="text-gray-700 dark:text-gray-300 mr-1">
                                 {selectedItem?.data?.verifiedAt && new Date(selectedItem.data.verifiedAt).toLocaleDateString('en-US')}
                               </span>
                             </span>
                           </div>
-                          <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
                             <Users className="w-5 h-5 text-purple-500" />
                             <span className="text-sm">
-                              <strong className="text-gray-900">تم التحقق بواسطة:</strong> 
-                              <span className="text-gray-700 mr-1">{verifierAdminName}</span>
+                              <strong className="text-gray-900 dark:text-gray-100">تم التحقق بواسطة:</strong> 
+                              <span className="text-gray-700 dark:text-gray-300 mr-1">{verifierAdminName}</span>
                             </span>
                           </div>
                           
@@ -972,7 +972,7 @@ export default function AdminVerification() {
                             <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200">
                               <BookOpen className="w-5 h-5 text-green-500 mt-0.5" />
                               <div className="flex-1">
-                                <strong className="text-gray-900 text-sm block mb-2">المواد المختارة:</strong>
+                                <strong className="text-gray-900 dark:text-gray-100 text-sm block mb-2">المواد المختارة:</strong>
                                 <div className="grid grid-cols-1 gap-1">
                                   {verifiedItemSubjects.map((subject, index) => (
                                     <span 
@@ -991,8 +991,8 @@ export default function AdminVerification() {
                           )}
                           {selectedItem?.data?.verificationNotes && (
                             <div className="mt-4">
-                              <p className="text-sm font-semibold mb-2 text-gray-900">ملاحظات التحقق:</p>
-                              <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                              <p className="text-sm font-semibold mb-2 text-gray-900 dark:text-gray-100">ملاحظات التحقق:</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 p-3 rounded-lg border border-gray-200 dark:border-gray-500">
                                 {selectedItem.data.verificationNotes}
                               </p>
                             </div>
@@ -1003,7 +1003,7 @@ export default function AdminVerification() {
                       {/* Student ID Card Preview */}
                       {showIDCard && selectedItem?.data && (
                         <div className="mt-4">
-                          <h3 className="font-semibold mb-3 text-gray-900 text-sm text-center">
+                          <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100 text-sm text-center">
                             بطاقة الهوية
                           </h3>
                           <div className="flex justify-center">
@@ -1034,7 +1034,7 @@ export default function AdminVerification() {
                             setSelectedItem(null);
                             setShowIDCard(false);
                           }}
-                          className="bg-white hover:bg-gray-50 border-gray-300"
+                          className="bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600 dark:text-gray-100"
                         >
                           إغلاق
                         </Button>
@@ -1065,14 +1065,14 @@ export default function AdminVerification() {
                         <Clock className="w-4 h-4" />
                         <span className="font-semibold text-sm">عملية التحقق</span>
                       </div>
-                      <h2 className="text-base font-bold mt-4 text-gray-900">
+                      <h2 className="text-base font-bold mt-4 text-gray-900 dark:text-gray-100">
                         تحقق من {selectedItem?.type === 'child' ? 'الطفل' : 'الطالب'}
                       </h2>
                     </div>
                     <div className="space-y-4">
                       {/* Education Level Selection */}
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200" dir="rtl">
-                        <Label className="text-xs font-semibold text-gray-900 block mb-2">
+                      <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800" dir="rtl">
+                        <Label className="text-xs font-semibold text-gray-900 dark:text-gray-100 block mb-2">
                           <BookOpen className="w-4 h-4 inline mr-1" />
                           المستوى التعليمي المطلوب
                         </Label>
@@ -1090,8 +1090,8 @@ export default function AdminVerification() {
 
                       {/* Grade Selection */}
                       {selectedEducationLevel && (
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200" dir="rtl">
-                          <Label className="text-xs font-semibold text-gray-900 block mb-2">
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800" dir="rtl">
+                          <Label className="text-xs font-semibold text-gray-900 dark:text-gray-100 block mb-2">
                             <GraduationCap className="w-4 h-4 inline mr-1" />
                             السنة الدراسية المطلوبة
                           </Label>
@@ -1112,7 +1112,7 @@ export default function AdminVerification() {
 
                       {/* Subject Selection */}
                       {selectedEducationLevel && selectedGrade && availableSubjects.length > 0 && (
-                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200" dir="rtl">
+                        <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800" dir="rtl">
                           <Label className="text-xs font-semibold text-gray-900 block mb-3">
                             <GraduationCap className="w-4 h-4 inline mr-1" />
                             المواد التي يريد دراستها
@@ -1121,7 +1121,7 @@ export default function AdminVerification() {
                             {availableSubjects.map((subject) => (
                               <div 
                                 key={subject.id} 
-                                className="flex items-center space-x-2 p-2 bg-white rounded border border-purple-200"
+                                className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-700 rounded border border-purple-200 dark:border-gray-600"
                               >
                                 <Checkbox
                                   id={`subject-${subject.id}`}
@@ -1130,7 +1130,7 @@ export default function AdminVerification() {
                                 />
                                 <Label 
                                   htmlFor={`subject-${subject.id}`}
-                                  className="text-sm text-gray-800 cursor-pointer flex-1"
+                                  className="text-sm text-gray-800 dark:text-gray-200 cursor-pointer flex-1"
                                 >
                                   {subject.nameAr}
                                 </Label>
@@ -1171,7 +1171,7 @@ export default function AdminVerification() {
                             setSelectedItem(null);
                             setShowIDCard(false);
                           }}
-                          className="bg-white hover:bg-gray-50 border-gray-300"
+                          className="bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600 dark:text-gray-100"
                         >
                           إلغاء
                         </Button>
