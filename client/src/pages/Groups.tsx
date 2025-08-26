@@ -2139,48 +2139,141 @@ export default function Groups() {
                             )}
                           </div>
 
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                              المواد المتاحة
+                          {/* Section Header */}
+                          <div className="mb-6">
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                              إدارة المواد التعليمية
                             </h3>
+                            
+                            {/* Create Custom Subject Section */}
                             {user?.role === "admin" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  // Pre-fill the custom subject modal with the current selection
-                                  setCustomSubjectLevel(selectedLevel);
-                                  setCustomSubjectGrade(selectedGrade || "");
-                                  setShowCustomSubjectModal(true);
-                                }}
-                                className="border-green-300 text-green-600 hover:bg-green-50"
-                              >
-                                <Plus className="w-4 h-4 mr-2" />
-                                إنشاء مادة مخصصة
-                              </Button>
+                              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-dashed border-green-300 dark:border-green-600 rounded-xl p-6 mb-6">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center mb-2">
+                                      <div className="bg-green-100 dark:bg-green-800 p-2 rounded-lg mr-3">
+                                        <Plus className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                      </div>
+                                      <h4 className="text-lg font-semibold text-green-800 dark:text-green-200">
+                                        إنشاء مادة مخصصة جديدة
+                                      </h4>
+                                    </div>
+                                    <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                                      أنشئ مادة تعليمية خاصة بمدرستك مثل الشطرنج، البرمجة، أو أي نشاط تعليمي آخر
+                                    </p>
+                                    <div className="flex items-center text-xs text-green-600 dark:text-green-400">
+                                      <span className="bg-green-200 dark:bg-green-700 px-2 py-1 rounded-full mr-2">
+                                        {selectedLevel}
+                                      </span>
+                                      {selectedGrade && (
+                                        <span className="bg-green-200 dark:bg-green-700 px-2 py-1 rounded-full">
+                                          {selectedGrade}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    onClick={() => {
+                                      setCustomSubjectLevel(selectedLevel);
+                                      setCustomSubjectGrade(selectedGrade || "");
+                                      setShowCustomSubjectModal(true);
+                                    }}
+                                    className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    إنشاء مادة مخصصة
+                                  </Button>
+                                </div>
+                              </div>
                             )}
+
+                            {/* Regular Subjects Section Header */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="bg-blue-100 dark:bg-blue-800 p-2 rounded-lg mr-3">
+                                  <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                                    المواد التعليمية المتاحة
+                                  </h4>
+                                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                                    اختر من المواد الأساسية أو المواد المخصصة لإنشاء مجموعة جديدة
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {getSubjectGroups().length} مادة متاحة
+                              </div>
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-                            {getSubjectGroups().map((group) => (
-                              <div
-                                key={group.id || group.subjectId}
-                                className="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm"
-                              >
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                                    {group.nameAr ||
-                                      group.subjectName ||
-                                      group.subjectNameAr ||
-                                      group.name_ar ||
-                                      "مادة غير محددة"}
-                                  </h4>
-                                  <span
-                                    className={`text-xs px-2 py-1 rounded ${group.isPlaceholder ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}`}
-                                  >
-                                    {group.isPlaceholder ? "فارغة" : "نشطة"}
-                                  </span>
-                                </div>
+                            {getSubjectGroups().map((group) => {
+                              // Check if this is a custom subject (has schoolId) vs regular curriculum subject
+                              const isCustomSubject = group.schoolId !== null && group.schoolId !== undefined;
+                              
+                              return (
+                                <div
+                                  key={group.id || group.subjectId}
+                                  className={`border rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 ${
+                                    isCustomSubject 
+                                      ? 'border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20' 
+                                      : 'border-blue-200 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-start space-x-3">
+                                      <div className={`p-2 rounded-lg ${
+                                        isCustomSubject 
+                                          ? 'bg-green-100 dark:bg-green-800' 
+                                          : 'bg-blue-100 dark:bg-blue-800'
+                                      }`}>
+                                        {isCustomSubject ? (
+                                          <Plus className={`w-4 h-4 ${
+                                            isCustomSubject 
+                                              ? 'text-green-600 dark:text-green-400' 
+                                              : 'text-blue-600 dark:text-blue-400'
+                                          }`} />
+                                        ) : (
+                                          <BookOpen className={`w-4 h-4 ${
+                                            isCustomSubject 
+                                              ? 'text-green-600 dark:text-green-400' 
+                                              : 'text-blue-600 dark:text-blue-400'
+                                          }`} />
+                                        )}
+                                      </div>
+                                      <div className="flex-1">
+                                        <h4 className={`font-semibold ${
+                                          isCustomSubject 
+                                            ? 'text-green-900 dark:text-green-100' 
+                                            : 'text-blue-900 dark:text-blue-100'
+                                        }`}>
+                                          {group.nameAr ||
+                                            group.subjectName ||
+                                            group.subjectNameAr ||
+                                            group.name_ar ||
+                                            "مادة غير محددة"}
+                                        </h4>
+                                        <p className={`text-xs font-medium mt-1 ${
+                                          isCustomSubject 
+                                            ? 'text-green-600 dark:text-green-400' 
+                                            : 'text-blue-600 dark:text-blue-400'
+                                        }`}>
+                                          {isCustomSubject ? 'مادة مخصصة' : 'مادة أساسية'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <span
+                                      className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                        group.isPlaceholder 
+                                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" 
+                                          : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                      }`}
+                                    >
+                                      {group.isPlaceholder ? "فارغة" : "نشطة"}
+                                    </span>
+                                  </div>
 
                                 <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                                   <div className="flex items-center gap-2">
@@ -2233,7 +2326,8 @@ export default function Groups() {
                                     )}
                                 </div>
                               </div>
-                            ))}
+                              );
+                            })}
                           </div>
 
                           {getSubjectGroups().length === 0 && (
