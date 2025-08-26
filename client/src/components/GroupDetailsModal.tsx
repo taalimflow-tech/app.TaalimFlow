@@ -193,18 +193,18 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
                 {scheduledDatesData?.dates && scheduledDatesData.dates.length > 0 ? (
                   monthKeys.length > 0 ? (
                     <div className="overflow-x-auto">
-                      <table className="w-full border-collapse border border-gray-300" dir="rtl">
+                      <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800" dir="rtl">
                         <thead>
-                          <tr className="bg-gray-100">
-                            <th className="border border-gray-300 p-2 text-right font-medium">اسم الطالب</th>
-                            <th className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                          <tr className="bg-gray-100 dark:bg-gray-700">
+                            <th className="border border-gray-300 dark:border-gray-600 p-2 text-right font-medium text-gray-900 dark:text-gray-100">اسم الطالب</th>
+                            <th className="border border-gray-300 dark:border-gray-600 p-2 text-center font-medium min-w-[80px] text-gray-900 dark:text-gray-100">
                               <div>حالة الدفع</div>
-                              <div className="text-xs text-gray-500 font-normal">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 font-normal">
                                 {getMonthDisplayName(currentMonthKey)}
                               </div>
                             </th>
                             {currentMonthDates.map((date) => (
-                              <th key={date} className="border border-gray-300 p-2 text-center font-medium min-w-[80px]">
+                              <th key={date} className="border border-gray-300 dark:border-gray-600 p-2 text-center font-medium min-w-[80px] text-gray-900 dark:text-gray-100">
                                 <div className="text-xs">
                                   {new Date(date).toLocaleDateString('en-US', { 
                                     day: 'numeric', 
@@ -225,18 +225,18 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
                               return true;
                             })
                             .map((student: any) => (
-                            <tr key={student.id} className="hover:bg-gray-50">
-                              <td className="border border-gray-300 p-3 font-medium">
-                                <div className="font-medium">{student.name}</div>
+                            <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                              <td className="border border-gray-300 dark:border-gray-600 p-3 font-medium">
+                                <div className="font-medium text-gray-900 dark:text-gray-100">{student.name}</div>
                               </td>
-                              <td className="border border-gray-300 p-2 text-center">
+                              <td className="border border-gray-300 dark:border-gray-600 p-2 text-center">
                                 {(() => {
                                   const paymentStatus = getStudentPaymentStatus(student.id);
                                   
                                   // If it's a virtual record with no payment requirement
                                   if (paymentStatus?.isVirtual && !paymentStatus?.mustPay) {
                                     return (
-                                      <span className="px-2 py-1 rounded text-xs text-gray-500 bg-gray-50">
+                                      <span className="px-2 py-1 rounded text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                                         {paymentStatus?.paymentNote || 'Nothing to pay'}
                                       </span>
                                     );
@@ -247,13 +247,13 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
                                     <div className="flex flex-col items-center space-y-1">
                                       <span className={`px-3 py-1 rounded text-sm font-medium ${
                                         paymentStatus?.isPaid
-                                          ? 'bg-green-100 text-green-800'
-                                          : 'bg-red-100 text-red-800'
+                                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                                       }`}>
                                         {paymentStatus?.isPaid ? '✅' : '❌'}
                                       </span>
                                       {paymentStatus?.paymentNote && (
-                                        <span className="text-xs text-gray-600">
+                                        <span className="text-xs text-gray-600 dark:text-gray-400">
                                           {paymentStatus.paymentNote}
                                         </span>
                                       )}
@@ -268,14 +268,14 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
                                 );
                                 
                                 return (
-                                  <td key={date} className="border border-gray-300 p-1 text-center">
+                                  <td key={date} className="border border-gray-300 dark:border-gray-600 p-1 text-center">
                                     <div
                                       className={`w-8 h-8 rounded text-xs font-bold flex items-center justify-center ${
                                         attendanceRecord?.status === 'present' 
                                           ? 'bg-green-500 text-white' 
                                           : attendanceRecord?.status === 'absent'
                                           ? 'bg-red-500 text-white'
-                                          : 'bg-gray-200 text-gray-600'
+                                          : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                                       }`}
                                       title={`${student.name} - ${date} - ${
                                         attendanceRecord?.status === 'present' ? 'حاضر' : 
@@ -295,9 +295,9 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
 
                       {/* Monthly Statistics */}
                       <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-green-100 rounded-lg p-3 text-center">
-                          <h5 className="font-medium text-green-800">حضور الشهر</h5>
-                          <p className="text-xl font-bold text-green-900">
+                        <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
+                          <h5 className="font-medium text-green-800 dark:text-green-300">حضور الشهر</h5>
+                          <p className="text-xl font-bold text-green-900 dark:text-green-100">
                             {Array.isArray(attendanceHistory) ? 
                               attendanceHistory.filter((record: any) => {
                                 const recordDate = record.attendanceDate?.split('T')[0];
@@ -310,9 +310,9 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
                               }).length : 0}
                           </p>
                         </div>
-                        <div className="bg-red-100 rounded-lg p-3 text-center">
-                          <h5 className="font-medium text-red-800">غياب الشهر</h5>
-                          <p className="text-xl font-bold text-red-900">
+                        <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 text-center">
+                          <h5 className="font-medium text-red-800 dark:text-red-300">غياب الشهر</h5>
+                          <p className="text-xl font-bold text-red-900 dark:text-red-100">
                             {Array.isArray(attendanceHistory) ? 
                               attendanceHistory.filter((record: any) => {
                                 const recordDate = record.attendanceDate?.split('T')[0];
@@ -325,9 +325,9 @@ export function GroupDetailsModal({ group, isOpen, onClose, currentUserId, userR
                               }).length : 0}
                           </p>
                         </div>
-                        <div className="bg-blue-100 rounded-lg p-3 text-center">
-                          <h5 className="font-medium text-blue-800">نسبة حضور الشهر</h5>
-                          <p className="text-xl font-bold text-blue-900">
+                        <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-3 text-center">
+                          <h5 className="font-medium text-blue-800 dark:text-blue-300">نسبة حضور الشهر</h5>
+                          <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
                             {(() => {
                               if (!Array.isArray(attendanceHistory)) return 0;
                               const monthRecords = attendanceHistory.filter((record: any) => {
