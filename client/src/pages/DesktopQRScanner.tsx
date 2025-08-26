@@ -2440,77 +2440,12 @@ function DesktopQRScanner() {
           </div>
 
           {/* Detailed Information Tabs */}
-          <Tabs defaultValue="groups" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="groups">المجموعات</TabsTrigger>
-              <TabsTrigger value="attendance">الحضور</TabsTrigger>
+          <Tabs defaultValue="payments" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="payments">المدفوعات</TabsTrigger>
               {user.role === 'admin' && <TabsTrigger value="payment-form">تسجيل دفعة</TabsTrigger>}
             </TabsList>
 
-            <TabsContent value="groups" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    المجموعات المسجل فيها
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {scannedProfile.enrolledGroups && scannedProfile.enrolledGroups.length > 0 ? scannedProfile.enrolledGroups.map((group) => (
-                      <div key={group.id} className="border dark:border-gray-700 rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold dark:text-gray-200">{group.name}</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{group.subjectName}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-500">{group.educationLevel}</p>
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            المعلم: {group.teacherName}
-                          </div>
-                        </div>
-                      </div>
-                    )) : (
-                      <div className="text-center text-gray-500 dark:text-gray-400 py-4">
-                        لا توجد مجموعات مسجل فيها
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="attendance" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    سجل الحضور الأخير
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {scannedProfile.recentAttendance?.length > 0 ? scannedProfile.recentAttendance.map((attendance) => (
-                      <div key={attendance.id} className="flex justify-between items-center p-3 border rounded">
-                        <div>
-                          <div className="font-medium">{attendance.groupName}</div>
-                          <div className="text-sm text-gray-500">{attendance.date}</div>
-                          {attendance.notes && (
-                            <div className="text-sm text-gray-600 mt-1">{attendance.notes}</div>
-                          )}
-                        </div>
-                        {getStatusBadge(attendance.status)}
-                      </div>
-                    )) : (
-                      <div className="text-center text-gray-500 py-4">
-                        لا توجد سجلات حضور حديثة
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="payments" className="mt-6">
               <Card>
