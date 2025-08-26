@@ -93,153 +93,109 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
 
   // Download ID card as image
   const downloadIDCard = () => {
-    // Create a canvas to draw the ID card exactly matching the display
+    // Create a canvas to draw the ID card using the provided template
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size (1.6:1 aspect ratio like display)
-    canvas.width = 640;
-    canvas.height = 400;
+    // Load the background template image
+    const backgroundImg = new Image();
+    backgroundImg.onload = () => {
+      // Set canvas size to match the template
+      canvas.width = backgroundImg.width;
+      canvas.height = backgroundImg.height;
 
-    // Fill white background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Draw the background template
+      ctx.drawImage(backgroundImg, 0, 0);
 
-    // Add main border with rounded corners effect
-    ctx.strokeStyle = '#d1d5db';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-    // Draw school logo circle in top-right corner
-    ctx.fillStyle = '#2563eb';
-    ctx.beginPath();
-    ctx.arc(canvas.width - 30, 30, 20, 0, 2 * Math.PI);
-    ctx.fill();
-    // Add school icon (simplified)
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('🏫', canvas.width - 30, 35);
-
-    // Blue header background
-    ctx.fillStyle = '#2563eb';
-    ctx.fillRect(0, 0, canvas.width, 80);
-
-    // School name in header
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 22px Arial';
-    ctx.textAlign = 'center';
-    const schoolName = schoolInfo?.name || 'اسم المدرسة';
-    ctx.fillText(schoolName, canvas.width / 2, 35);
-    
-    ctx.font = '14px Arial';
-    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 58);
-
-    // Main content area (RTL layout like display)
-    const contentStartY = 100;
-    const rightColumnX = canvas.width - 40;
-    const leftColumnX = 150;
-
-    // Student name (right side)
-    ctx.textAlign = 'right';
-    ctx.font = '12px Arial';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText('الاسم', rightColumnX, contentStartY + 20);
-    ctx.font = 'bold 18px Arial';
-    ctx.fillStyle = '#1f2937';
-    ctx.fillText(student.name, rightColumnX, contentStartY + 45);
-
-    // Student type badge (next to name, simulated)
-    ctx.font = '12px Arial';
-    ctx.fillStyle = '#2563eb';
-    ctx.fillText(`[${student.type === 'student' ? 'طالب' : 'طفل'}]`, rightColumnX - 200, contentStartY + 25);
-
-    // Education level
-    ctx.font = '12px Arial';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText('المستوى', rightColumnX, contentStartY + 80);
-    ctx.font = 'bold 14px Arial';
-    ctx.fillStyle = '#1f2937';
-    ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightColumnX, contentStartY + 105);
-
-    // Student ID (next to education level)
-    ctx.font = '12px Arial';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText('الرقم', rightColumnX - 200, contentStartY + 80);
-    ctx.font = 'bold 14px Arial';
-    ctx.fillStyle = '#2563eb';
-    ctx.fillText(student.id.toString(), rightColumnX - 200, contentStartY + 105);
-
-    // Subjects
-    const subjectNames = getSubjectNames();
-    if (subjectNames.length > 0) {
-      ctx.font = '12px Arial';
-      ctx.fillStyle = '#6b7280';
-      ctx.fillText('المواد', rightColumnX, contentStartY + 140);
+      // Now fill in the student data on top of the template
       
-      ctx.font = '12px Arial';
-      ctx.fillStyle = '#374151';
-      const subjectsText = subjectNames.slice(0, 3).join(' • ');
-      ctx.fillText(subjectsText, rightColumnX, contentStartY + 165);
+      // School name at the top (replace "SCHOOL NAME" area)
+      ctx.fillStyle = '#2c3e8c'; // Dark blue color matching template
+      ctx.font = 'bold 32px Arial';
+      ctx.textAlign = 'center';
+      const schoolName = schoolInfo?.name || 'اسم المدرسة';
+      ctx.fillText(schoolName, canvas.width / 2, 90);
+
+      // Student name (next to الإسم label)
+      ctx.fillStyle = '#2c3e8c';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText(student.name, canvas.width - 50, 240);
+
+      // Education level (next to المستوى label)
+      ctx.fillStyle = '#2c3e8c';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'right';
+      const educationLevel = formatEducationLevel(student.educationLevel, student.grade);
+      ctx.fillText(educationLevel, canvas.width - 50, 290);
+
+      // Student ID (next to المعرف المدرسي label)
+      ctx.fillStyle = '#2c3e8c';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText(student.id.toString(), canvas.width - 50, 340);
+
+      // Student picture placeholder (in the picture frame area)
+      const photoX = 85;
+      const photoY = 205;
+      const photoWidth = 120;
+      const photoHeight = 90;
       
-      if (subjectNames.length > 3) {
-        ctx.fillStyle = '#2563eb';
-        ctx.fillText(`و ${subjectNames.length - 3} أخرى`, rightColumnX, contentStartY + 185);
-      }
-    }
+      // Fill the photo area with a gradient background
+      const gradient = ctx.createLinearGradient(photoX, photoY, photoX, photoY + photoHeight);
+      gradient.addColorStop(0, '#87ceeb'); // Light blue
+      gradient.addColorStop(1, '#32cd32'); // Green
+      ctx.fillStyle = gradient;
+      ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
+      
+      // Add "Student Picture" text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Student', photoX + photoWidth/2, photoY + photoHeight/2 - 5);
+      ctx.fillText('Picture', photoX + photoWidth/2, photoY + photoHeight/2 + 15);
 
-    // Photo placeholder (left side, like display)
-    const photoX = 80;
-    const photoY = contentStartY + 20;
-    // Outer photo frame
-    ctx.strokeStyle = '#d1d5db';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(photoX - 25, photoY, 50, 50);
-    ctx.fillStyle = '#e5e7eb';
-    ctx.fillRect(photoX - 25, photoY, 50, 50);
-    // Inner circle (profile placeholder)
-    ctx.fillStyle = '#9ca3af';
-    ctx.beginPath();
-    ctx.arc(photoX, photoY + 25, 15, 0, 2 * Math.PI);
-    ctx.fill();
+      // Add QR code if available (in the QR code frame area)
+      const qrX = 85;
+      const qrY = 325;
+      const qrSize = 100;
 
-    // QR code area (below photo, like display)
-    const qrX = 50;
-    const qrY = photoY + 80;
-    ctx.strokeStyle = '#d1d5db';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(qrX, qrY, 64, 64);
-    ctx.fillStyle = '#f9fafb';
-    ctx.fillRect(qrX, qrY, 64, 64);
-
-    // Add QR code if available
-    if (qrCodeImage) {
-      const qrImg = new Image();
-      qrImg.onload = () => {
-        // Draw QR code in the correct position
-        ctx.drawImage(qrImg, qrX + 4, qrY + 4, 56, 56);
+      if (qrCodeImage) {
+        const qrImg = new Image();
+        qrImg.onload = () => {
+          // Draw QR code in the correct position
+          ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+          
+          // Download the canvas as image
+          const link = document.createElement('a');
+          link.download = `student_id_${student.name.replace(/\s+/g, '_')}.png`;
+          link.href = canvas.toDataURL('image/png', 0.9);
+          link.click();
+        };
+        qrImg.src = qrCodeImage;
+      } else {
+        // QR placeholder
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(qrX, qrY, qrSize, qrSize);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+        ctx.fillStyle = '#666666';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('QR Code', qrX + qrSize/2, qrY + qrSize/2);
         
-        // Download the canvas as image
+        // Download without QR code
         const link = document.createElement('a');
         link.download = `student_id_${student.name.replace(/\s+/g, '_')}.png`;
         link.href = canvas.toDataURL('image/png', 0.9);
         link.click();
-      };
-      qrImg.src = qrCodeImage;
-    } else {
-      // QR placeholder
-      ctx.fillStyle = '#9ca3af';
-      ctx.font = '10px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('QR', qrX + 32, qrY + 36);
-      
-      // Download without QR code
-      const link = document.createElement('a');
-      link.download = `student_id_${student.name.replace(/\s+/g, '_')}.png`;
-      link.href = canvas.toDataURL('image/png', 0.9);
-      link.click();
-    }
+      }
+    };
+
+    // Set the source to the attached template image
+    backgroundImg.src = '/attached_assets/White Grey Simple Minimalist Student ID Card_1756170828385.png';
   };
 
   return (
