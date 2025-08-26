@@ -1319,7 +1319,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<BlogPost> {
     const blogPostData = {
       ...insertBlogPost,
-      schoolId: schoolId || 1,
+      schoolId: insertBlogPost.schoolId || schoolId,
     };
     const [blogPost] = await db
       .insert(blogPosts)
@@ -1425,7 +1425,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<Message> {
     const messageData = {
       ...insertMessage,
-      schoolId: schoolId || insertMessage.schoolId || 1,
+      schoolId: insertMessage.schoolId || schoolId,
     };
     const [message] = await db
       .insert(messages)
@@ -1455,7 +1455,10 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(eq(users.id, senderIds[0]))
       .limit(1);
-    const schoolId = firstSender.length > 0 ? firstSender[0].schoolId : 1;
+    if (firstSender.length === 0) {
+      throw new Error("Cannot determine school ID for bulk messages");
+    }
+    const schoolId = firstSender[0].schoolId;
 
     const messagesToInsert = [];
 

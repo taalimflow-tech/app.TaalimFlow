@@ -1380,7 +1380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة. يرجى تسجيل الدخول مرة أخرى" });
       }
 
-      // Check if school exists or use fallback
+      // Check if school exists or create a default one
       let school = await storage.getSchoolById(currentUser.schoolId);
       let validSchoolId = currentUser.schoolId;
       
@@ -1394,7 +1394,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           validSchoolId = school.id;
           console.log("Using fallback school:", { id: school.id, name: school.name });
         } else {
-          return res.status(400).json({ error: "لا توجد مدارس متاحة في النظام. يرجى الاتصال بالمدير" });
+          // Create a default school if none exist
+          try {
+            school = await storage.createSchool({
+              name: "المدرسة الافتراضية",
+              code: "DEFAULT",
+              address: "عنوان افتراضي",
+              phone: "0000000000",
+              email: "default@school.com"
+            });
+            validSchoolId = school.id;
+            console.log("Created default school:", { id: school.id, name: school.name });
+          } catch (createError) {
+            console.error("Failed to create default school:", createError);
+            return res.status(500).json({ error: "فشل في إنشاء مدرسة افتراضية. يرجى الاتصال بالمدير" });
+          }
         }
       }
 
