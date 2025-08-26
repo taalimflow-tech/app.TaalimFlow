@@ -3175,7 +3175,7 @@ export default function Groups() {
                             .map((student) => (
                               <div
                                 key={student.id}
-                                className="flex items-center space-x-2 p-2 bg-white rounded border hover:bg-blue-50 border-blue-200"
+                                className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-700 rounded border hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-gray-600"
                               >
                                 <input
                                   type="checkbox"
@@ -3186,13 +3186,13 @@ export default function Groups() {
                                   className="mr-2 text-blue-600"
                                 />
                                 <div className="flex-1">
-                                  <p className="font-medium">{student.name}</p>
-                                  <p className="text-sm text-gray-600">
+                                  <p className="font-medium text-gray-900 dark:text-gray-100">{student.name}</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
                                     المستوى: {student.educationLevel}
                                     {student.grade && ` - ${student.grade}`}
                                   </p>
                                 </div>
-                                <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">
+                                <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                                   متاح
                                 </span>
                               </div>
@@ -3248,9 +3248,9 @@ export default function Groups() {
         {/* Custom Subject Creation Modal */}
         {showCustomSubjectModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 border dark:border-gray-700">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold">إنشاء مادة مخصصة</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">إنشاء مادة مخصصة</h3>
                 <Button
                   variant="outline"
                   size="sm"
@@ -3270,8 +3270,8 @@ export default function Groups() {
               <form onSubmit={handleCreateCustomSubject} className="space-y-4">
                 {/* Show info when pre-filled from groups creation */}
                 {customSubjectLevel && customSubjectGrade && (
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-700">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
                       سيتم إنشاء المادة لـ:{" "}
                       <strong>
                         {customSubjectLevel} - {customSubjectGrade}
@@ -3281,41 +3281,41 @@ export default function Groups() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     اسم المادة (بالإنجليزية) *
                   </label>
                   <input
                     type="text"
                     value={customSubjectName}
                     onChange={(e) => setCustomSubjectName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder="Subject Name"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     اسم المادة (بالعربية) *
                   </label>
                   <input
                     type="text"
                     value={customSubjectNameAr}
                     onChange={(e) => setCustomSubjectNameAr(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder="اسم المادة"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     المستوى التعليمي *
                   </label>
                   <select
                     value={customSubjectLevel}
                     onChange={(e) => setCustomSubjectLevel(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     required
                   >
                     <option value="">اختر المستوى...</option>
@@ -3327,7 +3327,7 @@ export default function Groups() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     السنة الدراسية *
                   </label>
                   <select
@@ -3337,7 +3337,7 @@ export default function Groups() {
                       !customSubjectLevel ||
                       customSubjectLevel === "جميع المستويات"
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-600"
                     required={customSubjectLevel !== "جميع المستويات"}
                   >
                     <option value="">اختر السنة...</option>
@@ -3349,7 +3349,7 @@ export default function Groups() {
                       ))}
                   </select>
                   {customSubjectLevel === "جميع المستويات" && (
-                    <p className="text-sm text-green-600 mt-1">
+                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">
                       ✅ سيتم إنشاء مادة عامة متاحة لجميع المستويات التعليمية
                     </p>
                   )}
