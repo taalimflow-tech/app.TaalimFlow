@@ -123,10 +123,17 @@ export function StudentIDCard({
         });
       }
 
+      // Check if we're on a small screen (mobile/tablet)
+      const isSmallScreen = window.innerWidth < 1024; // lg breakpoint
+      
+      // Adjust dimensions based on rotation
+      const captureWidth = isSmallScreen ? 350 : 600;
+      const captureHeight = isSmallScreen ? 600 : 350;
+
       // Generate the canvas
       const canvas = await window.html2canvas(cardRef.current, {
-        width: 600,
-        height: 350,
+        width: captureWidth,
+        height: captureHeight,
         backgroundColor: '#ffffff',
         scale: 2,
         useCORS: true,
