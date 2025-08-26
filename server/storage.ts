@@ -299,7 +299,7 @@ export interface IStorage {
 
   // Teaching module methods
   getTeachingModules(): Promise<TeachingModule[]>;
-  getTeachingModulesByLevel(educationLevel: string): Promise<TeachingModule[]>;
+  getTeachingModulesByLevel(educationLevel: string, schoolId: number): Promise<TeachingModule[]>;
   createTeachingModule(module: InsertTeachingModule): Promise<TeachingModule>;
   deleteTeachingModule(id: number): Promise<void>;
   getTeachingModuleByName(
@@ -2724,11 +2724,20 @@ export class DatabaseStorage implements IStorage {
 
   async getTeachingModulesByLevel(
     educationLevel: string,
+    schoolId: number,
   ): Promise<TeachingModule[]> {
     return await db
       .select()
       .from(teachingModules)
-      .where(eq(teachingModules.educationLevel, educationLevel))
+      .where(
+        and(
+          eq(teachingModules.educationLevel, educationLevel),
+          or(
+            eq(teachingModules.schoolId, schoolId),
+            isNull(teachingModules.schoolId),
+          ),
+        ),
+      )
       .orderBy(desc(teachingModules.createdAt));
   }
 

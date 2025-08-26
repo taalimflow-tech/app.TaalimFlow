@@ -3098,8 +3098,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/teaching-modules/by-level/:level", async (req, res) => {
     try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
       const level = req.params.level;
-      const modules = await storage.getTeachingModulesByLevel(level);
+      const modules = await storage.getTeachingModulesByLevel(level, req.session.user.schoolId);
       res.json(modules);
     } catch (error) {
       res
