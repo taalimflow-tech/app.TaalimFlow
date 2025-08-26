@@ -104,8 +104,10 @@ export default function Profile() {
   });
 
   const handleProfilePictureUpdate = (pictureUrl: string) => {
-    // Update the user context with the new profile picture
+    // Update all related queries when profile picture changes
     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/students/me'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/school/current'] });
     toast({
       title: "تم بنجاح",
       description: "تم تحديث صورتك الشخصية",
@@ -289,8 +291,10 @@ export default function Profile() {
 
       const { user: updatedUser } = await response.json();
       
-      // Update the auth context with new user data
+      // Update all related queries when profile data changes
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/students/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/school/current'] });
       
       toast({ 
         title: 'تم تحديث الملف الشخصي بنجاح',
