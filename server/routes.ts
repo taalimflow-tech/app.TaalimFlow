@@ -1320,6 +1320,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint for school information
+  app.get("/api/debug/session", requireAuth, async (req, res) => {
+    try {
+      const user = req.session.user;
+      const school = user.schoolId ? await storage.getSchoolById(user.schoolId) : null;
+      
+      res.json({
+        user: {
+          id: user.id,
+          name: user.name,
+          role: user.role,
+          schoolId: user.schoolId
+        },
+        school: school ? {
+          id: school.id,
+          name: school.name,
+          code: school.code
+        } : null
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Debug info failed" });
+    }
+  });
+
   // Announcement routes
   app.get("/api/announcements", requireAuth, async (req, res) => {
     try {
@@ -1339,6 +1363,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
+      console.log("Creating announcement - User session:", {
+        userId: currentUser.id,
+        schoolId: currentUser.schoolId,
+        role: currentUser.role
+      });
+
+      // Check if school exists
+      const school = await storage.getSchoolById(currentUser.schoolId);
+      if (!school) {
+        console.error("School not found for ID:", currentUser.schoolId);
+        return res.status(400).json({ error: "المدرسة غير موجودة. يرجى الاتصال بالمدير" });
+      }
+
       const validatedData = insertAnnouncementSchema.parse(req.body);
 
       // Add schoolId for multi-tenancy
@@ -1348,6 +1385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authorId: req.session.user.id,
       };
 
+      console.log("Creating announcement with data:", announcementData);
       const announcement = await storage.createAnnouncement(announcementData);
 
       // Create notifications for all users about new announcement
