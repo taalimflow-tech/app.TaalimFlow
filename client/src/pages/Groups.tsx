@@ -1859,6 +1859,7 @@ export default function Groups() {
                     {fixCustomSubjectsMutation.isPending ? "جاري الإصلاح..." : "🔧 إصلاح المواد المخصصة"}
                   </button>
                 </div>
+              </div>
               <div className="flex items-center gap-6">
                 <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200 shadow-lg">
                   <div className="text-3xl font-bold text-green-600 mb-1">
