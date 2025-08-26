@@ -14,7 +14,7 @@ export function Layout({ children }: LayoutProps) {
         <DesktopSidebar />
         <div className="flex-1">
           <Header />
-          <main className="p-8 max-w-7xl mx-auto">
+          <main className="p-8 max-w-7xl mx-auto bg-white dark:bg-gray-900">
             {children}
           </main>
         </div>
@@ -23,7 +23,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Mobile Layout */}
       <div className="lg:hidden">
         <Header />
-        <main className="max-w-md mx-auto pb-20">
+        <main className="max-w-md mx-auto pb-20 bg-white dark:bg-gray-900">
           {children}
         </main>
         <BottomNavigation />
