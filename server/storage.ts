@@ -4155,6 +4155,13 @@ export class DatabaseStorage implements IStorage {
     schoolId: number,
   ): Promise<any[]> {
     try {
+      console.log(`[GROUPS] Getting compatible groups for:`, {
+        subjectId,
+        teacherId,
+        educationLevel,
+        schoolId
+      });
+
       // First try exact matching (all criteria must match)
       const exactMatches = await db
         .select({
@@ -4172,20 +4179,25 @@ export class DatabaseStorage implements IStorage {
             eq(groups.schoolId, schoolId),
             eq(groups.subjectId, subjectId),
             eq(groups.teacherId, teacherId),
-            // Flexible education level matching
-            or(
-              eq(groups.educationLevel, educationLevel),
-              like(groups.educationLevel, `%${educationLevel}%`),
-            ),
+            // Handle "all" education level or specific level matching
+            educationLevel === 'all' || educationLevel === 'جميع المستويات' ? 
+              undefined : // Don't filter by education level if it's "all"
+              or(
+                eq(groups.educationLevel, educationLevel),
+                like(groups.educationLevel, `%${educationLevel}%`),
+              ),
           ),
         )
         .orderBy(groups.name);
 
+      console.log(`[GROUPS] Found ${exactMatches.length} exact matches`);
+      
       if (exactMatches.length > 0) {
         return exactMatches;
       }
 
       // If no exact matches, try subject name compatibility (same subject different grades)
+      console.log(`[GROUPS] Trying subject name compatibility...`);
       const requestedSubject = await db
         .select({ name: teachingModules.nameAr, name_en: teachingModules.name })
         .from(teachingModules)
@@ -4195,6 +4207,7 @@ export class DatabaseStorage implements IStorage {
       if (requestedSubject.length > 0) {
         const subjectName =
           requestedSubject[0].name || requestedSubject[0].name_en || "";
+        console.log(`[GROUPS] Looking for subject name: ${subjectName}`);
 
         // Find groups with same subject name but different grade levels
         const subjectCompatibleMatches = await db
@@ -4213,11 +4226,13 @@ export class DatabaseStorage implements IStorage {
             and(
               eq(groups.schoolId, schoolId),
               eq(groups.teacherId, teacherId),
-              // Flexible education level matching
-              or(
-                eq(groups.educationLevel, educationLevel),
-                like(groups.educationLevel, `%${educationLevel}%`),
-              ),
+              // Handle "all" education level or specific level matching
+              educationLevel === 'all' || educationLevel === 'جميع المستويات' ? 
+                undefined : // Don't filter by education level if it's "all"
+                or(
+                  eq(groups.educationLevel, educationLevel),
+                  like(groups.educationLevel, `%${educationLevel}%`),
+                ),
               // Same subject name
               or(
                 eq(teachingModules.nameAr, subjectName),
@@ -4225,15 +4240,18 @@ export class DatabaseStorage implements IStorage {
               ),
             ),
           )
-
           .orderBy(groups.name);
 
+        console.log(`[GROUPS] Found ${subjectCompatibleMatches.length} subject-compatible matches`);
         if (subjectCompatibleMatches.length > 0) {
           return subjectCompatibleMatches;
         }
+      } else {
+        console.log(`[GROUPS] No subject found for subjectId: ${subjectId}`);
       }
 
       // If no subject-compatible matches, try partial matching (subject + education level, any teacher)
+      console.log(`[GROUPS] Trying partial matching...`);
       const partialMatches = await db
         .select({
           id: groups.id,
@@ -4249,21 +4267,26 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(groups.schoolId, schoolId),
             eq(groups.subjectId, subjectId),
-            // Flexible education level matching
-            or(
-              eq(groups.educationLevel, educationLevel),
-              like(groups.educationLevel, `%${educationLevel}%`),
-            ),
+            // Handle "all" education level or specific level matching
+            educationLevel === 'all' || educationLevel === 'جميع المستويات' ? 
+              undefined : // Don't filter by education level if it's "all"
+              or(
+                eq(groups.educationLevel, educationLevel),
+                like(groups.educationLevel, `%${educationLevel}%`),
+              ),
           ),
         )
         .orderBy(groups.name);
 
+      console.log(`[GROUPS] Found ${partialMatches.length} partial matches`);
       if (partialMatches.length > 0) {
         return partialMatches;
       }
 
       // Final fallback: If no matches found, show all available groups that aren't already linked to other schedule cells
       // This is especially useful for custom subjects like "chess" that don't match existing subject names
+      console.log(`[GROUPS] Using final fallback - showing unlinked groups...`);
+      
       const linkedGroupIds = await db
         .select({ groupId: groupScheduleAssignments.groupId })
         .from(groupScheduleAssignments)
@@ -4275,6 +4298,7 @@ export class DatabaseStorage implements IStorage {
         );
 
       const linkedIds = linkedGroupIds.map(item => item.groupId);
+      console.log(`[GROUPS] Found ${linkedIds.length} already linked groups:`, linkedIds);
 
       const unlinkedGroups = await db
         .select({
@@ -4295,6 +4319,7 @@ export class DatabaseStorage implements IStorage {
         )
         .orderBy(groups.name);
 
+      console.log(`[GROUPS] Found ${unlinkedGroups.length} unlinked groups as fallback`);
       return unlinkedGroups;
     } catch (error) {
       console.error("Error getting compatible groups:", error);

@@ -2141,14 +2141,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         schoolId: req.session.user.schoolId,
       });
 
-      if (!subjectId || !teacherId || !educationLevel) {
+      if (!subjectId || !teacherId) {
         return res.status(400).json({ error: "معاملات البحث مطلوبة" });
       }
 
       const compatibleGroups = await storage.getCompatibleGroups(
         parseInt(subjectId as string),
         parseInt(teacherId as string),
-        educationLevel as string,
+        educationLevel as string || 'all',
         req.session.user.schoolId,
       );
 
