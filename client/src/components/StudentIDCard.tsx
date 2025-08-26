@@ -1,8 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Download, QrCode, School, Star, Shield, Award, GraduationCap, User } from 'lucide-react';
 import QRCode from "qrcode";
 
 interface Student {
@@ -96,8 +92,8 @@ export function StudentIDCard({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = 1000;
-    const height = 750;
+    const width = 600;
+    const height = 350;
 
     canvas.width = width * scale;
     canvas.height = height * scale;
