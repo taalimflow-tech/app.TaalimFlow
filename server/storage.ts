@@ -547,6 +547,7 @@ export interface IStorage {
     month?: number,
   ): Promise<FinancialEntry[]>;
   resetFinancialEntries(schoolId: number): Promise<void>;
+  deleteFinancialEntryById(entryId: number): Promise<boolean>;
 
   // Child-specific queries for parent access
   getStudentById(studentId: number): Promise<Student | undefined>;
@@ -4623,6 +4624,36 @@ export class DatabaseStorage implements IStorage {
       }
       
       console.log(`🔥 Record to delete:`, beforeDelete[0]);
+      const paymentRecord = beforeDelete[0];
+      
+      // 🎯 NEW: CASCADING DELETE - Remove associated benefit entries
+      console.log(`🔍 Looking for associated benefit entries to delete...`);
+      
+      // Find benefit entries that match this payment (gains created for this payment amount)
+      const associatedBenefits = await db
+        .select()
+        .from(financialEntries)
+        .where(
+          and(
+            eq(financialEntries.schoolId, schoolId),
+            eq(financialEntries.type, "gain"),
+            eq(financialEntries.year, year),
+            eq(financialEntries.month, month),
+            eq(financialEntries.amount, paymentRecord.amount)
+          )
+        );
+      
+      console.log(`📊 Found ${associatedBenefits.length} associated benefit entries`);
+      
+      if (associatedBenefits.length > 0) {
+        console.log(`🗑️ Deleting associated benefit entries...`);
+        for (const benefit of associatedBenefits) {
+          await db
+            .delete(financialEntries)
+            .where(eq(financialEntries.id, benefit.id));
+          console.log(`✅ Deleted benefit entry ID: ${benefit.id}, amount: ${benefit.amount}`);
+        }
+      }
       
       // HARD DELETE - Direct deletion from database
       const deleteResult = await db
@@ -6267,6 +6298,20 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("❌ Error creating financial entry:", error);
       console.error("❌ Entry data that failed:", entry);
+      throw error;
+    }
+  }
+
+  async deleteFinancialEntryById(entryId: number): Promise<boolean> {
+    try {
+      console.log(`🗑️ Deleting financial entry ID: ${entryId}`);
+      const deleteResult = await db
+        .delete(financialEntries)
+        .where(eq(financialEntries.id, entryId));
+      console.log(`✅ Financial entry ${entryId} deleted successfully`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Error deleting financial entry ${entryId}:`, error);
       throw error;
     }
   }
