@@ -110,6 +110,9 @@ export default function AdminVerification() {
   const [verifierAdminName, setVerifierAdminName] = useState<string>('');
   const [verifiedItemSubjects, setVerifiedItemSubjects] = useState<string[]>([]);
   const [showIDCard, setShowIDCard] = useState(false);
+  
+  // Get selected school from localStorage
+  const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || 'null');
 
   // Check if user has admin privileges
   if (!user || user.role !== 'admin') {
@@ -1018,7 +1021,7 @@ export default function AdminVerification() {
                               }}
                               schoolInfo={{
                                 id: user?.schoolId || 0,
-                                name: 'مدرسة تجريبية' // You can fetch this from user context or API
+                                name: selectedSchool?.name || 'مدرستي'
                               }}
                               subjects={teachingModules}
                             />
