@@ -2542,11 +2542,25 @@ export default function Groups() {
                         nameAr: m.nameAr,
                         schoolId: m.schoolId
                       })));
-                      console.log("🔍 Modules with chess/برمجة in name:", teachingModules?.filter(m => 
+                      const chessModules = teachingModules?.filter(m => 
                         (m.name && m.name.toLowerCase().includes('chess')) || 
                         (m.nameAr && m.nameAr.includes('chess')) ||
                         (m.nameAr && m.nameAr.includes('برمجة'))
-                      ));
+                      );
+                      console.log("🔍 Chess/Programming modules found:", chessModules?.map(m => ({
+                        id: m.id,
+                        name: m.name,
+                        nameAr: m.nameAr,
+                        schoolId: m.schoolId,
+                        educationLevel: m.educationLevel,
+                        grade: m.grade
+                      })));
+                      
+                      // TEMPORARY FIX: Since no custom modules exist, let's create them
+                      if (chessModules && chessModules.length > 0 && chessModules[0].schoolId === null) {
+                        console.log("❗ Found chess/programming modules but they don't have schoolId!");
+                        console.log("❗ Need to create proper custom subjects for these groups!");
+                      }
 
                       // Show groups based on custom subjects (subjects created by this school)
                       // These are subjects that have a schoolId AND are not part of standard curriculum
