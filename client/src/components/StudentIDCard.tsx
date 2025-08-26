@@ -178,13 +178,13 @@ export function StudentIDCard({
 
         {/* Header */}
         <div className="bg-blue-600 text-white p-4 relative">
-          <div className="absolute top-3 right-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-              <School className="w-5 h-5 text-white" />
+          <div className="absolute top-2 right-2">
+            <div className="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+              <School className="w-8 h-8 text-white" />
             </div>
           </div>
-          <div className="text-center pr-16">
-            <h2 className="text-xl font-bold mb-1">
+          <div className="text-center pr-20">
+            <h2 className="text-2xl font-bold mb-1">
               {schoolInfo.name || "اسم المدرسة"}
             </h2>
             <p className="text-sm opacity-90">بطاقة هوية الطالب</p>
@@ -256,30 +256,31 @@ export function StudentIDCard({
             </div>
             <div className="bg-white p-2 rounded border">
               {isGenerating ? (
-                <div className="w-20 h-20 flex items-center justify-center">
-                  <QrCode className="w-6 h-6 text-gray-400 animate-pulse" />
+                <div className="w-24 h-24 flex items-center justify-center">
+                  <QrCode className="w-8 h-8 text-gray-400 animate-pulse" />
                 </div>
               ) : qrCodeImage ? (
-                <img src={qrCodeImage} alt="QR Code" className="w-20 h-20" />
+                <img src={qrCodeImage} alt="QR Code" className="w-24 h-24" />
               ) : (
-                <div className="w-20 h-20 flex items-center justify-center">
-                  <QrCode className="w-6 h-6 text-gray-400" />
+                <div className="w-24 h-24 flex items-center justify-center">
+                  <QrCode className="w-8 h-8 text-gray-400" />
                 </div>
               )}
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="p-3 border-t border-gray-200">
-          <button
-            onClick={downloadIDCard}
-            disabled={isGenerating}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            تحميل بطاقة الهوية
-          </button>
-        </div>
+      {/* Download Button - Outside the card */}
+      <div className="mt-4">
+        <button
+          onClick={downloadIDCard}
+          disabled={isGenerating}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          تحميل بطاقة الهوية
+        </button>
       </div>
     </div>
   );
