@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Download, QrCode, School } from 'lucide-react';
 import QRCode from 'qrcode';
+import templateImage from '@assets/White Grey Simple Minimalist Student ID Card_1756170828385.png';
 
 interface StudentIDCardProps {
   student: {
@@ -195,95 +196,77 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     };
 
     // Set the source to the attached template image
-    backgroundImg.src = '/attached_assets/White Grey Simple Minimalist Student ID Card_1756170828385.png';
+    backgroundImg.src = templateImage;
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      {/* Simple ID card with real dimensions */}
-      <div className="relative bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-lg" style={{ aspectRatio: '1.6/1' }}>
+      {/* ID card using template background */}
+      <div className="relative rounded-lg shadow-lg overflow-hidden" style={{ aspectRatio: '1.6/1' }}>
         
-        {/* School Logo in top corner */}
-        <div className="absolute top-3 right-3 z-10">
-          <div className="w-12 h-12 bg-blue-600 dark:bg-blue-700 rounded-full flex items-center justify-center">
-            <School className="w-6 h-6 text-white" />
+        {/* Template Background */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${templateImage})` }}
+        />
+        
+        {/* Overlay content */}
+        <div className="relative h-full flex flex-col">
+          
+          {/* School Name Area */}
+          <div className="flex-none text-center pt-6 pb-2">
+            <h2 className="text-2xl font-bold text-blue-900">{schoolInfo.name || 'اسم المدرسة'}</h2>
           </div>
-        </div>
-
-        {/* School Header */}
-        <div className="bg-blue-600 dark:bg-blue-700 text-white p-4 rounded-t-lg">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-1">{schoolInfo.name || 'اسم المدرسة'}</h2>
-            <p className="text-base">بطاقة هوية الطالب</p>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex p-6" dir="rtl">
-          {/* Student Info */}
-          <div className="flex-1 space-y-4">
-            <div className="flex items-center justify-between">
+          
+          {/* Main Content Area */}
+          <div className="flex-1 flex items-start justify-end px-6 pt-8" dir="rtl">
+            <div className="text-right space-y-4">
+              {/* Student Name */}
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">الاسم</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{student.name}</p>
+                <p className="text-xl font-bold text-blue-900">{student.name}</p>
               </div>
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-sm font-semibold">
-                {student.type === 'student' ? 'طالب' : 'طفل'}
-              </span>
-            </div>
-
-            <div className="flex gap-6">
+              
+              {/* Education Level */}
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">المستوى</p>
-                <p className="text-base font-semibold text-gray-900 dark:text-white">
+                <p className="text-lg font-semibold text-blue-900">
                   {formatEducationLevel(student.educationLevel, student.grade)}
                 </p>
               </div>
+              
+              {/* Student ID */}
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">الرقم</p>
-                <p className="text-base font-bold text-blue-600 dark:text-blue-400">{student.id}</p>
+                <p className="text-lg font-semibold text-blue-900">{student.id}</p>
               </div>
             </div>
-
-            {getSubjectNames().length > 0 && (
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">المواد</p>
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  {getSubjectNames().slice(0, 3).join(' • ')}
-                  {getSubjectNames().length > 3 && (
-                    <span className="text-blue-600 dark:text-blue-400"> و {getSubjectNames().length - 3} أخرى</span>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
-
-          {/* Photo and QR */}
-          <div className="w-32 flex flex-col items-center space-y-4">
-            {/* Photo */}
-            <div className="w-20 h-20 bg-gray-200 dark:bg-gray-600 rounded border-2 border-gray-300 dark:border-gray-500 flex items-center justify-center">
-              <div className="w-10 h-10 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+          
+          {/* Student Photo Area - positioned over template photo frame */}
+          <div className="absolute left-6 top-48">
+            <div className="w-28 h-20 bg-gradient-to-b from-sky-300 to-green-400 rounded flex items-center justify-center">
+              <div className="text-white text-xs font-semibold text-center">
+                <div>Student</div>
+                <div>Picture</div>
+              </div>
             </div>
-            
-            {/* QR Code */}
-            <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded border">
+          </div>
+          
+          {/* QR Code Area - positioned over template QR frame */}
+          <div className="absolute left-6 bottom-16">
+            <div className="w-24 h-24 bg-white border-2 border-black rounded flex items-center justify-center">
               {isGenerating ? (
-                <div className="w-16 h-16 flex items-center justify-center">
-                  <QrCode className="w-6 h-6 text-gray-400 animate-pulse" />
-                </div>
+                <QrCode className="w-6 h-6 text-gray-400 animate-pulse" />
               ) : qrCodeImage ? (
-                <img src={qrCodeImage} alt="QR Code" className="w-16 h-16" />
+                <img src={qrCodeImage} alt="QR Code" className="w-20 h-20" />
               ) : (
-                <div className="w-16 h-16 flex items-center justify-center">
-                  <QrCode className="w-6 h-6 text-gray-400" />
-                </div>
+                <QrCode className="w-6 h-6 text-gray-400" />
               )}
             </div>
           </div>
+          
         </div>
 
         {/* Download Button */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-600">
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm">
           <Button
             onClick={downloadIDCard}
             variant="outline"
