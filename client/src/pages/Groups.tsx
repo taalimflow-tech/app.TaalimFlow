@@ -995,6 +995,28 @@ export default function Groups() {
     },
   });
 
+  // Fix custom subjects mutation
+  const fixCustomSubjectsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/fix-custom-subjects");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: data.message,
+        description: data.fixedGroups.length > 0 
+          ? `تم إصلاح المجموعات: ${data.fixedGroups.map((g: any) => g.groupName).join(', ')}`
+          : undefined
+      });
+      // Force cache invalidation for all related queries
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teaching-modules"] });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إصلاح المواد المخصصة", variant: "destructive" });
+    },
+  });
+
   // Financial mutations
   const createTransactionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -1820,13 +1842,23 @@ export default function Groups() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-l from-gray-800 dark:from-gray-200 to-gray-600 dark:to-gray-400 bg-clip-text text-transparent mb-3">
-                  إدارة المجموعات التعليمية
-                </h1>
-                <p className="text-gray-600 dark:text-gray-300 text-lg">
-                  إنشاء وإدارة المجموعات الدراسية للطلاب
-                </p>
-              </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-l from-gray-800 dark:from-gray-200 to-gray-600 dark:to-gray-400 bg-clip-text text-transparent mb-3">
+                      إدارة المجموعات التعليمية
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-300 text-lg">
+                      إنشاء وإدارة المجموعات الدراسية للطلاب
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => fixCustomSubjectsMutation.mutate()}
+                    disabled={fixCustomSubjectsMutation.isPending}
+                    className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {fixCustomSubjectsMutation.isPending ? "جاري الإصلاح..." : "🔧 إصلاح المواد المخصصة"}
+                  </button>
+                </div>
               <div className="flex items-center gap-6">
                 <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200 shadow-lg">
                   <div className="text-3xl font-bold text-green-600 mb-1">
@@ -2531,36 +2563,6 @@ export default function Groups() {
                     );
 
                     if (existingGroupsFilter === "custom") {
-                      console.log("🔍 AFTER FIX: Filtering custom groups...");
-                      console.log("🔍 Available admin groups:", adminCreatedGroups.length);
-                      console.log("🔍 Available teaching modules:", teachingModules?.length);
-                      console.log("🔍 Chess group subjectId 1413 module:", teachingModules?.find(m => m.id === 1413));
-                      console.log("🔍 Programming group subjectId 1414 module:", teachingModules?.find(m => m.id === 1414));
-                      console.log("🔍 Custom modules with schoolId:", teachingModules?.filter(m => m.schoolId).map(m => ({
-                        id: m.id,
-                        name: m.name,
-                        nameAr: m.nameAr,
-                        schoolId: m.schoolId
-                      })));
-                      const chessModules = teachingModules?.filter(m => 
-                        (m.name && m.name.toLowerCase().includes('chess')) || 
-                        (m.nameAr && m.nameAr.includes('chess')) ||
-                        (m.nameAr && m.nameAr.includes('برمجة'))
-                      );
-                      console.log("🔍 Chess/Programming modules found:", chessModules?.map(m => ({
-                        id: m.id,
-                        name: m.name,
-                        nameAr: m.nameAr,
-                        schoolId: m.schoolId,
-                        educationLevel: m.educationLevel,
-                        grade: m.grade
-                      })));
-                      
-                      // TEMPORARY FIX: Since no custom modules exist, let's create them
-                      if (chessModules && chessModules.length > 0 && chessModules[0].schoolId === null) {
-                        console.log("❗ Found chess/programming modules but they don't have schoolId!");
-                        console.log("❗ Need to create proper custom subjects for these groups!");
-                      }
 
                       // Show groups based on custom subjects (subjects created by this school)
                       // These are subjects that have a schoolId AND are not part of standard curriculum
@@ -2570,16 +2572,8 @@ export default function Groups() {
                           (module: any) => module.id === group.subjectId,
                         );
 
-                        console.log(`🔍 Group "${group.name}":`, {
-                          subjectId: group.subjectId,
-                          hasModule: !!teachingModule,
-                          moduleSchoolId: teachingModule?.schoolId,
-                          moduleName: teachingModule?.nameAr || teachingModule?.name
-                        });
-
                         // A group is "custom" if it's based on a custom subject (teaching module with schoolId)
                         if (!teachingModule || !teachingModule.schoolId) {
-                          console.log(`❌ "${group.name}" excluded - No module or schoolId`);
                           return false;
                         }
 

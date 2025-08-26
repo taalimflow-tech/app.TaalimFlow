@@ -2458,6 +2458,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix missing custom subjects for existing groups
+  app.post("/api/admin/fix-custom-subjects", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      
+      // Get groups that have missing subjects (subjectIds 1413, 1414)
+      const problemGroups = await storage.getGroupsBySubjectIds([1413, 1414], schoolId);
+      
+      if (problemGroups.length === 0) {
+        return res.json({ message: "لا توجد مجموعات تحتاج إصلاح", fixedGroups: [] });
+      }
+
+      const fixedGroups = [];
+
+      for (const group of problemGroups) {
+        let customSubject = null;
+        
+        if (group.subjectId === 1413) {
+          // Create chess custom subject
+          customSubject = await storage.createCustomSubject({
+            name: "Chess",
+            nameAr: "الشطرنج",
+            educationLevel: "جميع المستويات",
+            grade: "جميع الصفوف",
+            description: "مادة مخصصة للشطرنج تم إنشاؤها بواسطة الإدارة",
+            schoolId: schoolId,
+          });
+        } else if (group.subjectId === 1414) {
+          // Create programming custom subject
+          customSubject = await storage.createCustomSubject({
+            name: "Programming",
+            nameAr: "البرمجة",
+            educationLevel: "جميع المستويات", 
+            grade: "جميع الصفوف",
+            description: "مادة مخصصة للبرمجة تم إنشاؤها بواسطة الإدارة",
+            schoolId: schoolId,
+          });
+        }
+
+        if (customSubject) {
+          // Update group to reference the new custom subject
+          await storage.updateGroupSubject(group.id, customSubject.id, schoolId);
+          fixedGroups.push({
+            groupId: group.id,
+            groupName: group.name,
+            oldSubjectId: group.subjectId,
+            newSubjectId: customSubject.id,
+            subjectName: customSubject.nameAr
+          });
+        }
+      }
+
+      res.json({
+        message: `تم إصلاح ${fixedGroups.length} مجموعة بنجاح`,
+        fixedGroups: fixedGroups
+      });
+    } catch (error) {
+      console.error("Error fixing custom subjects:", error);
+      res.status(500).json({ error: "Failed to fix custom subjects" });
+    }
+  });
+
   // Formation routes
   app.get("/api/formations", async (req, res) => {
     try {

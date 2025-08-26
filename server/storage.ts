@@ -2747,6 +2747,37 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(teachingModules.createdAt));
   }
 
+  async getGroupsBySubjectIds(
+    subjectIds: number[],
+    schoolId: number,
+  ): Promise<any[]> {
+    return await db
+      .select()
+      .from(groups)
+      .where(
+        and(
+          inArray(groups.subjectId, subjectIds),
+          eq(groups.schoolId, schoolId),
+        ),
+      );
+  }
+
+  async updateGroupSubject(
+    groupId: number,
+    newSubjectId: number,
+    schoolId: number,
+  ): Promise<void> {
+    await db
+      .update(groups)
+      .set({ subjectId: newSubjectId })
+      .where(
+        and(
+          eq(groups.id, groupId),
+          eq(groups.schoolId, schoolId),
+        ),
+      );
+  }
+
   async getGlobalTeachingModules(): Promise<TeachingModule[]> {
     // Only return global standardized subjects (schoolId = NULL)
     return await db
