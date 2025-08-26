@@ -3531,7 +3531,7 @@ export default function Groups() {
                                                 if (response.ok) {
                                                   toast({
                                                     title: "تم حذف الدفعة",
-                                                    description: "تم حذف سجل الدفع بنجاح",
+                                                    description: "تم حذف سجل الدفع وما يرتبط به من سجلات الأرباح بنجاح",
                                                   });
                                                   
                                                   // Force refresh payment status
@@ -3549,6 +3549,22 @@ export default function Groups() {
                                                   queryClient.invalidateQueries({
                                                     queryKey: ["/api/groups", managementGroup?.id],
                                                   });
+                                                  
+                                                  // 🎯 NEW: IMMEDIATE BENEFIT CALCULATOR REFRESH
+                                                  // Small delay to ensure backend processing is complete, then refresh all caches
+                                                  setTimeout(() => {
+                                                    // Invalidate the benefit calculator cache so it updates immediately
+                                                    queryClient.invalidateQueries({
+                                                      queryKey: ['/api', 'gain-loss-entries'],
+                                                    });
+                                                    
+                                                    // Also refresh financial reports if they exist
+                                                    queryClient.invalidateQueries({
+                                                      queryKey: ['/api/financial-reports'],
+                                                    });
+                                                    
+                                                    console.log('✅ All caches invalidated: payments, groups, and benefit calculator');
+                                                  }, 500); // 500ms delay to ensure backend completion
                                                 } else {
                                                   toast({
                                                     title: "خطأ في حذف الدفعة",
