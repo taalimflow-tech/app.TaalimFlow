@@ -92,13 +92,27 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     generateQRCode();
   }, [student.id, student.type, schoolInfo.id]);
 
-  const downloadIDCard = () => {
+  const downloadIDCard = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     canvas.width = 600;
     canvas.height = 350;
+
+    // Load Noto Arabic font with fallback
+    let fontFamily = 'Arial';
+    try {
+      const font = new FontFace(
+        'Noto Sans Arabic',
+        'url(https://fonts.gstatic.com/s/notosansarabic/v18/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHmeibL0Y7Y.woff2)'
+      );
+      await font.load();
+      document.fonts.add(font);
+      fontFamily = 'Noto Sans Arabic, Arial';
+    } catch (error) {
+      console.log('Using fallback font');
+    }
 
     // White background
     ctx.fillStyle = '#ffffff';
@@ -113,15 +127,15 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     ctx.fillStyle = '#2563eb';
     ctx.fillRect(0, 0, canvas.width, 60);
 
-    // School name - center aligned
+    // School name - center aligned (bigger text)
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px Arial';
+    ctx.font = `bold 22px ${fontFamily}`;
     ctx.textAlign = 'center';
     const schoolName = schoolInfo?.name || 'اسم المدرسة';
-    ctx.fillText(schoolName, canvas.width / 2, 28);
+    ctx.fillText(schoolName, canvas.width / 2, 30);
     
-    ctx.font = '12px Arial';
-    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 48);
+    ctx.font = `16px ${fontFamily}`;
+    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 50);
 
     // Photo frame - left side
     const photoX = 30;
@@ -134,69 +148,68 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     ctx.fillRect(photoX, photoY, photoSize, photoSize);
 
     // Content - right side
-    const contentX = 140; // Start content after photo
     const rightX = canvas.width - 30; // Right edge for Arabic text
 
-    // Student name
+    // Student name (bigger)
     ctx.textAlign = 'right';
-    ctx.font = '10px Arial';
+    ctx.font = `14px ${fontFamily}`;
     ctx.fillStyle = '#6b7280';
-    ctx.fillText('الاسم:', rightX, 90);
+    ctx.fillText('الاسم:', rightX, 95);
     
-    ctx.font = 'bold 16px Arial';
+    ctx.font = `bold 20px ${fontFamily}`;
     ctx.fillStyle = '#1f2937';
-    ctx.fillText(student.name, rightX, 110);
+    ctx.fillText(student.name, rightX, 118);
 
-    // Student type badge
+    // Student type badge (bigger)
     ctx.fillStyle = '#2563eb';
-    ctx.fillRect(rightX - 80, 115, 60, 20);
+    ctx.fillRect(rightX - 85, 125, 70, 25);
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 10px Arial';
+    ctx.font = `bold 14px ${fontFamily}`;
     ctx.textAlign = 'center';
-    ctx.fillText(student.type === 'student' ? 'طالب' : 'طفل', rightX - 50, 127);
+    ctx.fillText(student.type === 'student' ? 'طالب' : 'طفل', rightX - 50, 142);
 
-    // Education level
+    // Education level (bigger)
     ctx.textAlign = 'right';
-    ctx.font = '10px Arial';
+    ctx.font = `14px ${fontFamily}`;
     ctx.fillStyle = '#6b7280';
-    ctx.fillText('المستوى:', rightX, 150);
+    ctx.fillText('المستوى:', rightX, 170);
     
-    ctx.font = 'bold 12px Arial';
+    ctx.font = `bold 16px ${fontFamily}`;
     ctx.fillStyle = '#1f2937';
-    ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightX, 170);
+    ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightX, 190);
 
-    // Student ID
-    ctx.font = '10px Arial';
+    // Student ID (bigger)
+    ctx.font = `14px ${fontFamily}`;
     ctx.fillStyle = '#6b7280';
-    ctx.fillText('الرقم:', rightX - 120, 150);
+    ctx.fillText('الرقم:', rightX - 140, 170);
     
-    ctx.font = 'bold 12px Arial';
+    ctx.font = `bold 16px ${fontFamily}`;
     ctx.fillStyle = '#2563eb';
-    ctx.fillText(`#${student.id}`, rightX - 120, 170);
+    ctx.fillText(`#${student.id}`, rightX - 140, 190);
 
-    // Subjects
+    // Subjects (bigger)
     const subjectNames = getSubjectNames();
     if (subjectNames.length > 0) {
       ctx.textAlign = 'right';
-      ctx.font = '10px Arial';
+      ctx.font = `14px ${fontFamily}`;
       ctx.fillStyle = '#6b7280';
-      ctx.fillText('المواد:', rightX, 195);
+      ctx.fillText('المواد:', rightX, 220);
       
-      ctx.font = '10px Arial';
+      ctx.font = `12px ${fontFamily}`;
       ctx.fillStyle = '#374151';
-      const subjectsText = subjectNames.slice(0, 3).join(' • ');
-      ctx.fillText(subjectsText, rightX, 212);
+      const subjectsText = subjectNames.slice(0, 2).join(' • ');
+      ctx.fillText(subjectsText, rightX, 240);
       
-      if (subjectNames.length > 3) {
+      if (subjectNames.length > 2) {
         ctx.fillStyle = '#2563eb';
-        ctx.fillText(`+ ${subjectNames.length - 3} مواد أخرى`, rightX, 228);
+        ctx.fillText(`+ ${subjectNames.length - 2} مواد أخرى`, rightX, 258);
       }
     }
 
-    // QR code - bottom left
+    // QR code - bottom left (bigger)
     const qrX = 30;
     const qrY = 250;
-    const qrSize = 80;
+    const qrSize = 90;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(qrX, qrY, qrSize, qrSize);
     ctx.strokeStyle = '#d1d5db';
@@ -218,7 +231,7 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
       img.src = student.profilePicture;
     } else {
       ctx.fillStyle = '#9ca3af';
-      ctx.font = '24px Arial';
+      ctx.font = `28px ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.fillText('👤', photoX + photoSize/2, photoY + photoSize/1.5);
       finishWithQR();
@@ -237,7 +250,7 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
         qrImg.src = qrCodeImage;
       } else {
         ctx.fillStyle = '#9ca3af';
-        ctx.font = '12px Arial';
+        ctx.font = `14px ${fontFamily}`;
         ctx.textAlign = 'center';
         ctx.fillText('QR Code', qrX + qrSize/2, qrY + qrSize/2);
         downloadImage();
