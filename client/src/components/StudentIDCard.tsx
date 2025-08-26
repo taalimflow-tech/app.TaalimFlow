@@ -100,30 +100,36 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     canvas.width = 600;
     canvas.height = 350;
 
-    // Load Noto Arabic font
-    const font = new FontFace(
-      'NotoArabic',
-      'url(https://fonts.gstatic.com/s/notosansarabic/v17/3q2b8AJk6y2izaplaR2gLA.woff2)'
-    );
-    await font.load();
-    document.fonts.add(font);
-    ctx.font = '16px NotoArabic';
-    ctx.direction = 'rtl';
+    // Try to load Arabic font, fallback to Arial if fails
+    let fontFamily = 'Arial';
+    try {
+      const font = new FontFace(
+        'NotoArabic',
+        'url(https://fonts.gstatic.com/s/notosansarabic/v17/3q2b8AJk6y2izaplaR2gLA.woff2)'
+      );
+      await font.load();
+      document.fonts.add(font);
+      fontFamily = 'NotoArabic';
+    } catch (error) {
+      console.log('Font loading failed, using fallback');
+    }
 
-    // Rounded card background
-    const radius = 20;
+    // Helper function for rounded rectangles (browser compatibility)
+    const roundRect = (x: number, y: number, w: number, h: number, r: number) => {
+      if (w < 2 * r) r = w / 2;
+      if (h < 2 * r) r = h / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    };
+
+    // White background with rounded corners
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.moveTo(radius, 0);
-    ctx.lineTo(canvas.width - radius, 0);
-    ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-    ctx.lineTo(canvas.width, canvas.height - radius);
-    ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
-    ctx.lineTo(radius, canvas.height);
-    ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
-    ctx.lineTo(0, radius);
-    ctx.quadraticCurveTo(0, 0, radius, 0);
-    ctx.closePath();
+    roundRect(0, 0, canvas.width, canvas.height, 20);
     ctx.fill();
 
     // Gradient header
@@ -136,10 +142,10 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     // School name
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
-    ctx.font = 'bold 20px NotoArabic';
-    ctx.fillText(schoolInfo?.name || 'اسم المدرسة', canvas.width / 2, 28);
-    ctx.font = '14px NotoArabic';
-    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 48);
+    ctx.font = `bold 20px ${fontFamily}`;
+    ctx.fillText(schoolInfo?.name || 'اسم المدرسة', canvas.width / 2, 35);
+    ctx.font = `14px ${fontFamily}`;
+    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 50);
 
     // Profile photo
     const photoX = 30;
@@ -149,56 +155,51 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     ctx.beginPath();
     ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, 2 * Math.PI);
     ctx.fill();
-    ctx.shadowColor = 'rgba(0,0,0,0.15)';
-    ctx.shadowBlur = 5;
 
     const drawCardDetails = () => {
       const rightX = canvas.width - 30;
 
       // Student name
       ctx.textAlign = 'right';
-      ctx.shadowBlur = 0;
       ctx.fillStyle = '#1f2937';
-      ctx.font = 'bold 18px NotoArabic';
+      ctx.font = `bold 18px ${fontFamily}`;
       ctx.fillText(student.name, rightX, 110);
 
-      // Student type badge (rounded)
+      // Student type badge
       const typeText = student.type === 'student' ? 'طالب' : 'طفل';
-      const badgeWidth = ctx.measureText(typeText).width + 16;
+      const badgeWidth = 60;
       ctx.fillStyle = '#2563eb';
-      ctx.beginPath();
-      ctx.roundRect(rightX - badgeWidth, 95, badgeWidth, 24, 12);
-      ctx.fill();
+      ctx.fillRect(rightX - badgeWidth, 95, badgeWidth, 24);
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 12px NotoArabic';
+      ctx.font = `bold 12px ${fontFamily}`;
       ctx.textAlign = 'center';
-      ctx.fillText(typeText, rightX - badgeWidth / 2, 112);
+      ctx.fillText(typeText, rightX - badgeWidth / 2, 109);
 
       // Education level
       ctx.textAlign = 'right';
       ctx.fillStyle = '#6b7280';
-      ctx.font = '12px NotoArabic';
+      ctx.font = `12px ${fontFamily}`;
       ctx.fillText('المستوى', rightX, 140);
       ctx.fillStyle = '#1f2937';
-      ctx.font = 'bold 14px NotoArabic';
+      ctx.font = `bold 14px ${fontFamily}`;
       ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightX, 160);
 
       // Student ID
       ctx.fillStyle = '#6b7280';
-      ctx.font = '12px NotoArabic';
+      ctx.font = `12px ${fontFamily}`;
       ctx.fillText('الرقم', rightX - 150, 140);
       ctx.fillStyle = '#2563eb';
-      ctx.font = 'bold 14px NotoArabic';
+      ctx.font = `bold 14px ${fontFamily}`;
       ctx.fillText(`#${student.id}`, rightX - 150, 160);
 
       // Subjects
       const subjectNames = getSubjectNames();
       if (subjectNames.length > 0) {
         ctx.fillStyle = '#6b7280';
-        ctx.font = '12px NotoArabic';
+        ctx.font = `12px ${fontFamily}`;
         ctx.fillText('المواد', rightX, 185);
         ctx.fillStyle = '#374151';
-        ctx.font = '12px NotoArabic';
+        ctx.font = `12px ${fontFamily}`;
         ctx.fillText(subjectNames.slice(0, 3).join(' • '), rightX, 205);
         if (subjectNames.length > 3) {
           ctx.fillStyle = '#2563eb';
@@ -206,14 +207,12 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
         }
       }
 
-      // QR code (rounded)
+      // QR code
       const qrX = 30;
       const qrY = 190;
       const qrSize = 90;
       ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.roundRect(qrX, qrY, qrSize, qrSize, 12);
-      ctx.fill();
+      ctx.fillRect(qrX, qrY, qrSize, qrSize);
       ctx.strokeStyle = '#d1d5db';
       ctx.strokeRect(qrX, qrY, qrSize, qrSize);
 
@@ -226,7 +225,7 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
         qrImg.src = qrCodeImage;
       } else {
         ctx.fillStyle = '#9ca3af';
-        ctx.font = '14px NotoArabic';
+        ctx.font = `14px ${fontFamily}`;
         ctx.textAlign = 'center';
         ctx.fillText('QR', qrX + qrSize / 2, qrY + qrSize / 1.7);
         downloadCanvas();
@@ -247,7 +246,7 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
       img.src = student.profilePicture;
     } else {
       ctx.fillStyle = '#9ca3af';
-      ctx.font = '36px NotoArabic';
+      ctx.font = `36px ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.fillText('👤', photoX + photoSize / 2, photoY + photoSize / 1.5);
       drawCardDetails();
