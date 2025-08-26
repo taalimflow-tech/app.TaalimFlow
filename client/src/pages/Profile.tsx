@@ -478,7 +478,7 @@ export default function Profile() {
                   <StudentIDCard
                     student={{
                       id: studentData.id,
-                      name: studentData.name,
+                      name: user.name,
                       educationLevel: studentData.educationLevel,
                       grade: studentData.grade,
                       selectedSubjects: studentData.selectedSubjects || [],
