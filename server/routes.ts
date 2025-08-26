@@ -40,6 +40,9 @@ import path from "path";
 import fs from "fs";
 import express from "express";
 import session from "express-session";
+// Firebase admin imports commented out until package is installed
+// import { initializeApp, cert, getApps } from "firebase-admin/app";
+// import { getStorage as getAdminStorage } from "firebase-admin/storage";
 
 // Extend Express Request interface to include session with our custom properties
 declare module "express-session" {
@@ -1020,8 +1023,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "لم يتم رفع أي ملف" });
         }
 
-        // Create URL for the uploaded file
-        const fileUrl = `/uploads/${req.file.filename}`;
+        // Use absolute URL for local storage (Firebase Storage integration to be added later)
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
 
         const updatedUser = await storage.updateUserProfilePicture(
           req.session.user.id,
