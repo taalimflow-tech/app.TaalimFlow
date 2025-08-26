@@ -1291,7 +1291,8 @@ export class DatabaseStorage implements IStorage {
   ): Promise<Announcement> {
     const announcementData = {
       ...insertAnnouncement,
-      schoolId: schoolId || 1,
+      // Use the schoolId from insertAnnouncement if it exists, otherwise use the parameter, no hardcoded fallback
+      schoolId: insertAnnouncement.schoolId || schoolId,
     };
     const [announcement] = await db
       .insert(announcements)
