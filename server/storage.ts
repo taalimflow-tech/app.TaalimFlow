@@ -101,6 +101,7 @@ import {
   SQL,
   inArray,
   isNull,
+  not,
 } from "drizzle-orm";
 
 export interface IStorage {
@@ -4257,7 +4258,44 @@ export class DatabaseStorage implements IStorage {
         )
         .orderBy(groups.name);
 
-      return partialMatches;
+      if (partialMatches.length > 0) {
+        return partialMatches;
+      }
+
+      // Final fallback: If no matches found, show all available groups that aren't already linked to other schedule cells
+      // This is especially useful for custom subjects like "chess" that don't match existing subject names
+      const linkedGroupIds = await db
+        .select({ groupId: groupScheduleAssignments.groupId })
+        .from(groupScheduleAssignments)
+        .where(
+          and(
+            eq(groupScheduleAssignments.schoolId, schoolId),
+            eq(groupScheduleAssignments.isActive, true)
+          )
+        );
+
+      const linkedIds = linkedGroupIds.map(item => item.groupId);
+
+      const unlinkedGroups = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          educationLevel: groups.educationLevel,
+          subjectId: groups.subjectId,
+          teacherId: groups.teacherId,
+          studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
+          matchType: sql<string>`'unlinked_fallback'`,
+        })
+        .from(groups)
+        .where(
+          and(
+            eq(groups.schoolId, schoolId),
+            linkedIds.length > 0 ? not(inArray(groups.id, linkedIds)) : undefined
+          )
+        )
+        .orderBy(groups.name);
+
+      return unlinkedGroups;
     } catch (error) {
       console.error("Error getting compatible groups:", error);
       return [];

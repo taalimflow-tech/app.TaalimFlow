@@ -1269,39 +1269,64 @@ export default function Schedule() {
               <div>
                 <h4 className="font-medium text-sm mb-3">المجموعات المتوافقة:</h4>
                 {compatibleGroups.length > 0 ? (
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {compatibleGroups.map((group: any) => (
-                      <div
-                        key={group.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                          selectedGroups.includes(group.id)
-                            ? 'border-purple-500 bg-purple-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => handleGroupToggle(group.id)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-sm">{group.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {group.studentsCount || group.studentsAssigned?.length || 0} طالب
-                            </div>
-                          </div>
-                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                            selectedGroups.includes(group.id)
-                              ? 'border-purple-500 bg-purple-500'
-                              : 'border-gray-300'
-                          }`}>
-                            {selectedGroups.includes(group.id) && (
-                              <div className="w-2 h-2 bg-white rounded-full" />
-                            )}
-                          </div>
+                  <>
+                    {/* Show match type explanation if showing fallback groups */}
+                    {compatibleGroups.some((group: any) => group.matchType === 'unlinked_fallback') && (
+                      <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                        <div className="text-xs text-yellow-800 dark:text-yellow-200">
+                          ⚠️ لم يتم العثور على مجموعات مطابقة تماماً. يتم عرض المجموعات غير المربوطة كبديل.
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {compatibleGroups.map((group: any) => (
+                        <div
+                          key={group.id}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                            selectedGroups.includes(group.id)
+                              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                          }`}
+                          onClick={() => handleGroupToggle(group.id)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-sm dark:text-gray-200">{group.name}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {group.studentsCount || group.studentsAssigned?.length || 0} طالب
+                                {/* Show match type badge */}
+                                {group.matchType && (
+                                  <span className={`mr-2 px-1.5 py-0.5 rounded text-xs ${
+                                    group.matchType === 'exact' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                                    group.matchType === 'subject_compatible' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
+                                    group.matchType === 'partial' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200' :
+                                    group.matchType === 'unlinked_fallback' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
+                                    'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                                  }`}>
+                                    {group.matchType === 'exact' ? 'مطابق' :
+                                     group.matchType === 'subject_compatible' ? 'مادة مشابهة' :
+                                     group.matchType === 'partial' ? 'جزئي' :
+                                     group.matchType === 'unlinked_fallback' ? 'غير مربوط' : group.matchType}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                              selectedGroups.includes(group.id)
+                                ? 'border-purple-500 bg-purple-500'
+                                : 'border-gray-300 dark:border-gray-600'
+                            }`}>
+                              {selectedGroups.includes(group.id) && (
+                                <div className="w-2 h-2 bg-white rounded-full" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 ) : (
-                  <div className="text-sm text-gray-500 text-center py-4">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                     لا توجد مجموعات متوافقة مع هذه الحصة
                   </div>
                 )}
