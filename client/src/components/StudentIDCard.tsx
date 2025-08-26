@@ -92,161 +92,168 @@ export function StudentIDCard({ student, schoolInfo, subjects = [] }: StudentIDC
     generateQRCode();
   }, [student.id, student.type, schoolInfo.id]);
 
-  // Download ID card as image - clean and simple
-  const downloadIDCard = () => {
+  const downloadIDCard = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Compact canvas size
     canvas.width = 600;
     canvas.height = 350;
 
-    // White background
+    // Load Noto Arabic font
+    const font = new FontFace(
+      'NotoArabic',
+      'url(https://fonts.gstatic.com/s/notosansarabic/v17/3q2b8AJk6y2izaplaR2gLA.woff2)'
+    );
+    await font.load();
+    document.fonts.add(font);
+    ctx.font = '16px NotoArabic';
+    ctx.direction = 'rtl';
+
+    // Rounded card background
+    const radius = 20;
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Border
-    ctx.strokeStyle = '#d1d5db';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-    // Blue header
-    ctx.fillStyle = '#2563eb';
-    ctx.fillRect(0, 0, canvas.width, 60);
-
-    // School logo
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.beginPath();
-    ctx.arc(canvas.width - 35, 30, 15, 0, 2 * Math.PI);
+    ctx.moveTo(radius, 0);
+    ctx.lineTo(canvas.width - radius, 0);
+    ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+    ctx.lineTo(canvas.width, canvas.height - radius);
+    ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+    ctx.lineTo(radius, canvas.height);
+    ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+    ctx.lineTo(0, radius);
+    ctx.quadraticCurveTo(0, 0, radius, 0);
+    ctx.closePath();
     ctx.fill();
 
+    // Gradient header
+    const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    headerGradient.addColorStop(0, '#2563eb');
+    headerGradient.addColorStop(1, '#3b82f6');
+    ctx.fillStyle = headerGradient;
+    ctx.fillRect(0, 0, canvas.width, 60);
+
     // School name
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px Arial';
+    ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
-    const schoolName = schoolInfo?.name || 'اسم المدرسة';
-    ctx.fillText(schoolName, (canvas.width - 70) / 2, 28);
-    
-    ctx.font = '12px Arial';
-    ctx.fillText('بطاقة هوية الطالب', (canvas.width - 70) / 2, 48);
+    ctx.font = 'bold 20px NotoArabic';
+    ctx.fillText(schoolInfo?.name || 'اسم المدرسة', canvas.width / 2, 28);
+    ctx.font = '14px NotoArabic';
+    ctx.fillText('بطاقة هوية الطالب', canvas.width / 2, 48);
 
-    // Content area
-    const rightX = canvas.width - 30;
-    const leftX = 120;
-
-    // Student name
-    ctx.textAlign = 'right';
-    ctx.font = '10px Arial';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText('الاسم', rightX, 90);
-    
-    ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = '#1f2937';
-    ctx.fillText(student.name, rightX, 110);
-
-    // Student type
-    ctx.fillStyle = '#2563eb';
-    ctx.fillRect(rightX - 80, 95, 60, 20);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 10px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(student.type === 'student' ? 'طالب' : 'طفل', rightX - 50, 107);
-
-    // Education level
-    ctx.textAlign = 'right';
-    ctx.font = '10px Arial';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText('المستوى', rightX, 140);
-    
-    ctx.font = 'bold 12px Arial';
-    ctx.fillStyle = '#1f2937';
-    ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightX, 158);
-
-    // Student ID
-    ctx.font = '10px Arial';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText('الرقم', rightX - 150, 140);
-    
-    ctx.font = 'bold 12px Arial';
-    ctx.fillStyle = '#2563eb';
-    ctx.fillText(`#${student.id}`, rightX - 150, 158);
-
-    // Subjects
-    const subjectNames = getSubjectNames();
-    if (subjectNames.length > 0) {
-      ctx.textAlign = 'right';
-      ctx.font = '10px Arial';
-      ctx.fillStyle = '#6b7280';
-      ctx.fillText('المواد', rightX, 185);
-      
-      ctx.font = '10px Arial';
-      ctx.fillStyle = '#374151';
-      const subjectsText = subjectNames.slice(0, 3).join(' • ');
-      ctx.fillText(subjectsText, rightX, 202);
-      
-      if (subjectNames.length > 3) {
-        ctx.fillStyle = '#2563eb';
-        ctx.fillText(`و ${subjectNames.length - 3} أخرى`, rightX, 218);
-      }
-    }
-
-    // Photo frame
-    ctx.strokeStyle = '#d1d5db';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(30, 80, 80, 80);
+    // Profile photo
+    const photoX = 30;
+    const photoY = 90;
+    const photoSize = 80;
     ctx.fillStyle = '#f3f4f6';
-    ctx.fillRect(30, 80, 80, 80);
+    ctx.beginPath();
+    ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.shadowColor = 'rgba(0,0,0,0.15)';
+    ctx.shadowBlur = 5;
 
-    // Draw profile image or placeholder
+    const drawCardDetails = () => {
+      const rightX = canvas.width - 30;
+
+      // Student name
+      ctx.textAlign = 'right';
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#1f2937';
+      ctx.font = 'bold 18px NotoArabic';
+      ctx.fillText(student.name, rightX, 110);
+
+      // Student type badge (rounded)
+      const typeText = student.type === 'student' ? 'طالب' : 'طفل';
+      const badgeWidth = ctx.measureText(typeText).width + 16;
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.roundRect(rightX - badgeWidth, 95, badgeWidth, 24, 12);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px NotoArabic';
+      ctx.textAlign = 'center';
+      ctx.fillText(typeText, rightX - badgeWidth / 2, 112);
+
+      // Education level
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '12px NotoArabic';
+      ctx.fillText('المستوى', rightX, 140);
+      ctx.fillStyle = '#1f2937';
+      ctx.font = 'bold 14px NotoArabic';
+      ctx.fillText(formatEducationLevel(student.educationLevel, student.grade), rightX, 160);
+
+      // Student ID
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '12px NotoArabic';
+      ctx.fillText('الرقم', rightX - 150, 140);
+      ctx.fillStyle = '#2563eb';
+      ctx.font = 'bold 14px NotoArabic';
+      ctx.fillText(`#${student.id}`, rightX - 150, 160);
+
+      // Subjects
+      const subjectNames = getSubjectNames();
+      if (subjectNames.length > 0) {
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '12px NotoArabic';
+        ctx.fillText('المواد', rightX, 185);
+        ctx.fillStyle = '#374151';
+        ctx.font = '12px NotoArabic';
+        ctx.fillText(subjectNames.slice(0, 3).join(' • '), rightX, 205);
+        if (subjectNames.length > 3) {
+          ctx.fillStyle = '#2563eb';
+          ctx.fillText(`و ${subjectNames.length - 3} أخرى`, rightX, 225);
+        }
+      }
+
+      // QR code (rounded)
+      const qrX = 30;
+      const qrY = 190;
+      const qrSize = 90;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.roundRect(qrX, qrY, qrSize, qrSize, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#d1d5db';
+      ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+
+      if (qrCodeImage) {
+        const qrImg = new Image();
+        qrImg.onload = () => {
+          ctx.drawImage(qrImg, qrX + 5, qrY + 5, qrSize - 10, qrSize - 10);
+          downloadCanvas();
+        };
+        qrImg.src = qrCodeImage;
+      } else {
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px NotoArabic';
+        ctx.textAlign = 'center';
+        ctx.fillText('QR', qrX + qrSize / 2, qrY + qrSize / 1.7);
+        downloadCanvas();
+      }
+    };
+
     if (student.profilePicture) {
       const img = new Image();
       img.onload = () => {
         ctx.save();
         ctx.beginPath();
-        ctx.rect(30, 80, 80, 80);
+        ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, 2 * Math.PI);
         ctx.clip();
-        ctx.drawImage(img, 30, 80, 80, 80);
+        ctx.drawImage(img, photoX, photoY, photoSize, photoSize);
         ctx.restore();
-        finishWithQR();
+        drawCardDetails();
       };
       img.src = student.profilePicture;
     } else {
       ctx.fillStyle = '#9ca3af';
-      ctx.font = '24px Arial';
+      ctx.font = '36px NotoArabic';
       ctx.textAlign = 'center';
-      ctx.fillText('👤', 70, 130);
-      finishWithQR();
+      ctx.fillText('👤', photoX + photoSize / 2, photoY + photoSize / 1.5);
+      drawCardDetails();
     }
 
-    function finishWithQR() {
-      if (!ctx) return;
-      
-      // QR code background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(25, 180, 90, 90);
-      ctx.strokeStyle = '#d1d5db';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(25, 180, 90, 90);
-
-      if (qrCodeImage) {
-        const qrImg = new Image();
-        qrImg.onload = () => {
-          if (!ctx) return;
-          ctx.drawImage(qrImg, 30, 185, 80, 80);
-          downloadImage();
-        };
-        qrImg.src = qrCodeImage;
-      } else {
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('QR', 70, 230);
-        downloadImage();
-      }
-    }
-
-    function downloadImage() {
+    function downloadCanvas() {
       const link = document.createElement('a');
       link.download = `student_id_${student.name.replace(/\s+/g, '_')}.png`;
       link.href = canvas.toDataURL('image/png', 0.9);
