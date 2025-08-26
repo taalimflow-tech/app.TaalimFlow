@@ -112,7 +112,16 @@ export function ProfilePicture({ currentPicture, userName, onUpdate }: ProfilePi
               <img
                 src={currentPicture}
                 alt={userName}
-                className="w-32 h-32 rounded-full object-contain border-4 border-gray-200"
+                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                onError={(e) => {
+                  console.error('Profile picture failed to load:', currentPicture);
+                  e.currentTarget.style.display = 'none';
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    parent.innerHTML = `<div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-gray-200"><span class="text-white text-2xl font-bold">${getUserInitials(userName)}</span></div>`;
+                  }
+                }}
+                onLoad={() => console.log('Profile picture loaded successfully:', currentPicture)}
               />
             ) : (
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-gray-200">

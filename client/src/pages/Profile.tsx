@@ -401,7 +401,15 @@ export default function Profile() {
             <img 
               src={user.profilePicture} 
               alt={user.name}
-              className="w-16 h-16 rounded-full object-contain border-4 border-white shadow-md"
+              className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md"
+              onError={(e) => {
+                console.error('Header profile picture failed to load:', user.profilePicture);
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  parent.innerHTML = `<div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-white shadow-md"><span class="text-white text-xl font-bold">${user.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}</span></div>`;
+                }
+              }}
             />
           ) : (
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-md">
