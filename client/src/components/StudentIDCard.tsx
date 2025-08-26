@@ -1,4 +1,11 @@
 import { useState, useEffect, useRef } from "react";
+
+// Extend Window interface for html2canvas
+declare global {
+  interface Window {
+    html2canvas: any;
+  }
+}
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,270 +111,45 @@ export function StudentIDCard({
     if (!cardRef.current) return;
 
     try {
-      // Dynamically import html2canvas
-      const html2canvas = (await import('https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.js')).default;
-      
-      // Create a temporary visible clone
-      const tempCard = cardRef.current.cloneNode(true) as HTMLElement;
-      tempCard.style.position = 'absolute';
-      tempCard.style.left = '-9999px';
-      tempCard.style.top = '0';
-      tempCard.style.width = '600px';
-      tempCard.style.height = '350px';
-      tempCard.style.background = 'white';
-      document.body.appendChild(tempCard);
+      // Load html2canvas from CDN if not already loaded
+      if (!window.html2canvas) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        document.head.appendChild(script);
+        
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+      }
 
-      // Add Google Fonts to the temporary element
-      const fontLink = document.createElement('link');
-      fontLink.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap';
-      fontLink.rel = 'stylesheet';
-      document.head.appendChild(fontLink);
-
-      // Wait for fonts to load
-      await document.fonts.ready;
-
-      // Capture the element
-      const dataUrl = await html2canvas.toPng(tempCard, {
+      // Generate the canvas
+      const canvas = await window.html2canvas(cardRef.current, {
         width: 600,
         height: 350,
         backgroundColor: '#ffffff',
-        pixelRatio: 2,
-        fontEmbedCSS: `
-          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
-          * { font-family: 'Noto Sans Arabic', Arial, sans-serif !important; }
-        `
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false
       });
 
-      // Clean up
-      document.body.removeChild(tempCard);
-      document.head.removeChild(fontLink);
-
-      // Download
-      const link = document.createElement('a');
-      link.download = `بطاقة_طالب_${student.name.replace(/\s+/g, '_')}.png`;
-      link.href = dataUrl;
-      link.click();
+      // Convert to blob and download
+      canvas.toBlob((blob: Blob | null) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `بطاقة_طالب_${student.name.replace(/\s+/g, '_')}.png`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+      }, 'image/png', 1.0);
 
     } catch (error) {
       console.error('Screenshot failed:', error);
-      // Fallback to canvas method
-      fallbackCanvasDownload();
+      alert('خطأ في تحميل البطاقة. الرجاء المحاولة مرة أخرى.');
     }
-  };
-
-  const fallbackCanvasDownload = async () => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const width = 600;
-    const height = 350;
-    canvas.width = width;
-    canvas.height = height;
-
-    // Background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, width, height);
-
-    // Border
-    ctx.strokeStyle = "#d1d5db";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
-
-    // Header
-    ctx.fillStyle = "#2563eb";
-    ctx.fillRect(0, 0, width, 60);
-
-    // School Name
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `bold 24px ${fontFamily}`;
-    ctx.textAlign = "center";
-    ctx.fillText(schoolInfo.name || "اسم المدرسة", width / 2, 20);
-
-    ctx.font = `18px ${fontFamily}`;
-    ctx.fillText("بطاقة هوية الطالب", width / 2, 45);
-
-    // Photo Frame (Left)
-    const photoX = 30;
-    const photoY = 80;
-    const photoSize = 90;
-
-    ctx.strokeStyle = "#d1d5db";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(photoX, photoY, photoSize, photoSize);
-    ctx.fillStyle = "#f9fafb";
-    ctx.fillRect(photoX, photoY, photoSize, photoSize);
-
-    // Content Area (Right)
-    const rightX = width - 30;
-
-    // Student Name
-    ctx.textAlign = "right";
-    ctx.font = `bold 26px ${fontFamily}`;
-    ctx.fillStyle = "#111827";
-    const nameLines = splitTextToFit(
-      ctx,
-      student.name,
-      400,
-      `bold 26px ${fontFamily}`,
-    );
-    nameLines.forEach((line, i) => {
-      ctx.fillText(line, rightX, 90 + i * 32);
-    });
-
-    // Type Badge
-    const typeText = student.type === "student" ? "طالب" : "طفل";
-    const typeWidth = ctx.measureText(typeText).width + 16;
-    ctx.fillStyle = "#2563eb";
-    ctx.fillRect(rightX - typeWidth - 10, 90, typeWidth, 28);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `bold 16px ${fontFamily}`;
-    ctx.textAlign = "center";
-    ctx.fillText(typeText, rightX - typeWidth / 2 - 10, 108);
-
-    // Education Level
-    ctx.textAlign = "right";
-    ctx.font = `16px ${fontFamily}`;
-    ctx.fillStyle = "#6b7280";
-    ctx.fillText("المستوى:", rightX, 140);
-
-    ctx.font = `bold 16px ${fontFamily}`;
-    ctx.fillStyle = "#1f2937";
-    ctx.fillText(
-      formatEducationLevel(student.educationLevel, student.grade),
-      rightX,
-      162,
-    );
-
-    // ID Number
-    ctx.font = `16px ${fontFamily}`;
-    ctx.fillStyle = "#6b7280";
-    ctx.fillText("الرقم:", rightX - 150, 140);
-
-    ctx.font = `bold 18px ${fontFamily}`;
-    ctx.fillStyle = "#2563eb";
-    ctx.fillText(`#${student.id}`, rightX - 150, 162);
-
-    // Subjects
-    const subjectNames = getSubjectNames();
-    if (subjectNames.length > 0) {
-      ctx.textAlign = "right";
-      ctx.font = `16px ${fontFamily}`;
-      ctx.fillStyle = "#6b7280";
-      ctx.fillText("المواد:", rightX, 200);
-
-      ctx.font = `14px ${fontFamily}`;
-      ctx.fillStyle = "#374151";
-      const maxSubjectWidth = 400;
-      const subjectsText = subjectNames.slice(0, 2).join(" • ");
-      const wrappedSubjects = splitTextToFit(
-        ctx,
-        subjectsText,
-        maxSubjectWidth,
-        `14px ${fontFamily}`,
-      );
-      wrappedSubjects.forEach((line, i) => {
-        ctx.fillText(line, rightX, 222 + i * 20);
-      });
-
-      if (subjectNames.length > 2) {
-        ctx.fillStyle = "#2563eb";
-        ctx.fillText(
-          `+ ${subjectNames.length - 2} مواد أخرى`,
-          rightX,
-          222 + wrappedSubjects.length * 20,
-        );
-      }
-    }
-
-    // QR Code
-    const qrX = 30;
-    const qrY = 250;
-    const qrSize = 120;
-
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(qrX, qrY, qrSize, qrSize);
-    ctx.strokeStyle = "#d1d5db";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(qrX, qrY, qrSize, qrSize);
-
-    // Draw Profile Image
-    if (student.profilePicture) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(photoX, photoY, photoSize, photoSize);
-        ctx.clip();
-        ctx.drawImage(img, photoX, photoY, photoSize, photoSize);
-        ctx.restore();
-        drawQR();
-      };
-      img.src = student.profilePicture;
-    } else {
-      ctx.fillStyle = "#9ca3af";
-      ctx.font = `36px ${fontFamily}`;
-      ctx.textAlign = "center";
-      ctx.fillText("👤", photoX + photoSize / 2, photoY + photoSize / 2 - 10);
-      drawQR();
-    }
-
-    function drawQR() {
-      if (!ctx) return;
-
-      if (qrCodeImage) {
-        const qrImg = new Image();
-        qrImg.onload = () => {
-          ctx.drawImage(qrImg, qrX + 8, qrY + 8, qrSize - 16, qrSize - 16);
-          downloadImage();
-        };
-        qrImg.src = qrCodeImage;
-      } else {
-        ctx.fillStyle = "#9ca3af";
-        ctx.font = `14px ${fontFamily}`;
-        ctx.textAlign = "center";
-        ctx.fillText("QR Code", qrX + qrSize / 2, qrY + qrSize / 2);
-        downloadImage();
-      }
-    }
-
-    function downloadImage() {
-      const link = document.createElement("a");
-      link.download = `بطاقة_طالب_${student.name.replace(/\s+/g, "_")}.png`;
-      link.href = canvas.toDataURL("image/png", 1.0);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  // Text wrapping helper
-  const splitTextToFit = (
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    maxWidth: number,
-    font: string,
-  ): string[] => {
-    ctx.font = font;
-    const words = text.split(" ");
-    const lines: string[] = [];
-    let currentLine = "";
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const testWidth = ctx.measureText(testLine).width;
-
-      if (testWidth <= maxWidth) {
-        currentLine = testLine;
-      } else {
-        if (currentLine) lines.push(currentLine);
-        currentLine = word;
-      }
-    }
-
-    if (currentLine) lines.push(currentLine);
-    return lines;
   };
 
   return (
