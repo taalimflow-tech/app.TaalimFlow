@@ -134,12 +134,9 @@ export function StudentIDCard({
         });
       }
 
-      // Check if we're on a small screen (mobile/tablet)
-      const isSmallScreen = window.innerWidth < 1024; // lg breakpoint
-      
-      // Adjust dimensions based on rotation
-      const captureWidth = isSmallScreen ? 350 : 600;
-      const captureHeight = isSmallScreen ? 600 : 350;
+      // Fixed horizontal dimensions for all screen sizes
+      const captureWidth = 600;
+      const captureHeight = 350;
 
       // Generate the canvas
       const canvas = await window.html2canvas(cardRef.current, {
@@ -172,10 +169,10 @@ export function StudentIDCard({
 
   return (
     <div className="w-full max-w-4xl mx-auto px-2 py-8 lg:py-4">
-      <div className="flex justify-center items-center min-h-[600px] lg:min-h-[350px]">
+      <div className="flex justify-center items-center min-h-[350px]">
         <div 
           ref={cardRef}
-          className="relative bg-white border-2 border-gray-300 rounded-xl shadow-lg overflow-hidden transform lg:transform-none rotate-90 lg:rotate-0 transition-transform duration-300"
+          className="relative bg-white border-2 border-gray-300 rounded-xl shadow-lg overflow-hidden"
           style={{ 
             fontFamily: "'Noto Sans Arabic', Arial, sans-serif",
             width: '600px',
