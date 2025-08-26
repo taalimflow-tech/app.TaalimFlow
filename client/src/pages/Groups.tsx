@@ -2536,6 +2536,17 @@ export default function Groups() {
                       console.log("🔍 Available teaching modules:", teachingModules?.length);
                       console.log("🔍 Chess group subjectId 1413 module:", teachingModules?.find(m => m.id === 1413));
                       console.log("🔍 Programming group subjectId 1414 module:", teachingModules?.find(m => m.id === 1414));
+                      console.log("🔍 Custom modules with schoolId:", teachingModules?.filter(m => m.schoolId).map(m => ({
+                        id: m.id,
+                        name: m.name,
+                        nameAr: m.nameAr,
+                        schoolId: m.schoolId
+                      })));
+                      console.log("🔍 Modules with chess/برمجة in name:", teachingModules?.filter(m => 
+                        (m.name && m.name.toLowerCase().includes('chess')) || 
+                        (m.nameAr && m.nameAr.includes('chess')) ||
+                        (m.nameAr && m.nameAr.includes('برمجة'))
+                      ));
 
                       // Show groups based on custom subjects (subjects created by this school)
                       // These are subjects that have a schoolId AND are not part of standard curriculum

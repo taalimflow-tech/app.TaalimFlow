@@ -1,0 +1,47 @@
+stallwart: failed ping 1
+Groups.tsx:2534 🔍 AFTER FIX: Filtering custom groups...
+Groups.tsx:2535 🔍 Available admin groups: 8
+Groups.tsx:2536 🔍 Available teaching modules: 127
+Groups.tsx:2537 🔍 Chess group subjectId 1413 module: undefined
+Groups.tsx:2538 🔍 Programming group subjectId 1414 module: undefined
+Groups.tsx:2548 🔍 Group "مجموعة اللغة الإنجليزية": {subjectId: 1317, hasModule: true, moduleSchoolId: null, moduleName: 'اللغة الإنجليزية'}
+Groups.tsx:2557 ❌ "مجموعة اللغة الإنجليزية" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الرياضيات": {subjectId: 1375, hasModule: true, moduleSchoolId: null, moduleName: 'الرياضيات'}
+Groups.tsx:2557 ❌ "مجموعة الرياضيات" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الرياضيات": {subjectId: 1343, hasModule: true, moduleSchoolId: null, moduleName: 'الرياضيات'}
+Groups.tsx:2557 ❌ "مجموعة الرياضيات" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الرياضيات": {subjectId: 1346, hasModule: true, moduleSchoolId: null, moduleName: 'الرياضيات'}
+Groups.tsx:2557 ❌ "مجموعة الرياضيات" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة العلوم الطبيعية": {subjectId: 1347, hasModule: true, moduleSchoolId: null, moduleName: 'العلوم الطبيعية'}
+Groups.tsx:2557 ❌ "مجموعة العلوم الطبيعية" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة chesss": {subjectId: 1413, hasModule: false, moduleSchoolId: undefined, moduleName: undefined}
+Groups.tsx:2557 ❌ "مجموعة chesss" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الإعلام الآلي": {subjectId: 1392, hasModule: true, moduleSchoolId: null, moduleName: 'الإعلام الآلي'}
+Groups.tsx:2557 ❌ "مجموعة الإعلام الآلي" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة برمجة dev": {subjectId: 1414, hasModule: false, moduleSchoolId: undefined, moduleName: undefined}
+Groups.tsx:2557 ❌ "مجموعة برمجة dev" excluded - No module or schoolId
+Groups.tsx:2704 DEBUG: Final filtered groups: []
+Groups.tsx:2712 DEBUG: About to render 0 groups
+Groups.tsx:2534 🔍 AFTER FIX: Filtering custom groups...
+Groups.tsx:2535 🔍 Available admin groups: 8
+Groups.tsx:2536 🔍 Available teaching modules: 127
+Groups.tsx:2537 🔍 Chess group subjectId 1413 module: undefined
+Groups.tsx:2538 🔍 Programming group subjectId 1414 module: undefined
+Groups.tsx:2548 🔍 Group "مجموعة اللغة الإنجليزية": {subjectId: 1317, hasModule: true, moduleSchoolId: null, moduleName: 'اللغة الإنجليزية'}
+Groups.tsx:2557 ❌ "مجموعة اللغة الإنجليزية" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الرياضيات": {subjectId: 1375, hasModule: true, moduleSchoolId: null, moduleName: 'الرياضيات'}
+Groups.tsx:2557 ❌ "مجموعة الرياضيات" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الرياضيات": {subjectId: 1343, hasModule: true, moduleSchoolId: null, moduleName: 'الرياضيات'}
+Groups.tsx:2557 ❌ "مجموعة الرياضيات" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الرياضيات": {subjectId: 1346, hasModule: true, moduleSchoolId: null, moduleName: 'الرياضيات'}
+Groups.tsx:2557 ❌ "مجموعة الرياضيات" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة العلوم الطبيعية": {subjectId: 1347, hasModule: true, moduleSchoolId: null, moduleName: 'العلوم الطبيعية'}
+Groups.tsx:2557 ❌ "مجموعة العلوم الطبيعية" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة chesss": {subjectId: 1413, hasModule: false, moduleSchoolId: undefined, moduleName: undefined}
+Groups.tsx:2557 ❌ "مجموعة chesss" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة الإعلام الآلي": {subjectId: 1392, hasModule: true, moduleSchoolId: null, moduleName: 'الإعلام الآلي'}
+Groups.tsx:2557 ❌ "مجموعة الإعلام الآلي" excluded - No module or schoolId
+Groups.tsx:2548 🔍 Group "مجموعة برمجة dev": {subjectId: 1414, hasModule: false, moduleSchoolId: undefined, moduleName: undefined}
+Groups.tsx:2557 ❌ "مجموعة برمجة dev" excluded - No module or schoolId
+Groups.tsx:2704 DEBUG: Final filtered groups: []
+Groups.tsx:2712 DEBUG: About to render 0 groups
