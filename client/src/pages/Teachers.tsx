@@ -49,6 +49,7 @@ export default function Teachers() {
     subject: '',
     imageUrl: ''
   });
+  const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -164,9 +165,23 @@ export default function Teachers() {
       subject: '',
       imageUrl: ''
     });
+    setSelectedSpecializations([]);
     setImageFile(null);
     setImagePreview(null);
     setShowCreateForm(false);
+  };
+  
+  // Add specialization
+  const addSpecialization = () => {
+    if (formData.subject && !selectedSpecializations.includes(formData.subject)) {
+      setSelectedSpecializations([...selectedSpecializations, formData.subject]);
+      setFormData({ ...formData, subject: '' });
+    }
+  };
+  
+  // Remove specialization
+  const removeSpecialization = (spec: string) => {
+    setSelectedSpecializations(selectedSpecializations.filter(s => s !== spec));
   };
 
   // Image upload handler
@@ -219,7 +234,7 @@ export default function Teachers() {
         phone: formData.phone || null,
         bio: formData.bio || null,
         imageUrl: imageUrl || null,
-        specializations: formData.subject ? [formData.subject] : []
+        specializations: selectedSpecializations.length > 0 ? selectedSpecializations : []
       };
       
       console.log('Submitting teacher data:', teacherData);
@@ -605,29 +620,63 @@ export default function Teachers() {
 
               {/* Subject Field */}
               <div>
-                <Label htmlFor="subject">المادة التخصص</Label>
-                <Select
-                  value={formData.subject}
-                  onValueChange={(value) => setFormData({ ...formData, subject: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(subjectsByLevel).map(([level, subjects]) => (
-                      <div key={level}>
-                        <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                          {level}
+                <Label htmlFor="subject">التخصصات</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.subject}
+                    onValueChange={(value) => setFormData({ ...formData, subject: value })}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(subjectsByLevel).map(([level, subjects]) => (
+                        <div key={level}>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                            {level}
+                          </div>
+                          {subjects.map((subject) => (
+                            <SelectItem key={`${subject}-${level}`} value={`${subject} (${level})`}>
+                              {subject}
+                            </SelectItem>
+                          ))}
                         </div>
-                        {subjects.map((subject) => (
-                          <SelectItem key={`${subject}-${level}`} value={`${subject} (${level})`}>
-                            {subject}
-                          </SelectItem>
-                        ))}
-                      </div>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    onClick={addSpecialization}
+                    disabled={!formData.subject}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                {/* Selected Specializations */}
+                {selectedSpecializations.length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">التخصصات المختارة:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSpecializations.map((spec, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full"
+                        >
+                          {spec}
+                          <button
+                            type="button"
+                            onClick={() => removeSpecialization(spec)}
+                            className="hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div>

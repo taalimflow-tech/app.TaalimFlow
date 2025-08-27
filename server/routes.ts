@@ -1806,15 +1806,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Teacher user created:', teacherUser.id);
 
-      // Temporarily skip specializations to simplify debugging
-      console.log('Skipping specializations for now - teacher user created successfully');
-      
-      // TODO: Re-add specialization logic once basic creation works
-      // if (specializations && specializations.length > 0) {
-      //   for (const specializationName of specializations) {
-      //     console.log('Would process specialization:', specializationName);
-      //   }
-      // }
+      // Add specializations if provided
+      if (specializations && specializations.length > 0) {
+        console.log('Processing specializations:', specializations);
+        for (const specializationName of specializations) {
+          // Parse specialization to extract name and education level
+          // Format: "المادة (المستوى)"
+          const match = specializationName.match(/^(.+?)\s*\((.+)\)$/);
+          if (match) {
+            const subjectName = match[1].trim();
+            const educationLevel = match[2].trim();
+            
+            console.log(`Processing: ${subjectName} (${educationLevel})`);
+            
+            // Find or create the teaching module by Arabic name and education level
+            let teachingModule = await storage.getTeachingModuleByName(subjectName, educationLevel);
+            
+            if (!teachingModule) {
+              // Create the teaching module since it doesn't exist
+              teachingModule = await storage.createTeachingModule({
+                nameAr: subjectName,
+                educationLevel: educationLevel,
+                schoolId: req.session.user.schoolId
+              });
+              console.log(`Created new teaching module: ${subjectName} (${educationLevel}) - ID: ${teachingModule.id}`);
+            }
+            
+            if (teachingModule) {
+              await storage.createTeacherSpecialization({
+                teacherId: teacherUser.id,
+                teachingModuleId: teachingModule.id
+              });
+              console.log(`Added specialization: ${subjectName} (${educationLevel}) - Module ID: ${teachingModule.id}`);
+            }
+          } else {
+            console.log(`Invalid specialization format: ${specializationName}`);
+          }
+        }
+      }
 
       console.log('✓ Teacher user created successfully:', teacherUser.id);
       res.status(201).json(teacherUser);
