@@ -1946,152 +1946,155 @@ function DesktopQRScanner() {
 
   return (
     <div className="container mx-auto p-6" dir="rtl">
+      {/* Unified Scanner and Search Card */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <QrCode className="h-6 w-6" />
-            الماسح المكتبي لرموز الطلاب
+            الماسح المكتبي لرموز الطلاب والبحث
           </CardTitle>
           <CardDescription>
-            قم بمسح رمز الطالب للوصول إلى ملفه الشخصي وإدارة الحضور والمدفوعات
+            قم بمسح رمز الطالب أو ابحث يدوياً للوصول إلى ملفه الشخصي وإدارة الحضور والمدفوعات
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-4">
-            {!isScanning ? (
-              <Button onClick={startScanning} className="flex items-center gap-2">
-                <Camera className="h-4 w-4" />
-                بدء المسح
-              </Button>
-            ) : (
-              <Button onClick={stopScanning} variant="destructive" className="flex items-center gap-2">
-                <CameraOff className="h-4 w-4" />
-                إيقاف المسح
-              </Button>
-            )}
-          </div>
-          
-          {isScanning && (
-            <div className="mb-4">
-              <div className="relative">
-                <video 
-                  ref={videoRef} 
-                  className="w-full max-w-md mx-auto border-2 border-green-400 rounded-lg bg-gray-900"
-                  style={{ aspectRatio: '4/3', minHeight: '300px' }}
-                  autoPlay
-                  playsInline
-                  muted
-                  controls={false}
-                />
-                
-                {/* Scanner overlay */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-48 h-48 border-2 border-white border-dashed rounded-lg relative">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-500"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-500"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-500"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-500"></div>
-                  </div>
-                </div>
-                
-                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
-                  جاهز للمسح
-                </div>
-                {isProcessing && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
-                    <span className="text-white font-semibold">جاري معالجة الرمز...</span>
-                  </div>
-                )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* QR Scanner Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Camera className="h-5 w-5" />
+                <h3 className="font-semibold">مسح الرمز</h3>
               </div>
-              <div className="text-center mt-2 space-y-2">
-                <p className="text-sm text-gray-600">
-                  وجه الكاميرا نحو رمز QR الخاص بالطالب
-                </p>
-                
-                {devices.length > 1 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={switchCamera}
-                    disabled={!isScanning}
-                    className="text-xs"
-                  >
-                    <RotateCcw className="w-3 h-3 ml-1" />
-                    تبديل الكاميرا ({devices.length} متاح)
+              
+              <div className="flex gap-2 mb-4">
+                {!isScanning ? (
+                  <Button onClick={startScanning} className="flex items-center gap-2">
+                    <Camera className="h-4 w-4" />
+                    بدء المسح
+                  </Button>
+                ) : (
+                  <Button onClick={stopScanning} variant="destructive" className="flex items-center gap-2">
+                    <CameraOff className="h-4 w-4" />
+                    إيقاف المسح
                   </Button>
                 )}
               </div>
+              
+              {isScanning && (
+                <div>
+                  <div className="relative">
+                    <video 
+                      ref={videoRef} 
+                      className="w-full border-2 border-green-400 rounded-lg bg-gray-900"
+                      style={{ aspectRatio: '4/3', maxHeight: '300px' }}
+                      autoPlay
+                      playsInline
+                      muted
+                      controls={false}
+                    />
+                    
+                    {/* Scanner overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-32 h-32 border-2 border-white border-dashed rounded-lg relative">
+                        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-green-500"></div>
+                        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-green-500"></div>
+                        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-green-500"></div>
+                        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-green-500"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                      جاهز للمسح
+                    </div>
+                    {isProcessing && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+                        <span className="text-white font-semibold text-sm">جاري معالجة الرمز...</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-center mt-2 space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      وجه الكاميرا نحو رمز QR الخاص بالطالب
+                    </p>
+                    
+                    {devices.length > 1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={switchCamera}
+                        disabled={!isScanning}
+                        className="text-xs"
+                      >
+                        <RotateCcw className="w-3 h-3 ml-1" />
+                        تبديل الكاميرا ({devices.length} متاح)
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                  <div className="mt-3">
+                    <Button onClick={retry} size="sm" variant="outline">
+                      <RotateCcw className="h-4 w-4 ml-2" />
+                      إعادة المحاولة
+                    </Button>
+                  </div>
+                </Alert>
+              )}
             </div>
-          )}
-          
-          {error && (
-            <Alert className="mb-4" variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-              <div className="mt-3">
-                <Button onClick={retry} size="sm" variant="outline">
-                  <RotateCcw className="h-4 w-4 ml-2" />
-                  إعادة المحاولة
+            
+            {/* Search Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  <h3 className="font-semibold">البحث اليدوي</h3>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowStudentList(!showStudentList)}
+                >
+                  {showStudentList ? 'إخفاء النتائج' : 'عرض النتائج'}
                 </Button>
               </div>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Search and Filter Card */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              البحث عن الطلاب
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowStudentList(!showStudentList)}
-            >
-              {showStudentList ? 'إخفاء القائمة' : 'عرض قائمة الطلاب'}
-            </Button>
-          </CardTitle>
-          <CardDescription>
-            ابحث عن الطلاب بالاسم أو الرقم أو اعرض قائمة مفلترة حسب المستوى والسنة
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Search Bar */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="ابحث بالاسم، الرقم، أو البريد الإلكتروني..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleSearch}
-                disabled={isSearching || isProcessing}
-                className="px-6"
-              >
-                <Search className="h-4 w-4 ml-2" />
-                {isSearching ? 'بحث...' : 'بحث'}
-              </Button>
+              
+              {/* Search Bar */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="ابحث بالاسم، الرقم، أو البريد الإلكتروني..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleSearch}
+                  disabled={isSearching || isProcessing}
+                  size="sm"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+              
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
+                className="w-full flex items-center justify-center gap-2"
+                size="sm"
               >
                 <Filter className="h-4 w-4" />
-                فلترة
+                {showFilters ? 'إخفاء الفلاتر' : 'إظهار الفلاتر'}
               </Button>
-            </div>
 
-            {/* Filters */}
-            {showFilters && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Filters */}
+              {showFilters && (
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
                   <div>
                     <Label className="text-sm font-medium mb-2">المستوى التعليمي</Label>
                     <Select value={selectedEducationLevel} onValueChange={setSelectedEducationLevel}>
@@ -2120,55 +2123,55 @@ function DesktopQRScanner() {
                     </Select>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Quick Search Buttons */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedEducationLevel('الابتدائي');
-                  setSelectedRole('');
-                  handleSearch();
-                }}
-              >
-                طلاب الابتدائي
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedEducationLevel('المتوسط');
-                  setSelectedRole('');
-                  handleSearch();
-                }}
-              >
-                طلاب المتوسط
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedEducationLevel('الثانوي');
-                  setSelectedRole('');
-                  handleSearch();
-                }}
-              >
-                طلاب الثانوي
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedEducationLevel('');
-                  setSelectedRole('child');
-                  handleSearch();
-                }}
-              >
-                جميع الأطفال
-              </Button>
+              {/* Quick Search Buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedEducationLevel('الابتدائي');
+                    setSelectedRole('');
+                    handleSearch();
+                  }}
+                >
+                  الابتدائي
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedEducationLevel('المتوسط');
+                    setSelectedRole('');
+                    handleSearch();
+                  }}
+                >
+                  المتوسط
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedEducationLevel('الثانوي');
+                    setSelectedRole('');
+                    handleSearch();
+                  }}
+                >
+                  الثانوي
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedEducationLevel('');
+                    setSelectedRole('child');
+                    handleSearch();
+                  }}
+                >
+                  الأطفال
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
