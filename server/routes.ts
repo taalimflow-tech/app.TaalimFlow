@@ -1747,6 +1747,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create teacher as user account with specializations
+  app.post("/api/users/create-teacher", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      console.log('=== Creating Teacher User ===');
+      console.log('Request body:', JSON.stringify(req.body, null, 2));
+
+      const { name, email, phone, bio, imageUrl, specializations } = req.body;
+
+      // Validate required fields
+      if (!name || !email) {
+        return res.status(400).json({ error: "الاسم والبريد الإلكتروني مطلوبان" });
+      }
+
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(email, req.session.user.schoolId);
+      if (existingUser) {
+        return res.status(400).json({ error: "البريد الإلكتروني موجود بالفعل" });
+      }
+
+      // Create user account with teacher role
+      const teacherUser = await storage.createUser({
+        schoolId: req.session.user.schoolId,
+        name,
+        email,
+        phone: phone || null,
+        profilePicture: imageUrl || null,
+        role: "teacher",
+        emailVerified: true, // Pre-verified by admin
+        phoneVerified: !!phone, // Verified if phone provided
+        isActive: true,
+        password: "", // Empty string, will be set when teacher first logs in
+        firebaseUid: null
+      });
+
+      console.log('Teacher user created:', teacherUser.id);
+
+      // Add specializations if provided
+      if (specializations && specializations.length > 0) {
+        for (const specializationName of specializations) {
+          // Parse specialization to extract name and education level
+          // Format: "المادة (المستوى)"
+          const match = specializationName.match(/^(.+?)\s*\((.+)\)$/);
+          if (match) {
+            const subjectName = match[1].trim();
+            const educationLevel = match[2].trim();
+            
+            // Find the teaching module by Arabic name and education level
+            const teachingModule = await storage.getTeachingModuleByName(subjectName, educationLevel);
+            if (teachingModule) {
+              await storage.createTeacherSpecialization({
+                teacherId: teacherUser.id,
+                moduleId: teachingModule.id
+              });
+              console.log(`Added specialization: ${subjectName} (${educationLevel}) - Module ID: ${teachingModule.id}`);
+            } else {
+              console.log(`Teaching module not found: ${subjectName} (${educationLevel})`);
+            }
+          } else {
+            console.log(`Invalid specialization format: ${specializationName}`);
+          }
+        }
+      }
+
+      console.log('✓ Teacher user created successfully:', teacherUser.id);
+      res.status(201).json(teacherUser);
+    } catch (error: any) {
+      console.error('✗ Teacher user creation error:', error);
+      res.status(500).json({ error: "Server error", message: error?.message || 'Unknown error' });
+    }
+  });
+
   // Message routes
   app.get("/api/messages", async (req, res) => {
     try {

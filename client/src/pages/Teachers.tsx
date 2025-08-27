@@ -65,18 +65,18 @@ export default function Teachers() {
     queryKey: ['/api/teaching-modules'],
   });
 
-  // Teacher creation mutation
+  // Teacher creation mutation - create user account instead of teacher record
   const createTeacherMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('Creating teacher with data:', data);
-      const response = await apiRequest('POST', '/api/teachers', data);
+      console.log('Creating teacher user with data:', data);
+      const response = await apiRequest('POST', '/api/users/create-teacher', data);
       return await response.json();
     },
     onSuccess: () => {
       toast({ title: 'تم إنشاء المعلم بنجاح' });
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: any) => {
       console.error('Teacher creation error:', error);
