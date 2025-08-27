@@ -5980,6 +5980,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Replace all teaching modules with standardized subjects
+  app.post('/api/admin/replace-teaching-modules', requireAuth(['admin', 'super_admin']), async (req, res) => {
+    try {
+      console.log('🔄 Starting teaching modules replacement...');
+
+      const standardizedModules = [
+        // الابتدائي (Primary Level)
+        { name: 'العربية والرياضيات', nameAr: 'العربية والرياضيات', educationLevel: 'الابتدائي' },
+        { name: 'اللغة الإنجليزية', nameAr: 'اللغة الإنجليزية', educationLevel: 'الابتدائي' },
+        { name: 'اللغة الفرنسية', nameAr: 'اللغة الفرنسية', educationLevel: 'الابتدائي' },
+
+        // المتوسط (Middle Level)
+        { name: 'اللغة العربية', nameAr: 'اللغة العربية', educationLevel: 'المتوسط' },
+        { name: 'اللغة الإنجليزية', nameAr: 'اللغة الإنجليزية', educationLevel: 'المتوسط' },
+        { name: 'اللغة الفرنسية', nameAr: 'اللغة الفرنسية', educationLevel: 'المتوسط' },
+        { name: 'التاريخ والجغرافيا', nameAr: 'التاريخ والجغرافيا', educationLevel: 'المتوسط' },
+        { name: 'الرياضيات', nameAr: 'الرياضيات', educationLevel: 'المتوسط' },
+        { name: 'العلوم الطبيعية', nameAr: 'العلوم الطبيعية', educationLevel: 'المتوسط' },
+        { name: 'الفيزياء', nameAr: 'الفيزياء', educationLevel: 'المتوسط' },
+
+        // الثانوي (Secondary Level)
+        { name: 'اللغة العربية وآدابها', nameAr: 'اللغة العربية وآدابها', educationLevel: 'الثانوي' },
+        { name: 'اللغة الإنجليزية', nameAr: 'اللغة الإنجليزية', educationLevel: 'الثانوي' },
+        { name: 'اللغة الفرنسية', nameAr: 'اللغة الفرنسية', educationLevel: 'الثانوي' },
+        { name: 'اللغة الألمانية', nameAr: 'اللغة الألمانية', educationLevel: 'الثانوي' },
+        { name: 'اللغة الإسبانية', nameAr: 'اللغة الإسبانية', educationLevel: 'الثانوي' },
+        { name: 'اللغة الأمازيغية', nameAr: 'اللغة الأمازيغية', educationLevel: 'الثانوي' },
+        { name: 'الرياضيات', nameAr: 'الرياضيات', educationLevel: 'الثانوي' },
+        { name: 'العلوم الطبيعية والحياة', nameAr: 'العلوم الطبيعية والحياة', educationLevel: 'الثانوي' },
+        { name: 'العلوم الفيزيائية', nameAr: 'العلوم الفيزيائية', educationLevel: 'الثانوي' },
+        { name: 'التاريخ والجغرافيا', nameAr: 'التاريخ والجغرافيا', educationLevel: 'الثانوي' },
+        { name: 'الفلسفة', nameAr: 'الفلسفة', educationLevel: 'الثانوي' },
+        { name: 'التربية الإسلامية', nameAr: 'التربية الإسلامية', educationLevel: 'الثانوي' },
+        { name: 'الإعلام الآلي', nameAr: 'الإعلام الآلي', educationLevel: 'الثانوي' },
+        { name: 'الاقتصاد والمناجمنت', nameAr: 'الاقتصاد والمناجمنت', educationLevel: 'الثانوي' },
+        { name: 'القانون', nameAr: 'القانون', educationLevel: 'الثانوي' },
+        { name: 'المحاسبة', nameAr: 'المحاسبة', educationLevel: 'الثانوي' },
+        { name: 'الهندسة الكهربائية', nameAr: 'الهندسة الكهربائية', educationLevel: 'الثانوي' },
+        { name: 'الهندسة المدنية', nameAr: 'الهندسة المدنية', educationLevel: 'الثانوي' },
+        { name: 'الهندسة الميكانيكية', nameAr: 'الهندسة الميكانيكية', educationLevel: 'الثانوي' }
+      ];
+
+      await storage.clearAndReplaceAllTeachingModules(standardizedModules);
+
+      console.log(`✅ Successfully replaced teaching modules with ${standardizedModules.length} standardized subjects`);
+      res.json({ 
+        success: true, 
+        message: `Successfully replaced all teaching modules with ${standardizedModules.length} standardized subjects`,
+        count: standardizedModules.length
+      });
+
+    } catch (error: any) {
+      console.error('❌ Failed to replace teaching modules:', error);
+      res.status(500).json({ error: 'Failed to replace teaching modules: ' + error.message });
+    }
+  });
+
   console.log('✅ ROUTE REGISTRATION COMPLETED - All routes registered successfully!');
   console.log('🎯 Teacher creation endpoint should be available at: POST /api/users/create-teacher');
   return httpServer;
