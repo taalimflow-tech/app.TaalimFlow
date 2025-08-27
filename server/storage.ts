@@ -311,7 +311,6 @@ export interface IStorage {
     educationLevel: string,
   ): Promise<any | undefined>;
   getTeachingModuleByNameAllLevels(nameAr: string): Promise<any | undefined>;
-  clearAndReplaceAllTeachingModules(modules: InsertTeachingModule[]): Promise<void>;
   getTeachingModuleByNameAndGrade(
     nameAr: string,
     educationLevel: string,
@@ -2885,21 +2884,6 @@ export class DatabaseStorage implements IStorage {
       .values(insertModule)
       .returning();
     return module;
-  }
-
-  async clearAndReplaceAllTeachingModules(modules: InsertTeachingModule[]): Promise<void> {
-    await db.transaction(async (tx) => {
-      // First, delete all existing teacher specializations to maintain referential integrity
-      await tx.delete(teacherSpecializations);
-      
-      // Then, delete all existing teaching modules
-      await tx.delete(teachingModules);
-      
-      // Finally, insert the new standardized modules
-      if (modules.length > 0) {
-        await tx.insert(teachingModules).values(modules);
-      }
-    });
   }
 
   async deleteTeachingModule(id: number): Promise<void> {

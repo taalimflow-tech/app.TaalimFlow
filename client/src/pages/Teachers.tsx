@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +49,6 @@ export default function Teachers() {
     subject: '',
     imageUrl: ''
   });
-  const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -62,63 +61,54 @@ export default function Teachers() {
     queryKey: ['/api/teachers-with-specializations'],
   });
 
-  // Fetch teaching modules from database
-  const { data: teachingModules = {}, isLoading: modulesLoading, error: modulesError } = useQuery({
-    queryKey: ['/api/teaching-modules'],
-    select: (data: any[]) => {
-      // Log the raw data to see what we're getting
-      console.log('Raw teaching modules data:', data);
-      
-      // Check if data is an array (successful response) or error object
-      if (!Array.isArray(data)) {
-        console.error('Teaching modules API returned non-array data:', data);
-        return {};
-      }
-      
-      // Organize modules by education level
-      const modulesByLevel: Record<string, Array<{id: number, nameAr: string, educationLevel: string}>> = {};
-      data.forEach((module: any) => {
-        if (!modulesByLevel[module.educationLevel]) {
-          modulesByLevel[module.educationLevel] = [];
-        }
-        modulesByLevel[module.educationLevel].push(module);
-      });
-      
-      console.log('Organized teaching modules:', modulesByLevel);
-      return modulesByLevel;
-    },
-    retry: 1, // Only retry once
-    enabled: !!user, // Only run query if user is authenticated
-  });
-
-  // Debug logging
-  React.useEffect(() => {
-    console.log('Teaching modules state:', { teachingModules, modulesLoading, modulesError, user });
-  }, [teachingModules, modulesLoading, modulesError, user]);
-
-  // Helper function to get module ID from subject name and level
-  const getModuleId = (subjectName: string, educationLevel: string): number | null => {
-    const modules = teachingModules[educationLevel];
-    if (!modules) return null;
-    const module = modules.find(m => m.nameAr === subjectName);
-    return module ? module.id : null;
+  // Static subject list organized by education level
+  const subjectsByLevel = {
+    'الابتدائي': [
+      'العربية والرياضيات',
+      'اللغة الإنجليزية',
+      'اللغة الفرنسية'
+    ],
+    'المتوسط': [
+      'اللغة العربية',
+      'اللغة الإنجليزية', 
+      'اللغة الفرنسية',
+      'التاريخ والجغرافيا',
+      'الرياضيات',
+      'العلوم الطبيعية',
+      'الفيزياء'
+    ],
+    'الثانوي': [
+      'اللغة العربية وآدابها',
+      'اللغة الإنجليزية',
+      'اللغة الفرنسية',
+      'اللغة الألمانية',
+      'اللغة الإسبانية',
+      'اللغة الأمازيغية',
+      'الرياضيات',
+      'العلوم الطبيعية والحياة',
+      'العلوم الفيزيائية',
+      'التاريخ والجغرافيا',
+      'الفلسفة',
+      'التربية الإسلامية',
+      'الإعلام الآلي',
+      'الاقتصاد والمناجمنت',
+      'القانون',
+      'المحاسبة',
+      'الهندسة الكهربائية',
+      'الهندسة المدنية',
+      'الهندسة الميكانيكية'
+    ]
   };
 
-  // Helper function to get module details from specialization string
-  const getModuleFromSpecialization = (spec: string): {id: number, nameAr: string, educationLevel: string} | null => {
-    // Parse format "Subject (Level)"
-    const match = spec.match(/^(.+?)\s*\((.+)\)$/);
-    if (!match) return null;
-    
-    const subjectName = match[1].trim();
-    const educationLevel = match[2].trim();
-    const moduleId = getModuleId(subjectName, educationLevel);
-    
-    if (moduleId) {
-      return { id: moduleId, nameAr: subjectName, educationLevel };
-    }
-    return null;
-  };
+  // Flatten subjects for dropdown with education level labels
+  const allSubjects = Object.entries(subjectsByLevel).flatMap(([level, subjects]) =>
+    subjects.map(subject => ({
+      value: `${subject} (${level})`,
+      label: `${subject} (${level})`,
+      subject,
+      level
+    }))
+  );
 
   // Teacher creation mutation - create user account instead of teacher record
   const createTeacherMutation = useMutation({
@@ -174,23 +164,9 @@ export default function Teachers() {
       subject: '',
       imageUrl: ''
     });
-    setSelectedSpecializations([]);
     setImageFile(null);
     setImagePreview(null);
     setShowCreateForm(false);
-  };
-  
-  // Add specialization
-  const addSpecialization = () => {
-    if (formData.subject && !selectedSpecializations.includes(formData.subject)) {
-      setSelectedSpecializations([...selectedSpecializations, formData.subject]);
-      setFormData({ ...formData, subject: '' });
-    }
-  };
-  
-  // Remove specialization
-  const removeSpecialization = (spec: string) => {
-    setSelectedSpecializations(selectedSpecializations.filter(s => s !== spec));
   };
 
   // Image upload handler
@@ -237,19 +213,13 @@ export default function Teachers() {
       
       setIsUploading(false);
       
-      // Convert specializations to module IDs
-      const specializationModules = selectedSpecializations
-        .map(spec => getModuleFromSpecialization(spec))
-        .filter(module => module !== null) as Array<{id: number, nameAr: string, educationLevel: string}>;
-
       const teacherData = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone || null,
         bio: formData.bio || null,
         imageUrl: imageUrl || null,
-        specializations: selectedSpecializations, // Keep original format for backend parsing
-        specializationModules: specializationModules // Send module details for ID mapping
+        specializations: formData.subject ? [formData.subject] : []
       };
       
       console.log('Submitting teacher data:', teacherData);
@@ -635,71 +605,29 @@ export default function Teachers() {
 
               {/* Subject Field */}
               <div>
-                <Label htmlFor="subject">التخصصات</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={formData.subject}
-                    onValueChange={(value) => setFormData({ ...formData, subject: value })}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {modulesLoading ? (
-                        <div className="px-2 py-1 text-sm text-gray-500">جاري تحميل المواد...</div>
-                      ) : modulesError ? (
-                        <div className="px-2 py-1 text-sm text-red-500">خطأ في تحميل المواد</div>
-                      ) : Object.keys(teachingModules).length === 0 ? (
-                        <div className="px-2 py-1 text-sm text-gray-500">لا توجد مواد متاحة</div>
-                      ) : (
-                        Object.entries(teachingModules).map(([level, modules]) => (
-                          <div key={level}>
-                            <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                              {level}
-                            </div>
-                            {modules.map((module) => (
-                              <SelectItem key={`${module.id}-${level}`} value={`${module.nameAr} (${level})`}>
-                                {module.nameAr}
-                              </SelectItem>
-                            ))}
-                          </div>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    onClick={addSpecialization}
-                    disabled={!formData.subject}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                
-                {/* Selected Specializations */}
-                {selectedSpecializations.length > 0 && (
-                  <div className="mt-2">
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">التخصصات المختارة:</div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedSpecializations.map((spec, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full"
-                        >
-                          {spec}
-                          <button
-                            type="button"
-                            onClick={() => removeSpecialization(spec)}
-                            className="hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <Label htmlFor="subject">المادة التخصص</Label>
+                <Select
+                  value={formData.subject}
+                  onValueChange={(value) => setFormData({ ...formData, subject: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(subjectsByLevel).map(([level, subjects]) => (
+                      <div key={level}>
+                        <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                          {level}
+                        </div>
+                        {subjects.map((subject) => (
+                          <SelectItem key={`${subject}-${level}`} value={`${subject} (${level})`}>
+                            {subject}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
