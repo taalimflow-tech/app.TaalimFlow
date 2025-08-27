@@ -1560,6 +1560,12 @@ function DesktopQRScanner() {
       try {
         console.log('🔄 Creating automatic gain entry for receipt:', ticket.receiptId);
         
+        // Build detailed payment information with groups and months
+        const paymentDetails = Object.entries(selectedGroups).map(([groupId, groupData]) => {
+          const monthNames = groupData.months.map(m => getMonthName(m)).join('، ');
+          return `${groupData.subjectName} ${groupData.groupName} (${monthNames})`;
+        }).join(' - ');
+        
         const currentDate = new Date();
         const gainResponse = await fetch('/api/gain-loss-entries', {
           method: 'POST',
@@ -1568,7 +1574,7 @@ function DesktopQRScanner() {
           body: JSON.stringify({
             type: 'gain',
             amount: paymentAmount.trim(),
-            remarks: `إيصال دفع رقم: ${ticket.receiptId} - الطالب: ${scannedProfile.name}`,
+            remarks: `إيصال دفع رقم: ${ticket.receiptId} - الطالب: ${scannedProfile.name} - ${paymentDetails}`,
             year: currentDate.getFullYear(),
             month: currentDate.getMonth() + 1
           })
