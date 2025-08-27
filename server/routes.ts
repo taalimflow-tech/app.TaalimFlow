@@ -479,7 +479,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        subject: "مادة عامة", // Default subject, can be updated later
+        specializations: ["1"], // Default to first teaching module
+        educationLevels: ["الابتدائي"], // Default education level
         available: true,
         schoolId: currentSchool.id,
       };
@@ -1364,7 +1365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Debug endpoint error:", error);
-      res.status(500).json({ error: "Debug info failed", message: error.message });
+      res.status(500).json({ error: "Debug info failed", message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -1418,9 +1419,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             school = await storage.createSchool({
               name: "المدرسة الافتراضية",
               code: "DEFAULT",
-              address: "عنوان افتراضي",
-              phone: "0000000000",
-              email: "default@school.com"
+              adminKey: "ADMIN001",
+              teacherKey: "TEACHER001"
             });
             validSchoolId = school.id;
             console.log("Created default school:", { id: school.id, name: school.name });
@@ -1645,6 +1645,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "تم حذف المعلم بنجاح" });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete teacher" });
+    }
+  });
+
+  // Teacher pre-registration routes
+  app.get("/api/teachers/pre-registered", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const preRegisteredTeachers = await storage.getPreRegisteredTeachers(
+        req.session.user.schoolId
+      );
+      res.json(preRegisteredTeachers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch pre-registered teachers" });
+    }
+  });
+
+  app.get("/api/teachers/link/:linkCode", async (req, res) => {
+    try {
+      const { linkCode } = req.params;
+      const teacher = await storage.getTeacherByLinkCode(linkCode);
+      
+      if (!teacher) {
+        return res.status(404).json({ error: "رمز الربط غير صالح" });
+      }
+
+      if (!teacher.isPreRegistered) {
+        return res.status(400).json({ error: "هذا المعلم مرتبط بالفعل بحساب" });
+      }
+
+      res.json(teacher);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get teacher link information" });
+    }
+  });
+
+  app.post("/api/teachers/verify/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const teacherId = parseInt(req.params.id);
+      const { notes } = req.body;
+
+      const verifiedTeacher = await storage.verifyTeacher(
+        teacherId,
+        req.session.user.id,
+        notes
+      );
+      res.json(verifiedTeacher);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to verify teacher" });
+    }
+  });
+
+  app.post("/api/teachers/link/:id", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+      }
+
+      const teacherId = parseInt(req.params.id);
+      const linkedTeacher = await storage.linkTeacherToUser(
+        teacherId,
+        req.session.user.id
+      );
+      res.json(linkedTeacher);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to link teacher to user" });
     }
   });
 

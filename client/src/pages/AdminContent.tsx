@@ -25,6 +25,10 @@ interface CreateFormData {
   email: string;
   phone: string;
   imageUrl: string;
+  specializations?: string[];
+  educationLevels?: string[];
+  experience?: string;
+  qualifications?: string;
 }
 
 export default function AdminContent() {
@@ -53,7 +57,11 @@ export default function AdminContent() {
     bio: '',
     email: '',
     phone: '',
-    imageUrl: ''
+    imageUrl: '',
+    specializations: [],
+    educationLevels: [],
+    experience: '',
+    qualifications: ''
   });
   
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -249,6 +257,11 @@ export default function AdminContent() {
     enabled: activeTab === 'teacher'
   });
 
+  const { data: teachingModules = [] } = useQuery<any[]>({
+    queryKey: ['/api/teaching-modules'],
+    enabled: activeTab === 'teacher'
+  });
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -263,7 +276,11 @@ export default function AdminContent() {
       bio: '',
       email: '',
       phone: '',
-      imageUrl: ''
+      imageUrl: '',
+      specializations: [],
+      educationLevels: [],
+      experience: '',
+      qualifications: ''
     });
     setImageFile(null);
     setImagePreview(null);
@@ -368,12 +385,34 @@ export default function AdminContent() {
         imageUrl: imageUrl || null
       });
     } else if (activeTab === 'teacher') {
+      // Validate required fields
+      if (!formData.specializations?.length) {
+        toast({ 
+          title: 'خطأ في البيانات', 
+          description: 'يجب اختيار تخصص واحد على الأقل',
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
+      if (!formData.educationLevels?.length) {
+        toast({ 
+          title: 'خطأ في البيانات', 
+          description: 'يجب اختيار مستوى تعليمي واحد على الأقل',
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
       createTeacherMutation.mutate({
         name: formData.name,
-        subject: formData.subject,
-        bio: formData.bio,
         email: formData.email,
         phone: formData.phone,
+        specializations: formData.specializations,
+        educationLevels: formData.educationLevels,
+        bio: formData.bio,
+        experience: formData.experience,
+        qualifications: formData.qualifications,
         available: true,
         imageUrl: imageUrl || null
       });
@@ -698,16 +737,7 @@ export default function AdminContent() {
                       required
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="subject">المادة</Label>
-                    <Input
-                      id="subject"
-                      value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      placeholder="المادة التي يدرسها"
-                      required
-                    />
-                  </div>
+                  
                   <div>
                     <Label htmlFor="email">البريد الإلكتروني</Label>
                     <Input
@@ -719,6 +749,7 @@ export default function AdminContent() {
                       required
                     />
                   </div>
+                  
                   <div>
                     <Label htmlFor="phone">رقم الهاتف</Label>
                     <Input
@@ -728,6 +759,99 @@ export default function AdminContent() {
                       placeholder="رقم هاتف المعلم"
                     />
                   </div>
+
+                  {/* Education Levels Selection */}
+                  <div>
+                    <Label>المستويات التعليمية</Label>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      {['الابتدائي', 'المتوسط', 'الثانوي'].map((level) => (
+                        <label key={level} className="flex items-center space-x-2 space-x-reverse">
+                          <input
+                            type="checkbox"
+                            checked={formData.educationLevels?.includes(level) || false}
+                            onChange={(e) => {
+                              const currentLevels = formData.educationLevels || [];
+                              if (e.target.checked) {
+                                setFormData({ 
+                                  ...formData, 
+                                  educationLevels: [...currentLevels, level]
+                                });
+                              } else {
+                                setFormData({ 
+                                  ...formData, 
+                                  educationLevels: currentLevels.filter(l => l !== level)
+                                });
+                              }
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm">{level}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Subject Specializations */}
+                  <div>
+                    <Label>التخصصات (المواد)</Label>
+                    <div className="max-h-48 overflow-y-auto border rounded-md p-3 space-y-2">
+                      {teachingModules
+                        .filter(module => 
+                          !formData.educationLevels?.length || 
+                          formData.educationLevels.includes(module.educationLevel)
+                        )
+                        .map((module) => (
+                          <label key={module.id} className="flex items-center space-x-2 space-x-reverse">
+                            <input
+                              type="checkbox"
+                              checked={formData.specializations?.includes(module.id.toString()) || false}
+                              onChange={(e) => {
+                                const currentSpecs = formData.specializations || [];
+                                if (e.target.checked) {
+                                  setFormData({ 
+                                    ...formData, 
+                                    specializations: [...currentSpecs, module.id.toString()]
+                                  });
+                                } else {
+                                  setFormData({ 
+                                    ...formData, 
+                                    specializations: currentSpecs.filter(s => s !== module.id.toString())
+                                  });
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">
+                              {module.nameAr} ({module.educationLevel})
+                            </span>
+                          </label>
+                        ))}
+                    </div>
+                    {(!formData.educationLevels?.length) && (
+                      <p className="text-sm text-gray-500 mt-1">اختر المستويات التعليمية أولاً لعرض المواد المناسبة</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="experience">سنوات الخبرة</Label>
+                    <Input
+                      id="experience"
+                      value={formData.experience}
+                      onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                      placeholder="مثال: 5 سنوات"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="qualifications">المؤهلات الأكاديمية</Label>
+                    <Input
+                      id="qualifications"
+                      value={formData.qualifications}
+                      onChange={(e) => setFormData({ ...formData, qualifications: e.target.value })}
+                      placeholder="مثال: ليسانس رياضيات"
+                    />
+                  </div>
+                  
                   <div>
                     <Label htmlFor="bio">نبذة عن المعلم</Label>
                     <Textarea

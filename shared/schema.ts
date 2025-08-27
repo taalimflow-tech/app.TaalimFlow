@@ -74,13 +74,25 @@ export const blogPosts = pgTable("blog_posts", {
 export const teachers = pgTable("teachers", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
+  userId: integer("user_id").references(() => users.id), // Linked user account (null for pre-registered)
   name: text("name").notNull(),
-  subject: text("subject").notNull(),
-  bio: text("bio"),
-  imageUrl: text("image_url"),
   email: text("email").notNull(),
   phone: text("phone"),
+  subject: text("subject"), // Keep for backward compatibility, will be migrated to specializations
+  specializations: text("specializations").array(), // Array of subject/module IDs they can teach
+  educationLevels: text("education_levels").array(), // Array of education levels: ["الابتدائي", "المتوسط", "الثانوي"]
+  bio: text("bio"),
+  imageUrl: text("image_url"),
+  experience: text("experience"), // Years of experience or description
+  qualifications: text("qualifications"), // Academic qualifications
   available: boolean("available").default(true),
+  verified: boolean("verified").default(false), // Manual verification by admin
+  verificationNotes: text("verification_notes"), // Admin notes about verification
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: integer("verified_by").references(() => users.id), // Admin who verified
+  isPreRegistered: boolean("is_pre_registered").default(true), // True until teacher creates account and links
+  linkCode: text("link_code").unique(), // Unique code for teachers to link their accounts
+  linkedAt: timestamp("linked_at"), // When teacher linked their account
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -481,12 +493,24 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
 export const insertTeacherSchema = createInsertSchema(teachers).pick({
   schoolId: true,
   name: true,
-  subject: true,
-  bio: true,
-  imageUrl: true,
   email: true,
   phone: true,
+  subject: true, // Backward compatibility
+  specializations: true,
+  educationLevels: true,
+  bio: true,
+  imageUrl: true,
+  experience: true,
+  qualifications: true,
   available: true,
+}).extend({
+  specializations: z.array(z.string()).optional().default([]),
+  educationLevels: z.array(z.string()).optional().default([]),
+  subject: z.string().optional(),
+  phone: z.string().optional(),
+  bio: z.string().optional(),
+  experience: z.string().optional(),
+  qualifications: z.string().optional(),
 });
 
 export const insertMessageSchema = createInsertSchema(messages).pick({

@@ -186,6 +186,10 @@ export interface IStorage {
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
   getTeachersWithSpecializations(schoolId: number): Promise<any[]>;
+  getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined>;
+  linkTeacherToUser(teacherId: number, userId: number): Promise<Teacher>;
+  verifyTeacher(teacherId: number, verifiedBy: number, notes?: string): Promise<Teacher>;
+  getPreRegisteredTeachers(schoolId: number): Promise<Teacher[]>;
 
   // Message methods
   getMessages(): Promise<Message[]>;
@@ -1347,15 +1351,74 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
+    // Generate unique link code for pre-registration
+    const linkCode = `TEACHER-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+    
+    const teacherData = {
+      ...insertTeacher,
+      linkCode,
+      isPreRegistered: true,
+      verified: false,
+    };
+    
     const [teacher] = await db
       .insert(teachers)
-      .values(insertTeacher)
+      .values(teacherData)
       .returning();
     return teacher;
   }
 
   async deleteTeacher(id: number): Promise<void> {
     await db.delete(teachers).where(eq(teachers.id, id));
+  }
+
+  async getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined> {
+    const [teacher] = await db
+      .select()
+      .from(teachers)
+      .where(eq(teachers.linkCode, linkCode))
+      .limit(1);
+    return teacher || undefined;
+  }
+
+  async linkTeacherToUser(teacherId: number, userId: number): Promise<Teacher> {
+    const [teacher] = await db
+      .update(teachers)
+      .set({
+        userId: userId,
+        isPreRegistered: false,
+        linkedAt: new Date(),
+      })
+      .where(eq(teachers.id, teacherId))
+      .returning();
+    return teacher;
+  }
+
+  async verifyTeacher(teacherId: number, verifiedBy: number, notes?: string): Promise<Teacher> {
+    const [teacher] = await db
+      .update(teachers)
+      .set({
+        verified: true,
+        verificationNotes: notes,
+        verifiedAt: new Date(),
+        verifiedBy: verifiedBy,
+      })
+      .where(eq(teachers.id, teacherId))
+      .returning();
+    return teacher;
+  }
+
+  async getPreRegisteredTeachers(schoolId: number): Promise<Teacher[]> {
+    return await db
+      .select()
+      .from(teachers)
+      .where(
+        and(
+          eq(teachers.schoolId, schoolId),
+          eq(teachers.isPreRegistered, true)
+        )
+      )
+      .orderBy(desc(teachers.createdAt));
   }
 
   async getTeachersWithSpecializations(schoolId: number): Promise<any[]> {
