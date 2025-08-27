@@ -580,7 +580,57 @@ export default function GainLossCalculator() {
                           );
                         }
                         
-                        // Fallback for other entry types
+                        // Fallback for other entry types - also try to parse and format
+                        // Handle the case where the text might be formatted differently
+                        const parts = entry.remarks.split(' - ');
+                        if (parts.length >= 3) {
+                          // Try to extract parts manually
+                          const receiptPart = parts[0]; // "إيصال دفع رقم: REC-XXX"
+                          const studentPart = parts[1]; // "الطالب: NAME"
+                          const paymentPart = parts.slice(2).join(' - '); // Everything else
+                          
+                          const receiptId = receiptPart.replace('إيصال دفع رقم: ', '').trim();
+                          const studentName = studentPart.replace('الطالب: ', '').trim();
+                          
+                          return (
+                            <div className="space-y-4">
+                              {/* Student Name */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-lg">
+                                  {studentName}
+                                </span>
+                              </div>
+                              
+                              {/* Receipt ID */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full font-mono">
+                                  إيصال: {receiptId}
+                                </span>
+                              </div>
+                              
+                              {/* Payment Details - Each subject on separate line */}
+                              <div className="space-y-2">
+                                {(() => {
+                                  // Split by " - " to separate different subjects
+                                  const subjects = paymentPart.trim().split(' - ');
+                                  
+                                  return subjects.map((subject, index) => (
+                                    <div key={index} className="flex items-start gap-2">
+                                      <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
+                                      <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        {subject.trim()}
+                                      </div>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        // Final fallback for completely different format
                         return (
                           <div className="text-gray-600 dark:text-gray-300 leading-relaxed">
                             {entry.remarks}
