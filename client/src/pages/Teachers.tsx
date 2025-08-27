@@ -63,9 +63,18 @@ export default function Teachers() {
   });
 
   // Fetch teaching modules from database
-  const { data: teachingModules = {} } = useQuery({
+  const { data: teachingModules = {}, isLoading: modulesLoading, error: modulesError } = useQuery({
     queryKey: ['/api/teaching-modules'],
     select: (data: any[]) => {
+      // Log the raw data to see what we're getting
+      console.log('Raw teaching modules data:', data);
+      
+      // Check if data is an array (successful response) or error object
+      if (!Array.isArray(data)) {
+        console.error('Teaching modules API returned non-array data:', data);
+        return {};
+      }
+      
       // Organize modules by education level
       const modulesByLevel: Record<string, Array<{id: number, nameAr: string, educationLevel: string}>> = {};
       data.forEach((module: any) => {
@@ -74,9 +83,18 @@ export default function Teachers() {
         }
         modulesByLevel[module.educationLevel].push(module);
       });
+      
+      console.log('Organized teaching modules:', modulesByLevel);
       return modulesByLevel;
-    }
+    },
+    retry: 1, // Only retry once
+    enabled: !!user, // Only run query if user is authenticated
   });
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Teaching modules state:', { teachingModules, modulesLoading, modulesError, user });
+  }, [teachingModules, modulesLoading, modulesError, user]);
 
   // Helper function to get module ID from subject name and level
   const getModuleId = (subjectName: string, educationLevel: string): number | null => {
@@ -627,18 +645,26 @@ export default function Teachers() {
                       <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(teachingModules).map(([level, modules]) => (
-                        <div key={level}>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                            {level}
+                      {modulesLoading ? (
+                        <div className="px-2 py-1 text-sm text-gray-500">جاري تحميل المواد...</div>
+                      ) : modulesError ? (
+                        <div className="px-2 py-1 text-sm text-red-500">خطأ في تحميل المواد</div>
+                      ) : Object.keys(teachingModules).length === 0 ? (
+                        <div className="px-2 py-1 text-sm text-gray-500">لا توجد مواد متاحة</div>
+                      ) : (
+                        Object.entries(teachingModules).map(([level, modules]) => (
+                          <div key={level}>
+                            <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                              {level}
+                            </div>
+                            {modules.map((module) => (
+                              <SelectItem key={`${module.id}-${level}`} value={`${module.nameAr} (${level})`}>
+                                {module.nameAr}
+                              </SelectItem>
+                            ))}
                           </div>
-                          {modules.map((module) => (
-                            <SelectItem key={`${module.id}-${level}`} value={`${module.nameAr} (${level})`}>
-                              {module.nameAr}
-                            </SelectItem>
-                          ))}
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <Button
