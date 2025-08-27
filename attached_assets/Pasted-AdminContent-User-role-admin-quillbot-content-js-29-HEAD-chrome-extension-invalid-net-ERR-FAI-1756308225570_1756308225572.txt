@@ -1,0 +1,679 @@
+AdminContent: User role: admin
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+quillbot-content.js:29  HEAD chrome-extension://invalid/ net::ERR_FAILED
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+l @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+asyncGeneratorStep$9 @ quillbot-content.js:29
+a @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+detectCompetitorExtensions @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+setTimeout
+f @ quillbot-content.js:2
+g @ quillbot-content.js:2
+_render @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+requestAnimationFrame
+updateState @ quillbot-content.js:2
+b @ quillbot-content.js:2
+initElement @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+setTimeout
+_initElement @ quillbot-content.js:2
+V._init @ quillbot-content.js:2
+value @ quillbot-content.js:2
+V @ quillbot-content.js:2
+value @ quillbot-content.js:2
+value @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+Promise.then
+(anonymous) @ quillbot-content.js:2
+m @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+(anonymous) @ quillbot-content.js:2
+n @ quillbot-content.js:29
+s @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:29
+(anonymous) @ quillbot-content.js:2
+t @ quillbot-content.js:2
+30966 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+12488 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+2397 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+14446 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:2
+__webpack_require__.a @ quillbot-content.js:227
+50033 @ quillbot-content.js:2
+__webpack_require__ @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227
+(anonymous) @ quillbot-content.js:227Understand this error
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+quillbot-content.js:2 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'id')
+    at Object.s [as onDocumentFocus] (quillbot-content.js:2:1728405)
+    at V._onDocumentFocus (quillbot-content.js:2:887436)
+s @ quillbot-content.js:2
+V._onDocumentFocus @ quillbot-content.js:2Understand this error
+AdminContent.tsx:349 Form submission started
+AdminContent.tsx:350 Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:351 Form data: {title: '', content: '', description: '', subject: 'arab', category: '', …}
+AdminContent.tsx:352 Active tab: teacher
+AdminContent.tsx:150 === Teacher Creation Debug ===
+AdminContent.tsx:151 Data being sent to server: {
+  "name": "jdidd",
+  "email": "jdidd@gmail.com",
+  "phone": "0623457099",
+  "subject": "arab",
+  "bio": "fds",
+  "available": true,
+  "imageUrl": null
+}
+AdminContent.tsx:152 Data types: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+requests.js:1  POST https://120db40d-a497-4f2d-b7b5-47bc000d4dad-00-3qbr5kin5qy13.spock.replit.dev/api/teachers 400 (Bad Request)
+s.fetch @ requests.js:1
+window.fetch @ apiDebugger.ts:151
+(anonymous) @ traffic.js:1
+fetch @ traffic.js:1
+apiRequest @ queryClient.ts:29
+mutationFn @ AdminContent.tsx:154
+fn @ @tanstack_react-query.js?v=ec15bcf1:1189
+run @ @tanstack_react-query.js?v=ec15bcf1:494
+start @ @tanstack_react-query.js?v=ec15bcf1:536
+execute @ @tanstack_react-query.js?v=ec15bcf1:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=ec15bcf1:2630
+(anonymous) @ @tanstack_react-query.js?v=ec15bcf1:3295
+handleSubmit @ AdminContent.tsx:412
+callCallback2 @ chunk-RPCDYKBN.js?v=ec15bcf1:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=ec15bcf1:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=ec15bcf1:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=ec15bcf1:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=ec15bcf1:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=ec15bcf1:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=ec15bcf1:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=ec15bcf1:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=ec15bcf1:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=ec15bcf1:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=ec15bcf1:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=ec15bcf1:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=ec15bcf1:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=ec15bcf1:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=ec15bcf1:5449Understand this error
+AdminContent.tsx:172 Teacher creation error: Error: HTTP error! status: 400, message: Invalid teacher data
+    at throwIfResNotOk (queryClient.ts:20:11)
+    at async apiRequest (queryClient.ts:36:3)
+    at async Object.mutationFn (AdminContent.tsx:154:24)
+onError @ AdminContent.tsx:172
+execute @ @tanstack_react-query.js?v=ec15bcf1:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=ec15bcf1:2630
+(anonymous) @ @tanstack_react-query.js?v=ec15bcf1:3295
+handleSubmit @ AdminContent.tsx:412
+callCallback2 @ chunk-RPCDYKBN.js?v=ec15bcf1:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=ec15bcf1:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=ec15bcf1:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=ec15bcf1:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=ec15bcf1:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=ec15bcf1:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=ec15bcf1:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=ec15bcf1:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=ec15bcf1:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=ec15bcf1:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=ec15bcf1:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=ec15bcf1:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=ec15bcf1:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=ec15bcf1:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=ec15bcf1:5449Understand this error
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin
+AdminContent.tsx:41 AdminContent: Component loaded
+AdminContent.tsx:42 AdminContent: Current user: {id: 30, schoolId: 8, email: 'adminlast@gmail.com', name: 'adminlast', phone: '0674451233', …}
+AdminContent.tsx:43 AdminContent: User role: admin

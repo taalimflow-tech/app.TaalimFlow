@@ -481,7 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: user.phone,
         subject: "مادة عامة", // Default subject for new teacher registration
         bio: undefined,
-        imageUrl: null,
+        imageUrl: undefined,
         available: true,
         schoolId: currentSchool.id,
       };
@@ -1621,32 +1621,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
-      console.log('Teacher creation request body:', req.body);
-      console.log('User session:', req.session.user);
+      console.log('=== SERVER Teacher Creation Debug ===');
+      console.log('Request body:', JSON.stringify(req.body, null, 2));
+      console.log('User session:', {
+        id: req.session.user.id,
+        schoolId: req.session.user.schoolId,
+        role: req.session.user.role
+      });
       
-      const validatedData = insertTeacherSchema.parse(req.body);
-      console.log('Validated teacher data:', validatedData);
+      // Validate the data
+      let validatedData;
+      try {
+        validatedData = insertTeacherSchema.parse(req.body);
+        console.log('✓ Validation successful:', validatedData);
+      } catch (validationError: any) {
+        console.error('✗ Validation failed:', validationError.errors);
+        return res.status(400).json({ 
+          error: "Invalid teacher data", 
+          details: validationError.errors,
+          message: validationError.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ')
+        });
+      }
       
       const teacherData = {
         ...validatedData,
         schoolId: req.session.user.schoolId,
       };
       
-      console.log('Final teacher data:', teacherData);
+      console.log('Final teacher data for creation:', JSON.stringify(teacherData, null, 2));
+      
       const teacher = await storage.createTeacher(teacherData);
+      console.log('✓ Teacher created successfully:', teacher.id);
       res.status(201).json(teacher);
     } catch (error: any) {
-      console.error('Teacher creation error:', error);
-      if (error?.name === 'ZodError') {
-        console.error('Validation errors:', error.errors);
-        res.status(400).json({ 
-          error: "Invalid teacher data", 
-          details: error.errors,
-          message: error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ')
-        });
-      } else {
-        res.status(400).json({ error: "Invalid teacher data", message: error?.message || 'Unknown error' });
-      }
+      console.error('✗ Teacher creation error:', error);
+      res.status(500).json({ error: "Server error", message: error?.message || 'Unknown error' });
     }
   });
 
