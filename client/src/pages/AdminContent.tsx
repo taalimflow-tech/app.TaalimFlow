@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -765,13 +766,21 @@ export default function AdminContent() {
                   {/* Subject Field */}
                   <div>
                     <Label htmlFor="subject">المادة التخصص</Label>
-                    <Input
-                      id="subject"
+                    <Select
                       value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      placeholder="اختر المادة التي يدرسها المعلم"
-                      required
-                    />
+                      onValueChange={(value) => setFormData({ ...formData, subject: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teachingModules.map((module: any) => (
+                          <SelectItem key={module.id} value={module.nameAr}>
+                            {module.nameAr} ({module.educationLevel})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
