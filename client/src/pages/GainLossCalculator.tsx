@@ -532,7 +532,7 @@ export default function GainLossCalculator() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-sm bg-white dark:bg-gray-800 bg-opacity-50 dark:bg-opacity-50 p-3 rounded border-l-2 border-gray-300 dark:border-gray-600 space-y-2">
+                    <div className="text-sm bg-white dark:bg-gray-800 bg-opacity-50 dark:bg-opacity-50 p-3 rounded border-l-2 border-gray-300 dark:border-gray-600">
                       {(() => {
                         // Parse payment receipt format: "إيصال دفع رقم: REC-XXX - الطالب: NAME - DETAILS"
                         const receiptMatch = entry.remarks.match(/إيصال دفع رقم: ([^-]+) - الطالب: ([^-]+) - (.+)/);
@@ -540,23 +540,23 @@ export default function GainLossCalculator() {
                         if (receiptMatch) {
                           const [, receiptId, studentName, paymentDetails] = receiptMatch;
                           return (
-                            <>
-                              <div className="font-medium text-gray-800 dark:text-gray-200">
-                                {studentName.trim()}
+                            <div className="space-y-3">
+                              <div className="font-medium text-gray-800 dark:text-gray-200 text-base border-b border-gray-200 dark:border-gray-600 pb-2">
+                                الطالب: {studentName.trim()}
                               </div>
-                              <div className="text-xs text-gray-600 dark:text-gray-400">
+                              <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                                 إيصال رقم: {receiptId.trim()}
                               </div>
-                              <div className="text-sm text-gray-700 dark:text-gray-300">
+                              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                                 {paymentDetails.trim()}
                               </div>
-                            </>
+                            </div>
                           );
                         }
                         
                         // Fallback for other entry types
                         return (
-                          <div className="text-gray-600 dark:text-gray-300">
+                          <div className="text-gray-600 dark:text-gray-300 leading-relaxed">
                             {entry.remarks}
                           </div>
                         );
