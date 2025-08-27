@@ -194,10 +194,9 @@ export default function Teachers() {
         console.log('Uploading image...');
         
         const uploadFormData = new FormData();
-        uploadFormData.append('image', imageFile);
-        uploadFormData.append('type', 'teacher');
+        uploadFormData.append('contentImage', imageFile);
         
-        const uploadResponse = await fetch('/api/upload-image', {
+        const uploadResponse = await fetch('/api/upload-content', {
           method: 'POST',
           credentials: 'include', // Add credentials for session
           body: uploadFormData,
