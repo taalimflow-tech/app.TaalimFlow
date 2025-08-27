@@ -62,43 +62,50 @@ export default function Teachers() {
     queryKey: ['/api/teachers-with-specializations'],
   });
 
-  // Static subject list organized by education level
-  const subjectsByLevel = {
-    'الابتدائي': [
-      'العربية والرياضيات',
-      'اللغة الإنجليزية',
-      'اللغة الفرنسية'
-    ],
-    'المتوسط': [
-      'اللغة العربية',
-      'اللغة الإنجليزية', 
-      'اللغة الفرنسية',
-      'التاريخ والجغرافيا',
-      'الرياضيات',
-      'العلوم الطبيعية',
-      'الفيزياء'
-    ],
-    'الثانوي': [
-      'اللغة العربية وآدابها',
-      'اللغة الإنجليزية',
-      'اللغة الفرنسية',
-      'اللغة الألمانية',
-      'اللغة الإسبانية',
-      'اللغة الأمازيغية',
-      'الرياضيات',
-      'العلوم الطبيعية والحياة',
-      'العلوم الفيزيائية',
-      'التاريخ والجغرافيا',
-      'الفلسفة',
-      'التربية الإسلامية',
-      'الإعلام الآلي',
-      'الاقتصاد والمناجمنت',
-      'القانون',
-      'المحاسبة',
-      'الهندسة الكهربائية',
-      'الهندسة المدنية',
-      'الهندسة الميكانيكية'
-    ]
+  // Fetch teaching modules from database
+  const { data: teachingModules = {} } = useQuery({
+    queryKey: ['/api/teaching-modules'],
+    select: (data: any[]) => {
+      // Organize modules by education level
+      const modulesByLevel: Record<string, Array<{id: number, nameAr: string, educationLevel: string}>> = {};
+      data.forEach((module: any) => {
+        if (!modulesByLevel[module.educationLevel]) {
+          modulesByLevel[module.educationLevel] = [];
+        }
+        modulesByLevel[module.educationLevel].push(module);
+      });
+      return modulesByLevel;
+    }
+  });
+
+  // Create subjectsByLevel from database data for backward compatibility
+  const subjectsByLevel = Object.entries(teachingModules).reduce((acc, [level, modules]) => {
+    acc[level] = modules.map((module: any) => module.nameAr);
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  // Helper function to get module ID from subject name and level
+  const getModuleId = (subjectName: string, educationLevel: string): number | null => {
+    const modules = teachingModules[educationLevel];
+    if (!modules) return null;
+    const module = modules.find(m => m.nameAr === subjectName);
+    return module ? module.id : null;
+  };
+
+  // Helper function to get module details from specialization string
+  const getModuleFromSpecialization = (spec: string): {id: number, nameAr: string, educationLevel: string} | null => {
+    // Parse format "Subject (Level)"
+    const match = spec.match(/^(.+?)\s*\((.+)\)$/);
+    if (!match) return null;
+    
+    const subjectName = match[1].trim();
+    const educationLevel = match[2].trim();
+    const moduleId = getModuleId(subjectName, educationLevel);
+    
+    if (moduleId) {
+      return { id: moduleId, nameAr: subjectName, educationLevel };
+    }
+    return null;
   };
 
   // Flatten subjects for dropdown with education level labels
@@ -228,13 +235,19 @@ export default function Teachers() {
       
       setIsUploading(false);
       
+      // Convert specializations to module IDs
+      const specializationModules = selectedSpecializations
+        .map(spec => getModuleFromSpecialization(spec))
+        .filter(module => module !== null) as Array<{id: number, nameAr: string, educationLevel: string}>;
+
       const teacherData = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone || null,
         bio: formData.bio || null,
         imageUrl: imageUrl || null,
-        specializations: selectedSpecializations.length > 0 ? selectedSpecializations : []
+        specializations: selectedSpecializations, // Keep original format for backend parsing
+        specializationModules: specializationModules // Send module details for ID mapping
       };
       
       console.log('Submitting teacher data:', teacherData);

@@ -1806,9 +1806,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Teacher user created:', teacherUser.id);
 
-      // Add specializations if provided
-      if (specializations && specializations.length > 0) {
-        console.log('Processing specializations:', specializations);
+      // Add specializations using module IDs if provided
+      if (req.body.specializationModules && req.body.specializationModules.length > 0) {
+        console.log('Processing specialization modules:', req.body.specializationModules);
+        
+        for (const module of req.body.specializationModules) {
+          try {
+            await storage.createTeacherSpecialization({
+              teacherId: teacherUser.id,
+              moduleId: module.id
+            });
+            console.log(`✅ Added specialization: ${module.nameAr} (${module.educationLevel}) - Module ID: ${module.id}`);
+          } catch (error) {
+            console.error(`❌ Failed to add specialization for module ID ${module.id}:`, error);
+          }
+        }
+      } else if (specializations && specializations.length > 0) {
+        // Fallback to old method if specializationModules not provided
+        console.log('Processing specializations (fallback method):', specializations);
         for (const specializationName of specializations) {
           // Parse specialization to extract name and education level
           // Format: "المادة (المستوى)"
@@ -1819,18 +1834,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             console.log(`Processing: ${subjectName} (${educationLevel})`);
             
-            // Find or create the teaching module by Arabic name and education level
+            // Find the teaching module by Arabic name and education level
             let teachingModule = await storage.getTeachingModuleByName(subjectName, educationLevel);
-            
-            if (!teachingModule) {
-              // Create the teaching module since it doesn't exist
-              teachingModule = await storage.createTeachingModule({
-                nameAr: subjectName,
-                educationLevel: educationLevel,
-                name: subjectName // English name same as Arabic for now
-              });
-              console.log(`Created new teaching module: ${subjectName} (${educationLevel}) - ID: ${teachingModule.id}`);
-            }
             
             if (teachingModule) {
               await storage.createTeacherSpecialization({
@@ -1838,6 +1843,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 moduleId: teachingModule.id
               });
               console.log(`Added specialization: ${subjectName} (${educationLevel}) - Module ID: ${teachingModule.id}`);
+            } else {
+              console.log(`⚠️ Teaching module not found: ${subjectName} (${educationLevel})`);
             }
           } else {
             console.log(`Invalid specialization format: ${specializationName}`);
