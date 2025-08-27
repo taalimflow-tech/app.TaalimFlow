@@ -480,7 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         phone: user.phone,
         subject: "مادة عامة", // Default subject for new teacher registration
-        bio: null,
+        bio: undefined,
         imageUrl: null,
         available: true,
         schoolId: currentSchool.id,

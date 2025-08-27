@@ -479,7 +479,6 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
 });
 
 export const insertTeacherSchema = createInsertSchema(teachers).pick({
-  schoolId: true,
   name: true,
   email: true,
   phone: true,
@@ -490,6 +489,7 @@ export const insertTeacherSchema = createInsertSchema(teachers).pick({
 }).extend({
   phone: z.string().optional(),
   bio: z.string().optional(),
+  schoolId: z.number().optional(), // schoolId will be added from session
 });
 
 export const insertMessageSchema = createInsertSchema(messages).pick({
