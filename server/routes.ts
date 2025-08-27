@@ -1827,7 +1827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               teachingModule = await storage.createTeachingModule({
                 nameAr: subjectName,
                 educationLevel: educationLevel,
-                schoolId: req.session.user.schoolId
+                name: subjectName // English name same as Arabic for now
               });
               console.log(`Created new teaching module: ${subjectName} (${educationLevel}) - ID: ${teachingModule.id}`);
             }
@@ -1835,7 +1835,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (teachingModule) {
               await storage.createTeacherSpecialization({
                 teacherId: teacherUser.id,
-                teachingModuleId: teachingModule.id
+                moduleId: teachingModule.id
               });
               console.log(`Added specialization: ${subjectName} (${educationLevel}) - Module ID: ${teachingModule.id}`);
             }
