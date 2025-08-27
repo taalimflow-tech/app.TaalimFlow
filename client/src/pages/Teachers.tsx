@@ -119,6 +119,7 @@ export default function Teachers() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // This ensures session cookies are sent
         body: JSON.stringify(data),
       });
       
