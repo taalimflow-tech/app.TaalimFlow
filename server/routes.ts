@@ -1747,11 +1747,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Create teacher as user account with specializations
   app.post("/api/users/create-teacher", async (req, res) => {
+    console.log('🚀 CREATE TEACHER ENDPOINT HIT!');
+    console.log('Request method:', req.method);
+    console.log('Request path:', req.path);
+    console.log('Session user:', req.session?.user?.id, req.session?.user?.role);
+    
     try {
       if (!req.session.user || req.session.user.role !== "admin") {
+        console.log('❌ Authentication failed - session:', req.session?.user);
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
+      console.log('✅ Authentication passed');
       console.log('=== Creating Teacher User ===');
       console.log('Request body:', JSON.stringify(req.body, null, 2));
 
