@@ -147,12 +147,19 @@ export default function AdminContent() {
   // Teacher creation mutation
   const createTeacherMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('Creating teacher with data:', data);
+      console.log('=== Teacher Creation Debug ===');
+      console.log('Data being sent to server:', JSON.stringify(data, null, 2));
+      console.log('Data types:', Object.entries(data).map(([key, value]) => ({ [key]: typeof value })));
+      
       const response = await apiRequest('POST', '/api/teachers', data);
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Teacher creation failed:', errorData);
-        throw new Error(errorData.error || 'Failed to create teacher');
+        console.error('=== Teacher Creation Failed ===');
+        console.error('Error data:', JSON.stringify(errorData, null, 2));
+        throw new Error(errorData.message || errorData.error || 'Failed to create teacher');
       }
       return await response.json();
     },
