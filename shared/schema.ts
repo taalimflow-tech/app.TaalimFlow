@@ -481,10 +481,10 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
 export const insertTeacherSchema = z.object({
   name: z.string().min(1, "اسم المعلم مطلوب"),
   email: z.string().email("البريد الإلكتروني غير صحيح"),
-  phone: z.string().optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")).nullable(),
   subject: z.string().min(1, "المادة مطلوبة"),
-  bio: z.string().optional().or(z.literal("")),
-  imageUrl: z.string().optional().or(z.literal("")),
+  bio: z.string().optional().or(z.literal("")).nullable(),
+  imageUrl: z.string().optional().or(z.literal("")).nullable(),
   available: z.boolean().optional().default(true),
   schoolId: z.number().optional(), // Will be added from session
 });
