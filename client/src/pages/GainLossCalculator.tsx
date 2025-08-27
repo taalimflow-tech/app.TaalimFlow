@@ -492,39 +492,40 @@ export default function GainLossCalculator() {
                   {filteredEntries.slice(0, 15).map((entry: FinancialEntry) => (
                   <div
                     key={entry.id}
-                    className={`p-4 rounded-lg border ${
+                    className={`p-5 rounded-xl border-2 shadow-sm hover:shadow-md transition-shadow ${
                       entry.type === 'gain' 
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
-                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                        ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700' 
+                        : 'bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-2">
+                    {/* Header with amount and date */}
+                    <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center gap-3">
-                        <div className={`p-1.5 rounded-full ${
-                          entry.type === 'gain' ? 'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'
+                        <div className={`p-2 rounded-full ${
+                          entry.type === 'gain' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                         }`}>
                           {entry.type === 'gain' ? (
-                            <TrendingUp className="w-3.5 h-3.5 text-green-600" />
+                            <TrendingUp className="w-4 h-4" />
                           ) : (
-                            <TrendingDown className="w-3.5 h-3.5 text-red-600" />
+                            <TrendingDown className="w-4 h-4" />
                           )}
                         </div>
                         <div>
-                          <span className={`text-lg font-semibold ${
+                          <span className={`text-xl font-bold ${
                             entry.type === 'gain' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
                           }`}>
                             {entry.type === 'gain' ? '+' : '-'}{parseFloat(entry.amount).toLocaleString('ar-DZ')} دج
                           </span>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {entry.type === 'gain' ? 'ربح' : 'خسارة'}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-right bg-white dark:bg-gray-800 px-3 py-1 rounded-lg">
+                        <div className="text-xs text-gray-600 dark:text-gray-300 font-medium">
                           {new Date(entry.createdAt).toLocaleDateString('ar-DZ')}
                         </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(entry.createdAt).toLocaleTimeString('ar-DZ', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
@@ -532,7 +533,9 @@ export default function GainLossCalculator() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-sm bg-white dark:bg-gray-800 bg-opacity-50 dark:bg-opacity-50 p-3 rounded border-l-2 border-gray-300 dark:border-gray-600">
+
+                    {/* Payment Details */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                       {(() => {
                         // Parse payment receipt format: "إيصال دفع رقم: REC-XXX - الطالب: NAME - DETAILS"
                         const receiptMatch = entry.remarks.match(/إيصال دفع رقم: ([^-]+) - الطالب: ([^-]+) - (.+)/);
@@ -540,15 +543,29 @@ export default function GainLossCalculator() {
                         if (receiptMatch) {
                           const [, receiptId, studentName, paymentDetails] = receiptMatch;
                           return (
-                            <div className="space-y-3">
-                              <div className="font-medium text-gray-800 dark:text-gray-200 text-base border-b border-gray-200 dark:border-gray-600 pb-2">
-                                الطالب: {studentName.trim()}
+                            <div className="space-y-4">
+                              {/* Student Name */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-lg">
+                                  {studentName.trim()}
+                                </span>
                               </div>
-                              <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                                إيصال رقم: {receiptId.trim()}
+                              
+                              {/* Receipt ID */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full font-mono">
+                                  إيصال: {receiptId.trim()}
+                                </span>
                               </div>
-                              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                                {paymentDetails.trim()}
+                              
+                              {/* Payment Details */}
+                              <div className="flex items-start gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
+                                <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                  {paymentDetails.trim()}
+                                </div>
                               </div>
                             </div>
                           );
