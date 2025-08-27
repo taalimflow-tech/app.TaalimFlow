@@ -643,14 +643,14 @@ export default function Teachers() {
                       <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(subjectsByLevel).map(([level, subjects]) => (
+                      {Object.entries(teachingModules).map(([level, modules]) => (
                         <div key={level}>
                           <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                             {level}
                           </div>
-                          {subjects.map((subject) => (
-                            <SelectItem key={`${subject}-${level}`} value={`${subject} (${level})`}>
-                              {subject}
+                          {modules.map((module) => (
+                            <SelectItem key={`${module.id}-${level}`} value={`${module.nameAr} (${level})`}>
+                              {module.nameAr}
                             </SelectItem>
                           ))}
                         </div>
