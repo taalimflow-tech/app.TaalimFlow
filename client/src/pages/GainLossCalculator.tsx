@@ -560,12 +560,21 @@ export default function GainLossCalculator() {
                                 </span>
                               </div>
                               
-                              {/* Payment Details */}
-                              <div className="flex items-start gap-2">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                                <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                                  {paymentDetails.trim()}
-                                </div>
+                              {/* Payment Details - Each subject on separate line */}
+                              <div className="space-y-2">
+                                {(() => {
+                                  // Parse payment details format: "Subject1 Group1 (months) - Subject2 Group2 (months)"
+                                  const subjects = paymentDetails.trim().split(' - ');
+                                  
+                                  return subjects.map((subject, index) => (
+                                    <div key={index} className="flex items-start gap-2">
+                                      <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
+                                      <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        {subject.trim()}
+                                      </div>
+                                    </div>
+                                  ));
+                                })()}
                               </div>
                             </div>
                           );
