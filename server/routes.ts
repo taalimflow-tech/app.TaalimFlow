@@ -1745,6 +1745,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint to verify server is working
+  app.get("/api/test-endpoint", (req, res) => {
+    console.log('🧪 Test endpoint hit!');
+    res.json({ message: "Server is working!", timestamp: new Date().toISOString() });
+  });
+
   // Create teacher as user account with specializations
   app.post("/api/users/create-teacher", async (req, res) => {
     console.log('🚀 CREATE TEACHER ENDPOINT HIT!');
@@ -1775,8 +1781,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "البريد الإلكتروني موجود بالفعل" });
       }
 
-      // Create user account with teacher role
-      const teacherUser = await storage.createUser({
+      console.log('📝 About to create user with data...');
+      
+      // Create user account with teacher role  
+      const userData = {
         schoolId: req.session.user.schoolId,
         name,
         email,
@@ -1785,9 +1793,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "teacher",
         emailVerified: true, // Pre-verified by admin
         phoneVerified: !!phone, // Verified if phone provided
-        password: "", // Empty string, will be set when teacher first logs in
+        password: "temp123", // Temporary password, will be changed when teacher first logs in
         firebaseUid: null
-      });
+      };
+      
+      console.log('📋 User data prepared:', userData);
+      const teacherUser = await storage.createUser(userData);
+      console.log('👤 User created successfully:', teacherUser.id);
 
       console.log('Teacher user created:', teacherUser.id);
 
