@@ -479,8 +479,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        specializations: ["1"], // Default to first teaching module
-        educationLevels: ["الابتدائي"], // Default education level
+        subject: "مادة عامة", // Default subject for new teacher registration
+        bio: null,
+        imageUrl: null,
         available: true,
         schoolId: currentSchool.id,
       };
@@ -1620,15 +1621,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
+      console.log('Teacher creation request body:', req.body);
+      console.log('User session:', req.session.user);
+      
       const validatedData = insertTeacherSchema.parse(req.body);
+      console.log('Validated teacher data:', validatedData);
+      
       const teacherData = {
         ...validatedData,
         schoolId: req.session.user.schoolId,
       };
+      
+      console.log('Final teacher data:', teacherData);
       const teacher = await storage.createTeacher(teacherData);
       res.status(201).json(teacher);
-    } catch (error) {
-      res.status(400).json({ error: "Invalid teacher data" });
+    } catch (error: any) {
+      console.error('Teacher creation error:', error);
+      if (error?.name === 'ZodError') {
+        console.error('Validation errors:', error.errors);
+        res.status(400).json({ 
+          error: "Invalid teacher data", 
+          details: error.errors,
+          message: error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ')
+        });
+      } else {
+        res.status(400).json({ error: "Invalid teacher data", message: error?.message || 'Unknown error' });
+      }
     }
   });
 
