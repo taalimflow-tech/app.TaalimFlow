@@ -1351,21 +1351,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
-    // Generate unique link code for pre-registration
-    const linkCode = `TEACHER-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-    
-    const teacherData = {
-      ...insertTeacher,
-      linkCode,
-      isPreRegistered: true,
-      verified: false,
-    };
-    
-    const [teacher] = await db
-      .insert(teachers)
-      .values(teacherData)
-      .returning();
-    return teacher;
+    try {
+      console.log('Creating teacher with data:', insertTeacher);
+      
+      // Create teacher with basic fields matching existing DB structure
+      const teacherData = {
+        schoolId: insertTeacher.schoolId,
+        name: insertTeacher.name,
+        email: insertTeacher.email,
+        phone: insertTeacher.phone || null,
+        subject: insertTeacher.subject || 'مادة عامة',
+        bio: insertTeacher.bio || null,
+        imageUrl: insertTeacher.imageUrl || null,
+        available: insertTeacher.available !== undefined ? insertTeacher.available : true,
+      };
+      
+      console.log('Teacher data for insertion:', teacherData);
+      
+      const [teacher] = await db
+        .insert(teachers)
+        .values(teacherData)
+        .returning();
+      
+      console.log('Teacher created successfully:', teacher);
+      return teacher;
+    } catch (error) {
+      console.error('Error creating teacher:', error);
+      throw error;
+    }
   }
 
   async deleteTeacher(id: number): Promise<void> {
