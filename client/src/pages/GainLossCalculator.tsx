@@ -350,7 +350,7 @@ export default function GainLossCalculator() {
         </CardContent>
       </Card>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="space-y-6">
         {/* Entry Form */}
         <Card>
           <CardHeader>
