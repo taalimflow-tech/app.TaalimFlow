@@ -99,6 +99,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  console.log('🔥 REGISTERING ROUTES - Starting route registration...');
+  
   // Configure session middleware with proper persistence
   app.use(
     session({
@@ -1752,6 +1754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create teacher as user account with specializations
+  console.log('📝 REGISTERING ENDPOINT: POST /api/users/create-teacher');
   app.post("/api/users/create-teacher", async (req, res) => {
     console.log('🚀 CREATE TEACHER ENDPOINT HIT!');
     console.log('Request method:', req.method);
@@ -5948,5 +5951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  console.log('✅ ROUTE REGISTRATION COMPLETED - All routes registered successfully!');
+  console.log('🎯 Teacher creation endpoint should be available at: POST /api/users/create-teacher');
   return httpServer;
 }
