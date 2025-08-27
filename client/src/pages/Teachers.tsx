@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
-import { X, User, BookOpen, GraduationCap, Phone, Mail } from 'lucide-react';
+import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus } from 'lucide-react';
 
 interface TeacherWithSpecializations {
   id: number;
@@ -27,9 +28,31 @@ interface TeacherWithSpecializations {
   }[];
 }
 
+interface CreateTeacherFormData {
+  name: string;
+  email: string;
+  phone: string;
+  bio: string;
+  subject: string;
+  imageUrl: string;
+}
+
 export default function Teachers() {
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherWithSpecializations | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState<CreateTeacherFormData>({
+    name: '',
+    email: '',
+    phone: '',
+    bio: '',
+    subject: '',
+    imageUrl: ''
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -37,6 +60,114 @@ export default function Teachers() {
   const { data: teachers = [], isLoading: loading } = useQuery<TeacherWithSpecializations[]>({
     queryKey: ['/api/teachers-with-specializations'],
   });
+
+  const { data: teachingModules = [] } = useQuery<any[]>({
+    queryKey: ['/api/teaching-modules'],
+  });
+
+  // Teacher creation mutation
+  const createTeacherMutation = useMutation({
+    mutationFn: async (data: any) => {
+      console.log('Creating teacher with data:', data);
+      const response = await apiRequest('POST', '/api/teachers', data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم إنشاء المعلم بنجاح' });
+      resetForm();
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+    },
+    onError: (error: any) => {
+      console.error('Teacher creation error:', error);
+      toast({ 
+        title: 'خطأ في إنشاء المعلم', 
+        description: error.message || 'حدث خطأ غير متوقع',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      bio: '',
+      subject: '',
+      imageUrl: ''
+    });
+    setImageFile(null);
+    setImagePreview(null);
+    setShowCreateForm(false);
+  };
+
+  // Image upload handler
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Form submission handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      let imageUrl = formData.imageUrl;
+      
+      if (imageFile) {
+        setIsUploading(true);
+        console.log('Uploading image...');
+        
+        const uploadFormData = new FormData();
+        uploadFormData.append('image', imageFile);
+        uploadFormData.append('type', 'teacher');
+        
+        const uploadResponse = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error('فشل في رفع الصورة');
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        imageUrl = uploadResult.imageUrl;
+        console.log('Image uploaded successfully:', imageUrl);
+      }
+      
+      setIsUploading(false);
+      
+      const teacherData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || null,
+        bio: formData.bio || null,
+        imageUrl: imageUrl || null,
+        specializations: formData.subject ? [formData.subject] : []
+      };
+      
+      console.log('Submitting teacher data:', teacherData);
+      createTeacherMutation.mutate(teacherData);
+      
+    } catch (error) {
+      setIsUploading(false);
+      console.error('Error in form submission:', error);
+      toast({
+        title: 'خطأ في رفع الصورة',
+        description: error instanceof Error ? error.message : 'حدث خطأ غير متوقع',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const educationLevels = [
     { value: 'all', label: 'جميع المستويات' },
@@ -187,7 +318,18 @@ export default function Teachers() {
 
   return (
     <div className="px-4 py-6">
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">المعلمون</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">المعلمون</h2>
+        {user?.role === 'admin' && (
+          <Button 
+            onClick={() => setShowCreateForm(true)} 
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            إضافة معلم جديد
+          </Button>
+        )}
+      </div>
       
       {/* Level Filter Bar */}
       <div className="flex flex-wrap gap-2 mb-6 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -345,6 +487,129 @@ export default function Teachers() {
           </div>
         )}
       </div>
+      
+      {/* Create Teacher Form Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold dark:text-white">إضافة معلم جديد</h2>
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded dark:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="name">اسم المعلم</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="اكتب اسم المعلم"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="البريد الإلكتروني للمعلم"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="phone">رقم الهاتف</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="رقم هاتف المعلم"
+                />
+              </div>
+
+              {/* Subject Field */}
+              <div>
+                <Label htmlFor="subject">المادة التخصص</Label>
+                <Select
+                  value={formData.subject}
+                  onValueChange={(value) => setFormData({ ...formData, subject: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachingModules.map((module: any) => (
+                      <SelectItem key={module.id} value={module.nameAr}>
+                        {module.nameAr} ({module.educationLevel})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="bio">نبذة عن المعلم</Label>
+                <Textarea
+                  id="bio"
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder="اكتب نبذة عن المعلم"
+                  rows={3}
+                />
+              </div>
+              
+              {/* Image Upload */}
+              <div>
+                <Label htmlFor="image">صورة المعلم (اختياري)</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="mt-1"
+                />
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-lg bg-gray-100" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-2 space-x-reverse pt-4">
+                <Button
+                  type="submit"
+                  disabled={createTeacherMutation.isPending || isUploading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isUploading
+                    ? 'جاري رفع الصورة...'
+                    : createTeacherMutation.isPending
+                      ? 'جاري الإنشاء...'
+                      : 'إنشاء المعلم'
+                  }
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  className="text-gray-600"
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       
       {/* Custom Modal */}
       {selectedTeacher && (
