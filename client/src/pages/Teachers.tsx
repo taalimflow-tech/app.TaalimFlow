@@ -114,8 +114,29 @@ export default function Teachers() {
   const createTeacherMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('Creating teacher user with data:', data);
-      const response = await apiRequest('POST', '/api/users/create-teacher', data);
-      return await response.json();
+      const response = await fetch('/api/users/create-teacher', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${responseText}`);
+      }
+      
+      try {
+        return JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`);
+      }
     },
     onSuccess: () => {
       toast({ title: 'تم إنشاء المعلم بنجاح' });
