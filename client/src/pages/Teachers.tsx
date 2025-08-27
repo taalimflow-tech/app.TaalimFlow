@@ -199,6 +199,7 @@ export default function Teachers() {
         
         const uploadResponse = await fetch('/api/upload-image', {
           method: 'POST',
+          credentials: 'include', // Add credentials for session
           body: uploadFormData,
         });
         
