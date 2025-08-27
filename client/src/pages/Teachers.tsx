@@ -78,12 +78,6 @@ export default function Teachers() {
     }
   });
 
-  // Create subjectsByLevel from database data for backward compatibility
-  const subjectsByLevel = Object.entries(teachingModules).reduce((acc, [level, modules]) => {
-    acc[level] = modules.map((module: any) => module.nameAr);
-    return acc;
-  }, {} as Record<string, string[]>);
-
   // Helper function to get module ID from subject name and level
   const getModuleId = (subjectName: string, educationLevel: string): number | null => {
     const modules = teachingModules[educationLevel];
@@ -107,16 +101,6 @@ export default function Teachers() {
     }
     return null;
   };
-
-  // Flatten subjects for dropdown with education level labels
-  const allSubjects = Object.entries(subjectsByLevel).flatMap(([level, subjects]) =>
-    subjects.map(subject => ({
-      value: `${subject} (${level})`,
-      label: `${subject} (${level})`,
-      subject,
-      level
-    }))
-  );
 
   // Teacher creation mutation - create user account instead of teacher record
   const createTeacherMutation = useMutation({
