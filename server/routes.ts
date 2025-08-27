@@ -1700,9 +1700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "رمز الربط غير صالح" });
       }
 
-      if (!teacher.isPreRegistered) {
-        return res.status(400).json({ error: "هذا المعلم مرتبط بالفعل بحساب" });
-      }
+      // Skip pre-registration check since we're creating user accounts directly
 
       res.json(teacher);
     } catch (error) {
@@ -1780,7 +1778,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "teacher",
         emailVerified: true, // Pre-verified by admin
         phoneVerified: !!phone, // Verified if phone provided
-        isActive: true,
         password: "", // Empty string, will be set when teacher first logs in
         firebaseUid: null
       });
