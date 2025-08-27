@@ -61,9 +61,54 @@ export default function Teachers() {
     queryKey: ['/api/teachers-with-specializations'],
   });
 
-  const { data: teachingModules = [] } = useQuery<any[]>({
-    queryKey: ['/api/teaching-modules'],
-  });
+  // Static subject list organized by education level
+  const subjectsByLevel = {
+    'الابتدائي': [
+      'العربية والرياضيات',
+      'اللغة الإنجليزية',
+      'اللغة الفرنسية'
+    ],
+    'المتوسط': [
+      'اللغة العربية',
+      'اللغة الإنجليزية', 
+      'اللغة الفرنسية',
+      'التاريخ والجغرافيا',
+      'الرياضيات',
+      'العلوم الطبيعية',
+      'الفيزياء'
+    ],
+    'الثانوي': [
+      'اللغة العربية وآدابها',
+      'اللغة الإنجليزية',
+      'اللغة الفرنسية',
+      'اللغة الألمانية',
+      'اللغة الإسبانية',
+      'اللغة الأمازيغية',
+      'الرياضيات',
+      'العلوم الطبيعية والحياة',
+      'العلوم الفيزيائية',
+      'التاريخ والجغرافيا',
+      'الفلسفة',
+      'التربية الإسلامية',
+      'الإعلام الآلي',
+      'الاقتصاد والمناجمنت',
+      'القانون',
+      'المحاسبة',
+      'الهندسة الكهربائية',
+      'الهندسة المدنية',
+      'الهندسة الميكانيكية'
+    ]
+  };
+
+  // Flatten subjects for dropdown with education level labels
+  const allSubjects = Object.entries(subjectsByLevel).flatMap(([level, subjects]) =>
+    subjects.map(subject => ({
+      value: `${subject} (${level})`,
+      label: `${subject} (${level})`,
+      subject,
+      level
+    }))
+  );
 
   // Teacher creation mutation - create user account instead of teacher record
   const createTeacherMutation = useMutation({
@@ -547,10 +592,17 @@ export default function Teachers() {
                     <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
                   </SelectTrigger>
                   <SelectContent>
-                    {teachingModules.map((module: any) => (
-                      <SelectItem key={module.id} value={module.nameAr}>
-                        {module.nameAr} ({module.educationLevel})
-                      </SelectItem>
+                    {Object.entries(subjectsByLevel).map(([level, subjects]) => (
+                      <div key={level}>
+                        <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                          {level}
+                        </div>
+                        {subjects.map((subject) => (
+                          <SelectItem key={`${subject}-${level}`} value={`${subject} (${level})`}>
+                            {subject}
+                          </SelectItem>
+                        ))}
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
