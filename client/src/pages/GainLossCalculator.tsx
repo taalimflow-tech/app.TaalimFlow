@@ -532,9 +532,36 @@ export default function GainLossCalculator() {
                         </div>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 bg-opacity-50 dark:bg-opacity-50 p-2 rounded border-l-2 border-gray-300 dark:border-gray-600">
-                      {entry.remarks}
-                    </p>
+                    <div className="text-sm bg-white dark:bg-gray-800 bg-opacity-50 dark:bg-opacity-50 p-3 rounded border-l-2 border-gray-300 dark:border-gray-600 space-y-2">
+                      {(() => {
+                        // Parse payment receipt format: "إيصال دفع رقم: REC-XXX - الطالب: NAME - DETAILS"
+                        const receiptMatch = entry.remarks.match(/إيصال دفع رقم: ([^-]+) - الطالب: ([^-]+) - (.+)/);
+                        
+                        if (receiptMatch) {
+                          const [, receiptId, studentName, paymentDetails] = receiptMatch;
+                          return (
+                            <>
+                              <div className="font-medium text-gray-800 dark:text-gray-200">
+                                {studentName.trim()}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">
+                                إيصال رقم: {receiptId.trim()}
+                              </div>
+                              <div className="text-sm text-gray-700 dark:text-gray-300">
+                                {paymentDetails.trim()}
+                              </div>
+                            </>
+                          );
+                        }
+                        
+                        // Fallback for other entry types
+                        return (
+                          <div className="text-gray-600 dark:text-gray-300">
+                            {entry.remarks}
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
                   ))}
                 </div>
