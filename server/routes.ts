@@ -1772,6 +1772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Request body:', JSON.stringify(req.body, null, 2));
 
       const { name, email, phone, bio, imageUrl, specializations } = req.body;
+      console.log('🔍 Extracted specializations from request:', specializations, typeof specializations, Array.isArray(specializations));
 
       // Validate required fields
       if (!name || !email) {
@@ -1838,16 +1839,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('Parsed subject:', subjectName, 'level:', educationLevel);
             
             // Find or create teaching module
+            console.log(`🔍 Looking for teaching module: "${subjectName}" at level "${educationLevel}"`);
             let teachingModule = await storage.getTeachingModuleByName(subjectName, educationLevel);
+            console.log('🔍 Found existing module:', teachingModule ? `ID: ${teachingModule.id}` : 'NOT FOUND');
+            
             if (!teachingModule) {
+              console.log('🔧 Creating new teaching module...');
               const moduleData = {
                 name: subjectName, // English name (same as Arabic for now)
                 nameAr: subjectName, // Arabic name
                 educationLevel,
                 description: null,
               };
+              console.log('📋 Module data to create:', moduleData);
               teachingModule = await storage.createTeachingModule(moduleData);
               console.log('📚 Created new teaching module:', teachingModule.id);
+            } else {
+              console.log('📚 Using existing teaching module:', teachingModule.id);
             }
             
             // Create teacher specialization link
@@ -1856,8 +1864,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               moduleId: teachingModule.id, // Use correct field name and existing module ID
             };
             
+            console.log('🔧 Creating teacher specialization with data:', specializationData);
             const specialization = await storage.createTeacherSpecialization(specializationData);
-            console.log('🎯 Created specialization:', specialization.id);
+            console.log('🎯 Created specialization successfully:', specialization.id);
             
           } catch (specError) {
             console.error('Error processing specialization:', specializationName, specError);
