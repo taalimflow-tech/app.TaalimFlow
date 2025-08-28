@@ -1661,6 +1661,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single teacher by ID
+  app.get("/api/teachers/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const teacherId = parseInt(req.params.id);
+      const teacher = await storage.getTeacher(teacherId);
+      
+      if (!teacher) {
+        return res.status(404).json({ error: "لم يتم العثور على المعلم" });
+      }
+
+      res.json(teacher);
+    } catch (error: any) {
+      console.error("Get teacher error:", error);
+      res.status(500).json({ error: "خطأ في جلب المعلم", details: error.message });
+    }
+  });
+
   // Update teacher
   app.put("/api/teachers/:id", async (req, res) => {
     try {
