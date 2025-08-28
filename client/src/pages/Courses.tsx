@@ -354,38 +354,28 @@ export default function Courses() {
                     <div className="flex-1">
                       <CardTitle className="text-lg text-right mb-3">{course.title}</CardTitle>
                       
-                      {/* Course Info Grid */}
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                          <div className="text-blue-600 dark:text-blue-300 font-medium">التاريخ</div>
-                          <div className="text-blue-800 dark:text-blue-200">{course.courseDate}</div>
+                      {/* Course Info */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">التاريخ والوقت:</span>
+                          <span className="font-medium">{course.courseDate} - {course.courseTime}</span>
                         </div>
-                        <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
-                          <div className="text-orange-600 dark:text-orange-300 font-medium">الوقت</div>
-                          <div className="text-orange-800 dark:text-orange-200">{course.courseTime}</div>
-                        </div>
-                        {course.educationLevel && (
-                          <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
-                            <div className="text-green-600 dark:text-green-300 font-medium">المستوى</div>
-                            <div className="text-green-800 dark:text-green-200">{course.educationLevel}</div>
-                          </div>
-                        )}
                         {course.grade && (
-                          <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
-                            <div className="text-purple-600 dark:text-purple-300 font-medium">السنة</div>
-                            <div className="text-purple-800 dark:text-purple-200">{course.grade}</div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">السنة:</span>
+                            <span className="font-medium">{course.grade}</span>
                           </div>
                         )}
                         {course.duration && (
-                          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
-                            <div className="text-indigo-600 dark:text-indigo-300 font-medium">المدة</div>
-                            <div className="text-indigo-800 dark:text-indigo-200">{course.duration}</div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">المدة:</span>
+                            <span className="font-medium">{course.duration}</span>
                           </div>
                         )}
                         {getSubjectName(course.subjectId) && (
-                          <div className="bg-teal-50 dark:bg-teal-900/20 p-2 rounded">
-                            <div className="text-teal-600 dark:text-teal-300 font-medium">المادة</div>
-                            <div className="text-teal-800 dark:text-teal-200">{getSubjectName(course.subjectId)}</div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">المادة:</span>
+                            <span className="font-medium">{getSubjectName(course.subjectId)}</span>
                           </div>
                         )}
                       </div>
