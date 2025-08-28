@@ -295,6 +295,7 @@ export const courses = pgTable("courses", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
+  duration: text("duration").notNull(), // Duration/period of the course
   price: text("price").notNull(),
   imageUrl: text("image_url"),
   courseDate: text("course_date").notNull(), // Date when course starts
@@ -777,6 +778,7 @@ export const insertCourseSchema = createInsertSchema(courses).pick({
   schoolId: true,
   title: true,
   description: true,
+  duration: true,
   price: true,
   imageUrl: true,
   courseDate: true,

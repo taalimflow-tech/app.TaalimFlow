@@ -28,6 +28,7 @@ export default function Courses() {
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
+    duration: '',
     price: '',
     courseDate: '',
     courseTime: '',
@@ -73,6 +74,7 @@ export default function Courses() {
       setCourseData({
         title: '',
         description: '',
+        duration: '',
         price: '',
         courseDate: '',
         courseTime: '',
@@ -106,6 +108,7 @@ export default function Courses() {
       setCourseData({
         title: '',
         description: '',
+        duration: '',
         price: '',
         courseDate: '',
         courseTime: '',
@@ -279,6 +282,7 @@ export default function Courses() {
     setCourseData({
       title: course.title,
       description: course.description,
+      duration: course.duration || '',
       price: course.price,
       courseDate: course.courseDate,
       courseTime: course.courseTime,
@@ -389,6 +393,12 @@ export default function Courses() {
                       <span className="font-medium">السعر:</span>
                       <span className="text-primary font-bold">{course.price}</span>
                     </div>
+                    {course.duration && (
+                      <div className="flex justify-between">
+                        <span className="font-medium">المدة:</span>
+                        <span className="text-gray-700 dark:text-gray-300">{course.duration}</span>
+                      </div>
+                    )}
                   </div>
 
                   {user.role === 'admin' ? (
@@ -444,6 +454,7 @@ export default function Courses() {
                   setCourseData({
                     title: '',
                     description: '',
+                    duration: '',
                     price: '',
                     courseDate: '',
                     courseTime: '',
@@ -478,6 +489,17 @@ export default function Courses() {
                   onChange={(e) => setCourseData({ ...courseData, description: e.target.value })}
                   placeholder="أدخل وصف مفصل للدورة"
                   className="w-full p-2 border rounded-lg text-right h-24 resize-none dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="duration">المدة</Label>
+                <Input
+                  id="duration"
+                  value={courseData.duration}
+                  onChange={(e) => setCourseData({ ...courseData, duration: e.target.value })}
+                  placeholder="مثال: 3 أشهر أو 12 أسبوع"
+                  className="text-right"
                 />
               </div>
               
@@ -607,6 +629,7 @@ export default function Courses() {
                     setCourseData({
                       title: '',
                       description: '',
+                      duration: '',
                       price: '',
                       courseDate: '',
                       courseTime: '',
