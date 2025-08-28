@@ -3038,18 +3038,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/formation-registrations", async (req, res) => {
     try {
-      if (!req.session.user || req.session.user.role !== "admin") {
-        return res
-          .status(403)
-          .json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
 
       const schoolId = req.session.user.schoolId;
       if (!schoolId) {
-        return res.status(400).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
       }
 
       const registrations = await storage.getFormationRegistrations(schoolId);
+      
+      // If not admin, return only user's own registrations
+      if (req.session.user.role !== "admin") {
+        const userRegistrations = registrations.filter(reg => reg.userId === req.session.user.id);
+        return res.json(userRegistrations);
+      }
+      
+      // Admin gets all registrations
       res.json(registrations);
     } catch (error) {
       console.error("Formation registrations fetch error:", error);

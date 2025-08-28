@@ -30,10 +30,10 @@ export default function Formations() {
     enabled: !!user && !authLoading,
   });
 
-  // Query for formation registrations (admin only)
+  // Query for formation registrations (load for all users to check registration status)
   const { data: formationRegistrations = [], isLoading: registrationsLoading } = useQuery({
     queryKey: ['/api/formation-registrations'],
-    enabled: !!user && user.role === 'admin' && showRegistrationsModal,
+    enabled: !!user && !authLoading,
   });
 
   const joinFormationMutation = useMutation({
@@ -91,6 +91,14 @@ export default function Formations() {
   // Helper function to get registrations for a specific formation
   const getRegistrationsForFormation = (formationId: number) => {
     return (formationRegistrations as any[])?.filter((reg: any) => reg.formationId === formationId) || [];
+  };
+
+  // Helper function to check if current user is already registered for a formation
+  const isUserRegistered = (formationId: number) => {
+    if (!formationRegistrations || !user?.id) return false;
+    return (formationRegistrations as any[])?.some((reg: any) => 
+      reg.formationId === formationId && reg.userId === user.id
+    );
   };
 
   const handleViewRegistrations = (formation: Formation) => {
@@ -164,13 +172,19 @@ export default function Formations() {
                   </div>
                 ) : (
                   <Button 
-                    className="w-full bg-gradient-to-r from-primary to-secondary"
+                    className={`w-full ${isUserRegistered(formation.id) 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-primary to-secondary'
+                    }`}
+                    disabled={isUserRegistered(formation.id)}
                     onClick={() => {
-                      setSelectedFormation(formation);
-                      setShowJoinForm(true);
+                      if (!isUserRegistered(formation.id)) {
+                        setSelectedFormation(formation);
+                        setShowJoinForm(true);
+                      }
                     }}
                   >
-                    سجل الآن
+                    {isUserRegistered(formation.id) ? 'مُسجل بالفعل' : 'سجل الآن'}
                   </Button>
                 )}
               </CardContent>
