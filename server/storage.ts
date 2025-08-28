@@ -1397,12 +1397,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher> {
+    console.log('Updating teacher:', { id, data });
+    
+    // First check if teacher exists
+    const existingTeacher = await this.getTeacher(id);
+    if (!existingTeacher) {
+      console.error('Teacher not found with ID:', id);
+      throw new Error('Teacher not found');
+    }
+    
+    console.log('Found existing teacher:', existingTeacher);
+    
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+
+    console.log('Update data:', updateData);
 
     const [teacher] = await db
       .update(teachers)
@@ -1411,9 +1424,11 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     if (!teacher) {
-      throw new Error('Teacher not found');
+      console.error('Update failed - no teacher returned');
+      throw new Error('Teacher update failed');
     }
     
+    console.log('Teacher updated successfully:', teacher);
     return teacher;
   }
 
