@@ -370,22 +370,33 @@ export default function Teachers() {
   // Add Teacher Specialization Mutation
   const addSpecializationMutation = useMutation({
     mutationFn: async (data: { teacherId: number; specialization: string }) => {
+      console.log('🚀 Frontend sending specialization request:', data);
+      
+      const requestBody = {
+        teacherId: data.teacherId,
+        specialization: data.specialization
+      };
+      
+      console.log('📤 Request body:', requestBody);
+      
       const response = await fetch('/api/teacher-specializations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          teacherId: data.teacherId,
-          specialization: data.specialization
-        }),
+        body: JSON.stringify(requestBody),
         credentials: 'include'
       });
 
+      console.log('📥 Response status:', response.status);
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Request failed:', errorData);
         throw new Error(errorData.error || 'Failed to add specialization');
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log('✅ Response data:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });

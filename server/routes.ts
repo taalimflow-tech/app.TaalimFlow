@@ -3423,18 +3423,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/teacher-specializations", async (req, res) => {
+    console.log('🚀 POST /api/teacher-specializations - REQUEST RECEIVED');
+    console.log('📋 Request body:', req.body);
+    console.log('👤 Session user:', req.session.user?.id, req.session.user?.role);
+    
     try {
       if (
         !req.session.user ||
         (req.session.user.role !== "teacher" &&
           req.session.user.role !== "admin")
       ) {
+        console.log('❌ Authentication failed');
         return res
           .status(403)
           .json({ error: "صلاحيات المعلم أو المدير مطلوبة" });
       }
 
       const { teacherId, specialization } = req.body;
+      
+      if (!teacherId || !specialization) {
+        console.log('❌ Missing required data:', { teacherId, specialization });
+        return res.status(400).json({ error: "معرف المعلم والتخصص مطلوبان" });
+      }
       
       // Ensure the teacher can only add specializations for themselves unless they are admin
       if (
@@ -3518,6 +3528,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res
         .status(500)
         .json({ error: "Failed to create teacher specialization" });
+    }
+  });
+
+  // DEBUG: Simple test endpoint for teacher specialization
+  app.post("/api/test-specialization", async (req, res) => {
+    console.log('🧪 TEST SPECIALIZATION ENDPOINT');
+    
+    try {
+      if (!req.session.user?.schoolId) {
+        return res.status(403).json({ error: "Not authenticated" });
+      }
+
+      const { teacherId, moduleId } = req.body;
+      
+      console.log('🧪 Test data:', { 
+        schoolId: req.session.user.schoolId, 
+        teacherId, 
+        moduleId 
+      });
+
+      // Direct database insertion
+      const testData = {
+        schoolId: req.session.user.schoolId,
+        teacherId: parseInt(teacherId),
+        moduleId: parseInt(moduleId),
+      };
+
+      console.log('🧪 Inserting test specialization:', testData);
+      const result = await storage.createTeacherSpecialization(testData);
+      console.log('🧪 Test result:', result);
+
+      res.json({ success: true, result });
+    } catch (error) {
+      console.error('🧪 Test error:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 
