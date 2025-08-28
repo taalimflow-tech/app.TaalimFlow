@@ -37,7 +37,9 @@ import {
   Filter,
   CreditCard,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface StudentProfile {
@@ -567,6 +569,10 @@ function DesktopQRScanner() {
 
   // Refresh trigger for attendance tables
   const [attendanceRefreshTrigger, setAttendanceRefreshTrigger] = useState(0);
+
+  // Collapsible state for tables
+  const [isGroupsCollapsed, setIsGroupsCollapsed] = useState(false);
+  const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -2308,11 +2314,15 @@ function DesktopQRScanner() {
           {/* Assigned Groups with Attendance/Payment Status */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                المجموعات المسجل فيها
+              <CardTitle className="flex items-center justify-between cursor-pointer" onClick={() => setIsGroupsCollapsed(!isGroupsCollapsed)}>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  المجموعات المسجل فيها
+                </div>
+                {isGroupsCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
               </CardTitle>
             </CardHeader>
+            {!isGroupsCollapsed && (
             <CardContent>
               <div className="space-y-6">
                 {scannedProfile.enrolledGroups?.length > 0 ? (
@@ -2381,14 +2391,19 @@ function DesktopQRScanner() {
                 )}
               </div>
             </CardContent>
+            )}
           </Card>
 
           {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">إحصائيات الحضور</CardTitle>
+                <CardTitle className="text-lg flex items-center justify-between cursor-pointer" onClick={() => setIsStatsCollapsed(!isStatsCollapsed)}>
+                  <span>إحصائيات الحضور</span>
+                  {isStatsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </CardTitle>
               </CardHeader>
+              {!isStatsCollapsed && (
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
@@ -2417,12 +2432,17 @@ function DesktopQRScanner() {
                   </div>
                 </div>
               </CardContent>
+              )}
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">إحصائيات المدفوعات</CardTitle>
+                <CardTitle className="text-lg flex items-center justify-between cursor-pointer" onClick={() => setIsStatsCollapsed(!isStatsCollapsed)}>
+                  <span>إحصائيات المدفوعات</span>
+                  {isStatsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </CardTitle>
               </CardHeader>
+              {!isStatsCollapsed && (
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-2 border dark:border-gray-700 rounded">
@@ -2445,6 +2465,7 @@ function DesktopQRScanner() {
                   </div>
                 </div>
               </CardContent>
+              )}
             </Card>
           </div>
 
