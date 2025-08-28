@@ -28,14 +28,12 @@ export default function Courses() {
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
-    duration: '',
     price: '',
     courseDate: '',
     courseTime: '',
     educationLevel: '',
     grade: '',
-    subjectId: '',
-    ageRange: ''
+    subjectId: ''
   });
 
   const { data: courses = [], isLoading: loading } = useQuery<Course[]>({
@@ -75,14 +73,12 @@ export default function Courses() {
       setCourseData({
         title: '',
         description: '',
-        duration: '',
         price: '',
         courseDate: '',
         courseTime: '',
         educationLevel: '',
         grade: '',
-        subjectId: '',
-        ageRange: ''
+        subjectId: ''
       });
       queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
     },
@@ -110,14 +106,12 @@ export default function Courses() {
       setCourseData({
         title: '',
         description: '',
-        duration: '',
         price: '',
         courseDate: '',
         courseTime: '',
         educationLevel: '',
         grade: '',
-        subjectId: '',
-        ageRange: ''
+        subjectId: ''
       });
       queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
     },
@@ -391,10 +385,6 @@ export default function Courses() {
                   
                   <div className="space-y-2 mb-4 text-sm">
                     <div className="flex justify-between">
-                      <span className="font-medium">المدة:</span>
-                      <span className="text-gray-600 dark:text-gray-300">{course.duration}</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span className="font-medium">السعر:</span>
                       <span className="text-primary font-bold">{course.price}</span>
                     </div>
@@ -489,28 +479,15 @@ export default function Courses() {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="duration">المدة</Label>
-                  <Input
-                    id="duration"
-                    value={courseData.duration}
-                    onChange={(e) => setCourseData({ ...courseData, duration: e.target.value })}
-                    placeholder="مثال: 4 أسابيع"
-                    className="text-right"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="price">السعر</Label>
-                  <Input
-                    id="price"
-                    value={courseData.price}
-                    onChange={(e) => setCourseData({ ...courseData, price: e.target.value })}
-                    placeholder="مثال: 5000 دج"
-                    className="text-right"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="price">السعر</Label>
+                <Input
+                  id="price"
+                  value={courseData.price}
+                  onChange={(e) => setCourseData({ ...courseData, price: e.target.value })}
+                  placeholder="مثال: 5000 دج"
+                  className="text-right"
+                />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -600,7 +577,7 @@ export default function Courses() {
                 <Select
                   value={courseData.subjectId}
                   onValueChange={(value) => setCourseData({ ...courseData, subjectId: value })}
-                  disabled={!courseData.educationLevel || !courseData.grade}
+                  disabled={!courseData.educationLevel}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="اختر المادة" />
@@ -608,8 +585,7 @@ export default function Courses() {
                   <SelectContent>
                     {teachingModules
                       .filter((module: any) => 
-                        module.educationLevel === courseData.educationLevel && 
-                        (module.grade === courseData.grade || module.grade === 'جميع المستويات')
+                        module.educationLevel === courseData.educationLevel
                       )
                       .map((module: any) => (
                         <SelectItem key={module.id} value={module.id.toString()}>
@@ -618,17 +594,6 @@ export default function Courses() {
                       ))}
                   </SelectContent>
                 </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="ageRange">الفئة العمرية</Label>
-                <Input
-                  id="ageRange"
-                  value={courseData.ageRange}
-                  onChange={(e) => setCourseData({ ...courseData, ageRange: e.target.value })}
-                  placeholder="مثال: 12-18 سنة"
-                  className="text-right"
-                />
               </div>
               
               <div className="flex gap-2 pt-4">
@@ -759,9 +724,6 @@ export default function Courses() {
                 <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                   <strong>الوصف:</strong> {selectedCourse.description}
                 </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                  <strong>المدة:</strong> {selectedCourse.duration}
-                </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <strong>السعر:</strong> {selectedCourse.price}
                 </p>
@@ -827,7 +789,6 @@ export default function Courses() {
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 <strong>التاريخ:</strong> {selectedCourseForView.courseDate} | 
                 <strong> الوقت:</strong> {selectedCourseForView.courseTime} | 
-                <strong> المدة:</strong> {selectedCourseForView.duration} | 
                 <strong> السعر:</strong> {selectedCourseForView.price}
               </p>
               {selectedCourseForView.educationLevel && (
