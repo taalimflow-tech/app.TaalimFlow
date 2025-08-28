@@ -182,13 +182,9 @@ export default function Courses() {
   const isUserRegistered = (courseId: number) => {
     if (!courseRegistrations || !user?.id || !courseId) return false;
     
-    // Check if user is registered directly or through any child
+    // Check if the logged-in user's ID exists in course registrations for this specific course
     const isRegistered = (courseRegistrations as any[])?.some((reg: any) => {
-      const sameUser = Number(reg.userId) === Number(user.id);
-      const sameCourse = Number(reg.courseId) === Number(courseId);
-      const isSelfRegistration = reg.registrantType === 'self';
-      
-      return sameUser && sameCourse && isSelfRegistration;
+      return Number(reg.userId) === Number(user.id) && Number(reg.courseId) === Number(courseId);
     });
     
     return Boolean(isRegistered);
