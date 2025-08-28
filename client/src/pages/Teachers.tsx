@@ -934,18 +934,40 @@ export default function Teachers() {
                     <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(subjectsByLevel).map(([level, subjects]) => (
-                      <div key={level}>
-                        <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                          {level}
+                    {teachingModules && teachingModules.length > 0 ? (
+                      Object.entries(
+                        teachingModules.reduce((acc: Record<string, any[]>, module) => {
+                          const level = module.educationLevel;
+                          if (!acc[level]) {
+                            acc[level] = [];
+                          }
+                          // Store the full module object instead of just the name
+                          const existingModule = acc[level].find(m => m.nameAr === module.nameAr);
+                          if (!existingModule) {
+                            acc[level].push(module);
+                          }
+                          return acc;
+                        }, {})
+                      ).map(([level, modules]) => (
+                        <div key={level}>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                            {level}
+                          </div>
+                          {modules.map((module) => (
+                            <SelectItem 
+                              key={`${module.nameAr}-${level}-${module.id}`} 
+                              value={`${module.nameAr} (${level})`}
+                            >
+                              {module.nameAr} [ID: {module.id}]
+                            </SelectItem>
+                          ))}
                         </div>
-                        {subjects.map((subject) => (
-                          <SelectItem key={`${subject}-${level}`} value={`${subject} (${level})`}>
-                            {subject}
-                          </SelectItem>
-                        ))}
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-gray-500">
+                        جاري تحميل المواد...
                       </div>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
