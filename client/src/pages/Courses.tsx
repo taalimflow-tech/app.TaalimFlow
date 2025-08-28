@@ -224,57 +224,26 @@ export default function Courses() {
 
   const handleJoinCourse = () => {
     if (selectedCourse && user?.id && user?.name && user?.phone && user?.email) {
-      console.log('Using user data for course registration:', {
+      joinCourseMutation.mutate({
         courseId: selectedCourse.id,
         userId: user.id,
-        registrantType: 'self',
         fullName: user.name,
         phone: user.phone,
         email: user.email
       });
-      
-      joinCourseMutation.mutate({
-        courseId: selectedCourse.id,
-        registrantType: 'self',
-        fullName: user.name,
-        phone: user.phone,
-        email: user.email,
-        childId: null,
-        childName: null,
-        childAge: null
+    } else {
+      toast({ 
+        title: 'بيانات ناقصة', 
+        description: 'يجب أن تكون بيانات المستخدم مكتملة للتسجيل',
+        variant: 'destructive' 
       });
     }
   };
 
-  const handleJoinCourseForChild = () => {
-    if (selectedCourse && selectedChild && user?.id && user?.phone && user?.email) {
-      console.log('Registering child for course:', {
-        courseId: selectedCourse.id,
-        childId: selectedChild.id,
-        childName: selectedChild.name
-      });
-      
-      joinCourseMutation.mutate({
-        courseId: selectedCourse.id,
-        registrantType: 'child',
-        childId: selectedChild.id,
-        fullName: selectedChild.name,
-        phone: user.phone,
-        email: user.email,
-        childName: selectedChild.name,
-        childAge: selectedChild.age || null
-      });
-    }
-  };
 
   const handleRegisterClick = (course: Course) => {
     setSelectedCourse(course);
-    // Check if user has children to show selection modal
-    if (children && Array.isArray(children) && children.length > 0) {
-      setShowChildSelectionModal(true);
-    } else {
-      setShowJoinForm(true);
-    }
+    setShowJoinForm(true);
   };
 
   const handleEditCourse = (course: Course) => {
@@ -676,70 +645,6 @@ export default function Courses() {
         </div>
       )}
 
-      {/* Child Selection Modal */}
-      {showChildSelectionModal && selectedCourse && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold dark:text-white">اختر المتدرب</h2>
-              <button
-                onClick={() => {
-                  setShowChildSelectionModal(false);
-                  setSelectedCourse(null);
-                }}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {/* Self registration option */}
-              <Button
-                onClick={() => {
-                  setShowChildSelectionModal(false);
-                  setShowJoinForm(true);
-                }}
-                disabled={isUserRegistered(selectedCourse.id)}
-                className={`w-full text-right ${isUserRegistered(selectedCourse.id) 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {isUserRegistered(selectedCourse.id) ? 'أنت مُسجل بالفعل' : 'سجل نفسي'}
-              </Button>
-              
-              {/* Children registration options */}
-              {children && Array.isArray(children) && children.length > 0 ? (
-                <div className="border-t pt-3">
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">أو سجل أحد الأطفال:</p>
-                  {(children as any[]).map((child: any) => (
-                    <Button
-                      key={child.id}
-                      onClick={() => {
-                        setSelectedChild(child);
-                        setShowChildSelectionModal(false);
-                        handleJoinCourseForChild();
-                      }}
-                      disabled={isChildRegistered(selectedCourse.id, child.id)}
-                      variant="outline"
-                      className={`w-full mb-2 text-right ${isChildRegistered(selectedCourse.id, child.id) 
-                        ? 'opacity-50 cursor-not-allowed' 
-                        : ''
-                      }`}
-                    >
-                      {isChildRegistered(selectedCourse.id, child.id) ? 
-                        `${child.name} (مُسجل بالفعل)` : 
-                        child.name
-                      }
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Join Course Modal (Self Registration) */}
       {showJoinForm && selectedCourse && (
