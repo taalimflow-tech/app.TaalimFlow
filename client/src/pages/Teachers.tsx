@@ -36,7 +36,6 @@ interface CreateTeacherFormData {
   bio: string;
   subject: string;
   imageUrl: string;
-  specializations: string[];
 }
 
 export default function Teachers() {
@@ -51,15 +50,14 @@ export default function Teachers() {
     phone: '',
     bio: '',
     subject: '',
-    imageUrl: '',
-    specializations: []
+    imageUrl: ''
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showSpecializationModal, setShowSpecializationModal] = useState(false);
   const [teacherForSpecialization, setTeacherForSpecialization] = useState<TeacherWithSpecializations | null>(null);
-  const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
+  const [selectedSpecialization, setSelectedSpecialization] = useState('');
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -201,31 +199,6 @@ export default function Teachers() {
   };
 
   // Helper functions for multiple specializations
-  const addSpecializationToForm = (specialization: string) => {
-    if (!formData.specializations.includes(specialization)) {
-      setFormData(prev => ({
-        ...prev,
-        specializations: [...prev.specializations, specialization]
-      }));
-    }
-  };
-
-  const removeSpecializationFromForm = (specialization: string) => {
-    setFormData(prev => ({
-      ...prev,
-      specializations: prev.specializations.filter(s => s !== specialization)
-    }));
-  };
-
-  const addSpecializationToModal = (specialization: string) => {
-    if (!selectedSpecializations.includes(specialization)) {
-      setSelectedSpecializations(prev => [...prev, specialization]);
-    }
-  };
-
-  const removeSpecializationFromModal = (specialization: string) => {
-    setSelectedSpecializations(prev => prev.filter(s => s !== specialization));
-  };
 
   const handleEditTeacher = (teacher: TeacherWithSpecializations) => {
     setTeacherToEdit(teacher);
@@ -237,8 +210,7 @@ export default function Teachers() {
       bio: teacher.bio || '',
       subject: teacher.specializations.length > 0 ? 
         `${teacher.specializations[0].nameAr} (${teacher.specializations[0].educationLevel})` : '',
-      imageUrl: teacher.profilePicture || '',
-      specializations: []
+      imageUrl: teacher.profilePicture || ''
     });
     setImagePreview(teacher.profilePicture || null);
     setShowEditForm(true);
@@ -535,7 +507,7 @@ export default function Teachers() {
 
   const handleAddSpecialization = (teacher: TeacherWithSpecializations) => {
     setTeacherForSpecialization(teacher);
-    setSelectedSpecializations([]);
+    setSelectedSpecialization('');
     setShowSpecializationModal(true);
   };
 
@@ -934,79 +906,6 @@ export default function Teachers() {
                 </Select>
               </div>
 
-              {/* Multiple Specializations Field */}
-              <div>
-                <Label htmlFor="specializations">التخصصات الإضافية</Label>
-                <div className="space-y-2">
-                  <Select
-                    onValueChange={(value) => {
-                      if (value && !formData.specializations.includes(value)) {
-                        addSpecializationToForm(value);
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="أضف تخصصات إضافية للمعلم" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teachingModules && teachingModules.length > 0 ? (
-                        Object.entries(
-                          teachingModules.reduce((acc: Record<string, any[]>, module) => {
-                            const level = module.educationLevel;
-                            if (!acc[level]) {
-                              acc[level] = [];
-                            }
-                            const existingModule = acc[level].find(m => m.nameAr === module.nameAr);
-                            if (!existingModule) {
-                              acc[level].push(module);
-                            }
-                            return acc;
-                          }, {})
-                        ).map(([level, modules]) => (
-                          <div key={level}>
-                            <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                              {level}
-                            </div>
-                            {modules.map((module) => (
-                              <SelectItem 
-                                key={`multi-${module.nameAr}-${level}-${module.id}`} 
-                                value={`${module.nameAr} (${level})`}
-                              >
-                                {module.nameAr}
-                              </SelectItem>
-                            ))}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-2 text-center text-gray-500">
-                          جاري تحميل المواد...
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  
-                  {/* Display selected specializations */}
-                  {formData.specializations.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                      {formData.specializations.map((spec, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center space-x-1 space-x-reverse bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm"
-                        >
-                          <span>{spec}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeSpecializationFromForm(spec)}
-                            className="ml-1 text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-100"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
               
               <div>
                 <Label htmlFor="bio">نبذة عن المعلم</Label>
@@ -1181,94 +1080,69 @@ export default function Teachers() {
             {/* Subject Selection */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="specialization">اختر التخصصات</Label>
-                <Select
-                  onValueChange={(value) => {
-                    if (value && !selectedSpecializations.includes(value)) {
-                      addSpecializationToModal(value);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر المواد التي يدرسها المعلم" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teachingModules && teachingModules.length > 0 ? (
-                      Object.entries(
-                        teachingModules.reduce((acc: Record<string, any[]>, module) => {
-                          const level = module.educationLevel;
-                          if (!acc[level]) {
-                            acc[level] = [];
-                          }
-                          // Store the full module object instead of just the name
-                          const existingModule = acc[level].find(m => m.nameAr === module.nameAr);
-                          if (!existingModule) {
-                            acc[level].push(module);
-                          }
-                          return acc;
-                        }, {})
-                      ).map(([level, modules]) => (
-                        <div key={level}>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                            {level}
+                <Label htmlFor="specialization">اختر التخصص</Label>
+                <div className="flex space-x-2 space-x-reverse">
+                  <Select
+                    value={selectedSpecialization}
+                    onValueChange={setSelectedSpecialization}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teachingModules && teachingModules.length > 0 ? (
+                        Object.entries(
+                          teachingModules.reduce((acc: Record<string, any[]>, module) => {
+                            const level = module.educationLevel;
+                            if (!acc[level]) {
+                              acc[level] = [];
+                            }
+                            const existingModule = acc[level].find(m => m.nameAr === module.nameAr);
+                            if (!existingModule) {
+                              acc[level].push(module);
+                            }
+                            return acc;
+                          }, {})
+                        ).map(([level, modules]) => (
+                          <div key={level}>
+                            <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                              {level}
+                            </div>
+                            {modules.map((module) => (
+                              <SelectItem 
+                                key={`${module.nameAr}-${level}-${module.id}`} 
+                                value={`${module.nameAr} (${level})`}
+                              >
+                                {module.nameAr}
+                              </SelectItem>
+                            ))}
                           </div>
-                          {modules.map((module) => (
-                            <SelectItem 
-                              key={`${module.nameAr}-${level}-${module.id}`} 
-                              value={`${module.nameAr} (${level})`}
-                            >
-                              {module.nameAr} [ID: {module.id}]
-                            </SelectItem>
-                          ))}
+                        ))
+                      ) : (
+                        <div className="p-2 text-center text-gray-500">
+                          جاري تحميل المواد...
                         </div>
-                      ))
-                    ) : (
-                      <div className="p-2 text-center text-gray-500">
-                        جاري تحميل المواد...
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
-                
-                {/* Display selected specializations */}
-                {selectedSpecializations.length > 0 && (
-                  <div className="mt-3">
-                    <Label>التخصصات المحددة:</Label>
-                    <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded mt-1">
-                      {selectedSpecializations.map((spec, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center space-x-1 space-x-reverse bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm"
-                        >
-                          <span>{spec}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeSpecializationFromModal(spec)}
-                            className="ml-1 text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-100"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    onClick={handleSaveSpecialization}
+                    disabled={!selectedSpecialization || addSpecializationMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+                  >
+                    {addSpecializationMutation.isPending ? 'جاري الإضافة...' : 'إضافة'}
+                  </Button>
+                </div>
               </div>
               
               <div className="flex space-x-2 space-x-reverse pt-4">
                 <Button
-                  onClick={handleSaveSpecialization}
-                  disabled={addSpecializationMutation.isPending || selectedSpecializations.length === 0}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {addSpecializationMutation.isPending ? 'جاري الحفظ...' : `حفظ ${selectedSpecializations.length > 0 ? selectedSpecializations.length : ''} تخصص${selectedSpecializations.length > 1 ? 'ات' : ''}`}
-                </Button>
-                <Button
                   variant="outline"
                   onClick={() => setShowSpecializationModal(false)}
-                  className="text-gray-600"
+                  className="flex-1 text-gray-600"
                 >
-                  إلغاء
+                  إغلاق
                 </Button>
               </div>
             </div>
