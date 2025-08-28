@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
-import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus, Trash2, UserPlus } from 'lucide-react';
+import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus, Trash2, UserPlus, Edit } from 'lucide-react';
 
 interface TeacherWithSpecializations {
   id: number;
@@ -41,6 +41,8 @@ export default function Teachers() {
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherWithSpecializations | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [teacherToEdit, setTeacherToEdit] = useState<TeacherWithSpecializations | null>(null);
   const [formData, setFormData] = useState<CreateTeacherFormData>({
     name: '',
     email: '',
@@ -142,6 +144,41 @@ export default function Teachers() {
     }
   });
 
+  const updateTeacherMutation = useMutation({
+    mutationFn: async ({ id, teacherData }: { id: number, teacherData: any }) => {
+      console.log('Updating teacher with data:', teacherData);
+      const response = await fetch(`/api/teachers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(teacherData),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'فشل في تحديث المعلم');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'تم تحديث المعلم بنجاح',
+        description: 'تم حفظ التغييرات بنجاح',
+      });
+      resetForm();
+      setShowEditForm(false);
+      setTeacherToEdit(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+    },
+    onError: (error: any) => {
+      console.error('Teacher update error:', error);
+      toast({
+        title: 'فشل في تحديث المعلم',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -154,6 +191,24 @@ export default function Teachers() {
     setImageFile(null);
     setImagePreview(null);
     setShowCreateForm(false);
+    setShowEditForm(false);
+    setTeacherToEdit(null);
+  };
+
+  const handleEditTeacher = (teacher: TeacherWithSpecializations) => {
+    setTeacherToEdit(teacher);
+    // Pre-fill the form with teacher data
+    setFormData({
+      name: teacher.name,
+      email: teacher.email,
+      phone: teacher.phone || '',
+      bio: teacher.bio || '',
+      subject: teacher.specializations.length > 0 ? 
+        `${teacher.specializations[0].nameAr} (${teacher.specializations[0].educationLevel})` : '',
+      imageUrl: teacher.profilePicture || ''
+    });
+    setImagePreview(teacher.profilePicture);
+    setShowEditForm(true);
   };
 
   // Image upload handler
@@ -223,7 +278,14 @@ export default function Teachers() {
       };
       
       console.log('Submitting teacher data:', teacherData);
-      createTeacherMutation.mutate(teacherData);
+      
+      if (teacherToEdit) {
+        // Edit mode
+        updateTeacherMutation.mutate({ id: teacherToEdit.id, teacherData });
+      } else {
+        // Create mode
+        createTeacherMutation.mutate(teacherData);
+      }
       
     } catch (error) {
       setIsUploading(false);
@@ -674,8 +736,19 @@ export default function Teachers() {
                         variant="outline"
                         size="sm"
                         className="px-3"
+                        onClick={() => handleEditTeacher(teacher)}
+                        title="تعديل بيانات المعلم"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        className="px-3"
                         onClick={() => handleAddSpecialization(teacher)}
                         disabled={addSpecializationMutation.isPending}
+                        title="إضافة تخصص"
                       >
                         <UserPlus className="w-4 h-4" />
                       </Button>
@@ -686,6 +759,7 @@ export default function Teachers() {
                         className="px-3"
                         onClick={() => handleDeleteTeacher(teacher.id, teacher.name)}
                         disabled={deleteTeacherMutation.isPending}
+                        title="حذف المعلم"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -709,14 +783,20 @@ export default function Teachers() {
         )}
       </div>
       
-      {/* Create Teacher Form Modal */}
-      {showCreateForm && (
+      {/* Create/Edit Teacher Form Modal */}
+      {(showCreateForm || showEditForm) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold dark:text-white">إضافة معلم جديد</h2>
+              <h2 className="text-xl font-semibold dark:text-white">
+                {teacherToEdit ? 'تعديل بيانات المعلم' : 'إضافة معلم جديد'}
+              </h2>
               <button
-                onClick={() => setShowCreateForm(false)}
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setShowEditForm(false);
+                  resetForm();
+                }}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded dark:text-white"
               >
                 <X className="w-5 h-5" />
@@ -837,14 +917,14 @@ export default function Teachers() {
               <div className="flex space-x-2 space-x-reverse pt-4">
                 <Button
                   type="submit"
-                  disabled={createTeacherMutation.isPending || isUploading}
+                  disabled={createTeacherMutation.isPending || updateTeacherMutation.isPending || isUploading}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   {isUploading
                     ? 'جاري رفع الصورة...'
-                    : createTeacherMutation.isPending
-                      ? 'جاري الإنشاء...'
-                      : 'إنشاء المعلم'
+                    : (createTeacherMutation.isPending || updateTeacherMutation.isPending)
+                      ? (teacherToEdit ? 'جاري التحديث...' : 'جاري الإنشاء...')
+                      : (teacherToEdit ? 'تحديث المعلم' : 'إنشاء المعلم')
                   }
                 </Button>
                 <Button

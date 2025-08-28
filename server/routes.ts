@@ -1661,6 +1661,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update teacher
+  app.put("/api/teachers/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const id = parseInt(req.params.id);
+      const { name, email, phone, bio, imageUrl } = req.body;
+
+      // Update user account
+      const userData = {
+        name,
+        email,
+        phone: phone || null,
+        profilePicture: imageUrl || null,
+      };
+
+      await storage.updateUser(id, userData);
+
+      // Update teacher profile
+      const teacherData = {
+        name,
+        email,
+        phone: phone || null,
+        bio: bio || null,
+        imageUrl: imageUrl || null,
+      };
+
+      await storage.updateTeacher(id, teacherData);
+
+      res.json({ message: "تم تحديث المعلم بنجاح" });
+    } catch (error: any) {
+      console.error("Teacher update error:", error);
+      res.status(500).json({ error: "خطأ في تحديث المعلم", details: error.message });
+    }
+  });
+
   app.delete("/api/teachers/:id", async (req, res) => {
     try {
       if (!req.session.user || req.session.user.role !== "admin") {

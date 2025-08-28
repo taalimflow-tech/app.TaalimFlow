@@ -149,6 +149,10 @@ export interface IStorage {
     userId: number,
     data: { name?: string; email?: string }
   ): Promise<User>;
+  updateUser(
+    userId: number,
+    data: { name?: string; email?: string; phone?: string | null; profilePicture?: string | null }
+  ): Promise<User>;
   updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
 
   // Phone verification methods
@@ -184,6 +188,7 @@ export interface IStorage {
   getTeachers(): Promise<Teacher[]>;
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
+  updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
   getTeachersWithSpecializations(schoolId: number): Promise<any[]>;
   getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined>;
@@ -1379,6 +1384,27 @@ export class DatabaseStorage implements IStorage {
       console.error('Error creating teacher:', error);
       throw error;
     }
+  }
+
+  async updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher> {
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+
+    const [teacher] = await db
+      .update(teachers)
+      .set(updateData)
+      .where(eq(teachers.id, id))
+      .returning();
+    
+    if (!teacher) {
+      throw new Error('Teacher not found');
+    }
+    
+    return teacher;
   }
 
   async deleteTeacher(id: number): Promise<void> {
@@ -2723,6 +2749,29 @@ export class DatabaseStorage implements IStorage {
       .set(updateData)
       .where(eq(users.id, userId))
       .returning();
+    return user;
+  }
+
+  async updateUser(
+    userId: number,
+    data: { name?: string; email?: string; phone?: string | null; profilePicture?: string | null }
+  ): Promise<User> {
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
+
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
     return user;
   }
 
