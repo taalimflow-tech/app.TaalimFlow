@@ -356,14 +356,20 @@ export default function Courses() {
                       
                       {/* Course Info - Static Modern Layout */}
                       <div className="space-y-3">
-                        {/* Date and Time in one line */}
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-3">
-                            <span className="text-gray-500 dark:text-gray-400">📅</span>
-                            <span className="text-gray-700 dark:text-gray-300">{course.courseDate}</span>
-                            <span className="text-gray-400">•</span>
-                            <span className="text-gray-500 dark:text-gray-400">🕒</span>
-                            <span className="text-gray-700 dark:text-gray-300">{course.courseTime}</span>
+                        {/* Date and Time in modern format */}
+                        <div className="flex items-center text-sm">
+                          <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 px-3 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <span className="text-blue-500 dark:text-blue-400">📅</span>
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">
+                              {(() => {
+                                // Format date from YYYY-MM-DD to DD/MM/YYYY
+                                const formattedDate = course.courseDate ? 
+                                  course.courseDate.split('-').reverse().join('/') : '';
+                                // Format time from HH:MM to HH:MM
+                                const formattedTime = course.courseTime || '';
+                                return `${formattedDate} | ${formattedTime}`;
+                              })()}
+                            </span>
                           </div>
                         </div>
                         
