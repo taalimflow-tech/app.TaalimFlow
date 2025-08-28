@@ -188,11 +188,10 @@ export default function Teachers() {
       bio: '',
       subject: '',
       imageUrl: '',
-      specializations: []
     });
     setImageFile(null);
     setImagePreview(null);
-    setSelectedSpecializations([]);
+    setSelectedSpecialization('');
     setShowCreateForm(false);
     setShowEditForm(false);
     setTeacherToEdit(null);
@@ -483,7 +482,7 @@ export default function Teachers() {
       queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
       setShowSpecializationModal(false);
       setTeacherForSpecialization(null);
-      setSelectedSpecializations([]);
+      setSelectedSpecialization('');
       toast({
         title: "تم إضافة التخصص بنجاح",
         description: "تم حفظ التخصص في قاعدة البيانات.",
@@ -512,52 +511,34 @@ export default function Teachers() {
   };
 
   const handleSaveSpecialization = () => {
-    if (!teacherForSpecialization || selectedSpecializations.length === 0) {
+    if (!teacherForSpecialization || !selectedSpecialization) {
       toast({
         title: "خطأ في البيانات",
-        description: "يرجى اختيار تخصص واحد على الأقل",
+        description: "يرجى اختيار تخصص",
         variant: "destructive",
       });
       return;
     }
 
-    // Process each selected specialization
-    const specializationPromises = selectedSpecializations.map(specialization => {
-      // Extract module ID from the selected specialization
-      // Format is: "اللغة الإنجليزية (الابتدائي)" but we need to find the corresponding module ID
-      const selectedModule = teachingModules?.find(module => 
-        `${module.nameAr} (${module.educationLevel})` === specialization
-      );
+    // Extract module ID from the selected specialization
+    const selectedModule = teachingModules?.find(module => 
+      `${module.nameAr} (${module.educationLevel})` === selectedSpecialization
+    );
 
-      if (!selectedModule) {
-        throw new Error(`لم يتم العثور على معرف المادة: ${specialization}`);
-      }
-
-      return addSpecializationMutation.mutateAsync({
-        teacherId: teacherForSpecialization.id,
-        moduleId: selectedModule.id,
-        specialization: specialization
+    if (!selectedModule) {
+      toast({
+        title: "خطأ في البيانات",
+        description: `لم يتم العثور على معرف المادة: ${selectedSpecialization}`,
+        variant: "destructive",
       });
+      return;
+    }
+
+    addSpecializationMutation.mutate({
+      teacherId: teacherForSpecialization.id,
+      moduleId: selectedModule.id,
+      specialization: selectedSpecialization
     });
-
-    // Execute all specialization additions
-    Promise.all(specializationPromises)
-      .then(() => {
-        toast({
-          title: "تم إضافة التخصصات بنجاح",
-          description: `تم إضافة ${selectedSpecializations.length} تخصص للمعلم`,
-        });
-        setSelectedSpecializations([]);
-        setShowSpecializationModal(false);
-        setTeacherForSpecialization(null);
-      })
-      .catch(error => {
-        toast({
-          title: "خطأ في إضافة التخصصات",
-          description: error.message || "حدث خطأ غير متوقع",
-          variant: "destructive",
-        });
-      });
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
