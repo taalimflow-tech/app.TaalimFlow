@@ -1664,7 +1664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get single teacher by ID
   app.get("/api/teachers/:id", async (req, res) => {
     try {
-      if (!req.session.user || req.session.user.role !== "admin") {
+      if (!req.session.user || (req.session.user.role !== "admin" && req.session.user.role !== "super_admin")) {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
@@ -1685,7 +1685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update teacher
   app.put("/api/teachers/:id", async (req, res) => {
     try {
-      if (!req.session.user || req.session.user.role !== "admin") {
+      if (!req.session.user || (req.session.user.role !== "admin" && req.session.user.role !== "super_admin")) {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
