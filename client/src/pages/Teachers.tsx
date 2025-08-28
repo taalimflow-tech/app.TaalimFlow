@@ -848,15 +848,15 @@ export default function Teachers() {
               </div>
               
               <div>
-                <Label htmlFor="password">كلمة المرور</Label>
+                <Label htmlFor="password">كلمة المرور {teacherToEdit && <span className="text-sm text-gray-500">(اختياري - اتركها فارغة للاحتفاظ بكلمة المرور الحالية)</span>}</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="كلمة مرور للمعلم"
-                    required
+                    placeholder={teacherToEdit ? "اتركها فارغة للاحتفاظ بكلمة المرور الحالية" : "كلمة مرور للمعلم"}
+                    required={!teacherToEdit}
                     className="pr-10"
                   />
                   <button
