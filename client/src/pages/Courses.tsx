@@ -207,6 +207,15 @@ export default function Courses() {
     return (courseRegistrations as any[])?.filter((reg: any) => reg.courseId === courseId) || [];
   };
 
+  // Helper function to get subject name
+  const getSubjectName = (subjectId: number | string | null | undefined) => {
+    if (!subjectId || !teachingModules) return null;
+    const module = (teachingModules as any[]).find((module: any) => 
+      module.id === Number(subjectId)
+    );
+    return module?.nameAr || null;
+  };
+
   const handleViewRegistrations = (course: Course) => {
     setSelectedCourseForView(course);
     setShowRegistrationsModal(true);
@@ -340,31 +349,49 @@ export default function Courses() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {courses.map((course) => (
               <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <CardTitle className="text-lg text-right">{course.title}</CardTitle>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
-                          {course.courseDate}
-                        </span>
-                        <span className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs">
-                          {course.courseTime}
-                        </span>
+                      <CardTitle className="text-lg text-right mb-3">{course.title}</CardTitle>
+                      
+                      {/* Course Info Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                          <div className="text-blue-600 dark:text-blue-300 font-medium">التاريخ</div>
+                          <div className="text-blue-800 dark:text-blue-200">{course.courseDate}</div>
+                        </div>
+                        <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
+                          <div className="text-orange-600 dark:text-orange-300 font-medium">الوقت</div>
+                          <div className="text-orange-800 dark:text-orange-200">{course.courseTime}</div>
+                        </div>
                         {course.educationLevel && (
-                          <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-xs">
-                            {course.educationLevel}
-                          </span>
+                          <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                            <div className="text-green-600 dark:text-green-300 font-medium">المستوى</div>
+                            <div className="text-green-800 dark:text-green-200">{course.educationLevel}</div>
+                          </div>
                         )}
                         {course.grade && (
-                          <span className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded-full text-xs">
-                            {course.grade}
-                          </span>
+                          <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
+                            <div className="text-purple-600 dark:text-purple-300 font-medium">السنة</div>
+                            <div className="text-purple-800 dark:text-purple-200">{course.grade}</div>
+                          </div>
+                        )}
+                        {course.duration && (
+                          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
+                            <div className="text-indigo-600 dark:text-indigo-300 font-medium">المدة</div>
+                            <div className="text-indigo-800 dark:text-indigo-200">{course.duration}</div>
+                          </div>
+                        )}
+                        {getSubjectName(course.subjectId) && (
+                          <div className="bg-teal-50 dark:bg-teal-900/20 p-2 rounded">
+                            <div className="text-teal-600 dark:text-teal-300 font-medium">المادة</div>
+                            <div className="text-teal-800 dark:text-teal-200">{getSubjectName(course.subjectId)}</div>
+                          </div>
                         )}
                       </div>
                     </div>
                     {user.role === 'admin' && (
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 ml-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -384,33 +411,25 @@ export default function Courses() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 pt-0">
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 text-right">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 text-right leading-relaxed">
                     {course.description}
                   </p>
                   
-                  <div className="space-y-2 mb-4 text-sm">
-                    <div className="flex justify-between">
-                      <span className="font-medium">السعر:</span>
-                      <span className="text-primary font-bold">{course.price}</span>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg mb-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-300 font-medium">السعر:</span>
+                      <span className="text-primary font-bold text-lg">{course.price}</span>
                     </div>
-                    {course.duration && (
-                      <div className="flex justify-between">
-                        <span className="font-medium">المدة:</span>
-                        <span className="text-gray-700 dark:text-gray-300">{course.duration}</span>
-                      </div>
-                    )}
                   </div>
 
                   {user.role === 'admin' ? (
-                    <div className="space-y-2">
-                      <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700"
-                        onClick={() => handleViewRegistrations(course)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        عرض التسجيلات
-                      </Button>
-                    </div>
+                    <Button 
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      onClick={() => handleViewRegistrations(course)}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      عرض التسجيلات
+                    </Button>
                   ) : (
                     <Button 
                       className={`w-full ${isUserRegistered(course.id) 
@@ -748,8 +767,21 @@ export default function Courses() {
                 <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                   <strong>الوصف:</strong> {selectedCourse.description}
                 </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                   <strong>السعر:</strong> {selectedCourse.price}
+                </p>
+                {selectedCourse.duration && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <strong>المدة:</strong> {selectedCourse.duration}
+                  </p>
+                )}
+                {getSubjectName(selectedCourse.subjectId) && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <strong>المادة:</strong> {getSubjectName(selectedCourse.subjectId)}
+                  </p>
+                )}
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <strong>التاريخ والوقت:</strong> {selectedCourse.courseDate} - {selectedCourse.courseTime}
                 </p>
               </div>
 
@@ -810,17 +842,37 @@ export default function Courses() {
             </div>
             
             <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                <strong>التاريخ:</strong> {selectedCourseForView.courseDate} | 
-                <strong> الوقت:</strong> {selectedCourseForView.courseTime} | 
-                <strong> السعر:</strong> {selectedCourseForView.price}
-              </p>
-              {selectedCourseForView.educationLevel && (
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  <strong>المستوى:</strong> {selectedCourseForView.educationLevel}
-                  {selectedCourseForView.grade && ` - ${selectedCourseForView.grade}`}
-                </p>
-              )}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    <strong>التاريخ:</strong> {selectedCourseForView.courseDate}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    <strong>الوقت:</strong> {selectedCourseForView.courseTime}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    <strong>السعر:</strong> {selectedCourseForView.price}
+                  </p>
+                </div>
+                <div>
+                  {selectedCourseForView.duration && (
+                    <p className="text-gray-600 dark:text-gray-300">
+                      <strong>المدة:</strong> {selectedCourseForView.duration}
+                    </p>
+                  )}
+                  {selectedCourseForView.educationLevel && (
+                    <p className="text-gray-600 dark:text-gray-300">
+                      <strong>المستوى:</strong> {selectedCourseForView.educationLevel}
+                      {selectedCourseForView.grade && ` - ${selectedCourseForView.grade}`}
+                    </p>
+                  )}
+                  {getSubjectName(selectedCourseForView.subjectId) && (
+                    <p className="text-gray-600 dark:text-gray-300">
+                      <strong>المادة:</strong> {getSubjectName(selectedCourseForView.subjectId)}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="overflow-y-auto max-h-[60vh]">
