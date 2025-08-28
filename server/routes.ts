@@ -1690,13 +1690,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const teacherId = parseInt(req.params.id);
-      const { name, email, phone, bio, imageUrl } = req.body;
+      const { name, email, phone, bio, imageUrl, password } = req.body;
 
-      // First, verify the teacher exists
+      console.log(`Updating teacher with ID: ${teacherId}`);
+
+      // First, check if this is a user-based teacher (new system)
+      const userTeacher = await storage.getUser(teacherId);
+      if (userTeacher && userTeacher.role === "teacher") {
+        console.log("Updating user-based teacher");
+        
+        // Update user record
+        const userData: any = {
+          name,
+          email,
+          phone: phone || null,
+          profilePicture: imageUrl || null,
+        };
+        
+        // Only update password if provided
+        if (password && password.trim() !== '') {
+          userData.password = password;
+        }
+        
+        await storage.updateUser(teacherId, userData);
+
+        // Try to update corresponding teacher record if it exists
+        try {
+          const correspondingTeacher = await storage.getTeacher(teacherId);
+          if (correspondingTeacher) {
+            const teacherData = {
+              name,
+              email,
+              phone: phone || null,
+              bio: bio || null,
+              imageUrl: imageUrl || null,
+            };
+            await storage.updateTeacher(teacherId, teacherData);
+          }
+        } catch (teacherUpdateError) {
+          console.log("Teacher record update skipped:", teacherUpdateError);
+        }
+
+        res.json({ message: "تم تحديث المعلم بنجاح" });
+        return;
+      }
+
+      // Fallback to old teacher-only system
       const teacher = await storage.getTeacher(teacherId);
       if (!teacher) {
         return res.status(404).json({ error: "لم يتم العثور على المعلم" });
       }
+
+      console.log("Updating teacher-only record");
 
       // Update teacher profile - all data is stored in the teacher record
       const teacherData = {
@@ -1708,20 +1753,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       await storage.updateTeacher(teacherId, teacherData);
-
-      // Also try to update the corresponding user account if it exists (teacher ID = user ID pattern)
-      try {
-        const userData = {
-          name,
-          email,
-          phone: phone || null,
-          profilePicture: imageUrl || null,
-        };
-        await storage.updateUser(teacherId, userData);
-      } catch (userUpdateError) {
-        // User update is optional - teacher record is the primary data store
-        console.log("User update skipped (no matching user):", userUpdateError);
-      }
 
       res.json({ message: "تم تحديث المعلم بنجاح" });
     } catch (error: any) {
