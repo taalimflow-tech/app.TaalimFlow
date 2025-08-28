@@ -1668,20 +1668,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
       }
 
-      const id = parseInt(req.params.id);
+      const teacherId = parseInt(req.params.id);
       const { name, email, phone, bio, imageUrl } = req.body;
 
-      // Update user account
-      const userData = {
-        name,
-        email,
-        phone: phone || null,
-        profilePicture: imageUrl || null,
-      };
+      // First, verify the teacher exists
+      const teacher = await storage.getTeacher(teacherId);
+      if (!teacher) {
+        return res.status(404).json({ error: "لم يتم العثور على المعلم" });
+      }
 
-      await storage.updateUser(id, userData);
-
-      // Update teacher profile
+      // Update teacher profile - all data is stored in the teacher record
       const teacherData = {
         name,
         email,
@@ -1690,7 +1686,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageUrl: imageUrl || null,
       };
 
-      await storage.updateTeacher(id, teacherData);
+      await storage.updateTeacher(teacherId, teacherData);
+
+      // Also try to update the corresponding user account if it exists (teacher ID = user ID pattern)
+      try {
+        const userData = {
+          name,
+          email,
+          phone: phone || null,
+          profilePicture: imageUrl || null,
+        };
+        await storage.updateUser(teacherId, userData);
+      } catch (userUpdateError) {
+        // User update is optional - teacher record is the primary data store
+        console.log("User update skipped (no matching user):", userUpdateError);
+      }
 
       res.json({ message: "تم تحديث المعلم بنجاح" });
     } catch (error: any) {

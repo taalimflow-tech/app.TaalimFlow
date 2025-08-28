@@ -149,10 +149,6 @@ export interface IStorage {
     userId: number,
     data: { name?: string; email?: string }
   ): Promise<User>;
-  updateUser(
-    userId: number,
-    data: { name?: string; email?: string; phone?: string | null; profilePicture?: string | null }
-  ): Promise<User>;
   updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
 
   // Phone verification methods
@@ -186,10 +182,8 @@ export interface IStorage {
 
   // Teacher methods
   getTeachers(): Promise<Teacher[]>;
-  getTeacher(id: number): Promise<Teacher | undefined>;
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
-  updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher>;
   deleteTeacher(id: number): Promise<void>;
   getTeachersWithSpecializations(schoolId: number): Promise<any[]>;
   getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined>;
@@ -1348,15 +1342,6 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(teachers).orderBy(desc(teachers.createdAt));
   }
 
-  async getTeacher(id: number): Promise<Teacher | undefined> {
-    const result = await db
-      .select()
-      .from(teachers)
-      .where(eq(teachers.id, id))
-      .limit(1);
-    return result[0];
-  }
-
   async getTeachersBySchool(schoolId: number): Promise<Teacher[]> {
     return await db
       .select()
@@ -1396,46 +1381,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher> {
-    const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.bio !== undefined) updateData.bio = data.bio;
-    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
-
-    const [teacher] = await db
-      .update(teachers)
-      .set(updateData)
-      .where(eq(teachers.id, id))
-      .returning();
-    
-    if (!teacher) {
-      throw new Error('Teacher not found');
-    }
-    
-    return teacher;
-  }
-
   async deleteTeacher(id: number): Promise<void> {
-    // Delete the teacher record AND the corresponding user record
-    // First, get the teacher to find the associated user
-    const [teacher] = await db
-      .select({ userId: teachers.id }) // Teacher ID corresponds to User ID
-      .from(teachers)
-      .where(eq(teachers.id, id))
-      .limit(1);
-
-    if (teacher) {
-      // Delete specializations first (foreign key constraint)
-      await db.delete(teacherSpecializations).where(eq(teacherSpecializations.teacherId, id));
-      
-      // Delete the teacher record
-      await db.delete(teachers).where(eq(teachers.id, id));
-      
-      // Delete the corresponding user record (teacher ID = user ID)
-      await db.delete(users).where(eq(users.id, id));
-    }
+    await db.delete(teachers).where(eq(teachers.id, id));
   }
 
   async getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined> {
@@ -2759,29 +2706,6 @@ export class DatabaseStorage implements IStorage {
       .set(updateData)
       .where(eq(users.id, userId))
       .returning();
-    return user;
-  }
-
-  async updateUser(
-    userId: number,
-    data: { name?: string; email?: string; phone?: string | null; profilePicture?: string | null }
-  ): Promise<User> {
-    const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
-
-    const [user] = await db
-      .update(users)
-      .set(updateData)
-      .where(eq(users.id, userId))
-      .returning();
-    
-    if (!user) {
-      throw new Error('User not found');
-    }
-    
     return user;
   }
 
