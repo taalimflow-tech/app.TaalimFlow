@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
-import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus, Trash2, UserPlus, Edit } from 'lucide-react';
+import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus, Trash2, UserPlus, Edit, Eye, EyeOff } from 'lucide-react';
 
 interface TeacherWithSpecializations {
   id: number;
@@ -60,6 +60,7 @@ export default function Teachers() {
   const [showSpecializationModal, setShowSpecializationModal] = useState(false);
   const [teacherForSpecialization, setTeacherForSpecialization] = useState<TeacherWithSpecializations | null>(null);
   const [selectedSpecialization, setSelectedSpecialization] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -848,14 +849,28 @@ export default function Teachers() {
               
               <div>
                 <Label htmlFor="password">كلمة المرور</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="كلمة مرور للمعلم"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="كلمة مرور للمعلم"
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
               
               <div>
