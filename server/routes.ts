@@ -3011,8 +3011,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: currentUser.id,
       };
       console.log("Final registration data:", registrationData);
+      console.log("Data types:", {
+        formationId: typeof registrationData.formationId,
+        schoolId: typeof registrationData.schoolId,
+        userId: typeof registrationData.userId,
+        fullName: typeof registrationData.fullName,
+        phone: typeof registrationData.phone,
+        email: typeof registrationData.email,
+      });
       
-      const registration = await storage.createFormationRegistration(registrationData);
+      // Validate final data against server schema
+      const serverValidatedData = insertFormationRegistrationSchema.parse(registrationData);
+      console.log("Server validation passed:", serverValidatedData);
+      
+      const registration = await storage.createFormationRegistration(serverValidatedData);
       res.status(201).json(registration);
     } catch (error) {
       console.error("Formation registration error:", error);
