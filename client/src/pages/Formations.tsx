@@ -179,7 +179,10 @@ export default function Formations() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold dark:text-white">التسجيل في {selectedFormation.title}</h2>
+              <div>
+                <h2 className="text-xl font-semibold dark:text-white">التسجيل في {selectedFormation.title}</h2>
+                <p className="text-xs text-gray-500 mt-1">Debug - User ID: {user?.id} | Formation ID: {selectedFormation.id}</p>
+              </div>
               <button
                 onClick={() => {
                   setShowJoinForm(false);
