@@ -348,39 +348,44 @@ export default function Courses() {
         {courses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {courses.map((course) => (
-              <Card key={course.id} className="group hover:shadow-lg hover:shadow-blue-100 dark:hover:shadow-blue-900/20 transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/80">
-                <CardHeader className="pb-2">
+              <Card key={course.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <CardTitle className="text-lg text-right mb-2 font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
-                        {course.title}
-                      </CardTitle>
+                      <CardTitle className="text-lg text-right mb-3">{course.title}</CardTitle>
                       
-                      {/* Course Info with compact badges */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-2 py-1.5 rounded-lg">
-                          <span className="text-blue-700 dark:text-blue-300 font-medium text-xs">التاريخ والوقت</span>
-                          <span className="font-bold text-blue-900 dark:text-blue-100 text-xs">{course.courseDate} - {course.courseTime}</span>
+                      {/* Course Info Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                          <div className="text-blue-600 dark:text-blue-300 font-medium">التاريخ</div>
+                          <div className="text-blue-800 dark:text-blue-200">{course.courseDate}</div>
                         </div>
-                        
+                        <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
+                          <div className="text-orange-600 dark:text-orange-300 font-medium">الوقت</div>
+                          <div className="text-orange-800 dark:text-orange-200">{course.courseTime}</div>
+                        </div>
+                        {course.educationLevel && (
+                          <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                            <div className="text-green-600 dark:text-green-300 font-medium">المستوى</div>
+                            <div className="text-green-800 dark:text-green-200">{course.educationLevel}</div>
+                          </div>
+                        )}
                         {course.grade && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-2 py-1.5 rounded-lg">
-                            <span className="text-purple-700 dark:text-purple-300 font-medium text-xs">السنة</span>
-                            <span className="font-bold text-purple-900 dark:text-purple-100 text-xs">{course.grade}</span>
+                          <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
+                            <div className="text-purple-600 dark:text-purple-300 font-medium">السنة</div>
+                            <div className="text-purple-800 dark:text-purple-200">{course.grade}</div>
                           </div>
                         )}
-                        
                         {course.duration && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-2 py-1.5 rounded-lg">
-                            <span className="text-emerald-700 dark:text-emerald-300 font-medium text-xs">المدة</span>
-                            <span className="font-bold text-emerald-900 dark:text-emerald-100 text-xs">{course.duration}</span>
+                          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
+                            <div className="text-indigo-600 dark:text-indigo-300 font-medium">المدة</div>
+                            <div className="text-indigo-800 dark:text-indigo-200">{course.duration}</div>
                           </div>
                         )}
-                        
                         {getSubjectName(course.subjectId) && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-2 py-1.5 rounded-lg">
-                            <span className="text-amber-700 dark:text-amber-300 font-medium text-xs">المادة</span>
-                            <span className="font-bold text-amber-900 dark:text-amber-100 text-xs">{getSubjectName(course.subjectId)}</span>
+                          <div className="bg-teal-50 dark:bg-teal-900/20 p-2 rounded">
+                            <div className="text-teal-600 dark:text-teal-300 font-medium">المادة</div>
+                            <div className="text-teal-800 dark:text-teal-200">{getSubjectName(course.subjectId)}</div>
                           </div>
                         )}
                       </div>
@@ -390,38 +395,36 @@ export default function Courses() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg"
                           onClick={() => handleEditCourse(course)}
                         >
-                          <Edit className="w-3 h-3 text-blue-600" />
+                          <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="hover:bg-red-100 dark:hover:bg-red-900 rounded-lg"
                           onClick={() => deleteCourseMutation.mutate(course.id)}
                         >
-                          <Trash className="w-3 h-3 text-red-500" />
+                          <Trash className="w-4 h-4 text-red-500" />
                         </Button>
                       </div>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 text-right leading-relaxed bg-gray-50/50 dark:bg-gray-700/50 p-2 rounded-lg">
+                <CardContent className="p-6 pt-0">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 text-right leading-relaxed">
                     {course.description}
                   </p>
                   
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 p-2 rounded-lg mb-3">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg mb-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-green-700 dark:text-green-300 font-bold text-sm">السعر</span>
-                      <span className="text-green-900 dark:text-green-100 font-bold text-lg">{course.price}</span>
+                      <span className="text-gray-600 dark:text-gray-300 font-medium">السعر:</span>
+                      <span className="text-primary font-bold text-lg">{course.price}</span>
                     </div>
                   </div>
 
                   {user.role === 'admin' ? (
                     <Button 
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm"
+                      className="w-full bg-blue-600 hover:bg-blue-700"
                       onClick={() => handleViewRegistrations(course)}
                     >
                       <Eye className="w-4 h-4 mr-2" />
@@ -429,9 +432,9 @@ export default function Courses() {
                     </Button>
                   ) : (
                     <Button 
-                      className={`w-full font-medium py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm ${isUserRegistered(course.id) 
-                        ? 'bg-gray-400 cursor-not-allowed text-gray-600' 
-                        : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                      className={`w-full ${isUserRegistered(course.id) 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-primary to-secondary'
                       }`}
                       disabled={isUserRegistered(course.id)}
                       onClick={() => {

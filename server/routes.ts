@@ -3120,8 +3120,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const insertCourseData = {
         ...req.body,
         schoolId,
-        // Handle empty duration field
-        duration: req.body.duration && req.body.duration.trim() !== '' ? req.body.duration : null,
       };
 
       const course = await storage.createCourse(insertCourseData);
