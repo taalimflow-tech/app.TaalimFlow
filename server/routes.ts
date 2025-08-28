@@ -1806,17 +1806,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Teacher user created:', teacherUser.id);
 
-      // Temporarily skip specializations to simplify debugging
-      console.log('Skipping specializations for now - teacher user created successfully');
+      // Create teacher profile in teachers table
+      const teacherData = {
+        schoolId: req.session.user.schoolId,
+        name: teacherUser.name,
+        email: teacherUser.email,
+        phone: teacherUser.phone || null,
+        subject: specializations && specializations.length > 0 ? specializations[0] : "مادة عامة", // Use first specialization or default
+        bio: bio || null,
+        imageUrl: teacherUser.profilePicture,
+        available: true,
+      };
       
-      // TODO: Re-add specialization logic once basic creation works
-      // if (specializations && specializations.length > 0) {
-      //   for (const specializationName of specializations) {
-      //     console.log('Would process specialization:', specializationName);
-      //   }
-      // }
+      console.log('📋 Teacher data prepared:', teacherData);
+      const teacherProfile = await storage.createTeacher(teacherData);
+      console.log('👨‍🏫 Teacher profile created successfully:', teacherProfile.id);
 
-      console.log('✓ Teacher user created successfully:', teacherUser.id);
+      // Handle specializations if provided
+      if (specializations && specializations.length > 0) {
+        console.log('Processing specializations:', specializations);
+        
+        for (const specializationName of specializations) {
+          try {
+            console.log('Processing specialization:', specializationName);
+            
+            // Parse subject and education level from format like "الرياضيات (المتوسط)"
+            const match = specializationName.match(/^(.+?)\s*\((.+?)\)$/);
+            const subjectName = match ? match[1].trim() : specializationName;
+            const educationLevel = match ? match[2].trim() : 'عام';
+            
+            console.log('Parsed subject:', subjectName, 'level:', educationLevel);
+            
+            // Find or create teaching module
+            let teachingModule = await storage.getTeachingModuleByName(subjectName, educationLevel);
+            if (!teachingModule) {
+              const moduleData = {
+                name: subjectName, // English name (same as Arabic for now)
+                nameAr: subjectName, // Arabic name
+                educationLevel,
+                description: null,
+              };
+              teachingModule = await storage.createTeachingModule(moduleData);
+              console.log('📚 Created new teaching module:', teachingModule.id);
+            }
+            
+            // Create teacher specialization link
+            const specializationData = {
+              teacherId: teacherUser.id, // Use the user ID as teacher ID
+              teachingModuleId: teachingModule.id,
+              schoolId: req.session.user.schoolId,
+              verified: true, // Admin-created specializations are verified
+              yearsExperience: 0,
+            };
+            
+            const specialization = await storage.createTeacherSpecialization(specializationData);
+            console.log('🎯 Created specialization:', specialization.id);
+            
+          } catch (specError) {
+            console.error('Error processing specialization:', specializationName, specError);
+            // Continue with other specializations even if one fails
+          }
+        }
+      }
+
+      console.log('✓ Teacher created successfully with all data:', teacherUser.id);
       res.status(201).json(teacherUser);
     } catch (error: any) {
       console.error('✗ Teacher user creation error:', error);
