@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -234,6 +234,68 @@ export default function Courses() {
     return module?.nameAr || null;
   };
 
+  // Countdown component for course start time
+  const CourseCountdown = ({ courseDate, courseTime }: { courseDate: string, courseTime: string }) => {
+    const [timeLeft, setTimeLeft] = useState<string>('');
+    const [isExpired, setIsExpired] = useState(false);
+
+    useEffect(() => {
+      const calculateTimeLeft = () => {
+        if (!courseDate || !courseTime) return;
+
+        const courseDateTime = new Date(`${courseDate}T${courseTime}`);
+        const now = new Date();
+        const difference = courseDateTime.getTime() - now.getTime();
+
+        if (difference > 0) {
+          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+
+          if (days > 0) {
+            setTimeLeft(`${days} يوم ${hours} ساعة`);
+          } else if (hours > 0) {
+            setTimeLeft(`${hours} ساعة ${minutes} دقيقة`);
+          } else {
+            setTimeLeft(`${minutes} دقيقة`);
+          }
+          setIsExpired(false);
+        } else {
+          setTimeLeft('بدأت الدورة');
+          setIsExpired(true);
+        }
+      };
+
+      calculateTimeLeft();
+      const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
+
+      return () => clearInterval(timer);
+    }, [courseDate, courseTime]);
+
+    if (!timeLeft) return null;
+
+    return (
+      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium ${
+        isExpired 
+          ? 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/50 dark:to-pink-950/50 border border-red-200 dark:border-red-800'
+          : 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200 dark:border-indigo-800'
+      }`}>
+        <Clock className={`w-4 h-4 flex-shrink-0 ${
+          isExpired 
+            ? 'text-red-600 dark:text-red-400' 
+            : 'text-indigo-600 dark:text-indigo-400'
+        }`} />
+        <span className={`whitespace-nowrap ${
+          isExpired 
+            ? 'text-red-700 dark:text-red-300' 
+            : 'text-indigo-700 dark:text-indigo-300'
+        }`}>
+          {isExpired ? timeLeft : `يبدأ خلال ${timeLeft}`}
+        </span>
+      </div>
+    );
+  };
+
   const handleViewRegistrations = (course: Course) => {
     setSelectedCourseForView(course);
     setShowRegistrationsModal(true);
@@ -434,6 +496,9 @@ export default function Courses() {
                         
                         {/* Responsive Info Tags */}
                         <div className="flex flex-wrap gap-2 mt-3">
+                          {/* Countdown Timer */}
+                          <CourseCountdown courseDate={course.courseDate} courseTime={course.courseTime} />
+                          
                           {/* Duration */}
                           {course.duration && (
                             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 px-3 py-2 rounded-full text-sm font-medium">
