@@ -1852,11 +1852,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Create teacher specialization link
             const specializationData = {
-              teacherId: teacherUser.id, // Use the user ID as teacher ID
-              teachingModuleId: teachingModule.id,
-              schoolId: req.session.user.schoolId,
-              verified: true, // Admin-created specializations are verified
-              yearsExperience: 0,
+              teacherId: teacherUser.id, // Use the user ID as teacher ID (correct)
+              moduleId: teachingModule.id, // Use correct field name and existing module ID
             };
             
             const specialization = await storage.createTeacherSpecialization(specializationData);
