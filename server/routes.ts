@@ -1860,6 +1860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Create teacher specialization link
             const specializationData = {
+              schoolId: req.session.user.schoolId, // Required school ID
               teacherId: teacherUser.id, // Use the user ID as teacher ID (correct)
               moduleId: teachingModule.id, // Use correct field name and existing module ID
             };

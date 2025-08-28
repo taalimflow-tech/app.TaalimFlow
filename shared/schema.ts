@@ -646,6 +646,7 @@ export const insertModuleYearSchema = createInsertSchema(moduleYears).pick({
 });
 
 export const insertTeacherSpecializationSchema = createInsertSchema(teacherSpecializations).pick({
+  schoolId: true,
   teacherId: true,
   moduleId: true,
 });
