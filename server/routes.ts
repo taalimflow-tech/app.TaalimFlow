@@ -1739,7 +1739,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      await storage.deleteTeacher(id);
+      const adminId = req.session.user.id;
+      await storage.deleteTeacher(id, adminId);
       res.json({ message: "تم حذف المعلم بنجاح" });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete teacher" });

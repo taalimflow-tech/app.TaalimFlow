@@ -45,6 +45,9 @@ export const users = pgTable("users", {
   banReason: text("ban_reason"), // Reason for ban
   bannedAt: timestamp("banned_at"), // When user was banned
   bannedBy: integer("banned_by"), // Admin who banned the user - remove self-reference
+  deleted: boolean("deleted").default(false), // Soft delete status
+  deletedAt: timestamp("deleted_at"), // When user was deleted
+  deletedBy: integer("deleted_by"), // Admin who deleted the user
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

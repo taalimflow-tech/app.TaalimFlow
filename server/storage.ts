@@ -190,7 +190,7 @@ export interface IStorage {
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher>;
-  deleteTeacher(id: number): Promise<void>;
+  deleteTeacher(id: number, deletedBy?: number): Promise<void>;
   getTeachersWithSpecializations(schoolId: number): Promise<any[]>;
   getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined>;
   linkTeacherToUser(teacherId: number, userId: number): Promise<Teacher>;
@@ -1432,13 +1432,16 @@ export class DatabaseStorage implements IStorage {
     return teacher;
   }
 
-  async deleteTeacher(id: number): Promise<void> {
-    // The id parameter is actually a user ID (since teachers are stored as users with role='teacher')
-    // Delete specializations first (foreign key constraint)
-    await db.delete(teacherSpecializations).where(eq(teacherSpecializations.teacherId, id));
-    
-    // Delete the user record (which represents the teacher)
-    await db.delete(users).where(eq(users.id, id));
+  async deleteTeacher(id: number, deletedBy?: number): Promise<void> {
+    // Soft delete: mark as deleted instead of removing from database
+    await db
+      .update(users)
+      .set({
+        deleted: true,
+        deletedAt: new Date(),
+        deletedBy: deletedBy || null
+      })
+      .where(eq(users.id, id));
   }
 
   async getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined> {
@@ -1515,7 +1518,7 @@ export class DatabaseStorage implements IStorage {
         teachingModules,
         eq(teacherSpecializations.moduleId, teachingModules.id),
       )
-      .where(and(eq(users.role, "teacher"), eq(users.schoolId, schoolId)))
+      .where(and(eq(users.role, "teacher"), eq(users.schoolId, schoolId), eq(users.deleted, false)))
       .orderBy(users.name);
 
     // Group by teacher to consolidate specializations
