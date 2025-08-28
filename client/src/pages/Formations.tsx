@@ -65,7 +65,7 @@ export default function Formations() {
     e.preventDefault();
     if (selectedFormation && registrationData.fullName && registrationData.phone && registrationData.email) {
       joinFormationMutation.mutate({
-        formationId: Number(selectedFormation.id),
+        formationId: selectedFormation.id,
         fullName: registrationData.fullName,
         phone: registrationData.phone,
         email: registrationData.email
@@ -81,7 +81,7 @@ export default function Formations() {
 
   // Helper function to get registrations for a specific formation
   const getRegistrationsForFormation = (formationId: number) => {
-    return formationRegistrations.filter((reg: any) => reg.formationId === formationId);
+    return (formationRegistrations as any[])?.filter((reg: any) => reg.formationId === formationId) || [];
   };
 
   const handleViewRegistrations = (formation: Formation) => {

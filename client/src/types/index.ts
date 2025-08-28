@@ -73,7 +73,7 @@ export interface Group {
 }
 
 export interface Formation {
-  id: string;
+  id: number;
   title: string;
   description: string;
   duration: string;
@@ -93,8 +93,8 @@ export interface GroupRegistration {
 }
 
 export interface FormationRegistration {
-  id: string;
-  formationId: string;
+  id: number;
+  formationId: number;
   fullName: string;
   phone: string;
   email: string;
