@@ -33,6 +33,7 @@ interface CreateTeacherFormData {
   name: string;
   email: string;
   phone: string;
+  password: string;
   bio: string;
   subject: string;
   imageUrl: string;
@@ -48,6 +49,7 @@ export default function Teachers() {
     name: '',
     email: '',
     phone: '',
+    password: '',
     bio: '',
     subject: '',
     imageUrl: ''
@@ -185,6 +187,7 @@ export default function Teachers() {
       name: '',
       email: '',
       phone: '',
+      password: '',
       bio: '',
       subject: '',
       imageUrl: '',
@@ -275,6 +278,7 @@ export default function Teachers() {
       const teacherData = {
         name: formData.name,
         email: formData.email,
+        password: formData.password,
         phone: formData.phone || null,
         bio: formData.bio || null,
         imageUrl: imageUrl || null,
@@ -838,6 +842,18 @@ export default function Teachers() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="البريد الإلكتروني للمعلم"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="password">كلمة المرور</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="كلمة مرور للمعلم"
                   required
                 />
               </div>
