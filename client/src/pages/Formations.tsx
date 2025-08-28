@@ -62,28 +62,27 @@ export default function Formations() {
     }
   });
 
-  const handleJoinFormation = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedFormation && registrationData.fullName && registrationData.phone && registrationData.email && user?.id) {
-      console.log('Form submission data:', {
+  const handleJoinFormation = () => {
+    if (selectedFormation && user?.id && user?.name && user?.phone && user?.email) {
+      console.log('Using user data for registration:', {
         formationId: selectedFormation.id,
         userId: user.id,
-        fullName: registrationData.fullName,
-        phone: registrationData.phone,
-        email: registrationData.email
+        fullName: user.name,
+        phone: user.phone,
+        email: user.email
       });
       
       joinFormationMutation.mutate({
         formationId: selectedFormation.id,
         userId: user.id,
-        fullName: registrationData.fullName,
-        phone: registrationData.phone,
-        email: registrationData.email
+        fullName: user.name,
+        phone: user.phone,
+        email: user.email
       });
     } else {
       toast({ 
         title: 'بيانات ناقصة', 
-        description: 'يرجى ملء جميع الحقول المطلوبة',
+        description: 'يجب أن تكون بيانات المستخدم مكتملة للتسجيل',
         variant: 'destructive' 
       });
     }
@@ -204,7 +203,7 @@ export default function Formations() {
               </button>
             </div>
             
-            <form onSubmit={handleJoinFormation} className="space-y-4">
+            <div className="space-y-4">
               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded mb-4">
                 <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                   <strong>الوصف:</strong> {selectedFormation.description}
@@ -217,42 +216,15 @@ export default function Formations() {
                 </p>
               </div>
 
-              <div>
-                <Label htmlFor="fullName">الاسم الكامل</Label>
-                <Input
-                  id="fullName"
-                  value={registrationData.fullName}
-                  onChange={(e) => setRegistrationData({...registrationData, fullName: e.target.value})}
-                  placeholder="أدخل اسمك الكامل"
-                  required
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={registrationData.phone}
-                  onChange={(e) => setRegistrationData({...registrationData, phone: e.target.value})}
-                  placeholder="أدخل رقم هاتفك"
-                  required
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={registrationData.email}
-                  onChange={(e) => setRegistrationData({...registrationData, email: e.target.value})}
-                  placeholder="أدخل بريدك الإلكتروني"
-                  required
-                  className="mt-1"
-                />
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                <p className="text-sm text-blue-800 dark:text-blue-200 mb-2 font-medium">
+                  سيتم التسجيل باستخدام بيانات حسابك:
+                </p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>الاسم:</strong> {user?.name}<br/>
+                  <strong>الهاتف:</strong> {user?.phone}<br/>
+                  <strong>البريد:</strong> {user?.email}
+                </p>
               </div>
               
               <div className="flex gap-2">
@@ -268,14 +240,14 @@ export default function Formations() {
                   إلغاء
                 </Button>
                 <Button
-                  type="submit"
+                  onClick={handleJoinFormation}
                   disabled={joinFormationMutation.isPending}
                   className="flex-1 bg-primary hover:bg-primary/90"
                 >
                   {joinFormationMutation.isPending ? 'جاري التسجيل...' : 'سجل الآن'}
                 </Button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
