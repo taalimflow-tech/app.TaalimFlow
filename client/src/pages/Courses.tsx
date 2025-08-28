@@ -182,10 +182,25 @@ export default function Courses() {
   const isUserRegistered = (courseId: number) => {
     if (!courseRegistrations || !user?.id || !courseId) return false;
     
+    // Debug: Display all registered users and current user ID
+    console.log('=== REGISTRATION DEBUG ===');
+    console.log('Current user ID:', user.id, '(type:', typeof user.id, ')');
+    console.log('Checking course ID:', courseId, '(type:', typeof courseId, ')');
+    console.log('All course registrations:');
+    (courseRegistrations as any[])?.forEach((reg: any, index: number) => {
+      console.log(`  [${index}] User ID: ${reg.userId} (type: ${typeof reg.userId}), Course ID: ${reg.courseId} (type: ${typeof reg.courseId}), Name: ${reg.fullName}, Type: ${reg.registrantType}`);
+    });
+    
     // Check if the logged-in user's ID exists in course registrations for this specific course
     const isRegistered = (courseRegistrations as any[])?.some((reg: any) => {
-      return Number(reg.userId) === Number(user.id) && Number(reg.courseId) === Number(courseId);
+      const userMatch = Number(reg.userId) === Number(user.id);
+      const courseMatch = Number(reg.courseId) === Number(courseId);
+      console.log(`  Checking registration: userId ${reg.userId} vs ${user.id} = ${userMatch}, courseId ${reg.courseId} vs ${courseId} = ${courseMatch}`);
+      return userMatch && courseMatch;
     });
+    
+    console.log('Final result - Is user registered?', isRegistered);
+    console.log('=== END DEBUG ===');
     
     return Boolean(isRegistered);
   };
