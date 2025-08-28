@@ -1382,7 +1382,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTeacher(id: number): Promise<void> {
-    await db.delete(teachers).where(eq(teachers.id, id));
+    // Delete the teacher record AND the corresponding user record
+    // First, get the teacher to find the associated user
+    const [teacher] = await db
+      .select({ userId: teachers.id }) // Teacher ID corresponds to User ID
+      .from(teachers)
+      .where(eq(teachers.id, id))
+      .limit(1);
+
+    if (teacher) {
+      // Delete specializations first (foreign key constraint)
+      await db.delete(teacherSpecializations).where(eq(teacherSpecializations.teacherId, id));
+      
+      // Delete the teacher record
+      await db.delete(teachers).where(eq(teachers.id, id));
+      
+      // Delete the corresponding user record (teacher ID = user ID)
+      await db.delete(users).where(eq(users.id, id));
+    }
   }
 
   async getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined> {
