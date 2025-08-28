@@ -257,6 +257,7 @@ export interface IStorage {
   // Formation methods
   getFormations(): Promise<Formation[]>;
   getFormationsBySchool(schoolId: number): Promise<Formation[]>;
+  getFormationById(id: number): Promise<Formation | undefined>;
   createFormation(formation: InsertFormation): Promise<Formation>;
   deleteFormation(id: number): Promise<void>;
 
@@ -2482,6 +2483,14 @@ export class DatabaseStorage implements IStorage {
       .from(formations)
       .where(eq(formations.schoolId, schoolId))
       .orderBy(desc(formations.createdAt));
+  }
+
+  async getFormationById(id: number): Promise<Formation | undefined> {
+    const [formation] = await db
+      .select()
+      .from(formations)
+      .where(eq(formations.id, id));
+    return formation || undefined;
   }
 
   async createFormation(insertFormation: InsertFormation): Promise<Formation> {

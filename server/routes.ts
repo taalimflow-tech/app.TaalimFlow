@@ -2988,17 +2988,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
 
+      console.log("Formation registration attempt:", {
+        body: req.body,
+        user: currentUser?.email,
+        schoolId: currentUser?.schoolId
+      });
+
       const validatedData = insertFormationRegistrationSchema.parse(req.body);
+      console.log("Schema validation passed:", validatedData);
+      
+      // Check if formation exists
+      const formation = await storage.getFormationById(validatedData.formationId);
+      if (!formation) {
+        return res.status(400).json({ error: "التكوين المحدد غير موجود" });
+      }
+      console.log("Formation found:", formation);
+
       const registrationData = {
         ...validatedData,
         schoolId: currentUser.schoolId,
       };
+      console.log("Final registration data:", registrationData);
       
       const registration = await storage.createFormationRegistration(registrationData);
       res.status(201).json(registration);
     } catch (error) {
       console.error("Formation registration error:", error);
-      res.status(400).json({ error: "Invalid formation registration data" });
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      console.error("Request body:", req.body);
+      res.status(400).json({ error: `Invalid formation registration data: ${error instanceof Error ? error.message : 'Unknown error'}` });
     }
   });
 
