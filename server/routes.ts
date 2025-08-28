@@ -3434,27 +3434,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "صلاحيات المعلم أو المدير مطلوبة" });
       }
 
-      const specializationData = req.body;
+      const { teacherId, specialization } = req.body;
+      
       // Ensure the teacher can only add specializations for themselves unless they are admin
       if (
         req.session.user.role === "teacher" &&
-        specializationData.teacherId !== req.session.user.id
+        teacherId !== req.session.user.id
       ) {
         return res
           .status(403)
           .json({ error: "لا يمكنك إضافة تخصصات لمعلم آخر" });
       }
 
-      // Add schoolId to specialization data
-      const specializationWithSchool = {
-        ...specializationData,
+      console.log('🔧 Adding specialization:', specialization, 'for teacher:', teacherId);
+      
+      // Parse the specialization string (e.g., "اللغة الإنجليزية (الابتدائي)")
+      const match = specialization.match(/^(.+?)\s*\((.+?)\)$/);
+      if (!match) {
+        return res.status(400).json({ error: "تنسيق التخصص غير صحيح" });
+      }
+
+      const [, subjectName, educationLevel] = match;
+      console.log('📝 Parsed subject:', subjectName.trim(), 'level:', educationLevel.trim());
+      
+      // Find or create the teaching module
+      let teachingModule = await storage.getTeachingModuleByName(
+        subjectName.trim(),
+        educationLevel.trim()
+      );
+
+      if (!teachingModule) {
+        // Create the teaching module if it doesn't exist
+        const moduleData = {
+          name: subjectName.trim(), // English name (same as Arabic for now)
+          nameAr: subjectName.trim(),
+          educationLevel: educationLevel.trim()
+        };
+        teachingModule = await storage.createTeachingModule(moduleData);
+        console.log('📚 Created new teaching module:', teachingModule.id);
+      } else {
+        console.log('📚 Using existing teaching module:', teachingModule.id);
+      }
+
+      // Create the teacher specialization
+      const specializationData = {
         schoolId: req.session.user.schoolId,
+        teacherId: teacherId,
+        moduleId: teachingModule.id,
       };
 
-      const specialization = await storage.createTeacherSpecialization(
-        specializationWithSchool,
-      );
-      res.json(specialization);
+      console.log('💾 Creating specialization with data:', specializationData);
+      const savedSpecialization = await storage.createTeacherSpecialization(specializationData);
+      console.log('✅ Successfully created specialization:', savedSpecialization.id);
+      
+      res.json(savedSpecialization);
     } catch (error) {
       console.error("Teacher specialization creation error:", error);
       res

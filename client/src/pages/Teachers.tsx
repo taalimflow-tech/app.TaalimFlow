@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
-import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus, Trash2 } from 'lucide-react';
+import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus, Trash2, UserPlus } from 'lucide-react';
 
 interface TeacherWithSpecializations {
   id: number;
@@ -52,6 +52,9 @@ export default function Teachers() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showSpecializationModal, setShowSpecializationModal] = useState(false);
+  const [teacherForSpecialization, setTeacherForSpecialization] = useState<TeacherWithSpecializations | null>(null);
+  const [selectedSpecialization, setSelectedSpecialization] = useState<string>('');
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -364,10 +367,72 @@ export default function Teachers() {
     }
   });
 
+  // Add Teacher Specialization Mutation
+  const addSpecializationMutation = useMutation({
+    mutationFn: async (data: { teacherId: number; specialization: string }) => {
+      const response = await fetch('/api/teacher-specializations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          teacherId: data.teacherId,
+          specialization: data.specialization
+        }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to add specialization');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+      setShowSpecializationModal(false);
+      setTeacherForSpecialization(null);
+      setSelectedSpecialization('');
+      toast({
+        title: "تم إضافة التخصص بنجاح",
+        description: "تم حفظ التخصص في قاعدة البيانات.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error adding specialization:', error);
+      toast({
+        title: "خطأ في إضافة التخصص",
+        description: error.message || "حدث خطأ أثناء إضافة التخصص. يرجى المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteTeacher = (teacherId: number, teacherName: string) => {
     if (window.confirm(`هل أنت متأكد من حذف المعلم "${teacherName}"؟ لا يمكن التراجع عن هذا الإجراء.`)) {
       deleteTeacherMutation.mutate(teacherId);
     }
+  };
+
+  const handleAddSpecialization = (teacher: TeacherWithSpecializations) => {
+    setTeacherForSpecialization(teacher);
+    setSelectedSpecialization('');
+    setShowSpecializationModal(true);
+  };
+
+  const handleSaveSpecialization = () => {
+    if (!teacherForSpecialization || !selectedSpecialization) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "يرجى اختيار التخصص",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addSpecializationMutation.mutate({
+      teacherId: teacherForSpecialization.id,
+      specialization: selectedSpecialization
+    });
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -561,15 +626,27 @@ export default function Teachers() {
                   </Button>
                   
                   {user?.role === 'admin' && (
-                    <Button 
-                      variant="destructive"
-                      size="sm"
-                      className="px-3"
-                      onClick={() => handleDeleteTeacher(teacher.id, teacher.name)}
-                      disabled={deleteTeacherMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        className="px-3"
+                        onClick={() => handleAddSpecialization(teacher)}
+                        disabled={addSpecializationMutation.isPending}
+                      >
+                        <UserPlus className="w-4 h-4" />
+                      </Button>
+                      
+                      <Button 
+                        variant="destructive"
+                        size="sm"
+                        className="px-3"
+                        onClick={() => handleDeleteTeacher(teacher.id, teacher.name)}
+                        disabled={deleteTeacherMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -793,6 +870,92 @@ export default function Teachers() {
                 {sendMessageMutation.isPending ? "جاري الإرسال..." : "إرسال الرسالة"}
               </Button>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Add Specialization Modal */}
+      {showSpecializationModal && teacherForSpecialization && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold dark:text-white">إضافة تخصص للمعلم</h2>
+              <button
+                onClick={() => setShowSpecializationModal(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded dark:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Teacher Info */}
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center space-x-reverse space-x-3">
+                {teacherForSpecialization.profilePicture ? (
+                  <img 
+                    src={teacherForSpecialization.profilePicture}
+                    alt={teacherForSpecialization.name} 
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                    <User className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                    {teacherForSpecialization.gender === 'male' ? 'الأستاذ ' : teacherForSpecialization.gender === 'female' ? 'الأستاذة ' : ''}{teacherForSpecialization.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{teacherForSpecialization.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Subject Selection */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="specialization">اختر التخصص</Label>
+                <Select
+                  value={selectedSpecialization}
+                  onValueChange={setSelectedSpecialization}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر المادة التي يدرسها المعلم" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(subjectsByLevel).map(([level, subjects]) => (
+                      <div key={level}>
+                        <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                          {level}
+                        </div>
+                        {subjects.map((subject) => (
+                          <SelectItem key={`${subject}-${level}`} value={`${subject} (${level})`}>
+                            {subject}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex space-x-2 space-x-reverse pt-4">
+                <Button
+                  onClick={handleSaveSpecialization}
+                  disabled={addSpecializationMutation.isPending || !selectedSpecialization}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {addSpecializationMutation.isPending ? 'جاري الحفظ...' : 'حفظ التخصص'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSpecializationModal(false)}
+                  className="text-gray-600"
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
