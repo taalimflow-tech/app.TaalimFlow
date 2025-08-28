@@ -348,88 +348,88 @@ export default function Courses() {
         {courses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {courses.map((course) => (
-              <Card key={course.id} className="group hover:shadow-xl hover:shadow-blue-100 dark:hover:shadow-blue-900/20 transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/80 backdrop-blur-sm">
-                <CardHeader className="pb-4">
+              <Card key={course.id} className="group hover:shadow-lg hover:shadow-blue-100 dark:hover:shadow-blue-900/20 transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/80">
+                <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <CardTitle className="text-xl text-right mb-4 font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                      <CardTitle className="text-lg text-right mb-2 font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
                         {course.title}
                       </CardTitle>
                       
-                      {/* Course Info with modern badges */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-3 rounded-xl border border-blue-100 dark:border-blue-800">
-                          <span className="text-blue-700 dark:text-blue-300 font-medium text-sm">التاريخ والوقت</span>
-                          <span className="font-bold text-blue-900 dark:text-blue-100 text-sm">{course.courseDate} - {course.courseTime}</span>
+                      {/* Course Info with compact badges */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-2 py-1.5 rounded-lg">
+                          <span className="text-blue-700 dark:text-blue-300 font-medium text-xs">التاريخ والوقت</span>
+                          <span className="font-bold text-blue-900 dark:text-blue-100 text-xs">{course.courseDate} - {course.courseTime}</span>
                         </div>
                         
                         {course.grade && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 p-3 rounded-xl border border-purple-100 dark:border-purple-800">
-                            <span className="text-purple-700 dark:text-purple-300 font-medium text-sm">السنة</span>
-                            <span className="font-bold text-purple-900 dark:text-purple-100 text-sm">{course.grade}</span>
+                          <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-2 py-1.5 rounded-lg">
+                            <span className="text-purple-700 dark:text-purple-300 font-medium text-xs">السنة</span>
+                            <span className="font-bold text-purple-900 dark:text-purple-100 text-xs">{course.grade}</span>
                           </div>
                         )}
                         
                         {course.duration && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800">
-                            <span className="text-emerald-700 dark:text-emerald-300 font-medium text-sm">المدة</span>
-                            <span className="font-bold text-emerald-900 dark:text-emerald-100 text-sm">{course.duration}</span>
+                          <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-2 py-1.5 rounded-lg">
+                            <span className="text-emerald-700 dark:text-emerald-300 font-medium text-xs">المدة</span>
+                            <span className="font-bold text-emerald-900 dark:text-emerald-100 text-xs">{course.duration}</span>
                           </div>
                         )}
                         
                         {getSubjectName(course.subjectId) && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 p-3 rounded-xl border border-amber-100 dark:border-amber-800">
-                            <span className="text-amber-700 dark:text-amber-300 font-medium text-sm">المادة</span>
-                            <span className="font-bold text-amber-900 dark:text-amber-100 text-sm">{getSubjectName(course.subjectId)}</span>
+                          <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-2 py-1.5 rounded-lg">
+                            <span className="text-amber-700 dark:text-amber-300 font-medium text-xs">المادة</span>
+                            <span className="font-bold text-amber-900 dark:text-amber-100 text-xs">{getSubjectName(course.subjectId)}</span>
                           </div>
                         )}
                       </div>
                     </div>
                     {user.role === 'admin' && (
-                      <div className="flex gap-1 ml-3">
+                      <div className="flex gap-1 ml-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="hover:bg-blue-100 dark:hover:bg-blue-900 rounded-xl"
+                          className="hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg"
                           onClick={() => handleEditCourse(course)}
                         >
-                          <Edit className="w-4 h-4 text-blue-600" />
+                          <Edit className="w-3 h-3 text-blue-600" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="hover:bg-red-100 dark:hover:bg-red-900 rounded-xl"
+                          className="hover:bg-red-100 dark:hover:bg-red-900 rounded-lg"
                           onClick={() => deleteCourseMutation.mutate(course.id)}
                         >
-                          <Trash className="w-4 h-4 text-red-500" />
+                          <Trash className="w-3 h-3 text-red-500" />
                         </Button>
                       </div>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 text-right leading-relaxed bg-gray-50/50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+                <CardContent className="p-4 pt-0">
+                  <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 text-right leading-relaxed bg-gray-50/50 dark:bg-gray-700/50 p-2 rounded-lg">
                     {course.description}
                   </p>
                   
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 p-4 rounded-xl border border-green-100 dark:border-green-800 mb-6">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 p-2 rounded-lg mb-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-green-700 dark:text-green-300 font-bold text-lg">السعر</span>
-                      <span className="text-green-900 dark:text-green-100 font-bold text-2xl">{course.price}</span>
+                      <span className="text-green-700 dark:text-green-300 font-bold text-sm">السعر</span>
+                      <span className="text-green-900 dark:text-green-100 font-bold text-lg">{course.price}</span>
                     </div>
                   </div>
 
                   {user.role === 'admin' ? (
                     <Button 
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm"
                       onClick={() => handleViewRegistrations(course)}
                     >
-                      <Eye className="w-5 h-5 mr-2" />
+                      <Eye className="w-4 h-4 mr-2" />
                       عرض التسجيلات
                     </Button>
                   ) : (
                     <Button 
-                      className={`w-full font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ${isUserRegistered(course.id) 
+                      className={`w-full font-medium py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm ${isUserRegistered(course.id) 
                         ? 'bg-gray-400 cursor-not-allowed text-gray-600' 
                         : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
                       }`}
