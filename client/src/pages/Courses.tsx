@@ -30,8 +30,11 @@ export default function Courses() {
     description: '',
     duration: '',
     price: '',
-    category: '',
+    courseDate: '',
+    courseTime: '',
     educationLevel: '',
+    grade: '',
+    subjectId: '',
     ageRange: ''
   });
 
@@ -48,6 +51,12 @@ export default function Courses() {
   // Query for course registrations (load for all users to check registration status)
   const { data: courseRegistrations = [], isLoading: registrationsLoading } = useQuery({
     queryKey: ['/api/course-registrations'],
+    enabled: !!user && !authLoading,
+  });
+
+  // Query for teaching modules/subjects
+  const { data: teachingModules = [] } = useQuery({
+    queryKey: ['/api/teaching-modules'],
     enabled: !!user && !authLoading,
   });
 
@@ -68,8 +77,11 @@ export default function Courses() {
         description: '',
         duration: '',
         price: '',
-        category: '',
+        courseDate: '',
+        courseTime: '',
         educationLevel: '',
+        grade: '',
+        subjectId: '',
         ageRange: ''
       });
       queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
@@ -100,8 +112,11 @@ export default function Courses() {
         description: '',
         duration: '',
         price: '',
-        category: '',
+        courseDate: '',
+        courseTime: '',
         educationLevel: '',
+        grade: '',
+        subjectId: '',
         ageRange: ''
       });
       queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
@@ -332,16 +347,19 @@ export default function Courses() {
                       <CardTitle className="text-lg text-right">{course.title}</CardTitle>
                       <div className="flex flex-wrap gap-2 mt-2">
                         <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
-                          {course.category}
+                          {course.courseDate}
+                        </span>
+                        <span className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs">
+                          {course.courseTime}
                         </span>
                         {course.educationLevel && (
                           <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-xs">
                             {course.educationLevel}
                           </span>
                         )}
-                        {course.ageRange && (
+                        {course.grade && (
                           <span className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded-full text-xs">
-                            {course.ageRange}
+                            {course.grade}
                           </span>
                         )}
                       </div>
@@ -497,34 +515,109 @@ export default function Courses() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="category">الفئة</Label>
+                  <Label htmlFor="courseDate">التاريخ</Label>
                   <Input
-                    id="category"
-                    value={courseData.category}
-                    onChange={(e) => setCourseData({ ...courseData, category: e.target.value })}
-                    placeholder="مثال: برمجة، تصميم"
+                    id="courseDate"
+                    type="date"
+                    value={courseData.courseDate}
+                    onChange={(e) => setCourseData({ ...courseData, courseDate: e.target.value })}
                     className="text-right"
                   />
                 </div>
                 
                 <div>
+                  <Label htmlFor="courseTime">الوقت</Label>
+                  <Input
+                    id="courseTime"
+                    type="time"
+                    value={courseData.courseTime}
+                    onChange={(e) => setCourseData({ ...courseData, courseTime: e.target.value })}
+                    className="text-right"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="educationLevel">المستوى التعليمي</Label>
                   <Select
                     value={courseData.educationLevel}
-                    onValueChange={(value) => setCourseData({ ...courseData, educationLevel: value })}
+                    onValueChange={(value) => setCourseData({ ...courseData, educationLevel: value, grade: '', subjectId: '' })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="اختر المستوى" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="جميع المستويات">جميع المستويات</SelectItem>
                       <SelectItem value="الابتدائي">الابتدائي</SelectItem>
                       <SelectItem value="المتوسط">المتوسط</SelectItem>
                       <SelectItem value="الثانوي">الثانوي</SelectItem>
-                      <SelectItem value="جامعي">جامعي</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div>
+                  <Label htmlFor="grade">السنة</Label>
+                  <Select
+                    value={courseData.grade}
+                    onValueChange={(value) => setCourseData({ ...courseData, grade: value, subjectId: '' })}
+                    disabled={!courseData.educationLevel}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر السنة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courseData.educationLevel === 'الابتدائي' && (
+                        <>
+                          <SelectItem value="الأولى ابتدائي">الأولى ابتدائي</SelectItem>
+                          <SelectItem value="الثانية ابتدائي">الثانية ابتدائي</SelectItem>
+                          <SelectItem value="الثالثة ابتدائي">الثالثة ابتدائي</SelectItem>
+                          <SelectItem value="الرابعة ابتدائي">الرابعة ابتدائي</SelectItem>
+                          <SelectItem value="الخامسة ابتدائي">الخامسة ابتدائي</SelectItem>
+                        </>
+                      )}
+                      {courseData.educationLevel === 'المتوسط' && (
+                        <>
+                          <SelectItem value="الأولى متوسط">الأولى متوسط</SelectItem>
+                          <SelectItem value="الثانية متوسط">الثانية متوسط</SelectItem>
+                          <SelectItem value="الثالثة متوسط">الثالثة متوسط</SelectItem>
+                          <SelectItem value="الرابعة متوسط">الرابعة متوسط</SelectItem>
+                        </>
+                      )}
+                      {courseData.educationLevel === 'الثانوي' && (
+                        <>
+                          <SelectItem value="الأولى ثانوي">الأولى ثانوي</SelectItem>
+                          <SelectItem value="الثانية ثانوي">الثانية ثانوي</SelectItem>
+                          <SelectItem value="الثالثة ثانوي">الثالثة ثانوي</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="subjectId">المادة</Label>
+                <Select
+                  value={courseData.subjectId}
+                  onValueChange={(value) => setCourseData({ ...courseData, subjectId: value })}
+                  disabled={!courseData.educationLevel || !courseData.grade}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر المادة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachingModules
+                      .filter((module: any) => 
+                        module.educationLevel === courseData.educationLevel && 
+                        (module.grade === courseData.grade || module.grade === 'جميع المستويات')
+                      )
+                      .map((module: any) => (
+                        <SelectItem key={module.id} value={module.id.toString()}>
+                          {module.nameAr}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
@@ -732,10 +825,17 @@ export default function Courses() {
             
             <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                <strong>الفئة:</strong> {selectedCourseForView.category} | 
+                <strong>التاريخ:</strong> {selectedCourseForView.courseDate} | 
+                <strong> الوقت:</strong> {selectedCourseForView.courseTime} | 
                 <strong> المدة:</strong> {selectedCourseForView.duration} | 
                 <strong> السعر:</strong> {selectedCourseForView.price}
               </p>
+              {selectedCourseForView.educationLevel && (
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                  <strong>المستوى:</strong> {selectedCourseForView.educationLevel}
+                  {selectedCourseForView.grade && ` - ${selectedCourseForView.grade}`}
+                </p>
+              )}
             </div>
 
             <div className="overflow-y-auto max-h-[60vh]">

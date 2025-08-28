@@ -298,8 +298,11 @@ export const courses = pgTable("courses", {
   duration: text("duration").notNull(),
   price: text("price").notNull(),
   imageUrl: text("image_url"),
-  category: text("category").notNull(),
+  courseDate: text("course_date").notNull(), // Date when course starts
+  courseTime: text("course_time").notNull(), // Time when course starts
+  subjectId: integer("subject_id").references(() => teachingModules.id), // Subject reference
   educationLevel: text("education_level"), // Primary, Middle, Secondary for child filtering
+  grade: text("grade"), // Specific grade/year within education level
   ageRange: text("age_range"), // e.g., "6-12 years", "13-18 years"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -779,8 +782,11 @@ export const insertCourseSchema = createInsertSchema(courses).pick({
   duration: true,
   price: true,
   imageUrl: true,
-  category: true,
+  courseDate: true,
+  courseTime: true,
+  subjectId: true,
   educationLevel: true,
+  grade: true,
   ageRange: true,
 });
 
