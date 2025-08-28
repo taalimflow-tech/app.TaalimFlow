@@ -37,6 +37,7 @@ import DesktopQRScanner from "@/pages/DesktopQRScanner";
 import FinancialReports from "@/pages/FinancialReports";
 import GainLossCalculator from "@/pages/GainLossCalculator";
 import { Notifications } from "@/pages/Notifications";
+import AdminFormationRegistrations from "@/pages/AdminFormationRegistrations";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -156,6 +157,9 @@ function AppRoutes() {
           </Route>
           <Route path="/school/:code/admin/student-management">
             <AuthWrapper><Layout><AdminStudentManagement /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/admin/formation-registrations">
+            <AuthWrapper><Layout><AdminFormationRegistrations /></Layout></AuthWrapper>
           </Route>
           <Route path="/school/:code/desktop-scanner">
             <AuthWrapper><Layout><DesktopQRScanner /></Layout></AuthWrapper>

@@ -267,6 +267,7 @@ export interface IStorage {
   createFormationRegistration(
     registration: InsertFormationRegistration,
   ): Promise<FormationRegistration>;
+  getFormationRegistrations(schoolId: number): Promise<any[]>;
 
   // Children methods
   createChild(child: InsertChild): Promise<Child>;
@@ -2513,6 +2514,26 @@ export class DatabaseStorage implements IStorage {
       .values([insertFormationRegistration])
       .returning();
     return registration;
+  }
+
+  async getFormationRegistrations(schoolId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: formationRegistrations.id,
+        formationId: formationRegistrations.formationId,
+        fullName: formationRegistrations.fullName,
+        phone: formationRegistrations.phone,
+        email: formationRegistrations.email,
+        createdAt: formationRegistrations.createdAt,
+        formationTitle: formations.title,
+        formationCategory: formations.category,
+        formationPrice: formations.price,
+        formationDuration: formations.duration,
+      })
+      .from(formationRegistrations)
+      .leftJoin(formations, eq(formationRegistrations.formationId, formations.id))
+      .where(eq(formationRegistrations.schoolId, schoolId))
+      .orderBy(desc(formationRegistrations.createdAt));
   }
 
   async getNotifications(

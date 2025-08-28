@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Formation } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -19,30 +21,52 @@ export default function Formations() {
 
   const [selectedFormation, setSelectedFormation] = useState<Formation | null>(null);
   const [showJoinForm, setShowJoinForm] = useState(false);
+  const [registrationData, setRegistrationData] = useState({
+    fullName: '',
+    phone: '',
+    email: ''
+  });
 
   const joinFormationMutation = useMutation({
-    mutationFn: async (formationId: number) => {
-      const response = await apiRequest('POST', '/api/formation-registrations', {
-        formationId,
-        userId: user?.id
-      });
+    mutationFn: async (data: { formationId: number; fullName: string; phone: string; email: string }) => {
+      const response = await apiRequest('POST', '/api/formation-registrations', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'فشل في التسجيل');
+      }
       return response.json();
     },
     onSuccess: () => {
       toast({ title: 'تم تسجيلك في التكوين بنجاح' });
       setShowJoinForm(false);
       setSelectedFormation(null);
+      setRegistrationData({ fullName: '', phone: '', email: '' });
       queryClient.invalidateQueries({ queryKey: ['/api/formation-registrations'] });
     },
-    onError: () => {
-      toast({ title: 'خطأ في التسجيل في التكوين', variant: 'destructive' });
+    onError: (error: any) => {
+      toast({ 
+        title: 'خطأ في التسجيل في التكوين', 
+        description: error.message || 'حدث خطأ غير متوقع',
+        variant: 'destructive' 
+      });
     }
   });
 
   const handleJoinFormation = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedFormation) {
-      joinFormationMutation.mutate(selectedFormation.id);
+    if (selectedFormation && registrationData.fullName && registrationData.phone && registrationData.email) {
+      joinFormationMutation.mutate({
+        formationId: selectedFormation.id,
+        fullName: registrationData.fullName,
+        phone: registrationData.phone,
+        email: registrationData.email
+      });
+    } else {
+      toast({ 
+        title: 'بيانات ناقصة', 
+        description: 'يرجى ملء جميع الحقول المطلوبة',
+        variant: 'destructive' 
+      });
     }
   };
 
@@ -116,7 +140,10 @@ export default function Formations() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold dark:text-white">التسجيل في {selectedFormation.title}</h2>
               <button
-                onClick={() => setShowJoinForm(false)}
+                onClick={() => {
+                  setShowJoinForm(false);
+                  setRegistrationData({ fullName: '', phone: '', email: '' });
+                }}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 ✕
@@ -124,27 +151,63 @@ export default function Formations() {
             </div>
             
             <form onSubmit={handleJoinFormation} className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  هل تريد التسجيل في هذا التكوين؟
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded mb-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  <strong>الوصف:</strong> {selectedFormation.description}
                 </p>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded mb-4">
-                  <p className="text-sm text-gray-700 mb-2">
-                    <strong>الوصف:</strong> {selectedFormation.description}
-                  </p>
-                  <p className="text-sm text-gray-700 mb-2">
-                    <strong>المدة:</strong> {selectedFormation.duration}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    <strong>السعر:</strong> {selectedFormation.price}
-                  </p>
-                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  <strong>المدة:</strong> {selectedFormation.duration}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <strong>السعر:</strong> {selectedFormation.price}
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="fullName">الاسم الكامل</Label>
+                <Input
+                  id="fullName"
+                  value={registrationData.fullName}
+                  onChange={(e) => setRegistrationData({...registrationData, fullName: e.target.value})}
+                  placeholder="أدخل اسمك الكامل"
+                  required
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">رقم الهاتف</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={registrationData.phone}
+                  onChange={(e) => setRegistrationData({...registrationData, phone: e.target.value})}
+                  placeholder="أدخل رقم هاتفك"
+                  required
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={registrationData.email}
+                  onChange={(e) => setRegistrationData({...registrationData, email: e.target.value})}
+                  placeholder="أدخل بريدك الإلكتروني"
+                  required
+                  className="mt-1"
+                />
               </div>
               
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  onClick={() => setShowJoinForm(false)}
+                  onClick={() => {
+                    setShowJoinForm(false);
+                    setRegistrationData({ fullName: '', phone: '', email: '' });
+                  }}
                   variant="outline"
                   className="flex-1"
                 >

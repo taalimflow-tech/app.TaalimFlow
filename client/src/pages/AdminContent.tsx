@@ -452,13 +452,23 @@ export default function AdminContent() {
           </Button>
           <h2 className="text-2xl font-bold text-gray-800">إدارة المحتوى</h2>
         </div>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-purple-600 hover:bg-purple-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          إضافة جديد
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => navigate('/admin/formation-registrations')}
+            variant="outline"
+            className="text-gray-600 hover:text-gray-800"
+          >
+            <Users className="w-4 h-4 mr-1" />
+            تسجيلات التكوينات
+          </Button>
+          <Button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            إضافة جديد
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}

@@ -2983,12 +2983,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/formation-registrations", async (req, res) => {
     try {
+      const currentUser = req.session.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
       const validatedData = insertFormationRegistrationSchema.parse(req.body);
-      const registration =
-        await storage.createFormationRegistration(validatedData);
+      const registrationData = {
+        ...validatedData,
+        schoolId: currentUser.schoolId,
+      };
+      
+      const registration = await storage.createFormationRegistration(registrationData);
       res.status(201).json(registration);
     } catch (error) {
+      console.error("Formation registration error:", error);
       res.status(400).json({ error: "Invalid formation registration data" });
+    }
+  });
+
+  app.get("/api/formation-registrations", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "المدير غير مرتبط بمدرسة محددة" });
+      }
+
+      const registrations = await storage.getFormationRegistrations(schoolId);
+      res.json(registrations);
+    } catch (error) {
+      console.error("Formation registrations fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch formation registrations" });
     }
   });
 
