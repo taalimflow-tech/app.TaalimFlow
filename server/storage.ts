@@ -804,9 +804,9 @@ export class DatabaseStorage implements IStorage {
       users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+        .where(and(eq(users.email, email), eq(users.schoolId, schoolId), eq(users.deleted, false)));
     } else {
-      users_found = await db.select().from(users).where(eq(users.email, email));
+      users_found = await db.select().from(users).where(and(eq(users.email, email), eq(users.deleted, false)));
     }
 
     let user = users_found[0];
