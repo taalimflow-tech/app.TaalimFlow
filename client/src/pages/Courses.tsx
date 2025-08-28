@@ -153,7 +153,6 @@ export default function Courses() {
 
   const joinCourseMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('Sending course registration data:', data);
       const response = await apiRequest('POST', '/api/course-registrations', data);
       if (!response.ok) {
         const errorData = await response.json();
@@ -275,12 +274,12 @@ export default function Courses() {
     if (!timeLeft) return null;
 
     return (
-      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium ${
+      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium ${
         isExpired 
           ? 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/50 dark:to-pink-950/50 border border-red-200 dark:border-red-800'
           : 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200 dark:border-indigo-800'
       }`}>
-        <Clock className={`w-4 h-4 flex-shrink-0 ${
+        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${
           isExpired 
             ? 'text-red-600 dark:text-red-400' 
             : 'text-indigo-600 dark:text-indigo-400'
@@ -424,45 +423,6 @@ export default function Courses() {
           )}
         </div>
 
-        {/* Debug Section - Display registered users and current user ID */}
-        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-3">Debug Info</h3>
-          <div className="space-y-2 text-sm">
-            <p className="text-yellow-700 dark:text-yellow-300">
-              <strong>Current User ID:</strong> {user?.id} (Type: {typeof user?.id})
-            </p>
-            <p className="text-yellow-700 dark:text-yellow-300">
-              <strong>Current User Name:</strong> {user?.name}
-            </p>
-            <p className="text-yellow-700 dark:text-yellow-300">
-              <strong>Current User Role:</strong> {user?.role}
-            </p>
-            <p className="text-yellow-700 dark:text-yellow-300">
-              <strong>Registrations Loading:</strong> {registrationsLoading ? 'Yes' : 'No'}
-            </p>
-            {registrationsError && (
-              <p className="text-red-700 dark:text-red-300">
-                <strong>API Error:</strong> {(registrationsError as any)?.message || 'Unknown error'}
-              </p>
-            )}
-            <div>
-              <p className="text-yellow-700 dark:text-yellow-300 font-medium mb-2">
-                All Course Registrations ({courseRegistrations?.length || 0}):
-              </p>
-              {courseRegistrations && Array.isArray(courseRegistrations) && courseRegistrations.length > 0 ? (
-                <div className="max-h-40 overflow-y-auto space-y-1">
-                  {(courseRegistrations as any[]).map((reg: any, index: number) => (
-                    <div key={index} className="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-800/30 p-2 rounded">
-                      [{index}] User ID: {reg.userId} ({typeof reg.userId}) | Course ID: {reg.courseId} ({typeof reg.courseId}) | Name: {reg.fullName} | Type: {reg.registrantType}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-yellow-600 dark:text-yellow-400 text-xs">No registrations found</p>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* Courses Grid */}
         {courses.length > 0 ? (
@@ -479,11 +439,11 @@ export default function Courses() {
                         </span>
                       </div>
                       
-                      {/* Course Info - Modern Responsive Layout */}
-                      <div className="space-y-2">
+                      {/* Course Info - Compact Layout */}
+                      <div className="space-y-1.5">
                         {/* Date and Time Badge */}
-                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800 px-3 py-2 rounded-full text-sm font-medium">
-                          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800 px-2.5 py-1.5 rounded-full text-xs font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                           <span className="text-blue-700 dark:text-blue-300">
                             {(() => {
                               const formattedDate = course.courseDate ? 
@@ -494,31 +454,31 @@ export default function Courses() {
                           </span>
                         </div>
                         
-                        {/* Responsive Info Tags */}
-                        <div className="flex flex-wrap gap-2 mt-3">
+                        {/* Compact Info Tags */}
+                        <div className="flex flex-wrap gap-1.5 mt-2">
                           {/* Countdown Timer */}
                           <CourseCountdown courseDate={course.courseDate} courseTime={course.courseTime} />
                           
                           {/* Duration */}
                           {course.duration && (
-                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 px-3 py-2 rounded-full text-sm font-medium">
-                              <Timer className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 px-2.5 py-1.5 rounded-full text-xs font-medium">
+                              <Timer className="w-3.5 h-3.5 text-green-600 dark:text-green-400 flex-shrink-0" />
                               <span className="text-green-700 dark:text-green-300 whitespace-nowrap">{course.duration}</span>
                             </div>
                           )}
 
                           {/* Grade */}
                           {course.grade && (
-                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800 px-3 py-2 rounded-full text-sm font-medium">
-                              <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800 px-2.5 py-1.5 rounded-full text-xs font-medium">
+                              <GraduationCap className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                               <span className="text-purple-700 dark:text-purple-300 whitespace-nowrap">{course.grade}</span>
                             </div>
                           )}
 
                           {/* Subject */}
                           {getSubjectName(course.subjectId) && (
-                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 border border-orange-200 dark:border-orange-800 px-3 py-2 rounded-full text-sm font-medium">
-                              <BookOpenText className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 border border-orange-200 dark:border-orange-800 px-2.5 py-1.5 rounded-full text-xs font-medium">
+                              <BookOpenText className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
                               <span className="text-orange-700 dark:text-orange-300 whitespace-nowrap">{getSubjectName(course.subjectId)}</span>
                             </div>
                           )}
