@@ -9,7 +9,7 @@ import { Course } from '@shared/schema';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, Users, Phone, Mail, Calendar, Plus, Edit, Trash, BookOpen } from 'lucide-react';
+import { Eye, Users, Phone, Mail, Calendar, Plus, Edit, Trash, BookOpen, Clock, GraduationCap, BookOpenText, Timer } from 'lucide-react';
 
 export default function Courses() {
   const { user, loading: authLoading } = useAuth();
@@ -354,51 +354,47 @@ export default function Courses() {
                     <div className="flex-1">
                       <CardTitle className="text-lg text-right mb-3">{course.title}</CardTitle>
                       
-                      {/* Course Info - Static Modern Layout */}
-                      <div className="space-y-3">
-                        {/* Date and Time in modern format */}
-                        <div className="flex items-center text-sm">
-                          <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 px-3 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <span className="text-blue-500 dark:text-blue-400">📅</span>
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">
-                              {(() => {
-                                // Format date from YYYY-MM-DD to DD/MM/YYYY
-                                const formattedDate = course.courseDate ? 
-                                  course.courseDate.split('-').reverse().join('/') : '';
-                                // Format time from HH:MM to HH:MM
-                                const formattedTime = course.courseTime || '';
-                                return `${formattedDate} | ${formattedTime}`;
-                              })()}
-                            </span>
-                          </div>
+                      {/* Course Info - Modern Responsive Layout */}
+                      <div className="space-y-2">
+                        {/* Date and Time Badge */}
+                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800 px-3 py-2 rounded-full text-sm font-medium">
+                          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-blue-700 dark:text-blue-300">
+                            {(() => {
+                              const formattedDate = course.courseDate ? 
+                                course.courseDate.split('-').reverse().join('/') : '';
+                              const formattedTime = course.courseTime || '';
+                              return `${formattedDate} | ${formattedTime}`;
+                            })()}
+                          </span>
                         </div>
                         
-                        {/* Duration */}
-                        {course.duration && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-gray-500 dark:text-gray-400">⏱️</span>
-                            <span className="text-gray-600 dark:text-gray-400 font-medium">المدة:</span>
-                            <span className="text-gray-700 dark:text-gray-300">{course.duration}</span>
-                          </div>
-                        )}
+                        {/* Responsive Info Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                          {/* Duration */}
+                          {course.duration && (
+                            <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 px-3 py-2 rounded-lg text-sm">
+                              <Timer className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                              <span className="text-green-700 dark:text-green-300 font-medium truncate">{course.duration}</span>
+                            </div>
+                          )}
 
-                        {/* Grade */}
-                        {course.grade && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-gray-500 dark:text-gray-400">🎓</span>
-                            <span className="text-gray-600 dark:text-gray-400 font-medium">السنة:</span>
-                            <span className="text-gray-700 dark:text-gray-300">{course.grade}</span>
-                          </div>
-                        )}
+                          {/* Grade */}
+                          {course.grade && (
+                            <div className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800 px-3 py-2 rounded-lg text-sm">
+                              <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                              <span className="text-purple-700 dark:text-purple-300 font-medium truncate">{course.grade}</span>
+                            </div>
+                          )}
 
-                        {/* Subject */}
-                        {getSubjectName(course.subjectId) && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-gray-500 dark:text-gray-400">📚</span>
-                            <span className="text-gray-600 dark:text-gray-400 font-medium">المادة:</span>
-                            <span className="text-gray-700 dark:text-gray-300">{getSubjectName(course.subjectId)}</span>
-                          </div>
-                        )}
+                          {/* Subject - Full width on mobile if needed */}
+                          {getSubjectName(course.subjectId) && (
+                            <div className={`flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 border border-orange-200 dark:border-orange-800 px-3 py-2 rounded-lg text-sm ${!course.duration && !course.grade ? 'sm:col-span-2' : 'col-span-full sm:col-span-2'}`}>
+                              <BookOpenText className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                              <span className="text-orange-700 dark:text-orange-300 font-medium truncate">{getSubjectName(course.subjectId)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     {user.role === 'admin' && (
