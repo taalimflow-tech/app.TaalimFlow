@@ -48,7 +48,7 @@ export default function Courses() {
   });
 
   // Query for course registrations (load for all users to check registration status)
-  const { data: courseRegistrations = [], isLoading: registrationsLoading } = useQuery({
+  const { data: courseRegistrations = [], isLoading: registrationsLoading, error: registrationsError } = useQuery({
     queryKey: ['/api/course-registrations'],
     enabled: !!user && !authLoading,
     refetchOnWindowFocus: false,
@@ -372,6 +372,17 @@ export default function Courses() {
             <p className="text-yellow-700 dark:text-yellow-300">
               <strong>Current User Name:</strong> {user?.name}
             </p>
+            <p className="text-yellow-700 dark:text-yellow-300">
+              <strong>Current User Role:</strong> {user?.role}
+            </p>
+            <p className="text-yellow-700 dark:text-yellow-300">
+              <strong>Registrations Loading:</strong> {registrationsLoading ? 'Yes' : 'No'}
+            </p>
+            {registrationsError && (
+              <p className="text-red-700 dark:text-red-300">
+                <strong>API Error:</strong> {(registrationsError as any)?.message || 'Unknown error'}
+              </p>
+            )}
             <div>
               <p className="text-yellow-700 dark:text-yellow-300 font-medium mb-2">
                 All Course Registrations ({courseRegistrations?.length || 0}):
