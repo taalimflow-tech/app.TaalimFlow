@@ -56,7 +56,7 @@ export default function Formations() {
     e.preventDefault();
     if (selectedFormation && registrationData.fullName && registrationData.phone && registrationData.email) {
       joinFormationMutation.mutate({
-        formationId: selectedFormation.id,
+        formationId: Number(selectedFormation.id),
         fullName: registrationData.fullName,
         phone: registrationData.phone,
         email: registrationData.email
