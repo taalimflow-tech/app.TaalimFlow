@@ -369,29 +369,29 @@ export default function Courses() {
                           </span>
                         </div>
                         
-                        {/* Responsive Info Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                        {/* Responsive Info Tags */}
+                        <div className="flex flex-wrap gap-2 mt-3">
                           {/* Duration */}
                           {course.duration && (
-                            <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 px-3 py-2 rounded-lg text-sm">
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 px-3 py-2 rounded-full text-sm">
                               <Timer className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
-                              <span className="text-green-700 dark:text-green-300 font-medium truncate">{course.duration}</span>
+                              <span className="text-green-700 dark:text-green-300 font-medium whitespace-nowrap">{course.duration}</span>
                             </div>
                           )}
 
                           {/* Grade */}
                           {course.grade && (
-                            <div className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800 px-3 py-2 rounded-lg text-sm">
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800 px-3 py-2 rounded-full text-sm">
                               <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
-                              <span className="text-purple-700 dark:text-purple-300 font-medium truncate">{course.grade}</span>
+                              <span className="text-purple-700 dark:text-purple-300 font-medium whitespace-nowrap">{course.grade}</span>
                             </div>
                           )}
 
-                          {/* Subject - Full width on mobile if needed */}
+                          {/* Subject */}
                           {getSubjectName(course.subjectId) && (
-                            <div className={`flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 border border-orange-200 dark:border-orange-800 px-3 py-2 rounded-lg text-sm ${!course.duration && !course.grade ? 'sm:col-span-2' : 'col-span-full sm:col-span-2'}`}>
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 border border-orange-200 dark:border-orange-800 px-3 py-2 rounded-full text-sm">
                               <BookOpenText className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
-                              <span className="text-orange-700 dark:text-orange-300 font-medium truncate">{getSubjectName(course.subjectId)}</span>
+                              <span className="text-orange-700 dark:text-orange-300 font-medium whitespace-nowrap">{getSubjectName(course.subjectId)}</span>
                             </div>
                           )}
                         </div>
