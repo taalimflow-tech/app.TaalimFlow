@@ -3086,6 +3086,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // COURSES API ROUTES
+  app.get("/api/courses", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const courses = await storage.getCourses(schoolId);
+      res.json(courses);
+    } catch (error) {
+      console.error("Courses fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch courses" });
+    }
+  });
+
+  app.post("/api/courses", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "ليس لديك صلاحية إنشاء الدورات" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const insertCourseData = {
+        ...req.body,
+        schoolId,
+      };
+
+      const course = await storage.createCourse(insertCourseData);
+      res.json(course);
+    } catch (error) {
+      console.error("Course creation error:", error);
+      res.status(500).json({ error: "Failed to create course" });
+    }
+  });
+
+  app.put("/api/courses/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "ليس لديك صلاحية تعديل الدورات" });
+      }
+
+      const courseId = parseInt(req.params.id);
+      const schoolId = req.session.user.schoolId;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const course = await storage.updateCourse(courseId, req.body, schoolId);
+      res.json(course);
+    } catch (error) {
+      console.error("Course update error:", error);
+      res.status(500).json({ error: "Failed to update course" });
+    }
+  });
+
+  app.delete("/api/courses/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "ليس لديك صلاحية حذف الدورات" });
+      }
+
+      const courseId = parseInt(req.params.id);
+      const schoolId = req.session.user.schoolId;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      await storage.deleteCourse(courseId, schoolId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Course deletion error:", error);
+      res.status(500).json({ error: "Failed to delete course" });
+    }
+  });
+
+  // Course Registration Routes
+  app.post("/api/course-registrations", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      const userId = req.session.user.id;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const registrationData = {
+        ...req.body,
+        schoolId,
+        userId,
+      };
+
+      const registration = await storage.createCourseRegistration(registrationData);
+      res.json(registration);
+    } catch (error) {
+      console.error("Course registration error:", error);
+      res.status(400).json({ error: `Invalid course registration data: ${error instanceof Error ? error.message : 'Unknown error'}` });
+    }
+  });
+
+  // Check if user is registered for a specific course
+  app.get("/api/course-registrations/check/:courseId", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const courseId = parseInt(req.params.courseId);
+      const userId = req.session.user.id;
+      const schoolId = req.session.user.schoolId;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const isRegistered = await storage.isUserRegisteredForCourse(userId, courseId, schoolId);
+      res.json({ isRegistered });
+    } catch (error) {
+      console.error("Course registration check error:", error);
+      res.status(500).json({ error: "Failed to check course registration status" });
+    }
+  });
+
+  // Check if child is registered for a specific course
+  app.get("/api/course-registrations/check/:courseId/child/:childId", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const courseId = parseInt(req.params.courseId);
+      const childId = parseInt(req.params.childId);
+      const userId = req.session.user.id;
+      const schoolId = req.session.user.schoolId;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const isRegistered = await storage.isChildRegisteredForCourse(userId, childId, courseId, schoolId);
+      res.json({ isRegistered });
+    } catch (error) {
+      console.error("Child course registration check error:", error);
+      res.status(500).json({ error: "Failed to check child course registration status" });
+    }
+  });
+
+  app.get("/api/course-registrations", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const registrations = await storage.getCourseRegistrations(schoolId);
+      
+      // If not admin, return only user's own registrations
+      if (req.session.user.role !== "admin") {
+        const userRegistrations = registrations.filter(reg => reg.userId === req.session.user.id);
+        return res.json(userRegistrations);
+      }
+      
+      // Admin gets all registrations
+      res.json(registrations);
+    } catch (error) {
+      console.error("Course registrations fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch course registrations" });
+    }
+  });
+
   // Notification routes
   app.get("/api/notifications", async (req, res) => {
     try {

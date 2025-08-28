@@ -27,6 +27,7 @@ export default function Home() {
     { label: 'المدونة', path: `${basePath}/blog`, icon: '📚' },
     { label: 'المجموعات', path: `${basePath}/groups`, icon: '👥' },
     { label: 'التكوينات', path: `${basePath}/formations`, icon: '🎓' },
+    { label: 'الدورات', path: `${basePath}/courses`, icon: '📖' },
   ];
 
   // Add suggestions for non-admin users only

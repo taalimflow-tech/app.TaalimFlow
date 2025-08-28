@@ -289,6 +289,37 @@ export const formationRegistrations = pgTable("formation_registrations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Courses table - similar to formations but for دورات
+export const courses = pgTable("courses", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  duration: text("duration").notNull(),
+  price: text("price").notNull(),
+  imageUrl: text("image_url"),
+  category: text("category").notNull(),
+  educationLevel: text("education_level"), // Primary, Middle, Secondary for child filtering
+  ageRange: text("age_range"), // e.g., "6-12 years", "13-18 years"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Course registrations table - supports both student and child registrations
+export const courseRegistrations = pgTable("course_registrations", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").references(() => schools.id).notNull(),
+  courseId: integer("course_id").references(() => courses.id),
+  userId: integer("user_id").references(() => users.id).notNull(), // Registering user (student or parent)
+  registrantType: text("registrant_type", { enum: ["self", "child"] }).notNull(), // self for students, child for parents
+  childId: integer("child_id").references(() => children.id), // null for self-registration
+  fullName: text("full_name").notNull(), // Name of participant (student or child)
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  childName: text("child_name"), // Child's name if registrant_type is "child"
+  childAge: integer("child_age"), // Child's age if applicable
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const children = pgTable("children", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
@@ -740,6 +771,32 @@ export const insertFinancialEntrySchema = createInsertSchema(financialEntries).p
   recordedBy: true,
 });
 
+// Course schemas
+export const insertCourseSchema = createInsertSchema(courses).pick({
+  schoolId: true,
+  title: true,
+  description: true,
+  duration: true,
+  price: true,
+  imageUrl: true,
+  category: true,
+  educationLevel: true,
+  ageRange: true,
+});
+
+export const insertCourseRegistrationSchema = createInsertSchema(courseRegistrations).pick({
+  schoolId: true,
+  courseId: true,
+  userId: true,
+  registrantType: true,
+  childId: true,
+  fullName: true,
+  phone: true,
+  email: true,
+  childName: true,
+  childAge: true,
+});
+
 // Push notification schemas
 export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({
   id: true,
@@ -805,6 +862,10 @@ export type StudentMonthlyPayment = typeof studentMonthlyPayments.$inferSelect;
 export type InsertStudentMonthlyPayment = z.infer<typeof insertStudentMonthlyPaymentSchema>;
 export type FinancialEntry = typeof financialEntries.$inferSelect;
 export type InsertFinancialEntry = z.infer<typeof insertFinancialEntrySchema>;
+export type Course = typeof courses.$inferSelect;
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
+export type CourseRegistration = typeof courseRegistrations.$inferSelect;
+export type InsertCourseRegistration = z.infer<typeof insertCourseRegistrationSchema>;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
 export type NotificationLog = typeof notificationLogs.$inferSelect;

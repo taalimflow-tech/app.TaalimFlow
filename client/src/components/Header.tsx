@@ -41,6 +41,8 @@ export function Header() {
              location.includes('/teachers') ? 'المعلمين' :
              location.includes('/messages') ? 'الرسائل' :
              location.includes('/groups') ? 'المجموعات' :
+             location.includes('/formations') ? 'التكوينات' :
+             location.includes('/courses') ? 'الدورات' :
              location.includes('/suggestions') ? 'الاقتراحات' :
              location.includes('/admin') ? 'لوحة الإدارة' :
              'مدرستي'}

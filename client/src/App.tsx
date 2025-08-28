@@ -16,6 +16,7 @@ import Suggestions from "@/pages/Suggestions";
 import Blog from "@/pages/Blog";
 import Groups from "@/pages/Groups";
 import Formations from "@/pages/Formations";
+import Courses from "@/pages/Courses";
 import AdminPanel from "@/pages/AdminPanel";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminContent from "@/pages/AdminContent";
@@ -115,6 +116,9 @@ function AppRoutes() {
           </Route>
           <Route path="/school/:code/formations">
             <AuthWrapper><Layout><Formations /></Layout></AuthWrapper>
+          </Route>
+          <Route path="/school/:code/courses">
+            <AuthWrapper><Layout><Courses /></Layout></AuthWrapper>
           </Route>
           <Route path="/school/:code/announcements">
             <AuthWrapper><Layout><Announcements /></Layout></AuthWrapper>

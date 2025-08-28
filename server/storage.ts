@@ -8,10 +8,12 @@ import {
   suggestions,
   groups,
   formations,
+  courses,
   groupRegistrations,
   groupUserAssignments,
   groupMixedAssignments,
   formationRegistrations,
+  courseRegistrations,
   children,
   students,
   notifications,
@@ -55,6 +57,10 @@ import {
   type InsertGroupMixedAssignment,
   type FormationRegistration,
   type InsertFormationRegistration,
+  type Course,
+  type InsertCourse,
+  type CourseRegistration,
+  type InsertCourseRegistration,
   type Child,
   type InsertChild,
   type Student,
@@ -2558,6 +2564,113 @@ export class DatabaseStorage implements IStorage {
           eq(formationRegistrations.userId, userId),
           eq(formationRegistrations.formationId, formationId),
           eq(formationRegistrations.schoolId, schoolId)
+        )
+      )
+      .limit(1);
+    
+    return !!registration;
+  }
+
+  // Course management methods
+  async createCourse(insertCourse: InsertCourse): Promise<Course> {
+    const [course] = await db.insert(courses).values(insertCourse).returning();
+    return course;
+  }
+
+  async getCourses(schoolId: number): Promise<Course[]> {
+    return await db
+      .select()
+      .from(courses)
+      .where(eq(courses.schoolId, schoolId))
+      .orderBy(desc(courses.createdAt));
+  }
+
+  async getCourseById(id: number, schoolId: number): Promise<Course | undefined> {
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, id), eq(courses.schoolId, schoolId)));
+    return course;
+  }
+
+  async updateCourse(id: number, updates: Partial<InsertCourse>, schoolId: number): Promise<Course> {
+    const [course] = await db
+      .update(courses)
+      .set(updates)
+      .where(and(eq(courses.id, id), eq(courses.schoolId, schoolId)))
+      .returning();
+    return course;
+  }
+
+  async deleteCourse(id: number, schoolId: number): Promise<void> {
+    await db
+      .delete(courses)
+      .where(and(eq(courses.id, id), eq(courses.schoolId, schoolId)));
+  }
+
+  // Course registration methods
+  async createCourseRegistration(insertRegistration: InsertCourseRegistration): Promise<CourseRegistration> {
+    const [registration] = await db
+      .insert(courseRegistrations)
+      .values(insertRegistration)
+      .returning();
+    return registration;
+  }
+
+  async getCourseRegistrations(schoolId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: courseRegistrations.id,
+        courseId: courseRegistrations.courseId,
+        userId: courseRegistrations.userId,
+        registrantType: courseRegistrations.registrantType,
+        childId: courseRegistrations.childId,
+        fullName: courseRegistrations.fullName,
+        phone: courseRegistrations.phone,
+        email: courseRegistrations.email,
+        childName: courseRegistrations.childName,
+        childAge: courseRegistrations.childAge,
+        createdAt: courseRegistrations.createdAt,
+        courseTitle: courses.title,
+        courseCategory: courses.category,
+        coursePrice: courses.price,
+        courseDuration: courses.duration,
+        userName: users.name,
+        userEmail: users.email,
+      })
+      .from(courseRegistrations)
+      .leftJoin(courses, eq(courseRegistrations.courseId, courses.id))
+      .leftJoin(users, eq(courseRegistrations.userId, users.id))
+      .where(eq(courseRegistrations.schoolId, schoolId))
+      .orderBy(desc(courseRegistrations.createdAt));
+  }
+
+  async isUserRegisteredForCourse(userId: number, courseId: number, schoolId: number): Promise<boolean> {
+    const [registration] = await db
+      .select({ id: courseRegistrations.id })
+      .from(courseRegistrations)
+      .where(
+        and(
+          eq(courseRegistrations.userId, userId),
+          eq(courseRegistrations.courseId, courseId),
+          eq(courseRegistrations.schoolId, schoolId)
+        )
+      )
+      .limit(1);
+    
+    return !!registration;
+  }
+
+  async isChildRegisteredForCourse(userId: number, childId: number, courseId: number, schoolId: number): Promise<boolean> {
+    const [registration] = await db
+      .select({ id: courseRegistrations.id })
+      .from(courseRegistrations)
+      .where(
+        and(
+          eq(courseRegistrations.userId, userId),
+          eq(courseRegistrations.childId, childId),
+          eq(courseRegistrations.courseId, courseId),
+          eq(courseRegistrations.schoolId, schoolId)
         )
       )
       .limit(1);
