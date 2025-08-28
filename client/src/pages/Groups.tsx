@@ -1685,84 +1685,14 @@ export default function Groups() {
       return universalSubjects;
     }
 
-    // For specific education level and grade selection, work with teaching modules
+    // For specific education level selection, work with teaching modules
+    // IGNORE GRADE FILTERING - Show all subjects for the education level
     let relevantModules = teachingModules.filter(
       (module: any) => module.educationLevel === selectedLevel,
     );
 
-    // If a specific grade is selected, filter by that grade
-    if (selectedGrade) {
-      console.log("DEBUG: Filtering by grade:", selectedGrade);
-      console.log(
-        "DEBUG: Available modules before grade filter:",
-        relevantModules.length,
-      );
-
-      // Convert selected grade to teaching module format for comparison
-      let targetGrade = selectedGrade;
-
-      // Convert from UI format to database format
-      // السنة الأولى ابتدائي -> الأولى ابتدائي
-      targetGrade = targetGrade.replace("السنة ", "");
-
-      relevantModules = relevantModules.filter((module: any) => {
-        const moduleGrade = module.grade?.trim() || "";
-        console.log(
-          `DEBUG: Comparing module "${module.name_ar}" grade "${moduleGrade}" with target grade "${targetGrade}"`,
-        );
-
-        // Exact match for grade
-        if (moduleGrade === targetGrade) {
-          console.log(`DEBUG: Exact match for module "${module.name_ar}"`);
-          return true;
-        }
-
-        // Handle secondary specializations mapping to 3rd year
-        if (selectedLevel === "الثانوي" && targetGrade === "الثالثة ثانوي") {
-          const moduleGradeLower = moduleGrade.toLowerCase();
-          const isThirdYearSpec = [
-            "تسيير واقتصاد",
-            "علمي",
-            "أدبي",
-            "تقني رياضي",
-            "آداب وفلسفة",
-            "لغات أجنبية",
-          ].some((spec) => moduleGradeLower.includes(spec.toLowerCase()));
-
-          if (isThirdYearSpec) {
-            console.log(
-              `DEBUG: Secondary specialization match for "${module.name_ar}"`,
-            );
-            return true;
-          }
-        }
-
-        // Handle reverse: when specialization is selected, match 3rd year modules
-        if (selectedLevel === "الثانوي") {
-          const selectedSpecializations = [
-            "تسيير واقتصاد",
-            "علمي",
-            "أدبي",
-            "تقني رياضي",
-          ];
-          const isSpecializationSelected =
-            selectedSpecializations.includes(targetGrade);
-          const isThirdYearModule = moduleGrade === "الثالثة ثانوي";
-
-          if (isSpecializationSelected && isThirdYearModule) {
-            console.log(
-              `DEBUG: Specialization-to-year match for "${module.name_ar}"`,
-            );
-            return true;
-          }
-        }
-
-        console.log(`DEBUG: No match for module "${module.name_ar}"`);
-        return false;
-      });
-
-      console.log("DEBUG: Modules after grade filter:", relevantModules.length);
-    }
+    console.log("DEBUG: Showing all subjects for education level:", selectedLevel);
+    console.log("DEBUG: Found modules for level:", relevantModules.length);
 
     // Create group objects from teaching modules (either existing groups or placeholders)
     console.log(
