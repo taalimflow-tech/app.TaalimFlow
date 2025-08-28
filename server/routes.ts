@@ -11,6 +11,7 @@ import {
   insertFormationSchema,
   insertGroupRegistrationSchema,
   insertFormationRegistrationSchema,
+  formationRegistrationClientSchema,
   insertUserSchema,
   insertAdminSchema,
   insertTeacherUserSchema,
@@ -2994,7 +2995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         schoolId: currentUser?.schoolId
       });
 
-      const validatedData = insertFormationRegistrationSchema.parse(req.body);
+      const validatedData = formationRegistrationClientSchema.parse(req.body);
       console.log("Schema validation passed:", validatedData);
       
       // Check if formation exists
