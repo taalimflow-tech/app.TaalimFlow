@@ -2638,7 +2638,6 @@ export class DatabaseStorage implements IStorage {
         childAge: courseRegistrations.childAge,
         createdAt: courseRegistrations.createdAt,
         courseTitle: courses.title,
-        courseCategory: courses.category,
         coursePrice: courses.price,
         courseDuration: courses.duration,
         userName: users.name,
