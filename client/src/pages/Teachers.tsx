@@ -534,6 +534,20 @@ export default function Teachers() {
       return;
     }
 
+    // Check if the specialization is already added for this teacher
+    const isAlreadyAdded = teacherForSpecialization.specializations.some(spec => 
+      spec.nameAr === selectedModule.nameAr && spec.educationLevel === selectedModule.educationLevel
+    );
+
+    if (isAlreadyAdded) {
+      toast({
+        title: "التخصص موجود مسبقاً",
+        description: `المعلم لديه هذا التخصص بالفعل: ${selectedModule.nameAr} (${selectedModule.educationLevel})`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     addSpecializationMutation.mutate({
       teacherId: teacherForSpecialization.id,
       moduleId: selectedModule.id,
@@ -1073,17 +1087,24 @@ export default function Teachers() {
                     <SelectContent>
                       {teachingModules && teachingModules.length > 0 ? (
                         Object.entries(
-                          teachingModules.reduce((acc: Record<string, any[]>, module) => {
-                            const level = module.educationLevel;
-                            if (!acc[level]) {
-                              acc[level] = [];
-                            }
-                            const existingModule = acc[level].find(m => m.nameAr === module.nameAr);
-                            if (!existingModule) {
-                              acc[level].push(module);
-                            }
-                            return acc;
-                          }, {})
+                          teachingModules
+                            .filter(module => {
+                              // Filter out modules that are already assigned to this teacher
+                              return !teacherForSpecialization?.specializations.some(spec => 
+                                spec.nameAr === module.nameAr && spec.educationLevel === module.educationLevel
+                              );
+                            })
+                            .reduce((acc: Record<string, any[]>, module) => {
+                              const level = module.educationLevel;
+                              if (!acc[level]) {
+                                acc[level] = [];
+                              }
+                              const existingModule = acc[level].find(m => m.nameAr === module.nameAr);
+                              if (!existingModule) {
+                                acc[level].push(module);
+                              }
+                              return acc;
+                            }, {})
                         ).map(([level, modules]) => (
                           <div key={level}>
                             <div className="px-2 py-1 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
@@ -1099,6 +1120,10 @@ export default function Teachers() {
                             ))}
                           </div>
                         ))
+                      ) : teachingModules && teachingModules.length > 0 ? (
+                        <div className="p-2 text-center text-gray-500">
+                          تم إضافة جميع التخصصات المتاحة لهذا المعلم
+                        </div>
                       ) : (
                         <div className="p-2 text-center text-gray-500">
                           جاري تحميل المواد...
@@ -1109,8 +1134,17 @@ export default function Teachers() {
                   <Button
                     type="button"
                     onClick={handleSaveSpecialization}
-                    disabled={!selectedSpecialization || addSpecializationMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+                    disabled={
+                      !selectedSpecialization || 
+                      addSpecializationMutation.isPending ||
+                      (teachingModules && teacherForSpecialization && 
+                        teachingModules.filter(module => 
+                          !teacherForSpecialization.specializations.some(spec => 
+                            spec.nameAr === module.nameAr && spec.educationLevel === module.educationLevel
+                          )
+                        ).length === 0)
+                    }
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {addSpecializationMutation.isPending ? 'جاري الإضافة...' : 'إضافة'}
                   </Button>

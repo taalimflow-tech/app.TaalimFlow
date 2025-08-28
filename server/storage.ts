@@ -147,11 +147,16 @@ export interface IStorage {
   ): Promise<User>;
   updateUserProfile(
     userId: number,
-    data: { name?: string; email?: string }
+    data: { name?: string; email?: string },
   ): Promise<User>;
   updateUser(
     userId: number,
-    data: { name?: string; email?: string; phone?: string | null; profilePicture?: string | null }
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string | null;
+      profilePicture?: string | null;
+    },
   ): Promise<User>;
   updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
 
@@ -189,12 +194,25 @@ export interface IStorage {
   getTeacher(id: number): Promise<Teacher | undefined>;
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
-  updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher>;
+  updateTeacher(
+    id: number,
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string | null;
+      bio?: string | null;
+      imageUrl?: string | null;
+    },
+  ): Promise<Teacher>;
   deleteTeacher(id: number, deletedBy?: number): Promise<void>;
   getTeachersWithSpecializations(schoolId: number): Promise<any[]>;
   getTeacherByLinkCode(linkCode: string): Promise<Teacher | undefined>;
   linkTeacherToUser(teacherId: number, userId: number): Promise<Teacher>;
-  verifyTeacher(teacherId: number, verifiedBy: number, notes?: string): Promise<Teacher>;
+  verifyTeacher(
+    teacherId: number,
+    verifiedBy: number,
+    notes?: string,
+  ): Promise<Teacher>;
   getPreRegisteredTeachers(schoolId: number): Promise<Teacher[]>;
 
   // Message methods
@@ -222,9 +240,19 @@ export interface IStorage {
 
   // Admin group management methods
   getAdminGroups(schoolId?: number): Promise<any[]>;
-  updateGroupAssignments(groupId: number | null, studentIds: number[], teacherId: number, groupData?: any, schoolId?: number): Promise<Group>;
+  updateGroupAssignments(
+    groupId: number | null,
+    studentIds: number[],
+    teacherId: number,
+    groupData?: any,
+    schoolId?: number,
+  ): Promise<Group>;
   getGroupAssignments(groupId: number): Promise<any[]>;
-  getAvailableStudentsByLevelAndSubject(educationLevel: string, subjectId: number, schoolId?: number): Promise<any[]>;
+  getAvailableStudentsByLevelAndSubject(
+    educationLevel: string,
+    subjectId: number,
+    schoolId?: number,
+  ): Promise<any[]>;
   // Formation methods
   getFormations(): Promise<Formation[]>;
   getFormationsBySchool(schoolId: number): Promise<Formation[]>;
@@ -309,7 +337,10 @@ export interface IStorage {
 
   // Teaching module methods
   getTeachingModules(): Promise<TeachingModule[]>;
-  getTeachingModulesByLevel(educationLevel: string, schoolId: number): Promise<TeachingModule[]>;
+  getTeachingModulesByLevel(
+    educationLevel: string,
+    schoolId: number,
+  ): Promise<TeachingModule[]>;
   createTeachingModule(module: InsertTeachingModule): Promise<TeachingModule>;
   deleteTeachingModule(id: number): Promise<void>;
   getTeachingModuleByName(
@@ -494,7 +525,14 @@ export interface IStorage {
     year: number,
     month: number,
     schoolId: number,
-  ): Promise<Array<{studentId: number, isPaid: boolean, amount?: string, paidAt?: Date}>>;
+  ): Promise<
+    Array<{
+      studentId: number;
+      isPaid: boolean;
+      amount?: string;
+      paidAt?: Date;
+    }>
+  >;
   createStudentPayment(
     studentId: number,
     userId: number,
@@ -511,7 +549,7 @@ export interface IStorage {
     studentId: number,
     year: number,
     month: number,
-    schoolId: number
+    schoolId: number,
   ): Promise<boolean>;
   getStudentPaymentHistory(
     studentId: number,
@@ -534,7 +572,7 @@ export interface IStorage {
     schoolId: number,
   ): Promise<any[]>;
   getStudentPaymentRecords(studentId: number, schoolId: number): Promise<any[]>;
-  
+
   // Test function to get all payments from database
   getAllPaymentsFromDatabase(schoolId: number): Promise<any[]>;
   getStudentGroupPayments(
@@ -659,6 +697,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSchool(id: number): Promise<void> {
+    // Delete all related data in the correct order (foreign key dependencies)
     await db.delete(notifications).where(eq(notifications.schoolId, id));
     await db.delete(userReports).where(eq(userReports.schoolId, id));
     await db.delete(scheduleCells).where(eq(scheduleCells.schoolId, id));
@@ -687,10 +726,15 @@ export class DatabaseStorage implements IStorage {
     await db.delete(teachingModules).where(eq(teachingModules.schoolId, id));
     await db.delete(blockedUsers).where(eq(blockedUsers.schoolId, id));
     await db.delete(users).where(eq(users.schoolId, id));
+
+    // Finally delete the school itself
     await db.delete(schools).where(eq(schools.id, id));
   }
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(and(eq(users.id, id), eq(users.deleted, false)));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.id, id), eq(users.deleted, false)));
     return user || undefined;
   }
 
@@ -710,7 +754,13 @@ export class DatabaseStorage implements IStorage {
       const users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.email, email), eq(users.schoolId, schoolId), eq(users.deleted, false)));
+        .where(
+          and(
+            eq(users.email, email),
+            eq(users.schoolId, schoolId),
+            eq(users.deleted, false),
+          ),
+        );
       return users_found[0] || undefined;
     } else {
       const users_found = await db
@@ -729,14 +779,14 @@ export class DatabaseStorage implements IStorage {
       const users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.phone, phone), eq(users.schoolId, schoolId), eq(users.deleted, false)))
+        .where(and(eq(users.phone, phone), eq(users.schoolId, schoolId)))
         .orderBy(desc(users.id));
       return users_found[0] || undefined;
     } else {
       const users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.phone, phone), eq(users.deleted, false)))
+        .where(eq(users.phone, phone))
         .orderBy(desc(users.id));
       return users_found[0] || undefined;
     }
@@ -754,9 +804,9 @@ export class DatabaseStorage implements IStorage {
       users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.email, email), eq(users.schoolId, schoolId), eq(users.deleted, false)));
+        .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
     } else {
-      users_found = await db.select().from(users).where(and(eq(users.email, email), eq(users.deleted, false)));
+      users_found = await db.select().from(users).where(eq(users.email, email));
     }
 
     let user = users_found[0];
@@ -815,7 +865,7 @@ export class DatabaseStorage implements IStorage {
       return await db
         .select()
         .from(users)
-        .where(and(eq(users.schoolId, schoolId), eq(users.deleted, false)))
+        .where(eq(users.schoolId, schoolId))
         .orderBy(desc(users.createdAt));
     }
     // If no schoolId provided, return empty array for security
@@ -830,12 +880,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(
-        and(
-          eq(users.deleted, false),
-          or(
-            ilike(users.name, `%${query}%`),
-            ilike(users.email, `%${query}%`),
-            ilike(users.phone, `%${query}%`),
+        or(
+          ilike(users.name, `%${query}%`),
+          ilike(users.email, `%${query}%`),
+          ilike(users.phone, `%${query}%`),
         ),
       )
       .orderBy(desc(users.createdAt));
@@ -1366,47 +1414,59 @@ export class DatabaseStorage implements IStorage {
 
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
     try {
-      console.log('Creating teacher with data:', insertTeacher);
-      
+      console.log("Creating teacher with data:", insertTeacher);
+
       // Create teacher with basic fields matching existing DB structure
       const teacherData = {
         schoolId: insertTeacher.schoolId,
         name: insertTeacher.name,
         email: insertTeacher.email,
         phone: insertTeacher.phone || null,
-        subject: insertTeacher.subject || 'مادة عامة',
+        subject: insertTeacher.subject || "مادة عامة",
         bio: insertTeacher.bio || null,
         imageUrl: insertTeacher.imageUrl || null,
-        available: insertTeacher.available !== undefined ? insertTeacher.available : true,
+        available:
+          insertTeacher.available !== undefined
+            ? insertTeacher.available
+            : true,
       };
-      
-      console.log('Teacher data for insertion:', teacherData);
-      
+
+      console.log("Teacher data for insertion:", teacherData);
+
       const [teacher] = await db
         .insert(teachers)
         .values(teacherData)
         .returning();
-      
-      console.log('Teacher created successfully:', teacher);
+
+      console.log("Teacher created successfully:", teacher);
       return teacher;
     } catch (error) {
-      console.error('Error creating teacher:', error);
+      console.error("Error creating teacher:", error);
       throw error;
     }
   }
 
-  async updateTeacher(id: number, data: { name?: string; email?: string; phone?: string | null; bio?: string | null; imageUrl?: string | null }): Promise<Teacher> {
-    console.log('Updating teacher:', { id, data });
-    
+  async updateTeacher(
+    id: number,
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string | null;
+      bio?: string | null;
+      imageUrl?: string | null;
+    },
+  ): Promise<Teacher> {
+    console.log("Updating teacher:", { id, data });
+
     // First check if teacher exists
     const existingTeacher = await this.getTeacher(id);
     if (!existingTeacher) {
-      console.error('Teacher not found with ID:', id);
-      throw new Error('Teacher not found');
+      console.error("Teacher not found with ID:", id);
+      throw new Error("Teacher not found");
     }
-    
-    console.log('Found existing teacher:', existingTeacher);
-    
+
+    console.log("Found existing teacher:", existingTeacher);
+
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.email !== undefined) updateData.email = data.email;
@@ -1414,20 +1474,20 @@ export class DatabaseStorage implements IStorage {
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
 
-    console.log('Update data:', updateData);
+    console.log("Update data:", updateData);
 
     const [teacher] = await db
       .update(teachers)
       .set(updateData)
       .where(eq(teachers.id, id))
       .returning();
-    
+
     if (!teacher) {
-      console.error('Update failed - no teacher returned');
-      throw new Error('Teacher update failed');
+      console.error("Update failed - no teacher returned");
+      throw new Error("Teacher update failed");
     }
-    
-    console.log('Teacher updated successfully:', teacher);
+
+    console.log("Teacher updated successfully:", teacher);
     return teacher;
   }
 
@@ -1438,7 +1498,7 @@ export class DatabaseStorage implements IStorage {
       .set({
         deleted: true,
         deletedAt: new Date(),
-        deletedBy: deletedBy || null
+        deletedBy: deletedBy || null,
       })
       .where(eq(users.id, id));
   }
@@ -1465,7 +1525,11 @@ export class DatabaseStorage implements IStorage {
     return teacher;
   }
 
-  async verifyTeacher(teacherId: number, verifiedBy: number, notes?: string): Promise<Teacher> {
+  async verifyTeacher(
+    teacherId: number,
+    verifiedBy: number,
+    notes?: string,
+  ): Promise<Teacher> {
     const [teacher] = await db
       .update(teachers)
       .set({
@@ -1486,8 +1550,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(teachers.schoolId, schoolId),
-          eq(teachers.isPreRegistered, true)
-        )
+          eq(teachers.isPreRegistered, true),
+        ),
       )
       .orderBy(desc(teachers.createdAt));
   }
@@ -1517,7 +1581,13 @@ export class DatabaseStorage implements IStorage {
         teachingModules,
         eq(teacherSpecializations.moduleId, teachingModules.id),
       )
-      .where(and(eq(users.role, "teacher"), eq(users.schoolId, schoolId), eq(users.deleted, false)))
+      .where(
+        and(
+          eq(users.role, "teacher"),
+          eq(users.schoolId, schoolId),
+          eq(users.deleted, false),
+        ),
+      )
       .orderBy(users.name);
 
     // Group by teacher to consolidate specializations
@@ -1797,8 +1867,8 @@ export class DatabaseStorage implements IStorage {
       for (const assignment of allAssignments) {
         if (!assignmentsByGroup.has(assignment.groupId)) {
           if (assignment.groupId) {
-          assignmentsByGroup.set(assignment.groupId, []);
-        }
+            assignmentsByGroup.set(assignment.groupId, []);
+          }
         }
         if (assignment.groupId) {
           assignmentsByGroup.get(assignment.groupId)!.push(assignment);
@@ -1816,9 +1886,15 @@ export class DatabaseStorage implements IStorage {
       const allChildIds = new Set<number>();
 
       for (const assignment of allAssignments) {
-        if (assignment.studentType === "student" && assignment.studentId != null) {
+        if (
+          assignment.studentType === "student" &&
+          assignment.studentId != null
+        ) {
           allStudentIds.add(assignment.studentId);
-        } else if (assignment.studentType === "child" && assignment.studentId != null) {
+        } else if (
+          assignment.studentType === "child" &&
+          assignment.studentId != null
+        ) {
           allChildIds.add(assignment.studentId);
         }
       }
@@ -1987,8 +2063,11 @@ export class DatabaseStorage implements IStorage {
 
       // Add new mixed assignments
       if (studentIds.length > 0) {
-        console.log(`🔧 Creating assignments for ${studentIds.length} students:`, studentIds);
-        
+        console.log(
+          `🔧 Creating assignments for ${studentIds.length} students:`,
+          studentIds,
+        );
+
         const mixedAssignments = studentIds
           .map((studentId) => {
             const studentInfo = availableStudents.find(
@@ -2004,21 +2083,21 @@ export class DatabaseStorage implements IStorage {
             }
 
             // CORRECT: Use separate IDs for different purposes
-            const actualStudentId = studentId;        // Student ID for payment/display (e.g., 18 for student5)
-            const actualUserId = studentInfo.userId;  // User ID for attendance (e.g., 34 for student5)
+            const actualStudentId = studentId; // Student ID for payment/display (e.g., 18 for student5)
+            const actualUserId = studentInfo.userId; // User ID for attendance (e.g., 34 for student5)
 
             console.log(`🔧 Creating assignment with dual IDs:`, {
               studentId: actualStudentId, // Payment system & group display use this
-              userId: actualUserId,       // Attendance system uses this
+              userId: actualUserId, // Attendance system uses this
               studentType: studentInfo.type,
-              studentName: studentInfo.name
+              studentName: studentInfo.name,
             });
 
             return {
               schoolId: schoolId!,
               groupId: actualGroupId,
               studentId: actualStudentId, // For payment system and group display
-              userId: actualUserId,       // For attendance system
+              userId: actualUserId, // For attendance system
               studentType: studentInfo.type as "student" | "child",
               assignedBy: adminId || null,
             };
@@ -2026,12 +2105,18 @@ export class DatabaseStorage implements IStorage {
           .filter((assignment) => assignment !== null); // Remove null assignments
 
         if (mixedAssignments.length > 0) {
-          console.log(`🔧 Inserting ${mixedAssignments.length} assignments into database:`, mixedAssignments);
+          console.log(
+            `🔧 Inserting ${mixedAssignments.length} assignments into database:`,
+            mixedAssignments,
+          );
           const insertedAssignments = await db
             .insert(groupMixedAssignments)
             .values(mixedAssignments)
             .returning();
-          console.log(`✅ Successfully inserted assignments:`, insertedAssignments);
+          console.log(
+            `✅ Successfully inserted assignments:`,
+            insertedAssignments,
+          );
         }
       }
 
@@ -2085,7 +2170,7 @@ export class DatabaseStorage implements IStorage {
               .where(eq(students.id, assignment.studentId!))
               .limit(1);
 
-            result.push({ 
+            result.push({
               id: assignment.studentId, // Use studentId as primary ID for UI consistency
               userId: userData[0].id, // Keep actual userId for payment records
               studentId: assignment.studentId,
@@ -2095,7 +2180,7 @@ export class DatabaseStorage implements IStorage {
               educationLevel: studentDetails[0]?.educationLevel,
               grade: studentDetails[0]?.grade,
               type: "student",
-              studentType: "student"
+              studentType: "student",
             });
           } else if (assignment.studentType === "child") {
             // Get child details
@@ -2109,7 +2194,7 @@ export class DatabaseStorage implements IStorage {
               .where(eq(children.id, assignment.studentId!))
               .limit(1);
 
-            result.push({ 
+            result.push({
               id: assignment.studentId, // Use child ID as primary ID for UI consistency
               userId: userData[0].id, // Parent's userId for payment records
               studentId: assignment.studentId,
@@ -2119,7 +2204,7 @@ export class DatabaseStorage implements IStorage {
               educationLevel: childDetails[0]?.educationLevel,
               grade: childDetails[0]?.grade,
               type: "child",
-              studentType: "child"
+              studentType: "child",
             });
           }
         }
@@ -2162,12 +2247,17 @@ export class DatabaseStorage implements IStorage {
                     and(
                       eq(groupMixedAssignments.groupId, groupId),
                       eq(groupMixedAssignments.studentId, assignment.studentId),
-                      eq(groupMixedAssignments.studentType, "child")
-                    )
+                      eq(groupMixedAssignments.studentType, "child"),
+                    ),
                   );
-                console.log(`✅ Updated userId for child assignment ${assignment.studentId} to ${parentData[0].id}`);
+                console.log(
+                  `✅ Updated userId for child assignment ${assignment.studentId} to ${parentData[0].id}`,
+                );
               } catch (updateError) {
-                console.error(`❌ Failed to update userId for child assignment:`, updateError);
+                console.error(
+                  `❌ Failed to update userId for child assignment:`,
+                  updateError,
+                );
               }
 
               result.push({
@@ -2180,7 +2270,7 @@ export class DatabaseStorage implements IStorage {
                 educationLevel: childWithParent[0].childEducationLevel,
                 grade: childWithParent[0].childGrade,
                 type: "child",
-                studentType: "child"
+                studentType: "child",
               });
             }
           }
@@ -2737,7 +2827,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User> {
+  async updateUserFirebaseUid(
+    userId: number,
+    firebaseUid: string,
+  ): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ firebaseUid })
@@ -2745,7 +2838,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     if (!user) {
-      throw new Error('المستخدم غير موجود');
+      throw new Error("المستخدم غير موجود");
     }
 
     return user;
@@ -2753,7 +2846,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserProfile(
     userId: number,
-    data: { name?: string; email?: string }
+    data: { name?: string; email?: string },
   ): Promise<User> {
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
@@ -2769,24 +2862,30 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(
     userId: number,
-    data: { name?: string; email?: string; phone?: string | null; profilePicture?: string | null }
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string | null;
+      profilePicture?: string | null;
+    },
   ): Promise<User> {
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
+    if (data.profilePicture !== undefined)
+      updateData.profilePicture = data.profilePicture;
 
     const [user] = await db
       .update(users)
       .set(updateData)
       .where(eq(users.id, userId))
       .returning();
-    
+
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
-    
+
     return user;
   }
 
@@ -2936,12 +3035,7 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(groups)
       .set({ subjectId: newSubjectId })
-      .where(
-        and(
-          eq(groups.id, groupId),
-          eq(groups.schoolId, schoolId),
-        ),
-      );
+      .where(and(eq(groups.id, groupId), eq(groups.schoolId, schoolId)));
   }
 
   async getGlobalTeachingModules(): Promise<TeachingModule[]> {
@@ -3177,8 +3271,10 @@ export class DatabaseStorage implements IStorage {
     attendance: InsertGroupAttendance,
   ): Promise<GroupAttendance> {
     // SIMPLIFIED: Only use userId for attendance tracking
-    console.log(`[ATTENDANCE] Marking attendance using userId: ${attendance.userId}`);
-    
+    console.log(
+      `[ATTENDANCE] Marking attendance using userId: ${attendance.userId}`,
+    );
+
     if (!attendance.userId) {
       throw new Error("userId is required for attendance tracking");
     }
@@ -3245,9 +3341,13 @@ export class DatabaseStorage implements IStorage {
     date?: string,
   ): Promise<any[]> {
     // Get school ID from group for data isolation
-    const [group] = await db.select({ schoolId: groups.schoolId }).from(groups).where(eq(groups.id, groupId)).limit(1);
+    const [group] = await db
+      .select({ schoolId: groups.schoolId })
+      .from(groups)
+      .where(eq(groups.id, groupId))
+      .limit(1);
     const schoolId = group?.schoolId;
-    if (!schoolId) throw new Error('Group not found or missing school ID');
+    if (!schoolId) throw new Error("Group not found or missing school ID");
     // Direct approach: Get attendance records directly from group_attendance table
     // Use userId from attendance table for efficient name lookups
     const attendanceRecords = await db
@@ -3256,8 +3356,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(groupAttendance.groupId, groupId),
-          eq(groupAttendance.schoolId, schoolId) // School ID verification
-        )
+          eq(groupAttendance.schoolId, schoolId), // School ID verification
+        ),
       )
       .orderBy(desc(groupAttendance.attendanceDate));
 
@@ -3268,8 +3368,8 @@ export class DatabaseStorage implements IStorage {
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      
-      filteredRecords = attendanceRecords.filter(record => {
+
+      filteredRecords = attendanceRecords.filter((record) => {
         const recordDate = new Date(record.attendanceDate);
         return recordDate >= startOfDay && recordDate <= endOfDay;
       });
@@ -3283,7 +3383,9 @@ export class DatabaseStorage implements IStorage {
       if (record.studentType === "student") {
         // CRITICAL FIX: Use userId from attendance table, not studentId
         if (record.userId) {
-          console.log(`[FIXED] Using userId ${record.userId} from attendance table for student name lookup`);
+          console.log(
+            `[FIXED] Using userId ${record.userId} from attendance table for student name lookup`,
+          );
           const [userInfo] = await db
             .select({
               id: users.id,
@@ -3294,13 +3396,15 @@ export class DatabaseStorage implements IStorage {
             .where(
               and(
                 eq(users.id, record.userId), // FIXED: Use userId, not studentId
-                eq(users.schoolId, schoolId) // ENFORCE school isolation
-              )
+                eq(users.schoolId, schoolId), // ENFORCE school isolation
+              ),
             )
             .limit(1);
           studentInfo = userInfo;
         } else {
-          console.log(`[ERROR] No userId found in attendance record ${record.id}`);
+          console.log(
+            `[ERROR] No userId found in attendance record ${record.id}`,
+          );
           studentInfo = null;
         }
       } else {
@@ -3319,8 +3423,8 @@ export class DatabaseStorage implements IStorage {
           .where(
             and(
               eq(children.id, record.studentId),
-              eq(children.schoolId, schoolId) // Verify school ID for data isolation
-            )
+              eq(children.schoolId, schoolId), // Verify school ID for data isolation
+            ),
           )
           .limit(1);
         studentInfo = childInfo;
@@ -3355,11 +3459,13 @@ export class DatabaseStorage implements IStorage {
     schoolId: number,
   ): Promise<any[]> {
     // CORRECT IMPLEMENTATION: Use JOIN with userId for attendance name lookup
-    // Query follows the pattern: SELECT u.name, ga.* FROM group_attendance ga 
+    // Query follows the pattern: SELECT u.name, ga.* FROM group_attendance ga
     // JOIN users u ON ga.userId = u.id AND u.schoolId = ga.schoolId
-    
-    console.log(`[ATTENDANCE] Getting attendance history for group ${groupId}, school ${schoolId}`);
-    
+
+    console.log(
+      `[ATTENDANCE] Getting attendance history for group ${groupId}, school ${schoolId}`,
+    );
+
     const attendanceRecords = await db
       .select({
         // Attendance record fields
@@ -3398,12 +3504,16 @@ export class DatabaseStorage implements IStorage {
         desc(groupAttendance.createdAt),
       );
 
-    console.log(`[ATTENDANCE] Found ${attendanceRecords.length} attendance records with proper userId joins`);
-    
+    console.log(
+      `[ATTENDANCE] Found ${attendanceRecords.length} attendance records with proper userId joins`,
+    );
+
     // Log sample record for debugging
     if (attendanceRecords.length > 0) {
       const sample = attendanceRecords[0];
-      console.log(`[ATTENDANCE] Sample record: userId=${sample.userId}, studentId=${sample.studentId}, studentName=${sample.student?.name}, schoolId=${sample.schoolId}`);
+      console.log(
+        `[ATTENDANCE] Sample record: userId=${sample.userId}, studentId=${sample.studentId}, studentName=${sample.student?.name}, schoolId=${sample.schoolId}`,
+      );
     }
 
     return attendanceRecords;
@@ -3460,10 +3570,10 @@ export class DatabaseStorage implements IStorage {
   ): Promise<GroupTransaction> {
     // Determine userId based on studentId and studentType
     let userId: number;
-    
+
     // Ensure studentType exists
     const studentType = (transaction as any).studentType || "student";
-    
+
     if (studentType === "student") {
       // For direct students, userId = studentId
       userId = transaction.studentId;
@@ -3474,8 +3584,11 @@ export class DatabaseStorage implements IStorage {
         .from(children)
         .where(eq(children.id, transaction.studentId))
         .limit(1);
-      
-      userId = child.length > 0 && child[0].parentId ? child[0].parentId : transaction.studentId;
+
+      userId =
+        child.length > 0 && child[0].parentId
+          ? child[0].parentId
+          : transaction.studentId;
     }
 
     // Add missing fields
@@ -3484,7 +3597,7 @@ export class DatabaseStorage implements IStorage {
       userId, // Add the determined userId
       studentType: studentType as "student" | "child",
     };
-    
+
     const [result] = await db
       .insert(groupTransactions)
       .values([finalTransaction])
@@ -3635,7 +3748,14 @@ export class DatabaseStorage implements IStorage {
 
     const [blockedUser] = await db
       .insert(blockedUsers)
-      .values([{ blockerId, blockedId, reason: reason || null, schoolId: finalSchoolId }])
+      .values([
+        {
+          blockerId,
+          blockedId,
+          reason: reason || null,
+          schoolId: finalSchoolId,
+        },
+      ])
       .returning();
     return blockedUser;
   }
@@ -3858,7 +3978,9 @@ export class DatabaseStorage implements IStorage {
     // Get additional user info for receivers including their roles
     const messagesWithCompleteInfo = await Promise.all(
       result.map(async (message) => {
-        const receiver = message.receiverId ? await this.getUser(message.receiverId) : undefined;
+        const receiver = message.receiverId
+          ? await this.getUser(message.receiverId)
+          : undefined;
         return {
           ...message,
           receiverName: receiver?.name,
@@ -4012,7 +4134,10 @@ export class DatabaseStorage implements IStorage {
   async createNotificationLog(
     log: InsertNotificationLog,
   ): Promise<NotificationLog> {
-    const [newLog] = await db.insert(notificationLogs).values([log]).returning();
+    const [newLog] = await db
+      .insert(notificationLogs)
+      .values([log])
+      .returning();
     return newLog;
   }
 
@@ -4096,14 +4221,16 @@ export class DatabaseStorage implements IStorage {
   }) {
     const [customSubject] = await db
       .insert(teachingModules)
-      .values([{
-        name: subjectData.name,
-        nameAr: subjectData.nameAr,
-        educationLevel: subjectData.educationLevel,
-        grade: subjectData.grade,
-        description: subjectData.description,
-        schoolId: subjectData.schoolId, // ✅ FIX: Include schoolId in database insert
-      }])
+      .values([
+        {
+          name: subjectData.name,
+          nameAr: subjectData.nameAr,
+          educationLevel: subjectData.educationLevel,
+          grade: subjectData.grade,
+          description: subjectData.description,
+          schoolId: subjectData.schoolId, // ✅ FIX: Include schoolId in database insert
+        },
+      ])
       .returning();
     return customSubject;
   }
@@ -4356,7 +4483,7 @@ export class DatabaseStorage implements IStorage {
         subjectId,
         teacherId,
         educationLevel,
-        schoolId
+        schoolId,
       });
 
       // First try exact matching (all criteria must match)
@@ -4377,18 +4504,18 @@ export class DatabaseStorage implements IStorage {
             eq(groups.subjectId, subjectId),
             eq(groups.teacherId, teacherId),
             // Handle "all" education level or specific level matching
-            educationLevel === 'all' || educationLevel === 'جميع المستويات' ? 
-              undefined : // Don't filter by education level if it's "all"
-              or(
-                eq(groups.educationLevel, educationLevel),
-                like(groups.educationLevel, `%${educationLevel}%`),
-              ),
+            educationLevel === "all" || educationLevel === "جميع المستويات"
+              ? undefined // Don't filter by education level if it's "all"
+              : or(
+                  eq(groups.educationLevel, educationLevel),
+                  like(groups.educationLevel, `%${educationLevel}%`),
+                ),
           ),
         )
         .orderBy(groups.name);
 
       console.log(`[GROUPS] Found ${exactMatches.length} exact matches`);
-      
+
       if (exactMatches.length > 0) {
         return exactMatches;
       }
@@ -4424,12 +4551,12 @@ export class DatabaseStorage implements IStorage {
               eq(groups.schoolId, schoolId),
               eq(groups.teacherId, teacherId),
               // Handle "all" education level or specific level matching
-              educationLevel === 'all' || educationLevel === 'جميع المستويات' ? 
-                undefined : // Don't filter by education level if it's "all"
-                or(
-                  eq(groups.educationLevel, educationLevel),
-                  like(groups.educationLevel, `%${educationLevel}%`),
-                ),
+              educationLevel === "all" || educationLevel === "جميع المستويات"
+                ? undefined // Don't filter by education level if it's "all"
+                : or(
+                    eq(groups.educationLevel, educationLevel),
+                    like(groups.educationLevel, `%${educationLevel}%`),
+                  ),
               // Same subject name
               or(
                 eq(teachingModules.nameAr, subjectName),
@@ -4439,7 +4566,9 @@ export class DatabaseStorage implements IStorage {
           )
           .orderBy(groups.name);
 
-        console.log(`[GROUPS] Found ${subjectCompatibleMatches.length} subject-compatible matches`);
+        console.log(
+          `[GROUPS] Found ${subjectCompatibleMatches.length} subject-compatible matches`,
+        );
         if (subjectCompatibleMatches.length > 0) {
           return subjectCompatibleMatches;
         }
@@ -4465,12 +4594,12 @@ export class DatabaseStorage implements IStorage {
             eq(groups.schoolId, schoolId),
             eq(groups.subjectId, subjectId),
             // Handle "all" education level or specific level matching
-            educationLevel === 'all' || educationLevel === 'جميع المستويات' ? 
-              undefined : // Don't filter by education level if it's "all"
-              or(
-                eq(groups.educationLevel, educationLevel),
-                like(groups.educationLevel, `%${educationLevel}%`),
-              ),
+            educationLevel === "all" || educationLevel === "جميع المستويات"
+              ? undefined // Don't filter by education level if it's "all"
+              : or(
+                  eq(groups.educationLevel, educationLevel),
+                  like(groups.educationLevel, `%${educationLevel}%`),
+                ),
           ),
         )
         .orderBy(groups.name);
@@ -4483,19 +4612,22 @@ export class DatabaseStorage implements IStorage {
       // Final fallback: If no matches found, show all available groups that aren't already linked to other schedule cells
       // This is especially useful for custom subjects like "chess" that don't match existing subject names
       console.log(`[GROUPS] Using final fallback - showing unlinked groups...`);
-      
+
       const linkedGroupIds = await db
         .select({ groupId: groupScheduleAssignments.groupId })
         .from(groupScheduleAssignments)
         .where(
           and(
             eq(groupScheduleAssignments.schoolId, schoolId),
-            eq(groupScheduleAssignments.isActive, true)
-          )
+            eq(groupScheduleAssignments.isActive, true),
+          ),
         );
 
-      const linkedIds = linkedGroupIds.map(item => item.groupId);
-      console.log(`[GROUPS] Found ${linkedIds.length} already linked groups:`, linkedIds);
+      const linkedIds = linkedGroupIds.map((item) => item.groupId);
+      console.log(
+        `[GROUPS] Found ${linkedIds.length} already linked groups:`,
+        linkedIds,
+      );
 
       const unlinkedGroups = await db
         .select({
@@ -4511,12 +4643,16 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(groups.schoolId, schoolId),
-            linkedIds.length > 0 ? not(inArray(groups.id, linkedIds)) : undefined
-          )
+            linkedIds.length > 0
+              ? not(inArray(groups.id, linkedIds))
+              : undefined,
+          ),
         )
         .orderBy(groups.name);
 
-      console.log(`[GROUPS] Found ${unlinkedGroups.length} unlinked groups as fallback`);
+      console.log(
+        `[GROUPS] Found ${unlinkedGroups.length} unlinked groups as fallback`,
+      );
       return unlinkedGroups;
     } catch (error) {
       console.error("Error getting compatible groups:", error);
@@ -4628,7 +4764,12 @@ export class DatabaseStorage implements IStorage {
     schoolId: number,
   ): Promise<boolean> {
     try {
-      const payment = await this.getStudentPaymentStatus(studentId, year, month, schoolId);
+      const payment = await this.getStudentPaymentStatus(
+        studentId,
+        year,
+        month,
+        schoolId,
+      );
       // Paid only if record exists AND isPaid = true
       return payment ? payment.isPaid : false;
     } catch (error) {
@@ -4637,7 +4778,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // New function: Check if student is UNPAID for a specific month  
+  // New function: Check if student is UNPAID for a specific month
   async isStudentUnpaidForMonth(
     studentId: number,
     year: number,
@@ -4645,7 +4786,12 @@ export class DatabaseStorage implements IStorage {
     schoolId: number,
   ): Promise<boolean> {
     try {
-      const payment = await this.getStudentPaymentStatus(studentId, year, month, schoolId);
+      const payment = await this.getStudentPaymentStatus(
+        studentId,
+        year,
+        month,
+        schoolId,
+      );
       // Unpaid if: 1) No record exists, OR 2) Record exists but isPaid = false
       return payment ? !payment.isPaid : true;
     } catch (error) {
@@ -4692,18 +4838,28 @@ export class DatabaseStorage implements IStorage {
     year: number,
     month: number,
     schoolId: number,
-  ): Promise<Array<{studentId: number, isPaid: boolean, amount?: string, paidAt?: Date}>> {
+  ): Promise<
+    Array<{
+      studentId: number;
+      isPaid: boolean;
+      amount?: string;
+      paidAt?: Date;
+    }>
+  > {
     try {
       if (studentIds.length === 0) return [];
 
       // Get existing payment records
       const existingPayments = await this.getStudentsPaymentStatusForMonth(
-        studentIds, year, month, schoolId
+        studentIds,
+        year,
+        month,
+        schoolId,
       );
 
       // Create complete status array for all students
-      return studentIds.map(studentId => {
-        const payment = existingPayments.find(p => p.studentId === studentId);
+      return studentIds.map((studentId) => {
+        const payment = existingPayments.find((p) => p.studentId === studentId);
         return {
           studentId,
           isPaid: payment ? payment.isPaid : false, // No record = unpaid
@@ -4712,8 +4868,11 @@ export class DatabaseStorage implements IStorage {
         };
       });
     } catch (error) {
-      console.error("Error getting students payment status with unpaid:", error);
-      return studentIds.map(studentId => ({studentId, isPaid: false}));
+      console.error(
+        "Error getting students payment status with unpaid:",
+        error,
+      );
+      return studentIds.map((studentId) => ({ studentId, isPaid: false }));
     }
   }
 
@@ -4732,65 +4891,77 @@ export class DatabaseStorage implements IStorage {
     try {
       // QUERY DATABASE TO GET CORRECT USER ID BASED ON STUDENT ID AND TYPE
       let correctUserId: number;
-      
+
       if (studentType === "student") {
         // For direct students: Get userId from students table WITH SCHOOL VALIDATION
-        console.log(`🔍 Querying students table for studentId ${studentId} in school ${schoolId}`);
+        console.log(
+          `🔍 Querying students table for studentId ${studentId} in school ${schoolId}`,
+        );
         const [studentRecord] = await db
-          .select({ 
+          .select({
             userId: students.userId,
-            schoolId: students.schoolId 
+            schoolId: students.schoolId,
           })
           .from(students)
           .where(
             and(
               eq(students.id, studentId),
-              eq(students.schoolId, schoolId) // ✅ Validate school ID
-            )
+              eq(students.schoolId, schoolId), // ✅ Validate school ID
+            ),
           )
           .limit(1);
-          
+
         if (!studentRecord) {
-          throw new Error(`Student with ID ${studentId} not found in school ${schoolId}`);
+          throw new Error(
+            `Student with ID ${studentId} not found in school ${schoolId}`,
+          );
         }
         if (!studentRecord.userId) {
           throw new Error(`Student with ID ${studentId} has no userId`);
         }
         correctUserId = studentRecord.userId;
-        console.log(`✅ Found userId ${correctUserId} for student ${studentId} in school ${schoolId}`);
-        
+        console.log(
+          `✅ Found userId ${correctUserId} for student ${studentId} in school ${schoolId}`,
+        );
       } else if (studentType === "child") {
         // For children: Get parentId from children table WITH SCHOOL VALIDATION
-        console.log(`🔍 Querying children table for childId ${studentId} in school ${schoolId}`);
+        console.log(
+          `🔍 Querying children table for childId ${studentId} in school ${schoolId}`,
+        );
         const [childRecord] = await db
-          .select({ 
+          .select({
             parentId: children.parentId,
-            schoolId: children.schoolId 
+            schoolId: children.schoolId,
           })
           .from(children)
           .where(
             and(
               eq(children.id, studentId),
-              eq(children.schoolId, schoolId) // ✅ Validate school ID
-            )
+              eq(children.schoolId, schoolId), // ✅ Validate school ID
+            ),
           )
           .limit(1);
-          
+
         if (!childRecord) {
-          throw new Error(`Child with ID ${studentId} not found in school ${schoolId}`);
+          throw new Error(
+            `Child with ID ${studentId} not found in school ${schoolId}`,
+          );
         }
         if (!childRecord.parentId) {
           throw new Error(`Child with ID ${studentId} has no parentId`);
         }
         correctUserId = childRecord.parentId;
-        console.log(`✅ Found parentId ${correctUserId} for child ${studentId} in school ${schoolId}`);
-        
+        console.log(
+          `✅ Found parentId ${correctUserId} for child ${studentId} in school ${schoolId}`,
+        );
       } else {
         throw new Error(`Invalid studentType: ${studentType}`);
       }
 
       // Check if payment already exists to prevent duplicates (NOW GROUP-SPECIFIC)
-      console.log(`🔍 DUPLICATE CHECK: Looking for existing payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}, groupId: ${groupId}`);
+      console.log(
+        `🔍 DUPLICATE CHECK: Looking for existing payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}, groupId: ${groupId}`,
+      );
       const [existingPayment] = await db
         .select()
         .from(studentMonthlyPayments)
@@ -4804,8 +4975,10 @@ export class DatabaseStorage implements IStorage {
           ),
         )
         .limit(1);
-      
-      console.log(`🔍 DUPLICATE CHECK RESULT: Found ${existingPayment ? 'EXISTING' : 'NONE'} payment record`);
+
+      console.log(
+        `🔍 DUPLICATE CHECK RESULT: Found ${existingPayment ? "EXISTING" : "NONE"} payment record`,
+      );
       if (existingPayment) {
         console.log(`🔍 EXISTING PAYMENT DETAILS:`, {
           id: existingPayment.id,
@@ -4815,14 +4988,18 @@ export class DatabaseStorage implements IStorage {
           amount: existingPayment.amount,
           isPaid: existingPayment.isPaid,
           paidAt: existingPayment.paidAt,
-          schoolId: existingPayment.schoolId
+          schoolId: existingPayment.schoolId,
         });
       }
 
       if (existingPayment) {
-        console.log(`🚫 DUPLICATE PAYMENT DETECTED: Payment already exists for studentId ${studentId}, ${month}/${year}`);
+        console.log(
+          `🚫 DUPLICATE PAYMENT DETECTED: Payment already exists for studentId ${studentId}, ${month}/${year}`,
+        );
         console.log(`🚫 Existing payment:`, existingPayment);
-        console.log(`🚫 This is why the payment appears temporary - database prevents duplicates!`);
+        console.log(
+          `🚫 This is why the payment appears temporary - database prevents duplicates!`,
+        );
         return existingPayment;
       }
 
@@ -4844,8 +5021,10 @@ export class DatabaseStorage implements IStorage {
           schoolId,
         })
         .returning();
-      
-      console.log(`✅ Created payment: studentId=${studentId}, userId=${correctUserId}, ${month}/${year}, amount=${amount}`);
+
+      console.log(
+        `✅ Created payment: studentId=${studentId}, userId=${correctUserId}, ${month}/${year}, amount=${amount}`,
+      );
       return newPayment;
     } catch (error) {
       console.error("Error creating student payment:", error);
@@ -4857,13 +5036,16 @@ export class DatabaseStorage implements IStorage {
     studentId: number,
     year: number,
     month: number,
-    schoolId: number
+    schoolId: number,
   ): Promise<boolean> {
     try {
       console.log(`🗑️ HARD DELETE - Attempting to delete payment record:`, {
-        studentId, year, month, schoolId
+        studentId,
+        year,
+        month,
+        schoolId,
       });
-      
+
       // Check if record exists before deletion
       const beforeDelete = await db
         .select()
@@ -4873,22 +5055,22 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.studentId, studentId),
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId)
-          )
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
         );
-      
+
       console.log(`📊 Records found before deletion:`, beforeDelete.length);
       if (beforeDelete.length === 0) {
         console.log(`❌ No payment record found to delete`);
         return false;
       }
-      
+
       console.log(`🔥 Record to delete:`, beforeDelete[0]);
       const paymentRecord = beforeDelete[0];
-      
+
       // 🎯 NEW: CASCADING DELETE - Remove associated benefit entries
       console.log(`🔍 Looking for associated benefit entries to delete...`);
-      
+
       // Find benefit entries that match this payment (gains created for this payment amount)
       const associatedBenefits = await db
         .select()
@@ -4899,37 +5081,45 @@ export class DatabaseStorage implements IStorage {
             eq(financialEntries.type, "gain"),
             eq(financialEntries.year, year),
             eq(financialEntries.month, month),
-            eq(financialEntries.amount, paymentRecord.amount)
-          )
+            eq(financialEntries.amount, paymentRecord.amount),
+          ),
         );
-      
-      console.log(`📊 Found ${associatedBenefits.length} associated benefit entries`);
-      
+
+      console.log(
+        `📊 Found ${associatedBenefits.length} associated benefit entries`,
+      );
+
       if (associatedBenefits.length > 0) {
         console.log(`🗑️ HARD DELETING associated benefit entries...`);
         for (const benefit of associatedBenefits) {
           // HARD DELETE - Direct permanent deletion from database
-          console.log(`🔥 HARD DELETING benefit entry ID: ${benefit.id}, amount: ${benefit.amount}`);
+          console.log(
+            `🔥 HARD DELETING benefit entry ID: ${benefit.id}, amount: ${benefit.amount}`,
+          );
           await db
             .delete(financialEntries)
             .where(eq(financialEntries.id, benefit.id));
-          
+
           // Verify the benefit entry is permanently gone
           const verifyBenefitDelete = await db
             .select()
             .from(financialEntries)
             .where(eq(financialEntries.id, benefit.id));
-          
+
           if (verifyBenefitDelete.length === 0) {
-            console.log(`✅ SUCCESS: Benefit entry ${benefit.id} PERMANENTLY DELETED from database`);
+            console.log(
+              `✅ SUCCESS: Benefit entry ${benefit.id} PERMANENTLY DELETED from database`,
+            );
           } else {
-            console.log(`❌ FAILURE: Benefit entry ${benefit.id} still exists, attempting raw SQL deletion...`);
+            console.log(
+              `❌ FAILURE: Benefit entry ${benefit.id} still exists, attempting raw SQL deletion...`,
+            );
             // Fallback raw SQL for hard delete
             await this.hardDeleteFinancialEntryByRawSQL(benefit.id);
           }
         }
       }
-      
+
       // HARD DELETE - Direct permanent deletion from database
       console.log(`🔥 HARD DELETING payment record from database...`);
       const deleteResult = await db
@@ -4939,12 +5129,12 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.studentId, studentId),
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId)
-          )
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
         );
-      
+
       console.log(`💥 Payment delete operation executed`);
-      
+
       // Verify the payment record is permanently gone
       const afterDelete = await db
         .select()
@@ -4954,23 +5144,37 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.studentId, studentId),
             eq(studentMonthlyPayments.year, year),
             eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId)
-          )
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
         );
-      
-      console.log(`📊 Payment records found after deletion:`, afterDelete.length);
-      
+
+      console.log(
+        `📊 Payment records found after deletion:`,
+        afterDelete.length,
+      );
+
       if (afterDelete.length === 0) {
-        console.log(`✅ SUCCESS: Payment record PERMANENTLY HARD DELETED from database`);
-        console.log(`✅ SUCCESS: Associated benefit entries also PERMANENTLY HARD DELETED`);
+        console.log(
+          `✅ SUCCESS: Payment record PERMANENTLY HARD DELETED from database`,
+        );
+        console.log(
+          `✅ SUCCESS: Associated benefit entries also PERMANENTLY HARD DELETED`,
+        );
         return true;
       } else {
-        console.log(`❌ FAILURE: Payment record still exists in database:`, afterDelete[0]);
+        console.log(
+          `❌ FAILURE: Payment record still exists in database:`,
+          afterDelete[0],
+        );
         // Try raw SQL as fallback for payment record
         const paymentId = afterDelete[0].id;
-        console.log(`🔄 Attempting raw SQL HARD DELETE for payment ID: ${paymentId}`);
+        console.log(
+          `🔄 Attempting raw SQL HARD DELETE for payment ID: ${paymentId}`,
+        );
         await this.hardDeletePaymentByRawSQL(paymentId);
-        console.log(`✅ FALLBACK SUCCESS: Payment and benefit records HARD DELETED via raw SQL`);
+        console.log(
+          `✅ FALLBACK SUCCESS: Payment and benefit records HARD DELETED via raw SQL`,
+        );
         return true;
       }
     } catch (error) {
@@ -4983,10 +5187,15 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`🔥 RAW SQL: Hard deleting financial entry ID: ${entryId}`);
       // Use raw SQL to ensure complete deletion
-      await db.execute(sql`DELETE FROM financial_entries WHERE id = ${entryId}`);
+      await db.execute(
+        sql`DELETE FROM financial_entries WHERE id = ${entryId}`,
+      );
       console.log(`✅ RAW SQL: Financial entry ${entryId} permanently deleted`);
     } catch (error) {
-      console.error(`❌ RAW SQL ERROR deleting financial entry ${entryId}:`, error);
+      console.error(
+        `❌ RAW SQL ERROR deleting financial entry ${entryId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -4995,9 +5204,12 @@ export class DatabaseStorage implements IStorage {
     try {
       // Direct SQL execution to force deletion
       const result = await db.execute(
-        sql`DELETE FROM student_monthly_payments WHERE id = ${paymentId}`
+        sql`DELETE FROM student_monthly_payments WHERE id = ${paymentId}`,
       );
-      console.log(`🔥 RAW SQL DELETE executed for payment ID ${paymentId}:`, result);
+      console.log(
+        `🔥 RAW SQL DELETE executed for payment ID ${paymentId}:`,
+        result,
+      );
     } catch (error) {
       console.error(`❌ RAW SQL DELETE failed:`, error);
     }
@@ -5017,7 +5229,10 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.schoolId, schoolId),
           ),
         )
-        .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
+        .orderBy(
+          desc(studentMonthlyPayments.year),
+          desc(studentMonthlyPayments.month),
+        );
     } catch (error) {
       console.error("Error getting student payment history:", error);
       return [];
@@ -5040,7 +5255,10 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.isPaid, true),
           ),
         )
-        .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
+        .orderBy(
+          desc(studentMonthlyPayments.year),
+          desc(studentMonthlyPayments.month),
+        );
     } catch (error) {
       console.error("Error getting student paid history:", error);
       return [];
@@ -5063,7 +5281,10 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.isPaid, false),
           ),
         )
-        .orderBy(desc(studentMonthlyPayments.year), desc(studentMonthlyPayments.month));
+        .orderBy(
+          desc(studentMonthlyPayments.year),
+          desc(studentMonthlyPayments.month),
+        );
     } catch (error) {
       console.error("Error getting student unpaid history:", error);
       return [];
@@ -5948,33 +6169,48 @@ export class DatabaseStorage implements IStorage {
   // Test function to get ALL payments from student_monthly_payments table
   async getAllPaymentsFromDatabase(schoolId: number): Promise<any[]> {
     try {
-      console.log("🧪 getAllPaymentsFromDatabase called for schoolId:", schoolId);
-      
+      console.log(
+        "🧪 getAllPaymentsFromDatabase called for schoolId:",
+        schoolId,
+      );
+
       // First, let's check if the table exists and has any data at all
-      console.log("🔍 Checking if student_monthly_payments table has any data...");
+      console.log(
+        "🔍 Checking if student_monthly_payments table has any data...",
+      );
       const totalCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(studentMonthlyPayments);
-      console.log("📊 Total records in student_monthly_payments table:", totalCount[0]?.count || 0);
-      
+      console.log(
+        "📊 Total records in student_monthly_payments table:",
+        totalCount[0]?.count || 0,
+      );
+
       // Check records for this specific school
       const allPayments = await db
         .select()
         .from(studentMonthlyPayments)
         .where(eq(studentMonthlyPayments.schoolId, schoolId));
 
-      console.log(`✅ Found ${allPayments.length} payment records for schoolId ${schoolId}`);
-      
+      console.log(
+        `✅ Found ${allPayments.length} payment records for schoolId ${schoolId}`,
+      );
+
       // If no records for this school, let's see what schools exist
       if (allPayments.length === 0) {
-        console.log("🔍 No records for this school. Checking what school IDs exist...");
+        console.log(
+          "🔍 No records for this school. Checking what school IDs exist...",
+        );
         const existingSchools = await db
           .select({ schoolId: studentMonthlyPayments.schoolId })
           .from(studentMonthlyPayments)
           .groupBy(studentMonthlyPayments.schoolId);
-        console.log("🏫 School IDs with payment records:", existingSchools.map(s => s.schoolId));
+        console.log(
+          "🏫 School IDs with payment records:",
+          existingSchools.map((s) => s.schoolId),
+        );
       }
-      
+
       return allPayments;
     } catch (error) {
       console.error("❌ Error fetching all payments:", error);
@@ -6048,54 +6284,56 @@ export class DatabaseStorage implements IStorage {
         console.log("🔍 Child query result:", child);
         if (!child) {
           console.log("❌ No child found with the given criteria");
-          
+
           // Enhanced debugging - check if child exists in any school
           const anyChild = await db
             .select()
             .from(children)
             .where(eq(children.id, studentId))
             .limit(1);
-            
+
           if (anyChild.length > 0) {
-            console.log(`⚠️ Child ${studentId} exists but in school ${anyChild[0].schoolId}, not ${schoolId}`);
+            console.log(
+              `⚠️ Child ${studentId} exists but in school ${anyChild[0].schoolId}, not ${schoolId}`,
+            );
           } else {
             console.log(`❌ Child ${studentId} does not exist in any school`);
           }
-          
+
           return null;
         }
-        
+
         console.log("✅ Child found:", {
           id: child.id,
           name: child.name,
           schoolId: child.schoolId,
           parentId: child.parentId,
-          verified: child.verified
+          verified: child.verified,
         });
-        
+
         // Create child profile with explicit fields to avoid parent data confusion
         // IMPORTANT: Child profile should ONLY contain child's data, never parent's data
         studentProfile = {
-          id: child.id,                    // Child's ID (not parent ID)
-          userId: child.parentId,          // Parent's user ID for system reference
-          name: child.name,                // Child's name (not parent's name)
+          id: child.id, // Child's ID (not parent ID)
+          userId: child.parentId, // Parent's user ID for system reference
+          name: child.name, // Child's name (not parent's name)
           email: `child-${child.id}@child.local`, // Virtual email for child
-          phone: null,                     // Children don't have separate phone
-          role: "child",                   // Child role
+          phone: null, // Children don't have separate phone
+          role: "child", // Child role
           educationLevel: child.educationLevel,
           selectedSubjects: child.selectedSubjects || [],
           profilePicture: child.profilePicture || null,
-          verified: true,                  // Children are automatically verified
-          type: "child",                   // Clearly mark as child
-          parentId: child.parentId,        // Reference to parent for admin purposes
-          schoolId: child.schoolId         // School reference
+          verified: true, // Children are automatically verified
+          type: "child", // Clearly mark as child
+          parentId: child.parentId, // Reference to parent for admin purposes
+          schoolId: child.schoolId, // School reference
         };
-        
+
         console.log("✅ Child profile created (NOT parent profile):", {
           childId: studentProfile.id,
           childName: studentProfile.name,
           parentId: studentProfile.parentId,
-          type: studentProfile.type
+          type: studentProfile.type,
         });
       }
 
@@ -6111,16 +6349,27 @@ export class DatabaseStorage implements IStorage {
           .select()
           .from(groupMixedAssignments)
           .where(eq(groupMixedAssignments.schoolId, schoolId));
-        console.log(`🔍 Found ${allSchoolAssignments.length} total assignments in school ${schoolId}:`, allSchoolAssignments);
+        console.log(
+          `🔍 Found ${allSchoolAssignments.length} total assignments in school ${schoolId}:`,
+          allSchoolAssignments,
+        );
 
         // Use studentId for group display (QR scanner shows groups student attends)
         // studentId is used for payment system and group display
-        console.log("🔍 Using studentId for group display query:", { studentId, studentType, schoolId });
-        
+        console.log("🔍 Using studentId for group display query:", {
+          studentId,
+          studentType,
+          schoolId,
+        });
+
         // Enhanced debugging for mixed assignments query
-        console.log('🔍 Running mixed assignments query with exact conditions:');
+        console.log(
+          "🔍 Running mixed assignments query with exact conditions:",
+        );
         console.log(`   - eq(groupMixedAssignments.studentId, ${studentId})`);
-        console.log(`   - eq(groupMixedAssignments.studentType, '${studentType}')`);
+        console.log(
+          `   - eq(groupMixedAssignments.studentType, '${studentType}')`,
+        );
         console.log(`   - eq(groupMixedAssignments.schoolId, ${schoolId})`);
 
         const mixedGroupAssignments = await db
@@ -6140,8 +6389,11 @@ export class DatabaseStorage implements IStorage {
               eq(groupMixedAssignments.schoolId, schoolId),
             ),
           );
-          
-        console.log("🔍 Raw mixed assignments query result:", mixedGroupAssignments);
+
+        console.log(
+          "🔍 Raw mixed assignments query result:",
+          mixedGroupAssignments,
+        );
 
         // Also check regular user assignments if this is a student
         let userGroupAssignments: any[] = [];
@@ -6166,7 +6418,14 @@ export class DatabaseStorage implements IStorage {
         ];
 
         console.log("🔍 Found group assignments:", groupAssignments);
-        console.log("🔍 Mixed assignments query for student:", studentId, "type:", studentType, "school:", schoolId);
+        console.log(
+          "🔍 Mixed assignments query for student:",
+          studentId,
+          "type:",
+          studentType,
+          "school:",
+          schoolId,
+        );
         console.log("🔍 Mixed assignments result:", mixedGroupAssignments);
         console.log("🔍 User assignments result:", userGroupAssignments);
 
@@ -6178,7 +6437,7 @@ export class DatabaseStorage implements IStorage {
           console.log("🔍 Fetching group details with conditions:");
           console.log(`   - inArray(groups.id, ${JSON.stringify(groupIds)})`);
           console.log(`   - eq(groups.schoolId, ${schoolId})`);
-          
+
           const groupsData = await db
             .select({
               id: groups.id,
@@ -6192,7 +6451,7 @@ export class DatabaseStorage implements IStorage {
             .where(
               and(inArray(groups.id, groupIds), eq(groups.schoolId, schoolId)),
             );
-          
+
           console.log("🔍 Groups data query result:", groupsData);
           console.log("🔍 Number of groups found:", groupsData.length);
 
@@ -6237,11 +6496,13 @@ export class DatabaseStorage implements IStorage {
               description: group.description,
             });
           }
-          
+
           console.log("✅ Groups data fetched from database:", groupsData);
           console.log("✅ Final enrolled groups array:", enrolledGroups);
         } else {
-          console.log("⚠️ No group assignments found - student not enrolled in any groups");
+          console.log(
+            "⚠️ No group assignments found - student not enrolled in any groups",
+          );
         }
 
         console.log("✅ Total fetched enrolled groups:", enrolledGroups.length);
@@ -6253,8 +6514,10 @@ export class DatabaseStorage implements IStorage {
       // Final debug before returning
       console.log("🎯 FINAL RETURN - About to return profile with:");
       console.log(`   - enrolledGroups.length: ${enrolledGroups.length}`);
-      console.log(`   - enrolledGroups content: ${JSON.stringify(enrolledGroups)}`);
-      
+      console.log(
+        `   - enrolledGroups content: ${JSON.stringify(enrolledGroups)}`,
+      );
+
       const finalProfile = {
         ...studentProfile,
         attendanceStats: {
@@ -6273,8 +6536,11 @@ export class DatabaseStorage implements IStorage {
         recentAttendance: [],
         recentPayments: await this.getStudentPaidHistory(studentId, schoolId), // Fetch actual payment history
       };
-      
-      console.log("🎯 FINAL PROFILE OBJECT:", JSON.stringify(finalProfile, null, 2));
+
+      console.log(
+        "🎯 FINAL PROFILE OBJECT:",
+        JSON.stringify(finalProfile, null, 2),
+      );
       return finalProfile;
     } catch (error) {
       console.error("Error getting student complete profile:", error);
@@ -6302,7 +6568,6 @@ export class DatabaseStorage implements IStorage {
             and(
               eq(students.schoolId, filters.schoolId),
               eq(students.verified, true),
-              eq(users.deleted, false),
             ),
           );
 
@@ -6312,7 +6577,7 @@ export class DatabaseStorage implements IStorage {
           const user = result.users;
 
           if (!user) continue;
-          
+
           // SAFETY: Exclude parent users from student search results
           if (user.role === "parent") continue;
 
