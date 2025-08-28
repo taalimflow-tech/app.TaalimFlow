@@ -1841,12 +1841,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('=== Creating Teacher User ===');
       console.log('Request body:', JSON.stringify(req.body, null, 2));
 
-      const { name, email, phone, bio, imageUrl, specializations } = req.body;
+      const { name, email, password, phone, bio, imageUrl, specializations } = req.body;
       console.log('🔍 Extracted specializations from request:', specializations, typeof specializations, Array.isArray(specializations));
 
       // Validate required fields
-      if (!name || !email) {
-        return res.status(400).json({ error: "الاسم والبريد الإلكتروني مطلوبان" });
+      if (!name || !email || !password) {
+        return res.status(400).json({ error: "الاسم والبريد الإلكتروني وكلمة المرور مطلوبان" });
       }
 
       // Check if email already exists
@@ -1867,7 +1867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "teacher",
         emailVerified: true, // Pre-verified by admin
         phoneVerified: !!phone, // Verified if phone provided
-        password: "temp123", // Temporary password, will be changed when teacher first logs in
+        password: password, // Use the password provided in the request
         firebaseUid: null
       };
       
