@@ -279,11 +279,12 @@ export default function Courses() {
     setCourseData({
       title: course.title,
       description: course.description,
-      duration: course.duration,
       price: course.price,
-      category: course.category,
+      courseDate: course.courseDate,
+      courseTime: course.courseTime,
       educationLevel: course.educationLevel || '',
-      ageRange: course.ageRange || ''
+      grade: course.grade || '',
+      subjectId: course.subjectId?.toString() || ''
     });
     setShowCreateForm(true);
   };
@@ -443,11 +444,12 @@ export default function Courses() {
                   setCourseData({
                     title: '',
                     description: '',
-                    duration: '',
                     price: '',
-                    category: '',
+                    courseDate: '',
+                    courseTime: '',
                     educationLevel: '',
-                    ageRange: ''
+                    grade: '',
+                    subjectId: ''
                   });
                 }}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -583,7 +585,7 @@ export default function Courses() {
                     <SelectValue placeholder="اختر المادة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {teachingModules
+                    {(teachingModules as any[])
                       .filter((module: any) => 
                         module.educationLevel === courseData.educationLevel
                       )
@@ -605,11 +607,12 @@ export default function Courses() {
                     setCourseData({
                       title: '',
                       description: '',
-                      duration: '',
                       price: '',
-                      category: '',
+                      courseDate: '',
+                      courseTime: '',
                       educationLevel: '',
-                      ageRange: ''
+                      grade: '',
+                      subjectId: ''
                     });
                   }}
                   variant="outline"
@@ -667,34 +670,32 @@ export default function Courses() {
               </Button>
               
               {/* Children registration options */}
-              {children && Array.isArray(children) && children.length > 0 && (
-                <>
-                  <div className="border-t pt-3">
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">أو سجل أحد الأطفال:</p>
-                    {children.map((child: any) => (
-                      <Button
-                        key={child.id}
-                        onClick={() => {
-                          setSelectedChild(child);
-                          setShowChildSelectionModal(false);
-                          handleJoinCourseForChild();
-                        }}
-                        disabled={isChildRegistered(selectedCourse.id, child.id)}
-                        variant="outline"
-                        className={`w-full mb-2 text-right ${isChildRegistered(selectedCourse.id, child.id) 
-                          ? 'opacity-50 cursor-not-allowed' 
-                          : ''
-                        }`}
-                      >
-                        {isChildRegistered(selectedCourse.id, child.id) ? 
-                          `${child.name} (مُسجل بالفعل)` : 
-                          child.name
-                        }
-                      </Button>
-                    ))}
-                  </div>
-                </>
-              )}
+              {children && Array.isArray(children) && children.length > 0 ? (
+                <div className="border-t pt-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">أو سجل أحد الأطفال:</p>
+                  {(children as any[]).map((child: any) => (
+                    <Button
+                      key={child.id}
+                      onClick={() => {
+                        setSelectedChild(child);
+                        setShowChildSelectionModal(false);
+                        handleJoinCourseForChild();
+                      }}
+                      disabled={isChildRegistered(selectedCourse.id, child.id)}
+                      variant="outline"
+                      className={`w-full mb-2 text-right ${isChildRegistered(selectedCourse.id, child.id) 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : ''
+                      }`}
+                    >
+                      {isChildRegistered(selectedCourse.id, child.id) ? 
+                        `${child.name} (مُسجل بالفعل)` : 
+                        child.name
+                      }
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
