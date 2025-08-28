@@ -200,13 +200,26 @@ export default function Teachers() {
       
       setIsUploading(false);
       
+      // Extract module ID from selected subject
+      let moduleId = null;
+      if (formData.subject && teachingModules && teachingModules.length > 0) {
+        // Find the module that matches the selected subject format
+        const selectedModule = teachingModules.find(module => 
+          `${module.nameAr} (${module.educationLevel})` === formData.subject
+        );
+        moduleId = selectedModule?.id;
+        console.log('🔍 Selected subject:', formData.subject);
+        console.log('🔍 Found module ID:', moduleId);
+        console.log('🔍 Selected module:', selectedModule);
+      }
+
       const teacherData = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone || null,
         bio: formData.bio || null,
         imageUrl: imageUrl || null,
-        specializations: formData.subject ? [formData.subject] : []
+        specializations: moduleId ? [{ moduleId, subject: formData.subject }] : []
       };
       
       console.log('Submitting teacher data:', teacherData);

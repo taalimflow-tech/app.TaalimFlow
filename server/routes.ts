@@ -1827,42 +1827,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (specializations && specializations.length > 0) {
         console.log('Processing specializations:', specializations);
         
-        for (const specializationName of specializations) {
+        for (const specializationItem of specializations) {
           try {
-            console.log('Processing specialization:', specializationName);
+            console.log('Processing specialization item:', specializationItem);
             
-            // Parse subject and education level from format like "الرياضيات (المتوسط)"
-            const match = specializationName.match(/^(.+?)\s*\((.+?)\)$/);
-            const subjectName = match ? match[1].trim() : specializationName;
-            const educationLevel = match ? match[2].trim() : 'عام';
+            let moduleId;
             
-            console.log('Parsed subject:', subjectName, 'level:', educationLevel);
-            
-            // Find or create teaching module
-            console.log(`🔍 Looking for teaching module: "${subjectName}" at level "${educationLevel}"`);
-            let teachingModule = await storage.getTeachingModuleByName(subjectName, educationLevel);
-            console.log('🔍 Found existing module:', teachingModule ? `ID: ${teachingModule.id}` : 'NOT FOUND');
-            
-            if (!teachingModule) {
-              console.log('🔧 Creating new teaching module...');
-              const moduleData = {
-                name: subjectName, // English name (same as Arabic for now)
-                nameAr: subjectName, // Arabic name
-                educationLevel,
-                description: null,
-              };
-              console.log('📋 Module data to create:', moduleData);
-              teachingModule = await storage.createTeachingModule(moduleData);
-              console.log('📚 Created new teaching module:', teachingModule.id);
+            // Check if we have the new format with moduleId
+            if (typeof specializationItem === 'object' && specializationItem.moduleId) {
+              moduleId = specializationItem.moduleId;
+              console.log('✅ Using provided module ID:', moduleId);
             } else {
-              console.log('📚 Using existing teaching module:', teachingModule.id);
+              // Fallback to old string parsing method
+              const specializationName = typeof specializationItem === 'string' ? specializationItem : specializationItem.subject;
+              console.log('📝 Parsing specialization string:', specializationName);
+              
+              // Parse subject and education level from format like "الرياضيات (المتوسط)"
+              const match = specializationName.match(/^(.+?)\s*\((.+?)\)$/);
+              const subjectName = match ? match[1].trim() : specializationName;
+              const educationLevel = match ? match[2].trim() : 'عام';
+              
+              console.log('Parsed subject:', subjectName, 'level:', educationLevel);
+              
+              // Find or create teaching module
+              console.log(`🔍 Looking for teaching module: "${subjectName}" at level "${educationLevel}"`);
+              let teachingModule = await storage.getTeachingModuleByName(subjectName, educationLevel);
+              console.log('🔍 Found existing module:', teachingModule ? `ID: ${teachingModule.id}` : 'NOT FOUND');
+              
+              if (!teachingModule) {
+                console.log('🔧 Creating new teaching module...');
+                const moduleData = {
+                  name: subjectName, // English name (same as Arabic for now)
+                  nameAr: subjectName, // Arabic name
+                  educationLevel,
+                  description: null,
+                };
+                console.log('📋 Module data to create:', moduleData);
+                teachingModule = await storage.createTeachingModule(moduleData);
+                console.log('📚 Created new teaching module:', teachingModule.id);
+              } else {
+                console.log('📚 Using existing teaching module:', teachingModule.id);
+              }
+              
+              moduleId = teachingModule.id;
             }
             
             // Create teacher specialization link
             const specializationData = {
               schoolId: req.session.user.schoolId, // Required school ID
               teacherId: teacherUser.id, // Use the user ID as teacher ID (correct)
-              moduleId: teachingModule.id, // Use correct field name and existing module ID
+              moduleId: moduleId, // Use the module ID directly
             };
             
             console.log('🔧 Creating teacher specialization with data:', specializationData);
@@ -1870,7 +1884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('🎯 Created specialization successfully:', specialization.id);
             
           } catch (specError) {
-            console.error('Error processing specialization:', specializationName, specError);
+            console.error('Error processing specialization:', specializationItem, specError);
             // Continue with other specializations even if one fails
           }
         }
