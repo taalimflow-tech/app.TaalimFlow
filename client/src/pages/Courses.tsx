@@ -178,17 +178,18 @@ export default function Courses() {
 
   // Helper function to check if current user is already registered for a course
   const isUserRegistered = (courseId: number) => {
-    if (!courseRegistrations || !user?.id) return false;
-    console.log('Checking course registration for:', { courseId, userId: user.id });
-    console.log('Available course registrations:', courseRegistrations);
+    if (!courseRegistrations || !user?.id || !courseId) return false;
     
+    // Check if user is registered directly or through any child
     const isRegistered = (courseRegistrations as any[])?.some((reg: any) => {
-      console.log('Comparing:', { regCourseId: reg.courseId, regUserId: reg.userId, targetCourseId: courseId, targetUserId: user.id });
-      return Number(reg.courseId) === Number(courseId) && Number(reg.userId) === Number(user.id) && reg.registrantType === 'self';
+      const sameUser = Number(reg.userId) === Number(user.id);
+      const sameCourse = Number(reg.courseId) === Number(courseId);
+      const isSelfRegistration = reg.registrantType === 'self';
+      
+      return sameUser && sameCourse && isSelfRegistration;
     });
     
-    console.log('Course registration result:', isRegistered);
-    return isRegistered || false;
+    return Boolean(isRegistered);
   };
 
   // Helper function to check if a child is already registered for a course
@@ -439,9 +440,9 @@ export default function Courses() {
                     </Button>
                   ) : (
                     <Button 
-                      className={`w-full ${isUserRegistered(course.id) 
-                        ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-primary to-secondary'
+                      className={`w-full transition-all duration-200 ${isUserRegistered(course.id) 
+                        ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60 hover:bg-gray-400 dark:hover:bg-gray-600' 
+                        : 'bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90'
                       }`}
                       disabled={isUserRegistered(course.id)}
                       onClick={() => {
