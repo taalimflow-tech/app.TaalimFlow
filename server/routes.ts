@@ -1489,6 +1489,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/announcements/:id", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteAnnouncement(id);
+      res.json({ message: "تم حذف الإعلان بنجاح" });
+    } catch (error) {
+      console.error("Announcement deletion error:", error);
+      res.status(500).json({ error: "خطأ في حذف الإعلان" });
+    }
+  });
+
   // Blog post routes
   app.get("/api/blog-posts", async (req, res) => {
     try {

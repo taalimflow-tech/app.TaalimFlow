@@ -182,6 +182,7 @@ export interface IStorage {
   getAnnouncements(): Promise<Announcement[]>;
   getAnnouncementsBySchool(schoolId: number): Promise<Announcement[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  deleteAnnouncement(id: number): Promise<void>;
 
   // Blog post methods
   getBlogPosts(): Promise<BlogPost[]>;
@@ -1358,6 +1359,10 @@ export class DatabaseStorage implements IStorage {
       .values([announcementData])
       .returning();
     return announcement;
+  }
+
+  async deleteAnnouncement(id: number): Promise<void> {
+    await db.delete(announcements).where(eq(announcements.id, id));
   }
 
   async getBlogPosts(): Promise<BlogPost[]> {
