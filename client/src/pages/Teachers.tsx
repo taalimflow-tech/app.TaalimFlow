@@ -61,44 +61,28 @@ export default function Teachers() {
     queryKey: ['/api/teachers-with-specializations'],
   });
 
-  // Static subject list organized by education level
-  const subjectsByLevel = {
-    'الابتدائي': [
-      'العربية والرياضيات',
-      'اللغة الإنجليزية',
-      'اللغة الفرنسية'
-    ],
-    'المتوسط': [
-      'اللغة العربية',
-      'اللغة الإنجليزية', 
-      'اللغة الفرنسية',
-      'التاريخ والجغرافيا',
-      'الرياضيات',
-      'العلوم الطبيعية',
-      'الفيزياء'
-    ],
-    'الثانوي': [
-      'اللغة العربية وآدابها',
-      'اللغة الإنجليزية',
-      'اللغة الفرنسية',
-      'اللغة الألمانية',
-      'اللغة الإسبانية',
-      'اللغة الأمازيغية',
-      'الرياضيات',
-      'العلوم الطبيعية والحياة',
-      'العلوم الفيزيائية',
-      'التاريخ والجغرافيا',
-      'الفلسفة',
-      'التربية الإسلامية',
-      'الإعلام الآلي',
-      'الاقتصاد والمناجمنت',
-      'القانون',
-      'المحاسبة',
-      'الهندسة الكهربائية',
-      'الهندسة المدنية',
-      'الهندسة الميكانيكية'
-    ]
-  };
+  // Fetch teaching modules from database
+  const { data: teachingModules = [], isLoading: loadingModules } = useQuery<Array<{
+    id: number;
+    name: string;
+    nameAr: string;
+    educationLevel: string;
+    description?: string;
+  }>>({
+    queryKey: ['/api/teaching-modules'],
+  });
+
+  // Organize teaching modules by education level for dropdown
+  const subjectsByLevel = teachingModules.reduce((acc: Record<string, string[]>, module) => {
+    const level = module.educationLevel;
+    if (!acc[level]) {
+      acc[level] = [];
+    }
+    if (!acc[level].includes(module.nameAr)) {
+      acc[level].push(module.nameAr);
+    }
+    return acc;
+  }, {} as Record<string, string[]>);
 
   // Flatten subjects for dropdown with education level labels
   const allSubjects = Object.entries(subjectsByLevel).flatMap(([level, subjects]) =>
@@ -375,10 +359,11 @@ export default function Teachers() {
     });
   };
 
-  if (loading) {
+  if (loading || loadingModules) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="ml-3 text-gray-600 dark:text-gray-300">جاري تحميل البيانات...</p>
       </div>
     );
   }
