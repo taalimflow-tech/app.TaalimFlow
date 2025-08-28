@@ -314,12 +314,20 @@ export default function Formations() {
                         <div className="grid gap-4">
                           {formationRegs.map((registration: any) => (
                             <Card key={registration.id} className="p-4">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="flex items-center gap-2">
                                   <Users className="w-4 h-4 text-gray-500" />
                                   <div>
                                     <p className="font-medium">{registration.fullName}</p>
                                     <p className="text-sm text-gray-500">الاسم الكامل</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <Users className="w-4 h-4 text-blue-500" />
+                                  <div>
+                                    <p className="font-medium">{registration.userName || 'غير محدد'}</p>
+                                    <p className="text-sm text-gray-500">اسم المستخدم</p>
                                   </div>
                                 </div>
                                 
@@ -343,7 +351,7 @@ export default function Formations() {
                               <div className="mt-3 pt-3 border-t flex items-center gap-2">
                                 <Calendar className="w-4 h-4 text-gray-500" />
                                 <p className="text-sm text-gray-500">
-                                  تاريخ التسجيل: {new Date(registration.createdAt).toLocaleDateString('ar-SA')}
+                                  تاريخ التسجيل: {new Date(registration.createdAt).toLocaleDateString('en-GB')}
                                 </p>
                               </div>
                             </Card>

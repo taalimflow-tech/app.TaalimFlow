@@ -282,6 +282,7 @@ export const formationRegistrations = pgTable("formation_registrations", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   formationId: integer("formation_id").references(() => formations.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
   fullName: text("full_name").notNull(),
   phone: text("phone").notNull(),
   email: text("email").notNull(),
@@ -593,13 +594,14 @@ export const formationRegistrationClientSchema = z.object({
   email: z.string().email("بريد إلكتروني غير صحيح"),
 });
 
-// Server schema (with schoolId)
+// Server schema (with schoolId and userId)
 export const insertFormationRegistrationSchema = z.object({
   formationId: z.number().min(1, "معرف التكوين مطلوب"),
   fullName: z.string().min(1, "الاسم الكامل مطلوب"),
   phone: z.string().min(8, "رقم الهاتف مطلوب").max(20, "رقم الهاتف طويل جداً"),
   email: z.string().email("بريد إلكتروني غير صحيح"),
   schoolId: z.number().min(1, "معرف المدرسة مطلوب"),
+  userId: z.number().min(1, "معرف المستخدم مطلوب"),
 });
 
 export const insertChildSchema = createInsertSchema(children).pick({

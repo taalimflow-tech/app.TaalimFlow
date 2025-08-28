@@ -2538,9 +2538,12 @@ export class DatabaseStorage implements IStorage {
         formationCategory: formations.category,
         formationPrice: formations.price,
         formationDuration: formations.duration,
+        userName: users.name,
+        userEmail: users.email,
       })
       .from(formationRegistrations)
       .leftJoin(formations, eq(formationRegistrations.formationId, formations.id))
+      .leftJoin(users, eq(formationRegistrations.userId, users.id))
       .where(eq(formationRegistrations.schoolId, schoolId))
       .orderBy(desc(formationRegistrations.createdAt));
   }

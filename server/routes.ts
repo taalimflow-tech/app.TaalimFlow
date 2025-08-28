@@ -3008,6 +3008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const registrationData = {
         ...validatedData,
         schoolId: currentUser.schoolId,
+        userId: currentUser.id,
       };
       console.log("Final registration data:", registrationData);
       
