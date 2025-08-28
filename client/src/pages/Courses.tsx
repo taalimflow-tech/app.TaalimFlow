@@ -224,6 +224,9 @@ export default function Courses() {
   };
 
   const handleViewRegistrations = (course: Course) => {
+    console.log('User role:', user?.role);
+    console.log('All course registrations:', courseRegistrations);
+    console.log('Course registrations for course', course.id, ':', getRegistrationsForCourse(course.id));
     setSelectedCourseForView(course);
     setShowRegistrationsModal(true);
   };
@@ -898,8 +901,6 @@ export default function Courses() {
                 <>
                   {(() => {
                     const courseRegs = getRegistrationsForCourse(selectedCourseForView.id);
-                    console.log('Course registrations for course', selectedCourseForView.id, ':', courseRegs);
-                    console.log('All course registrations:', courseRegistrations);
                     
                     return courseRegs.length > 0 ? (
                       <div className="space-y-4">
