@@ -140,7 +140,6 @@ export const groups = pgTable("groups", {
   imageUrl: text("image_url"),
   maxMembers: integer("max_members"),
   educationLevel: text("education_level"), // الابتدائي, المتوسط, الثانوي
-  grades: text("grades").array(), // Array of grades this group serves
   subjectId: integer("subject_id").references(() => teachingModules.id), // Subject/module
   teacherId: integer("teacher_id").references(() => users.id), // Assigned teacher
   studentsAssigned: integer("students_assigned").array(), // Array of student user IDs
@@ -303,7 +302,7 @@ export const courses = pgTable("courses", {
   courseTime: text("course_time").notNull(), // Time when course starts
   subjectId: integer("subject_id").references(() => teachingModules.id), // Subject reference
   educationLevel: text("education_level"), // Primary, Middle, Secondary for child filtering
-  grades: text("grades").array(), // Array of grades this course serves
+  grade: text("grade"), // Specific grade/year within education level
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -378,7 +377,7 @@ export const teachingModules = pgTable("teaching_modules", {
   name: text("name").notNull(),
   nameAr: text("name_ar").notNull(), // Arabic name
   educationLevel: text("education_level").notNull(), // الابتدائي، المتوسط، الثانوي
-  grades: text("grades").array(), // Array of grades this subject applies to
+  grade: text("grade"), // Optional - DEPRECATED: use module_years table instead
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -422,7 +421,7 @@ export const scheduleCells = pgTable("schedule_cells", {
   startTime: text("start_time"), // HH:MM format (e.g., "08:30")
   endTime: text("end_time"), // HH:MM format (e.g., "10:00")
   educationLevel: text("education_level").notNull(), // 'الابتدائي', 'المتوسط', 'الثانوي'
-  grades: text("grades").array(), // Array of grades this schedule cell serves
+  grade: text("grade"), // Specific grade within education level
   gender: text("gender", { enum: ["male", "female", "mixed"] }), // Group gender type
   subjectId: integer("subject_id").references(() => teachingModules.id),
   teacherId: integer("teacher_id").references(() => users.id),
