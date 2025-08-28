@@ -3565,9 +3565,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🧪 Test result:', result);
 
       res.json({ success: true, result });
-    } catch (error) {
+    } catch (error: any) {
       console.error('🧪 Test error:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error?.message || 'Unknown error' });
     }
   });
 

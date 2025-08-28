@@ -19,6 +19,7 @@ interface TeacherWithSpecializations {
   profilePicture?: string;
   role: string;
   gender?: string;
+  bio?: string | null;
   specializations: {
     id: number;
     name: string;
@@ -207,7 +208,7 @@ export default function Teachers() {
         `${teacher.specializations[0].nameAr} (${teacher.specializations[0].educationLevel})` : '',
       imageUrl: teacher.profilePicture || ''
     });
-    setImagePreview(teacher.profilePicture);
+    setImagePreview(teacher.profilePicture || null);
     setShowEditForm(true);
   };
 
