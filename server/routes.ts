@@ -3260,13 +3260,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const registrations = await storage.getCourseRegistrations(schoolId);
       
-      // If not admin, return only user's own registrations
-      if (req.session.user.role !== "admin") {
-        const userRegistrations = registrations.filter(reg => reg.userId === req.session.user.id);
-        return res.json(userRegistrations);
-      }
-      
-      // Admin gets all registrations
+      // Return all registrations for the school
+      // This allows students to check if they're already registered
+      // and admins to see all registration info
       res.json(registrations);
     } catch (error) {
       console.error("Course registrations fetch error:", error);
