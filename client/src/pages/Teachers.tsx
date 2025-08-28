@@ -1151,6 +1151,41 @@ export default function Teachers() {
                 </div>
               </div>
               
+              {/* Display Already Assigned Specializations */}
+              {teacherForSpecialization && teacherForSpecialization.specializations.length > 0 && (
+                <div className="mt-4">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    التخصصات المضافة حالياً:
+                  </Label>
+                  <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    {teacherForSpecialization.specializations.map((spec, index) => {
+                      const getLevelColors = (level: string) => {
+                        switch (level) {
+                          case 'الابتدائي':
+                            return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100';
+                          case 'المتوسط':
+                            return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100';
+                          case 'الثانوي':
+                            return 'bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100';
+                          default:
+                            return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+                        }
+                      };
+                      
+                      return (
+                        <span 
+                          key={index}
+                          className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${getLevelColors(spec.educationLevel)}`}
+                        >
+                          {spec.nameAr}
+                          <span className="mr-1 opacity-75">({spec.educationLevel})</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
               <div className="flex space-x-2 space-x-reverse pt-4">
                 <Button
                   variant="outline"
