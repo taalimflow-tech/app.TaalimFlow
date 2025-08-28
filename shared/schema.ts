@@ -585,11 +585,11 @@ export type InsertSchool = z.infer<typeof insertSchoolSchema>;
 export type InsertSuperAdmin = z.infer<typeof insertSuperAdminSchema>;
 export type SchoolSelection = z.infer<typeof schoolSelectionSchema>;
 
-export const insertFormationRegistrationSchema = createInsertSchema(formationRegistrations).pick({
-  formationId: true,
-  fullName: true,
-  phone: true,
-  email: true,
+export const insertFormationRegistrationSchema = z.object({
+  formationId: z.number().min(1, "معرف التكوين مطلوب"),
+  fullName: z.string().min(1, "الاسم الكامل مطلوب"),
+  phone: z.string().min(8, "رقم الهاتف مطلوب").max(20, "رقم الهاتف طويل جداً"),
+  email: z.string().email("بريد إلكتروني غير صحيح"),
 });
 
 export const insertChildSchema = createInsertSchema(children).pick({
