@@ -369,11 +369,12 @@ export default function Teachers() {
 
   // Add Teacher Specialization Mutation
   const addSpecializationMutation = useMutation({
-    mutationFn: async (data: { teacherId: number; specialization: string }) => {
+    mutationFn: async (data: { teacherId: number; moduleId: number; specialization: string }) => {
       console.log('🚀 Frontend sending specialization request:', data);
       
       const requestBody = {
         teacherId: data.teacherId,
+        moduleId: data.moduleId,
         specialization: data.specialization
       };
       
@@ -440,8 +441,26 @@ export default function Teachers() {
       return;
     }
 
+    // Extract module ID from the selected specialization
+    // Format is: "اللغة الإنجليزية (الابتدائي)" but we need to find the corresponding module ID
+    const selectedModule = teachingModules?.find(module => 
+      `${module.nameAr} (${module.educationLevel})` === selectedSpecialization
+    );
+
+    if (!selectedModule) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "لم يتم العثور على معرف المادة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('🎯 Selected module ID:', selectedModule.id, 'for specialization:', selectedSpecialization);
+
     addSpecializationMutation.mutate({
       teacherId: teacherForSpecialization.id,
+      moduleId: selectedModule.id,
       specialization: selectedSpecialization
     });
   };

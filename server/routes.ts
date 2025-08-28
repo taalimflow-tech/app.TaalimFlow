@@ -3439,11 +3439,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "صلاحيات المعلم أو المدير مطلوبة" });
       }
 
-      const { teacherId, specialization } = req.body;
+      const { teacherId, moduleId, specialization } = req.body;
       
-      if (!teacherId || !specialization) {
-        console.log('❌ Missing required data:', { teacherId, specialization });
-        return res.status(400).json({ error: "معرف المعلم والتخصص مطلوبان" });
+      if (!teacherId || !moduleId) {
+        console.log('❌ Missing required data:', { teacherId, moduleId, specialization });
+        return res.status(400).json({ error: "معرف المعلم ومعرف المادة مطلوبان" });
       }
       
       // Ensure the teacher can only add specializations for themselves unless they are admin
@@ -3456,70 +3456,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "لا يمكنك إضافة تخصصات لمعلم آخر" });
       }
 
-      console.log('🔧 Adding specialization:', specialization, 'for teacher:', teacherId);
+      console.log('🔧 Adding specialization for teacher:', teacherId, 'with module ID:', moduleId);
       console.log('🏫 School ID:', req.session.user.schoolId);
       
-      // Parse the specialization string (e.g., "اللغة الإنجليزية (الابتدائي)")
-      const match = specialization.match(/^(.+?)\s*\((.+?)\)$/);
-      if (!match) {
-        console.log('❌ Failed to parse specialization string:', specialization);
-        return res.status(400).json({ error: "تنسيق التخصص غير صحيح" });
-      }
+      // Use the module ID directly (no parsing needed)
+      const specializationData = {
+        schoolId: req.session.user.schoolId,
+        teacherId: parseInt(teacherId),
+        moduleId: parseInt(moduleId),
+      };
 
-      const [, subjectName, educationLevel] = match;
-      console.log('📝 Parsed subject:', subjectName.trim(), 'level:', educationLevel.trim());
+      console.log('💾 Creating specialization with data:', specializationData);
+      const savedSpecialization = await storage.createTeacherSpecialization(specializationData);
+      console.log('✅ Successfully created specialization:', savedSpecialization);
       
-      let savedSpecialization;
-      
-      try {
-        // Find or create the teaching module
-        console.log('🔍 Looking for teaching module with name:', subjectName.trim(), 'and level:', educationLevel.trim());
-        let teachingModule = await storage.getTeachingModuleByName(
-          subjectName.trim(),
-          educationLevel.trim()
-        );
-        console.log('🔍 Found teaching module:', teachingModule);
-
-        if (!teachingModule) {
-          // Create the teaching module if it doesn't exist
-          console.log('📚 No existing module found, creating new one...');
-          const moduleData = {
-            name: subjectName.trim(), // English name (same as Arabic for now)
-            nameAr: subjectName.trim(),
-            educationLevel: educationLevel.trim()
-          };
-          console.log('📚 Module data to create:', moduleData);
-          teachingModule = await storage.createTeachingModule(moduleData);
-          console.log('📚 Created new teaching module:', teachingModule);
-        } else {
-          console.log('📚 Using existing teaching module:', teachingModule.id);
-        }
-
-        // Verify teaching module has valid ID
-        if (!teachingModule || !teachingModule.id) {
-          console.log('❌ Teaching module creation/lookup failed:', teachingModule);
-          throw new Error('Failed to create or find teaching module');
-        }
-
-        // Create the teacher specialization
-        const specializationData = {
-          schoolId: req.session.user.schoolId,
-          teacherId: teacherId,
-          moduleId: teachingModule.id,
-        };
-
-        console.log('💾 Creating specialization with data:', specializationData);
-        savedSpecialization = await storage.createTeacherSpecialization(specializationData);
-        console.log('✅ Successfully created specialization:', savedSpecialization);
-        
-        if (!savedSpecialization || !savedSpecialization.id) {
-          console.log('❌ Specialization creation failed - no ID returned:', savedSpecialization);
-          throw new Error('Failed to create teacher specialization');
-        }
-        
-      } catch (moduleError) {
-        console.error('❌ Error in teaching module operations:', moduleError);
-        throw moduleError;
+      if (!savedSpecialization || !savedSpecialization.id) {
+        console.log('❌ Specialization creation failed - no ID returned:', savedSpecialization);
+        throw new Error('Failed to create teacher specialization');
       }
       
       res.json(savedSpecialization);
