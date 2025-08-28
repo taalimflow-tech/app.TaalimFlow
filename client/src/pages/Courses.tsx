@@ -356,37 +356,33 @@ export default function Courses() {
                         {course.title}
                       </CardTitle>
                       
-                      {/* Course Info in single line */}
-                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/30 px-3 py-2 rounded-lg">
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                          <span className="text-blue-700 dark:text-blue-300 font-bold">
-                            {course.courseDate} - {course.courseTime}
-                          </span>
-                          {course.grade && (
-                            <>
-                              <span className="text-gray-400">•</span>
-                              <span className="text-purple-700 dark:text-purple-300 font-bold">
-                                {course.grade}
-                              </span>
-                            </>
-                          )}
-                          {course.duration && (
-                            <>
-                              <span className="text-gray-400">•</span>
-                              <span className="text-emerald-700 dark:text-emerald-300 font-bold">
-                                {course.duration}
-                              </span>
-                            </>
-                          )}
-                          {getSubjectName(course.subjectId) && (
-                            <>
-                              <span className="text-gray-400">•</span>
-                              <span className="text-amber-700 dark:text-amber-300 font-bold">
-                                {getSubjectName(course.subjectId)}
-                              </span>
-                            </>
-                          )}
+                      {/* Course Info with compact badges */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-2 py-1.5 rounded-lg">
+                          <span className="text-blue-700 dark:text-blue-300 font-medium text-xs">التاريخ والوقت</span>
+                          <span className="font-bold text-blue-900 dark:text-blue-100 text-xs">{course.courseDate} - {course.courseTime}</span>
                         </div>
+                        
+                        {course.grade && (
+                          <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-2 py-1.5 rounded-lg">
+                            <span className="text-purple-700 dark:text-purple-300 font-medium text-xs">السنة</span>
+                            <span className="font-bold text-purple-900 dark:text-purple-100 text-xs">{course.grade}</span>
+                          </div>
+                        )}
+                        
+                        {course.duration && (
+                          <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-2 py-1.5 rounded-lg">
+                            <span className="text-emerald-700 dark:text-emerald-300 font-medium text-xs">المدة</span>
+                            <span className="font-bold text-emerald-900 dark:text-emerald-100 text-xs">{course.duration}</span>
+                          </div>
+                        )}
+                        
+                        {getSubjectName(course.subjectId) && (
+                          <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-2 py-1.5 rounded-lg">
+                            <span className="text-amber-700 dark:text-amber-300 font-medium text-xs">المادة</span>
+                            <span className="font-bold text-amber-900 dark:text-amber-100 text-xs">{getSubjectName(course.subjectId)}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {user.role === 'admin' && (
