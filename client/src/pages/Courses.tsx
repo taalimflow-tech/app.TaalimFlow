@@ -21,6 +21,8 @@ export default function Courses() {
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
   const [selectedCourseForView, setSelectedCourseForView] = useState<Course | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showChildSelectionModal, setShowChildSelectionModal] = useState(false);
+  const [selectedChild, setSelectedChild] = useState<any>(null);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   
   const [courseData, setCourseData] = useState({
@@ -150,7 +152,8 @@ export default function Courses() {
   });
 
   const joinCourseMutation = useMutation({
-    mutationFn: async (data: { courseId: number; userId: number; fullName: string; phone: string; email: string }) => {
+    mutationFn: async (data: any) => {
+      console.log('Sending course registration data:', data);
       const response = await apiRequest('POST', '/api/course-registrations', data);
       if (!response.ok) {
         const errorData = await response.json();
@@ -161,7 +164,9 @@ export default function Courses() {
     onSuccess: () => {
       toast({ title: 'تم التسجيل في الدورة بنجاح' });
       setShowJoinForm(false);
+      setShowChildSelectionModal(false);
       setSelectedCourse(null);
+      setSelectedChild(null);
       queryClient.invalidateQueries({ queryKey: ['/api/course-registrations'] });
     },
     onError: (error: any) => {
@@ -175,11 +180,18 @@ export default function Courses() {
 
   // Helper function to check if current user is already registered for a course
   const isUserRegistered = (courseId: number) => {
-    if (!courseRegistrations || !user?.id) return false;
+    if (!courseRegistrations || !user?.id || !courseId) return false;
     
-    return (courseRegistrations as any[])?.some((reg: any) => {
-      return Number(reg.courseId) === Number(courseId) && Number(reg.userId) === Number(user.id);
-    }) || false;
+    // Check if user is registered directly or through any child
+    const isRegistered = (courseRegistrations as any[])?.some((reg: any) => {
+      const sameUser = Number(reg.userId) === Number(user.id);
+      const sameCourse = Number(reg.courseId) === Number(courseId);
+      const isSelfRegistration = reg.registrantType === 'self';
+      
+      return sameUser && sameCourse && isSelfRegistration;
+    });
+    
+    return Boolean(isRegistered);
   };
 
   // Helper function to check if a child is already registered for a course
@@ -195,7 +207,11 @@ export default function Courses() {
   };
 
   const getRegistrationsForCourse = (courseId: number) => {
-    return (courseRegistrations as any[])?.filter((reg: any) => Number(reg.courseId) === Number(courseId)) || [];
+    if (!courseRegistrations || !courseId) return [];
+    
+    return (courseRegistrations as any[])?.filter((reg: any) => {
+      return Number(reg.courseId) === Number(courseId);
+    }) || [];
   };
 
   // Helper function to get subject name
@@ -224,26 +240,57 @@ export default function Courses() {
 
   const handleJoinCourse = () => {
     if (selectedCourse && user?.id && user?.name && user?.phone && user?.email) {
-      joinCourseMutation.mutate({
+      console.log('Using user data for course registration:', {
         courseId: selectedCourse.id,
         userId: user.id,
+        registrantType: 'self',
         fullName: user.name,
         phone: user.phone,
         email: user.email
       });
-    } else {
-      toast({ 
-        title: 'بيانات ناقصة', 
-        description: 'يجب أن تكون بيانات المستخدم مكتملة للتسجيل',
-        variant: 'destructive' 
+      
+      joinCourseMutation.mutate({
+        courseId: selectedCourse.id,
+        registrantType: 'self',
+        fullName: user.name,
+        phone: user.phone,
+        email: user.email,
+        childId: null,
+        childName: null,
+        childAge: null
       });
     }
   };
 
+  const handleJoinCourseForChild = () => {
+    if (selectedCourse && selectedChild && user?.id && user?.phone && user?.email) {
+      console.log('Registering child for course:', {
+        courseId: selectedCourse.id,
+        childId: selectedChild.id,
+        childName: selectedChild.name
+      });
+      
+      joinCourseMutation.mutate({
+        courseId: selectedCourse.id,
+        registrantType: 'child',
+        childId: selectedChild.id,
+        fullName: selectedChild.name,
+        phone: user.phone,
+        email: user.email,
+        childName: selectedChild.name,
+        childAge: selectedChild.age || null
+      });
+    }
+  };
 
   const handleRegisterClick = (course: Course) => {
     setSelectedCourse(course);
-    setShowJoinForm(true);
+    // Check if user has children to show selection modal
+    if (children && Array.isArray(children) && children.length > 0) {
+      setShowChildSelectionModal(true);
+    } else {
+      setShowJoinForm(true);
+    }
   };
 
   const handleEditCourse = (course: Course) => {
@@ -645,6 +692,70 @@ export default function Courses() {
         </div>
       )}
 
+      {/* Child Selection Modal */}
+      {showChildSelectionModal && selectedCourse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold dark:text-white">اختر المتدرب</h2>
+              <button
+                onClick={() => {
+                  setShowChildSelectionModal(false);
+                  setSelectedCourse(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Self registration option */}
+              <Button
+                onClick={() => {
+                  setShowChildSelectionModal(false);
+                  setShowJoinForm(true);
+                }}
+                disabled={isUserRegistered(selectedCourse.id)}
+                className={`w-full text-right ${isUserRegistered(selectedCourse.id) 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isUserRegistered(selectedCourse.id) ? 'أنت مُسجل بالفعل' : 'سجل نفسي'}
+              </Button>
+              
+              {/* Children registration options */}
+              {children && Array.isArray(children) && children.length > 0 ? (
+                <div className="border-t pt-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">أو سجل أحد الأطفال:</p>
+                  {(children as any[]).map((child: any) => (
+                    <Button
+                      key={child.id}
+                      onClick={() => {
+                        setSelectedChild(child);
+                        setShowChildSelectionModal(false);
+                        handleJoinCourseForChild();
+                      }}
+                      disabled={isChildRegistered(selectedCourse.id, child.id)}
+                      variant="outline"
+                      className={`w-full mb-2 text-right ${isChildRegistered(selectedCourse.id, child.id) 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : ''
+                      }`}
+                    >
+                      {isChildRegistered(selectedCourse.id, child.id) ? 
+                        `${child.name} (مُسجل بالفعل)` : 
+                        child.name
+                      }
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Join Course Modal (Self Registration) */}
       {showJoinForm && selectedCourse && (
@@ -787,6 +898,8 @@ export default function Courses() {
                 <>
                   {(() => {
                     const courseRegs = getRegistrationsForCourse(selectedCourseForView.id);
+                    console.log('Course registrations for course', selectedCourseForView.id, ':', courseRegs);
+                    console.log('All course registrations:', courseRegistrations);
                     
                     return courseRegs.length > 0 ? (
                       <div className="space-y-4">
@@ -803,7 +916,9 @@ export default function Courses() {
                                   <Users className="w-4 h-4 text-gray-500" />
                                   <div>
                                     <p className="font-medium">{registration.fullName}</p>
-                                    <p className="text-sm text-gray-500">الاسم الكامل</p>
+                                    <p className="text-sm text-gray-500">
+                                      {registration.registrantType === 'child' ? 'طفل' : 'مباشر'}
+                                    </p>
                                   </div>
                                 </div>
                                 
