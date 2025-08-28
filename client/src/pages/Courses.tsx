@@ -517,7 +517,7 @@ export default function Courses() {
                       <SelectValue placeholder="اختر المستوى" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">جميع المستويات</SelectItem>
+                      <SelectItem value="جميع المستويات">جميع المستويات</SelectItem>
                       <SelectItem value="الابتدائي">الابتدائي</SelectItem>
                       <SelectItem value="المتوسط">المتوسط</SelectItem>
                       <SelectItem value="الثانوي">الثانوي</SelectItem>
