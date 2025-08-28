@@ -410,7 +410,12 @@ export default function Courses() {
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <CardTitle className="text-lg text-right mb-3">{course.title}</CardTitle>
+                      <div className="flex items-center justify-between mb-2">
+                        <CardTitle className="text-lg text-right">{course.title}</CardTitle>
+                        <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">
+                          ID: {course.id}
+                        </span>
+                      </div>
                       
                       {/* Course Info - Modern Responsive Layout */}
                       <div className="space-y-2">
