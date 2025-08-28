@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
-import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus } from 'lucide-react';
+import { X, User, BookOpen, GraduationCap, Phone, Mail, Plus, Trash2 } from 'lucide-react';
 
 interface TeacherWithSpecializations {
   id: number;
@@ -333,6 +333,43 @@ export default function Teachers() {
     },
   });
 
+  const deleteTeacherMutation = useMutation({
+    mutationFn: async (teacherId: number) => {
+      const response = await fetch(`/api/teachers/${teacherId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete teacher');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'تم حذف المعلم بنجاح',
+        description: 'تم حذف المعلم من النظام'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+    },
+    onError: (error: any) => {
+      console.error('Teacher delete error:', error);
+      toast({
+        title: 'فشل في حذف المعلم',
+        description: error?.message || 'حدث خطأ غير متوقع',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleDeleteTeacher = (teacherId: number, teacherName: string) => {
+    if (window.confirm(`هل أنت متأكد من حذف المعلم "${teacherName}"؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+      deleteTeacherMutation.mutate(teacherId);
+    }
+  };
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -508,9 +545,9 @@ export default function Teachers() {
                   </div>
                 </div>
                 
-                <div>
+                <div className="flex space-x-2 space-x-reverse">
                   <Button 
-                    className={`w-full text-white ${
+                    className={`flex-1 text-white ${
                       primaryLevel === 'Primary' ? 'bg-green-600 hover:bg-green-700' :
                       primaryLevel === 'Middle' ? 'bg-blue-600 hover:bg-blue-700' :
                       primaryLevel === 'Secondary' ? 'bg-purple-600 hover:bg-purple-700' :
@@ -522,6 +559,18 @@ export default function Teachers() {
                   >
                     إرسال رسالة
                   </Button>
+                  
+                  {user?.role === 'admin' && (
+                    <Button 
+                      variant="destructive"
+                      size="sm"
+                      className="px-3"
+                      onClick={() => handleDeleteTeacher(teacher.id, teacher.name)}
+                      disabled={deleteTeacherMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
