@@ -140,6 +140,7 @@ export const groups = pgTable("groups", {
   imageUrl: text("image_url"),
   maxMembers: integer("max_members"),
   educationLevel: text("education_level"), // الابتدائي, المتوسط, الثانوي
+  grades: text("grades").array(), // Array of grades this group serves
   subjectId: integer("subject_id").references(() => teachingModules.id), // Subject/module
   teacherId: integer("teacher_id").references(() => users.id), // Assigned teacher
   studentsAssigned: integer("students_assigned").array(), // Array of student user IDs
@@ -377,7 +378,7 @@ export const teachingModules = pgTable("teaching_modules", {
   name: text("name").notNull(),
   nameAr: text("name_ar").notNull(), // Arabic name
   educationLevel: text("education_level").notNull(), // الابتدائي، المتوسط، الثانوي
-  grade: text("grade"), // Optional - DEPRECATED: use module_years table instead
+  grades: text("grades").array(), // Array of grades this subject applies to
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
