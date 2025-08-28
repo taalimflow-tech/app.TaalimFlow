@@ -659,7 +659,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSchool(id: number): Promise<void> {
-    // Delete all related data in the correct order (foreign key dependencies)
     await db.delete(notifications).where(eq(notifications.schoolId, id));
     await db.delete(userReports).where(eq(userReports.schoolId, id));
     await db.delete(scheduleCells).where(eq(scheduleCells.schoolId, id));
@@ -688,8 +687,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(teachingModules).where(eq(teachingModules.schoolId, id));
     await db.delete(blockedUsers).where(eq(blockedUsers.schoolId, id));
     await db.delete(users).where(eq(users.schoolId, id));
-
-    // Finally delete the school itself
     await db.delete(schools).where(eq(schools.id, id));
   }
   async getUser(id: number): Promise<User | undefined> {
