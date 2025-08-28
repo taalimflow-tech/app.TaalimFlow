@@ -693,7 +693,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(schools).where(eq(schools.id, id));
   }
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(and(eq(users.id, id), eq(users.deleted, false)));
     return user || undefined;
   }
 
@@ -701,7 +701,7 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.email, username));
+      .where(and(eq(users.email, username), eq(users.deleted, false)));
     return user || undefined;
   }
 
@@ -713,13 +713,13 @@ export class DatabaseStorage implements IStorage {
       const users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+        .where(and(eq(users.email, email), eq(users.schoolId, schoolId), eq(users.deleted, false)));
       return users_found[0] || undefined;
     } else {
       const users_found = await db
         .select()
         .from(users)
-        .where(eq(users.email, email));
+        .where(and(eq(users.email, email), eq(users.deleted, false)));
       return users_found[0] || undefined;
     }
   }
@@ -732,14 +732,14 @@ export class DatabaseStorage implements IStorage {
       const users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.phone, phone), eq(users.schoolId, schoolId)))
+        .where(and(eq(users.phone, phone), eq(users.schoolId, schoolId), eq(users.deleted, false)))
         .orderBy(desc(users.id));
       return users_found[0] || undefined;
     } else {
       const users_found = await db
         .select()
         .from(users)
-        .where(eq(users.phone, phone))
+        .where(and(eq(users.phone, phone), eq(users.deleted, false)))
         .orderBy(desc(users.id));
       return users_found[0] || undefined;
     }
@@ -757,9 +757,9 @@ export class DatabaseStorage implements IStorage {
       users_found = await db
         .select()
         .from(users)
-        .where(and(eq(users.email, email), eq(users.schoolId, schoolId)));
+        .where(and(eq(users.email, email), eq(users.schoolId, schoolId), eq(users.deleted, false)));
     } else {
-      users_found = await db.select().from(users).where(eq(users.email, email));
+      users_found = await db.select().from(users).where(and(eq(users.email, email), eq(users.deleted, false)));
     }
 
     let user = users_found[0];
@@ -818,7 +818,7 @@ export class DatabaseStorage implements IStorage {
       return await db
         .select()
         .from(users)
-        .where(eq(users.schoolId, schoolId))
+        .where(and(eq(users.schoolId, schoolId), eq(users.deleted, false)))
         .orderBy(desc(users.createdAt));
     }
     // If no schoolId provided, return empty array for security
@@ -833,10 +833,12 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(
-        or(
-          ilike(users.name, `%${query}%`),
-          ilike(users.email, `%${query}%`),
-          ilike(users.phone, `%${query}%`),
+        and(
+          eq(users.deleted, false),
+          or(
+            ilike(users.name, `%${query}%`),
+            ilike(users.email, `%${query}%`),
+            ilike(users.phone, `%${query}%`),
         ),
       )
       .orderBy(desc(users.createdAt));
@@ -6303,6 +6305,7 @@ export class DatabaseStorage implements IStorage {
             and(
               eq(students.schoolId, filters.schoolId),
               eq(students.verified, true),
+              eq(users.deleted, false),
             ),
           );
 
