@@ -2530,6 +2530,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: formationRegistrations.id,
         formationId: formationRegistrations.formationId,
+        userId: formationRegistrations.userId,
         fullName: formationRegistrations.fullName,
         phone: formationRegistrations.phone,
         email: formationRegistrations.email,
@@ -2546,6 +2547,22 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(formationRegistrations.userId, users.id))
       .where(eq(formationRegistrations.schoolId, schoolId))
       .orderBy(desc(formationRegistrations.createdAt));
+  }
+
+  async isUserRegisteredForFormation(userId: number, formationId: number, schoolId: number): Promise<boolean> {
+    const [registration] = await db
+      .select({ id: formationRegistrations.id })
+      .from(formationRegistrations)
+      .where(
+        and(
+          eq(formationRegistrations.userId, userId),
+          eq(formationRegistrations.formationId, formationId),
+          eq(formationRegistrations.schoolId, schoolId)
+        )
+      )
+      .limit(1);
+    
+    return !!registration;
   }
 
   async getNotifications(

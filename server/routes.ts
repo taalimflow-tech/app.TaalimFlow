@@ -3036,6 +3036,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if user is registered for a specific formation
+  app.get("/api/formation-registrations/check/:formationId", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      const formationId = parseInt(req.params.formationId);
+      const userId = req.session.user.id;
+      const schoolId = req.session.user.schoolId;
+
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const isRegistered = await storage.isUserRegisteredForFormation(userId, formationId, schoolId);
+      res.json({ isRegistered });
+    } catch (error) {
+      console.error("Registration check error:", error);
+      res.status(500).json({ error: "Failed to check registration status" });
+    }
+  });
+
   app.get("/api/formation-registrations", async (req, res) => {
     try {
       if (!req.session.user) {

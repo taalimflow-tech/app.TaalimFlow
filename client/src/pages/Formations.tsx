@@ -96,9 +96,16 @@ export default function Formations() {
   // Helper function to check if current user is already registered for a formation
   const isUserRegistered = (formationId: number) => {
     if (!formationRegistrations || !user?.id) return false;
-    return (formationRegistrations as any[])?.some((reg: any) => 
-      reg.formationId === formationId && reg.userId === user.id
-    );
+    console.log('Checking registration for:', { formationId, userId: user.id });
+    console.log('Available registrations:', formationRegistrations);
+    
+    const isRegistered = (formationRegistrations as any[])?.some((reg: any) => {
+      console.log('Comparing:', { regFormationId: reg.formationId, regUserId: reg.userId, targetFormationId: formationId, targetUserId: user.id });
+      return Number(reg.formationId) === Number(formationId) && Number(reg.userId) === Number(user.id);
+    });
+    
+    console.log('Registration result:', isRegistered);
+    return isRegistered || false;
   };
 
   const handleViewRegistrations = (formation: Formation) => {
