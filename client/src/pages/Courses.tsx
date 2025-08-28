@@ -21,8 +21,6 @@ export default function Courses() {
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
   const [selectedCourseForView, setSelectedCourseForView] = useState<Course | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showChildSelectionModal, setShowChildSelectionModal] = useState(false);
-  const [selectedChild, setSelectedChild] = useState<any>(null);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   
   const [courseData, setCourseData] = useState({
@@ -152,8 +150,7 @@ export default function Courses() {
   });
 
   const joinCourseMutation = useMutation({
-    mutationFn: async (data: any) => {
-      console.log('Sending course registration data:', data);
+    mutationFn: async (data: { courseId: number; userId: number; fullName: string; phone: string; email: string }) => {
       const response = await apiRequest('POST', '/api/course-registrations', data);
       if (!response.ok) {
         const errorData = await response.json();
@@ -164,9 +161,7 @@ export default function Courses() {
     onSuccess: () => {
       toast({ title: 'تم التسجيل في الدورة بنجاح' });
       setShowJoinForm(false);
-      setShowChildSelectionModal(false);
       setSelectedCourse(null);
-      setSelectedChild(null);
       queryClient.invalidateQueries({ queryKey: ['/api/course-registrations'] });
     },
     onError: (error: any) => {
@@ -180,18 +175,11 @@ export default function Courses() {
 
   // Helper function to check if current user is already registered for a course
   const isUserRegistered = (courseId: number) => {
-    if (!courseRegistrations || !user?.id || !courseId) return false;
+    if (!courseRegistrations || !user?.id) return false;
     
-    // Check if user is registered directly or through any child
-    const isRegistered = (courseRegistrations as any[])?.some((reg: any) => {
-      const sameUser = Number(reg.userId) === Number(user.id);
-      const sameCourse = Number(reg.courseId) === Number(courseId);
-      const isSelfRegistration = reg.registrantType === 'self';
-      
-      return sameUser && sameCourse && isSelfRegistration;
-    });
-    
-    return Boolean(isRegistered);
+    return (courseRegistrations as any[])?.some((reg: any) => {
+      return Number(reg.courseId) === Number(courseId) && Number(reg.userId) === Number(user.id);
+    }) || false;
   };
 
   // Helper function to check if a child is already registered for a course
@@ -207,11 +195,7 @@ export default function Courses() {
   };
 
   const getRegistrationsForCourse = (courseId: number) => {
-    if (!courseRegistrations || !courseId) return [];
-    
-    return (courseRegistrations as any[])?.filter((reg: any) => {
-      return Number(reg.courseId) === Number(courseId);
-    }) || [];
+    return (courseRegistrations as any[])?.filter((reg: any) => Number(reg.courseId) === Number(courseId)) || [];
   };
 
   // Helper function to get subject name
@@ -224,9 +208,6 @@ export default function Courses() {
   };
 
   const handleViewRegistrations = (course: Course) => {
-    console.log('User role:', user?.role);
-    console.log('All course registrations:', courseRegistrations);
-    console.log('Course registrations for course', course.id, ':', getRegistrationsForCourse(course.id));
     setSelectedCourseForView(course);
     setShowRegistrationsModal(true);
   };
@@ -917,9 +898,7 @@ export default function Courses() {
                                   <Users className="w-4 h-4 text-gray-500" />
                                   <div>
                                     <p className="font-medium">{registration.fullName}</p>
-                                    <p className="text-sm text-gray-500">
-                                      {registration.registrantType === 'child' ? 'طفل' : 'مباشر'}
-                                    </p>
+                                    <p className="text-sm text-gray-500">الاسم الكامل</p>
                                   </div>
                                 </div>
                                 
