@@ -302,7 +302,7 @@ export const courses = pgTable("courses", {
   courseTime: text("course_time").notNull(), // Time when course starts
   subjectId: integer("subject_id").references(() => teachingModules.id), // Subject reference
   educationLevel: text("education_level"), // Primary, Middle, Secondary for child filtering
-  grade: text("grade"), // Specific grade/year within education level
+  grades: text("grades").array(), // Array of grades this course applies to
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -377,7 +377,7 @@ export const teachingModules = pgTable("teaching_modules", {
   name: text("name").notNull(),
   nameAr: text("name_ar").notNull(), // Arabic name
   educationLevel: text("education_level").notNull(), // الابتدائي، المتوسط، الثانوي
-  grade: text("grade"), // Optional - DEPRECATED: use module_years table instead
+  grades: text("grades").array(), // Array of grades this subject applies to
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -421,7 +421,7 @@ export const scheduleCells = pgTable("schedule_cells", {
   startTime: text("start_time"), // HH:MM format (e.g., "08:30")
   endTime: text("end_time"), // HH:MM format (e.g., "10:00")
   educationLevel: text("education_level").notNull(), // 'الابتدائي', 'المتوسط', 'الثانوي'
-  grade: text("grade"), // Specific grade within education level
+  grades: text("grades").array(), // Array of grades this session applies to
   gender: text("gender", { enum: ["male", "female", "mixed"] }), // Group gender type
   subjectId: integer("subject_id").references(() => teachingModules.id),
   teacherId: integer("teacher_id").references(() => users.id),
