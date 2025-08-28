@@ -2867,6 +2867,7 @@ export class DatabaseStorage implements IStorage {
       email?: string;
       phone?: string | null;
       profilePicture?: string | null;
+      password?: string;
     },
   ): Promise<User> {
     const updateData: any = {};
@@ -2875,6 +2876,12 @@ export class DatabaseStorage implements IStorage {
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.profilePicture !== undefined)
       updateData.profilePicture = data.profilePicture;
+    
+    // Handle password hashing if password is provided
+    if (data.password !== undefined) {
+      const bcrypt = await import("bcrypt");
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
 
     const [user] = await db
       .update(users)
