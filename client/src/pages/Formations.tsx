@@ -37,7 +37,8 @@ export default function Formations() {
   });
 
   const joinFormationMutation = useMutation({
-    mutationFn: async (data: { formationId: number; fullName: string; phone: string; email: string }) => {
+    mutationFn: async (data: { formationId: number; userId: number; fullName: string; phone: string; email: string }) => {
+      console.log('Sending registration data:', data);
       const response = await apiRequest('POST', '/api/formation-registrations', data);
       if (!response.ok) {
         const errorData = await response.json();
@@ -63,9 +64,18 @@ export default function Formations() {
 
   const handleJoinFormation = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedFormation && registrationData.fullName && registrationData.phone && registrationData.email) {
+    if (selectedFormation && registrationData.fullName && registrationData.phone && registrationData.email && user?.id) {
+      console.log('Form submission data:', {
+        formationId: selectedFormation.id,
+        userId: user.id,
+        fullName: registrationData.fullName,
+        phone: registrationData.phone,
+        email: registrationData.email
+      });
+      
       joinFormationMutation.mutate({
         formationId: selectedFormation.id,
+        userId: user.id,
         fullName: registrationData.fullName,
         phone: registrationData.phone,
         email: registrationData.email
