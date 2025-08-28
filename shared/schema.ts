@@ -303,7 +303,7 @@ export const courses = pgTable("courses", {
   courseTime: text("course_time").notNull(), // Time when course starts
   subjectId: integer("subject_id").references(() => teachingModules.id), // Subject reference
   educationLevel: text("education_level"), // Primary, Middle, Secondary for child filtering
-  grade: text("grade"), // Specific grade/year within education level
+  grades: text("grades").array(), // Array of grades this course serves
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -422,7 +422,7 @@ export const scheduleCells = pgTable("schedule_cells", {
   startTime: text("start_time"), // HH:MM format (e.g., "08:30")
   endTime: text("end_time"), // HH:MM format (e.g., "10:00")
   educationLevel: text("education_level").notNull(), // 'الابتدائي', 'المتوسط', 'الثانوي'
-  grade: text("grade"), // Specific grade within education level
+  grades: text("grades").array(), // Array of grades this schedule cell serves
   gender: text("gender", { enum: ["male", "female", "mixed"] }), // Group gender type
   subjectId: integer("subject_id").references(() => teachingModules.id),
   teacherId: integer("teacher_id").references(() => users.id),
