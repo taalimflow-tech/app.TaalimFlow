@@ -15,6 +15,16 @@ export default function Formations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  const [selectedFormation, setSelectedFormation] = useState<Formation | null>(null);
+  const [showJoinForm, setShowJoinForm] = useState(false);
+  const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
+  const [selectedFormationForView, setSelectedFormationForView] = useState<Formation | null>(null);
+  const [registrationData, setRegistrationData] = useState({
+    fullName: '',
+    phone: '',
+    email: ''
+  });
+
   const { data: formations = [], isLoading: loading } = useQuery<Formation[]>({
     queryKey: ['/api/formations'],
     enabled: !!user && !authLoading,
@@ -24,16 +34,6 @@ export default function Formations() {
   const { data: formationRegistrations = [], isLoading: registrationsLoading } = useQuery({
     queryKey: ['/api/formation-registrations'],
     enabled: !!user && user.role === 'admin' && showRegistrationsModal,
-  });
-
-  const [selectedFormation, setSelectedFormation] = useState<Formation | null>(null);
-  const [showJoinForm, setShowJoinForm] = useState(false);
-  const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
-  const [selectedFormationForView, setSelectedFormationForView] = useState<Formation | null>(null);
-  const [registrationData, setRegistrationData] = useState({
-    fullName: '',
-    phone: '',
-    email: ''
   });
 
   const joinFormationMutation = useMutation({
