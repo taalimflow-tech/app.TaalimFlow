@@ -2603,6 +2603,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCourse(id: number, schoolId: number): Promise<void> {
+    // First delete all course registrations for this course
+    await db
+      .delete(courseRegistrations)
+      .where(and(eq(courseRegistrations.courseId, id), eq(courseRegistrations.schoolId, schoolId)));
+    
+    // Then delete the course itself
     await db
       .delete(courses)
       .where(and(eq(courses.id, id), eq(courses.schoolId, schoolId)));
