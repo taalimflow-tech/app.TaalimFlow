@@ -362,6 +362,35 @@ export default function Courses() {
           )}
         </div>
 
+        {/* Debug Section - Display registered users and current user ID */}
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-3">Debug Info</h3>
+          <div className="space-y-2 text-sm">
+            <p className="text-yellow-700 dark:text-yellow-300">
+              <strong>Current User ID:</strong> {user?.id} (Type: {typeof user?.id})
+            </p>
+            <p className="text-yellow-700 dark:text-yellow-300">
+              <strong>Current User Name:</strong> {user?.name}
+            </p>
+            <div>
+              <p className="text-yellow-700 dark:text-yellow-300 font-medium mb-2">
+                All Course Registrations ({courseRegistrations?.length || 0}):
+              </p>
+              {courseRegistrations && Array.isArray(courseRegistrations) && courseRegistrations.length > 0 ? (
+                <div className="max-h-40 overflow-y-auto space-y-1">
+                  {(courseRegistrations as any[]).map((reg: any, index: number) => (
+                    <div key={index} className="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-800/30 p-2 rounded">
+                      [{index}] User ID: {reg.userId} ({typeof reg.userId}) | Course ID: {reg.courseId} ({typeof reg.courseId}) | Name: {reg.fullName} | Type: {reg.registrantType}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-yellow-600 dark:text-yellow-400 text-xs">No registrations found</p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Courses Grid */}
         {courses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
