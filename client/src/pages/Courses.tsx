@@ -51,6 +51,8 @@ export default function Courses() {
   const { data: courseRegistrations = [], isLoading: registrationsLoading } = useQuery({
     queryKey: ['/api/course-registrations'],
     enabled: !!user && !authLoading,
+    refetchOnWindowFocus: false,
+    staleTime: 30000, // 30 seconds
   });
 
   // Query for teaching modules/subjects
@@ -205,7 +207,11 @@ export default function Courses() {
   };
 
   const getRegistrationsForCourse = (courseId: number) => {
-    return (courseRegistrations as any[])?.filter((reg: any) => reg.courseId === courseId) || [];
+    if (!courseRegistrations || !courseId) return [];
+    
+    return (courseRegistrations as any[])?.filter((reg: any) => {
+      return Number(reg.courseId) === Number(courseId);
+    }) || [];
   };
 
   // Helper function to get subject name
@@ -892,6 +898,9 @@ export default function Courses() {
                 <>
                   {(() => {
                     const courseRegs = getRegistrationsForCourse(selectedCourseForView.id);
+                    console.log('Course registrations for course', selectedCourseForView.id, ':', courseRegs);
+                    console.log('All course registrations:', courseRegistrations);
+                    
                     return courseRegs.length > 0 ? (
                       <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-4">
