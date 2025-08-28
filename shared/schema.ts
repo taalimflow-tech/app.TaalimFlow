@@ -295,7 +295,7 @@ export const courses = pgTable("courses", {
   schoolId: integer("school_id").references(() => schools.id).notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  duration: text("duration").notNull(), // Duration/period of the course
+  duration: text("duration"), // Duration/period of the course (optional)
   price: text("price").notNull(),
   imageUrl: text("image_url"),
   courseDate: text("course_date").notNull(), // Date when course starts
