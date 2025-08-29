@@ -5177,8 +5177,9 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Check if payment already exists to prevent duplicates (NOW GROUP-SPECIFIC)
+      // Only check for NON-REFUNDED payments to allow new payments for refunded months
       console.log(
-        `🔍 DUPLICATE CHECK: Looking for existing payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}, groupId: ${groupId}`,
+        `🔍 DUPLICATE CHECK: Looking for existing ACTIVE payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}, groupId: ${groupId}`,
       );
       const [existingPayment] = await db
         .select()
@@ -5190,6 +5191,7 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId),
             eq(studentMonthlyPayments.groupId, groupId), // CRITICAL: Check group-specific duplicates
+            eq(studentMonthlyPayments.isRefunded, false), // Only check for non-refunded payments
           ),
         )
         .limit(1);
@@ -5212,7 +5214,7 @@ export class DatabaseStorage implements IStorage {
 
       if (existingPayment) {
         console.log(
-          `🚫 DUPLICATE PAYMENT DETECTED: Payment already exists for studentId ${studentId}, ${month}/${year}`,
+          `🚫 DUPLICATE PAYMENT DETECTED: Active payment already exists for studentId ${studentId}, ${month}/${year}`,
         );
         console.log(`🚫 Existing payment:`, existingPayment);
         console.log(
