@@ -1992,6 +1992,11 @@ function DesktopQRScanner() {
         printWindow.focus();
         printWindow.print();
         
+        // Refresh the page after printing to clear any data inconsistencies
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+        
         // Optional: close window after printing (uncomment if desired)
         // printWindow.onafterprint = () => printWindow.close();
       };
