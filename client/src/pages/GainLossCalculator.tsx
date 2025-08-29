@@ -572,7 +572,19 @@ export default function GainLossCalculator() {
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                                 <span className="text-gray-700 dark:text-gray-300">
-                                  الشهر المستردة: {refundedMonth.trim()}
+                                  الشهر المستردة: {(() => {
+                                    const monthYearParts = refundedMonth.trim().split('/');
+                                    if (monthYearParts.length === 2) {
+                                      const month = parseInt(monthYearParts[0]);
+                                      const year = monthYearParts[1];
+                                      const arabicMonths = [
+                                        '', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                                        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+                                      ];
+                                      return `${arabicMonths[month]} ${year}`;
+                                    }
+                                    return refundedMonth.trim();
+                                  })()}
                                 </span>
                               </div>
                               

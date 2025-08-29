@@ -241,7 +241,7 @@ export interface IStorage {
   // Group methods
   getGroups(): Promise<Group[]>;
   getGroupsBySchool(schoolId: number): Promise<Group[]>;
-  getGroupById(id: number): Promise<Group | undefined>;
+  getGroupById(id: number, schoolId?: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
   deleteGroup(id: number, schoolId?: number): Promise<void>;
 
@@ -1815,11 +1815,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(groups.createdAt));
   }
 
-  async getGroupById(id: number): Promise<Group | undefined> {
+  async getGroupById(id: number, schoolId?: number): Promise<Group | undefined> {
+    const conditions = [eq(groups.id, id)];
+    
+    // Add school validation if schoolId is provided
+    if (schoolId !== undefined) {
+      conditions.push(eq(groups.schoolId, schoolId));
+    }
+    
     const result = await db
       .select()
       .from(groups)
-      .where(eq(groups.id, id))
+      .where(and(...conditions))
       .limit(1);
     return result[0];
   }
@@ -5490,7 +5497,7 @@ export class DatabaseStorage implements IStorage {
         );
 
       // Create a financial entry for the refund (as a loss)
-      const refundRemarks = `استرداد دفعة - الطالب: ${studentInfo?.name || 'غير معروف'} - المجموعة: ${groupInfo?.groupName || 'غير معروف'} - الشهر المستردة: ${month}/${year} - السبب: ${refundReason}`;
+      const refundRemarks = `استرداد دفعة - الطالب: ${studentInfo?.name || 'غير معروف'} - المجموعة: ${groupInfo?.name || 'غير معروف'} - الشهر المستردة: ${month}/${year} - السبب: ${refundReason}`;
       
       const refundEntry = await db
         .insert(financialEntries)
