@@ -2622,26 +2622,26 @@ export default function Groups() {
                     <option value="">جميع السنوات</option>
                     {existingGroupsFilter === "الابتدائي" && (
                       <>
-                        <option value="الأولى ابتدائي">الأولى ابتدائي</option>
-                        <option value="الثانية ابتدائي">الثانية ابتدائي</option>
-                        <option value="الثالثة ابتدائي">الثالثة ابتدائي</option>
-                        <option value="الرابعة ابتدائي">الرابعة ابتدائي</option>
-                        <option value="الخامسة ابتدائي">الخامسة ابتدائي</option>
+                        <option value="السنة الأولى ابتدائي">السنة الأولى ابتدائي</option>
+                        <option value="السنة الثانية ابتدائي">السنة الثانية ابتدائي</option>
+                        <option value="السنة الثالثة ابتدائي">السنة الثالثة ابتدائي</option>
+                        <option value="السنة الرابعة ابتدائي">السنة الرابعة ابتدائي</option>
+                        <option value="السنة الخامسة ابتدائي">السنة الخامسة ابتدائي</option>
                       </>
                     )}
                     {existingGroupsFilter === "المتوسط" && (
                       <>
-                        <option value="الأولى متوسط">الأولى متوسط</option>
-                        <option value="الثانية متوسط">الثانية متوسط</option>
-                        <option value="الثالثة متوسط">الثالثة متوسط</option>
-                        <option value="الرابعة متوسط">الرابعة متوسط</option>
+                        <option value="السنة الأولى متوسط">السنة الأولى متوسط</option>
+                        <option value="السنة الثانية متوسط">السنة الثانية متوسط</option>
+                        <option value="السنة الثالثة متوسط">السنة الثالثة متوسط</option>
+                        <option value="السنة الرابعة متوسط">السنة الرابعة متوسط</option>
                       </>
                     )}
                     {existingGroupsFilter === "الثانوي" && (
                       <>
-                        <option value="الأولى ثانوي">الأولى ثانوي</option>
-                        <option value="الثانية ثانوي">الثانية ثانوي</option>
-                        <option value="الثالثة ثانوي">الثالثة ثانوي</option>
+                        <option value="السنة الأولى ثانوي">السنة الأولى ثانوي</option>
+                        <option value="السنة الثانية ثانوي">السنة الثانية ثانوي</option>
+                        <option value="السنة الثالثة ثانوي">السنة الثالثة ثانوي</option>
                       </>
                     )}
                   </select>
