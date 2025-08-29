@@ -581,6 +581,13 @@ export default function Groups() {
   const [customSubjectLevel, setCustomSubjectLevel] = useState("");
   const [customSubjectGrade, setCustomSubjectGrade] = useState("");
 
+  // Create new group modal state
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [createGroupLevel, setCreateGroupLevel] = useState("");
+  const [createGroupGrade, setCreateGroupGrade] = useState("");
+  const [createGroupSubject, setCreateGroupSubject] = useState("");
+  const [createGroupIdentifier, setCreateGroupIdentifier] = useState("");
+
   // Existing groups filter state
   const [existingGroupsFilter, setExistingGroupsFilter] = useState("");
   const [selectedYearFilter, setSelectedYearFilter] = useState("");
@@ -970,6 +977,44 @@ export default function Groups() {
     },
   });
 
+  // Create new group mutation
+  const createNewGroupMutation = useMutation({
+    mutationFn: async (groupData: {
+      level: string;
+      grade: string;
+      subjectId: number;
+      identifier: string;
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        "/api/admin/create-group",
+        groupData,
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "تم إنشاء المجموعة بنجاح",
+        description: `تم إنشاء مجموعة: ${data.groupName}`,
+      });
+      setShowCreateGroupModal(false);
+      // Reset form
+      setCreateGroupLevel("");
+      setCreateGroupGrade("");
+      setCreateGroupSubject("");
+      setCreateGroupIdentifier("");
+      // Refresh cache
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/groups"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إنشاء المجموعة",
+        description: error.response?.data?.error || "حدث خطأ أثناء إنشاء المجموعة",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: number) => {
@@ -1196,6 +1241,34 @@ export default function Groups() {
         grade: isAllLevels ? undefined : customSubjectGrade,
       });
     }
+  };
+
+  const handleCreateNewGroup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (createGroupLevel && createGroupGrade && createGroupSubject) {
+      createNewGroupMutation.mutate({
+        level: createGroupLevel,
+        grade: createGroupGrade,
+        subjectId: parseInt(createGroupSubject),
+        identifier: createGroupIdentifier || "",
+      });
+    }
+  };
+
+  // Get available subjects for create group form
+  const getAvailableSubjectsForLevel = (level: string) => {
+    if (!teachingModules) return [];
+    return teachingModules.filter(
+      (module: any) => module.educationLevel === level,
+    );
+  };
+
+  // Get existing groups for duplication detection
+  const getExistingGroupsForSubject = (subjectId: string) => {
+    if (!subjectId || !adminGroups) return [];
+    return adminGroups.filter(
+      (group) => group.subjectId === parseInt(subjectId) && !group.isPlaceholder,
+    );
   };
 
   const handleDeleteGroup = (group: any) => {
@@ -1960,6 +2033,31 @@ export default function Groups() {
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           إنشاء مادة مخصصة
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Create New Group Button - Only for School Admins */}
+                  {user?.role === "admin" && (
+                    <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-purple-800 mb-1">
+                            إنشاء مجموعة جديدة
+                          </h4>
+                          <p className="text-sm text-purple-600">
+                            إنشاء مجموعة تعليمية بخطوات محددة ومنظمة
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowCreateGroupModal(true)}
+                          className="border-purple-300 text-purple-600 hover:bg-purple-100"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          إنشاء مجموعة جديدة
                         </Button>
                       </div>
                     </div>
@@ -3879,6 +3977,152 @@ export default function Groups() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create New Group Modal */}
+        {showCreateGroupModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 border dark:border-gray-700">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  إنشاء مجموعة جديدة
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowCreateGroupModal(false);
+                    setCreateGroupLevel("");
+                    setCreateGroupGrade("");
+                    setCreateGroupSubject("");
+                    setCreateGroupIdentifier("");
+                  }}
+                >
+                  إغلاق
+                </Button>
+              </div>
+
+              <form onSubmit={handleCreateNewGroup} className="space-y-4">
+                {/* Education Level Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    المستوى التعليمي *
+                  </label>
+                  <select
+                    value={createGroupLevel}
+                    onChange={(e) => {
+                      setCreateGroupLevel(e.target.value);
+                      setCreateGroupGrade("");
+                      setCreateGroupSubject("");
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    required
+                  >
+                    <option value="">اختر المستوى...</option>
+                    <option value="الابتدائي">الابتدائي</option>
+                    <option value="المتوسط">المتوسط</option>
+                    <option value="الثانوي">الثانوي</option>
+                  </select>
+                </div>
+
+                {/* Grade Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    السنة الدراسية *
+                  </label>
+                  <select
+                    value={createGroupGrade}
+                    onChange={(e) => {
+                      setCreateGroupGrade(e.target.value);
+                      setCreateGroupSubject("");
+                    }}
+                    disabled={!createGroupLevel}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-600"
+                    required
+                  >
+                    <option value="">اختر السنة...</option>
+                    {createGroupLevel &&
+                      getAvailableGrades(createGroupLevel).map((grade) => (
+                        <option key={grade.value} value={grade.value}>
+                          {grade.label}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Subject Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    المادة الدراسية *
+                  </label>
+                  <select
+                    value={createGroupSubject}
+                    onChange={(e) => setCreateGroupSubject(e.target.value)}
+                    disabled={!createGroupLevel}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-600"
+                    required
+                  >
+                    <option value="">اختر المادة...</option>
+                    {getAvailableSubjectsForLevel(createGroupLevel).map((subject) => (
+                      <option key={subject.id} value={subject.id}>
+                        {subject.nameAr || subject.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Group Identifier */}
+                {createGroupSubject && getExistingGroupsForSubject(createGroupSubject).length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      تمييز المجموعة (اختياري)
+                    </label>
+                    <input
+                      type="text"
+                      value={createGroupIdentifier}
+                      onChange={(e) => setCreateGroupIdentifier(e.target.value)}
+                      placeholder="مثال: مجموعة أ، الفترة الصباحية، مع الأستاذ أحمد"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                    <p className="text-sm text-orange-600 mt-1">
+                      ⚠️ توجد {getExistingGroupsForSubject(createGroupSubject).length} مجموعة أخرى لنفس المادة
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateGroupModal(false);
+                      setCreateGroupLevel("");
+                      setCreateGroupGrade("");
+                      setCreateGroupSubject("");
+                      setCreateGroupIdentifier("");
+                    }}
+                    className="mr-2"
+                  >
+                    إلغاء
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={
+                      createNewGroupMutation.isPending ||
+                      !createGroupLevel ||
+                      !createGroupGrade ||
+                      !createGroupSubject
+                    }
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    {createNewGroupMutation.isPending
+                      ? "جاري الإنشاء..."
+                      : "إنشاء المجموعة"}
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         )}

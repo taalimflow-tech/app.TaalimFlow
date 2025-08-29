@@ -2728,6 +2728,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new group route
+  app.post("/api/admin/create-group", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "غير مسموح لك بالوصول إلى هذه الصفحة" });
+      }
+
+      const { level, grade, subjectId, identifier } = req.body;
+
+      if (!level || !grade || !subjectId) {
+        return res.status(400).json({
+          error: "المستوى التعليمي والسنة الدراسية والمادة مطلوبة",
+        });
+      }
+
+      // Get subject name for group naming
+      const subject = await storage.getTeachingModuleById(parseInt(subjectId));
+      if (!subject) {
+        return res.status(400).json({ error: "المادة المحددة غير موجودة" });
+      }
+
+      // Check for existing groups with same subject/level/grade
+      const existingGroups = await storage.getGroupsBySubjectAndGrade(
+        parseInt(subjectId),
+        level,
+        grade,
+        req.session.user.schoolId,
+      );
+
+      // Determine group number for automatic numbering
+      const nextGroupNumber = existingGroups.length + 1;
+
+      // Create group name with automatic numbering or custom identifier
+      let groupName = subject.nameAr || subject.name;
+      if (nextGroupNumber > 1) {
+        if (identifier.trim()) {
+          groupName = `${groupName} - ${identifier.trim()}`;
+        } else {
+          groupName = `${groupName} (${nextGroupNumber})`;
+        }
+      } else if (identifier.trim()) {
+        groupName = `${groupName} - ${identifier.trim()}`;
+      }
+
+      // Create the group
+      const newGroup = await storage.createNewGroup({
+        schoolId: req.session.user.schoolId,
+        name: groupName,
+        description: `مجموعة تعليمية لمادة ${subject.nameAr || subject.name} - ${grade}`,
+        category: "دراسية",
+        educationLevel: level,
+        grade: grade,
+        subjectId: parseInt(subjectId),
+        groupNumber: nextGroupNumber,
+        isAdminManaged: true,
+      });
+
+      res.status(201).json({
+        group: newGroup,
+        groupName: groupName,
+        message: `تم إنشاء المجموعة "${groupName}" بنجاح`,
+      });
+    } catch (error) {
+      console.error("Error creating new group:", error);
+      res.status(500).json({ error: "فشل في إنشاء المجموعة الجديدة" });
+    }
+  });
+
   // Custom subjects route
   app.post("/api/admin/custom-subjects", async (req, res) => {
     try {

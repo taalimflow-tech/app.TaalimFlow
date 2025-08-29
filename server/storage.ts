@@ -7167,6 +7167,82 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  async getGroupsBySubjectAndGrade(
+    subjectId: number,
+    level: string,
+    grade: string,
+    schoolId: number,
+  ): Promise<Group[]> {
+    try {
+      const existingGroups = await db
+        .select()
+        .from(groups)
+        .where(
+          and(
+            eq(groups.schoolId, schoolId),
+            eq(groups.subjectId, subjectId),
+            eq(groups.educationLevel, level),
+            eq(groups.grade, grade),
+          ),
+        );
+      return existingGroups;
+    } catch (error) {
+      console.error("Error fetching groups by subject and grade:", error);
+      throw error;
+    }
+  }
+
+  async createNewGroup(groupData: {
+    schoolId: number;
+    name: string;
+    description: string;
+    category: string;
+    educationLevel: string;
+    grade: string;
+    subjectId: number;
+    groupNumber: number;
+    isAdminManaged: boolean;
+  }): Promise<Group> {
+    try {
+      const [newGroup] = await db
+        .insert(groups)
+        .values({
+          schoolId: groupData.schoolId,
+          name: groupData.name,
+          description: groupData.description,
+          category: groupData.category,
+          educationLevel: groupData.educationLevel,
+          grade: groupData.grade,
+          subjectId: groupData.subjectId,
+          groupNumber: groupData.groupNumber,
+          isAdminManaged: groupData.isAdminManaged,
+          maxMembers: 30, // Default max members
+          startDate: new Date(),
+        })
+        .returning();
+
+      console.log(`✅ Created new group "${newGroup.name}" with ID ${newGroup.id}`);
+      return newGroup;
+    } catch (error) {
+      console.error("Error creating new group:", error);
+      throw error;
+    }
+  }
+
+  async getTeachingModuleById(id: number): Promise<TeachingModule | null> {
+    try {
+      const [subject] = await db
+        .select()
+        .from(teachingModules)
+        .where(eq(teachingModules.id, id))
+        .limit(1);
+      return subject || null;
+    } catch (error) {
+      console.error("Error fetching teaching module by ID:", error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
