@@ -515,6 +515,16 @@ export default function Teachers() {
       
       return response.json();
     },
+    onMutate: async (specializationId: number) => {
+      // Optimistic update - immediately remove the specialization from UI
+      if (teacherForSpecialization) {
+        const updatedTeacher = {
+          ...teacherForSpecialization,
+          specializations: teacherForSpecialization.specializations.filter(spec => spec.id !== specializationId)
+        };
+        setTeacherForSpecialization(updatedTeacher);
+      }
+    },
     onSuccess: () => {
       toast({
         title: "تم حذف التخصص بنجاح",
@@ -524,7 +534,10 @@ export default function Teachers() {
       // Invalidate and refetch teachers
       queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
     },
-    onError: (error: any) => {
+    onError: (error: any, specializationId: number) => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+      
       toast({
         title: "فشل في حذف التخصص",
         description: error?.message || 'حدث خطأ غير متوقع أثناء حذف التخصص',
