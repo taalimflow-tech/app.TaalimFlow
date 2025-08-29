@@ -1585,8 +1585,10 @@ function DesktopQRScanner() {
       };
 
       // 🆕 AUTOMATIC GAIN ENTRIES: Create separate financial gain entry for each month
-      try {
-        console.log('🔄 Creating automatic gain entries for receipt:', ticket.receiptId);
+      // Only create financial entries if payment was successfully saved
+      if (result && result.receiptId) {
+        try {
+          console.log('🔄 Creating automatic gain entries for receipt:', ticket.receiptId);
         
         // Create a separate financial entry for each month selected
         const gainEntryPromises = [];
@@ -1613,7 +1615,7 @@ function DesktopQRScanner() {
                 amount: perMonthAmount.toFixed(2), // Amount per month (portion of group total)
                 remarks: `إيصال دفع رقم: ${ticket.receiptId} - الطالب: ${scannedProfile.name} - ${paymentDetails}`,
                 year: correctYear,
-                month: parseInt(month),
+                month: month,
                 receiptId: ticket.receiptId // Add receipt ID for deletion tracking
               })
             });
@@ -1643,11 +1645,18 @@ function DesktopQRScanner() {
             description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر وأضف المبلغ يدوياً`
           });
         }
-      } catch (gainError) {
-        console.error('❌ Error creating automatic gain entries:', gainError);
+        } catch (gainError) {
+          console.error('❌ Error creating automatic gain entries:', gainError);
+          toast({
+            title: "تم إنشاء إيصال الدفع بنجاح",
+            description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر`
+          });
+        }
+      } else {
+        console.log('⚠️ Payment was not saved successfully, skipping financial entries');
         toast({
-          title: "تم إنشاء إيصال الدفع بنجاح",
-          description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر`
+          title: "تم إنشاء إيصال الدفع محلياً",
+          description: `إيصال رقم: ${ticket.receiptId} - لم يتم حفظ الدفع في قاعدة البيانات`
         });
       }
 
