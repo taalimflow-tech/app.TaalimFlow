@@ -1155,6 +1155,17 @@ export default function Schedule() {
               
               <div>
                 <Label htmlFor="subject">المادة</Label>
+                {/* Grade verification info */}
+                {cellForm.educationLevel && cellForm.educationLevel !== 'all' && cellForm.grade && (
+                  <div className="text-xs text-blue-600 dark:text-blue-400 mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    📚 المواد المتاحة للصف: {cellForm.grade} - {cellForm.educationLevel}
+                    {filteredSubjects.length === 0 && (
+                      <div className="text-red-600 dark:text-red-400 mt-1">
+                        ⚠️ لا توجد مواد متاحة لهذا الصف. تأكد من اختيار المستوى والصف الصحيح.
+                      </div>
+                    )}
+                  </div>
+                )}
                 <Select
                   value={cellForm.subjectId}
                   onValueChange={(value) => setCellForm({ ...cellForm, subjectId: value })}
@@ -1163,11 +1174,21 @@ export default function Schedule() {
                     <SelectValue placeholder="اختر المادة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {filteredSubjects.map((module: TeachingModule) => (
-                      <SelectItem key={module.id} value={module.id.toString()}>
-                        {module.nameAr}
+                    {filteredSubjects.length > 0 ? (
+                      filteredSubjects.map((module: TeachingModule) => (
+                        <SelectItem key={module.id} value={module.id.toString()}>
+                          {module.nameAr}
+                          {/* Show grade info for verification */}
+                          {module.grade && module.grade !== 'جميع المستويات' && (
+                            <span className="text-xs text-gray-500 mr-2">({module.grade})</span>
+                          )}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        لا توجد مواد متاحة للصف المحدد
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
