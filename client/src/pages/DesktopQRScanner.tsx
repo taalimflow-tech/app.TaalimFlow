@@ -557,6 +557,7 @@ function DesktopQRScanner() {
   // Ticket state
   const [generatedTicket, setGeneratedTicket] = useState<any>(null);
   const [showTicket, setShowTicket] = useState(false);
+  const [isGeneratingTicket, setIsGeneratingTicket] = useState(false);
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1462,6 +1463,12 @@ function DesktopQRScanner() {
 
 
   const generatePaymentTicket = async () => {
+    // Prevent multiple submissions
+    if (isGeneratingTicket) {
+      console.log('❌ Already generating ticket, ignoring duplicate request');
+      return;
+    }
+
     console.log('=== PAYMENT TICKET GENERATION START ===');
     console.log('Scanned Profile:', scannedProfile);
     console.log('Payment Amount:', paymentAmount);
@@ -1500,6 +1507,7 @@ function DesktopQRScanner() {
     }
 
     try {
+      setIsGeneratingTicket(true);
       setIsProcessing(true);
 
       // Calculate total amount from all group amounts
@@ -1758,6 +1766,7 @@ function DesktopQRScanner() {
       });
     } finally {
       setIsProcessing(false);
+      setIsGeneratingTicket(false);
     }
   };
 
@@ -2796,10 +2805,23 @@ function DesktopQRScanner() {
                       <Button 
                         onClick={generatePaymentTicket}
                         className="mt-4 w-full"
-                        disabled={Object.keys(selectedGroups).length === 0 || Object.values(groupAmounts).every(amount => !amount)}
+                        disabled={
+                          isGeneratingTicket || 
+                          Object.keys(selectedGroups).length === 0 || 
+                          Object.values(groupAmounts).every(amount => !amount)
+                        }
                       >
-                        <FileText className="h-4 w-4 ml-2" />
-                        إنشاء إيصال الدفع
+                        {isGeneratingTicket ? (
+                          <>
+                            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
+                            جاري إنشاء الإيصال...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-4 w-4 ml-2" />
+                            إنشاء إيصال الدفع
+                          </>
+                        )}
                       </Button>
                     </div>
                   </CardContent>
