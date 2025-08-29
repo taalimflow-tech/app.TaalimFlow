@@ -2432,29 +2432,9 @@ export default function Groups() {
                         return !isStandardSubject;
                       });
                     } else {
-                      // Debug logging for filtering
-                      console.log("🔍 Filtering Debug:", {
-                        existingGroupsFilter,
-                        totalAdminGroups: adminCreatedGroups.length,
-                        groupEducationLevels: adminCreatedGroups.map(g => ({
-                          id: g.id,
-                          name: g.name,
-                          educationLevel: g.educationLevel,
-                          grade: g.grade
-                        }))
-                      });
-                      
                       filteredGroups = adminCreatedGroups.filter(
-                        (group) => {
-                          const matches = group.educationLevel === existingGroupsFilter;
-                          if (!matches) {
-                            console.log(`❌ Group "${group.name}" educationLevel "${group.educationLevel}" doesn't match filter "${existingGroupsFilter}"`);
-                          }
-                          return matches;
-                        }
+                        (group) => group.educationLevel === existingGroupsFilter,
                       );
-                      
-                      console.log(`✅ Filtered ${filteredGroups.length} groups for level "${existingGroupsFilter}"`);
                     }
 
                     return filteredGroups.length > 0 ? (
@@ -2726,130 +2706,50 @@ export default function Groups() {
                     } else {
                       // Show admin groups by education level - include ALL groups for that level
                       // regardless of whether they use custom or standard subjects
-                      console.log(
-                        "DEBUG: Filtering groups for level:",
-                        existingGroupsFilter,
-                      );
-                      console.log(
-                        "DEBUG: Available admin groups:",
-                        adminCreatedGroups.map((g) => ({
-                          id: g.id,
-                          name: g.name,
-                          educationLevel: g.educationLevel,
-                          subjectId: g.subjectId,
-                        })),
-                      );
-
                       filteredGroups = adminCreatedGroups.filter((group) => {
-                        const matches =
-                          group.educationLevel === existingGroupsFilter;
-                        console.log(
-                          `DEBUG: Group "${group.name}" level "${group.educationLevel}" matches filter "${existingGroupsFilter}":`,
-                          matches,
-                        );
-                        return matches;
+                        return group.educationLevel === existingGroupsFilter;
                       });
 
                       // Apply strict year filtering
                       if (selectedYearFilter) {
-                        console.log(
-                          "DEBUG: Applying year filter:",
-                          selectedYearFilter,
-                        );
-                        console.log(
-                          "DEBUG: Groups before year filtering:",
-                          filteredGroups.length,
-                        );
 
                         filteredGroups = filteredGroups.filter((group) => {
-                          // Check teaching modules grade field for exact match only
-                          if (group.subjectId && teachingModules) {
-                            const teachingModule = teachingModules.find(
-                              (m: any) => m.id === group.subjectId,
+                          // Check the group's own grade field for exact match
+                          const groupGrade = group.grade || "";
+
+                          // ONLY show groups whose grade exactly matches the selected year
+                          if (
+                            groupGrade.trim() === selectedYearFilter.trim()
+                          ) {
+                            return true;
+                          }
+
+                          // Handle secondary specializations mapping to 3rd year
+                          if (
+                            existingGroupsFilter === "الثانوي" &&
+                            selectedYearFilter === "الثالثة ثانوي"
+                          ) {
+                            const groupGradeLower = groupGrade.toLowerCase();
+                            const isThirdYearSpec = [
+                              "تسيير واقتصاد",
+                              "علمي",
+                              "أدبي",
+                              "تقني رياضي",
+                              "آداب وفلسفة",
+                              "لغات أجنبية",
+                            ].some((spec) =>
+                              groupGradeLower.includes(spec.toLowerCase()),
                             );
-                            if (teachingModule) {
-                              const moduleGrade = teachingModule.grade || "";
-                              console.log(
-                                `DEBUG: Group "${group.name}" has teaching module grade: "${moduleGrade}"`,
-                              );
 
-                              // ONLY show groups whose teaching module grade exactly matches the selected year
-                              if (
-                                moduleGrade.trim() === selectedYearFilter.trim()
-                              ) {
-                                console.log(
-                                  `DEBUG: Exact match found for "${group.name}"`,
-                                );
-                                return true;
-                              }
-
-                              // Handle secondary specializations mapping to 3rd year
-                              if (
-                                existingGroupsFilter === "الثانوي" &&
-                                selectedYearFilter === "الثالثة ثانوي"
-                              ) {
-                                const moduleGradeLower =
-                                  moduleGrade.toLowerCase();
-                                const isThirdYearSpec = [
-                                  "تسيير واقتصاد",
-                                  "علمي",
-                                  "أدبي",
-                                  "تقني رياضي",
-                                  "آداب وفلسفة",
-                                  "لغات أجنبية",
-                                ].some((spec) =>
-                                  moduleGradeLower.includes(spec.toLowerCase()),
-                                );
-
-                                if (isThirdYearSpec) {
-                                  console.log(
-                                    `DEBUG: Secondary specialization match for "${group.name}"`,
-                                  );
-                                  return true;
-                                }
-                              }
-
-                              console.log(
-                                `DEBUG: No match for "${group.name}" - grade "${moduleGrade}" vs filter "${selectedYearFilter}"`,
-                              );
-                            } else {
-                              console.log(
-                                `DEBUG: No teaching module found for group "${group.name}" with subjectId ${group.subjectId}`,
-                              );
+                            if (isThirdYearSpec) {
+                              return true;
                             }
-                          } else {
-                            console.log(
-                              `DEBUG: Group "${group.name}" has no subjectId or teachingModules not loaded`,
-                            );
                           }
 
                           return false;
                         });
-
-                        console.log(
-                          "DEBUG: Groups after year filtering:",
-                          filteredGroups.length,
-                        );
-                      } else {
-                        console.log(
-                          "DEBUG: No year filter applied - showing all groups for education level",
-                        );
                       }
                     }
-
-                    console.log(
-                      "DEBUG: Final filtered groups:",
-                      filteredGroups.map((g) => ({
-                        id: g.id,
-                        name: g.name,
-                        educationLevel: g.educationLevel,
-                      })),
-                    );
-                    console.log(
-                      "DEBUG: About to render",
-                      filteredGroups.length,
-                      "groups",
-                    );
 
                     return filteredGroups.length > 0 ? (
                       filteredGroups.map((group) => {
