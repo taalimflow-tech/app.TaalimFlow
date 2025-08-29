@@ -1624,6 +1624,14 @@ function DesktopQRScanner() {
 
         // Execute all gain entry creations
         const gainResponses = await Promise.allSettled(gainEntryPromises);
+        
+        console.log('🔍 Financial entries responses:', gainResponses.map(result => ({
+          status: result.status,
+          ok: result.status === 'fulfilled' ? result.value.ok : false,
+          statusCode: result.status === 'fulfilled' ? result.value.status : 'N/A',
+          error: result.status === 'rejected' ? result.reason : null
+        })));
+        
         const successfulEntries = gainResponses.filter(result => 
           result.status === 'fulfilled' && result.value.ok
         ).length;
