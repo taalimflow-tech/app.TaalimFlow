@@ -1585,7 +1585,7 @@ export class DatabaseStorage implements IStorage {
         profilePicture: users.profilePicture,
         role: users.role,
         gender: users.gender,
-        specializationId: teacherSpecializations.id, // Add the actual specialization record ID
+        specializationId: teacherSpecializations.id,
         subjectId: teachingModules.id,
         subjectName: teachingModules.name,
         subjectNameAr: teachingModules.nameAr,

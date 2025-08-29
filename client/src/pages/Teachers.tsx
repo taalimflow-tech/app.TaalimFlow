@@ -1226,6 +1226,7 @@ export default function Teachers() {
                   </Label>
                   <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     {teacherForSpecialization.specializations.map((spec, index) => {
+                      console.log('🔍 Specialization data:', spec); // Debug log
                       const getLevelColors = (level: string) => {
                         switch (level) {
                           case 'الابتدائي':
