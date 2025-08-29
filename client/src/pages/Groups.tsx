@@ -1169,6 +1169,8 @@ export default function Groups() {
                 selectedAdminGroup.description ||
                 `مجموعة تعليمية لمادة ${selectedAdminGroup.nameAr || selectedAdminGroup.subjectName || "غير محددة"}`,
               category: selectedAdminGroup.category || "دراسية",
+              // Ensure grade is saved from the selected grade in the UI
+              grade: selectedAdminGroup.grade || selectedGrade,
             }
           : undefined,
       });
@@ -1719,7 +1721,30 @@ export default function Groups() {
     }, []);
 
     return uniqueModules.map((module: any) => {
-      // Check if there's already a group for this module
+      // Always show subjects as empty placeholders when a specific grade is selected
+      // This allows creating new groups even if another group with same subject exists
+      if (selectedGrade) {
+        const arabicName =
+          module.nameAr ||
+          module.name_ar ||
+          module.subjectNameAr ||
+          "مادة غير محددة";
+        return {
+          id: null, // No ID means it's a placeholder
+          name: `مجموعة ${arabicName}`,
+          nameAr: arabicName,
+          subjectName: arabicName,
+          subjectId: module.id,
+          educationLevel: selectedLevel,
+          grade: selectedGrade, // Include the selected grade
+          teacherId: null,
+          teacherName: null,
+          studentsAssigned: [],
+          isPlaceholder: true,
+        };
+      }
+
+      // Original logic for when no specific grade is selected
       const existingGroup = adminGroups.find(
         (group) => group.subjectId === module.id && !group.isPlaceholder,
       );
