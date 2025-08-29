@@ -1533,84 +1533,19 @@ export default function Groups() {
     }
   };
 
-  // Simple level and year format with gender
+  // Display full grade information instead of just level + year number
   const getSimpleLevelFormat = (group: any): string => {
-    const level = group.educationLevel;
-    let levelShort = "";
-
-    if (level === "الثانوي") levelShort = "ثانوي";
-    else if (level === "المتوسط") levelShort = "متوسط";
-    else if (level === "الابتدائي") levelShort = "ابتدائي";
-    else return level;
-
-    let yearNumber = "";
-
-    // Get grade from the group itself (NEW APPROACH)
+    // If group has grade field, show the complete grade
     if (group.grade) {
-      const grade = group.grade;
-
-      // Handle year-specific grades first
-      if (grade.includes("الثالثة") || grade.includes("3")) yearNumber = " 3";
-      else if (grade.includes("الثانية") || grade.includes("2"))
-        yearNumber = " 2";
-      else if (grade.includes("الأولى") || grade.includes("1"))
-        yearNumber = " 1";
-      else if (grade.includes("الرابعة") || grade.includes("4"))
-        yearNumber = " 4";
-      else if (grade.includes("الخامسة") || grade.includes("5"))
-        yearNumber = " 5";
-      // Handle Algerian secondary specialization tracks (all 3rd year)
-      else if (level === "الثانوي") {
-        if (
-          grade === "علمي" ||
-          grade === "أدبي" ||
-          grade === "تسيير واقتصاد" ||
-          grade === "رياضيات" ||
-          grade === "تقني رياضي" ||
-          grade === "لغات أجنبية"
-        ) {
-          yearNumber = " 3"; // All specializations are 3rd year
-        }
-      }
-
-      // Handle middle school specializations
-      else if (level === "المتوسط") {
-        if (grade === "علمي" || grade === "أدبي") {
-          yearNumber = " 4"; // Most specializations start in 4th year middle
-        }
-      }
-    }
-    // FALLBACK: Get grade from the teaching module (for existing groups)
-    else if (group.subjectId && teachingModules) {
-      const subject = teachingModules.find(
-        (s: any) => s.id === group.subjectId,
-      );
-      if (subject && subject.grade && subject.grade !== "جميع المستويات") {
-        const grade = subject.grade;
-
-        // Handle year-specific grades first
-        if (grade.includes("الثالثة") || grade.includes("3")) yearNumber = " 3";
-        else if (grade.includes("الثانية") || grade.includes("2"))
-          yearNumber = " 2";
-        else if (grade.includes("الأولى") || grade.includes("1"))
-          yearNumber = " 1";
-        else if (grade.includes("الرابعة") || grade.includes("4"))
-          yearNumber = " 4";
-        else if (grade.includes("الخامسة") || grade.includes("5"))
-          yearNumber = " 5";
-      }
+      return group.grade;
     }
 
-    // Add gender information if available
-    let genderText = "";
-    if (group.gender) {
-      if (group.gender === "male") genderText = " - ذكور";
-      else if (group.gender === "female") genderText = " - إناث";
-      else if (group.gender === "mixed") genderText = " - مختلط";
-    }
-
-    const result = `${levelShort}${yearNumber}${genderText}`;
-    return result;
+    // Fallback: show education level if no grade available
+    const level = group.educationLevel;
+    if (level === "الثانوي") return "ثانوي";
+    else if (level === "المتوسط") return "متوسط";
+    else if (level === "الابتدائي") return "ابتدائي";
+    else return level;
   };
 
   const getFilteredTeachers = (educationLevel: string, subjectId: number) => {
