@@ -1185,7 +1185,7 @@ export default function Schedule() {
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="no-subjects" disabled>
                         لا توجد مواد متاحة للصف المحدد
                       </SelectItem>
                     )}
