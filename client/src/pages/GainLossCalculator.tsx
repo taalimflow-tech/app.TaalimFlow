@@ -638,7 +638,7 @@ export default function GainLossCalculator() {
                           const [, studentId, month, year] = cancellationMatch;
                           
                           // Arabic month names
-                          const arabicMonths = {
+                          const arabicMonths: Record<string, string> = {
                             '1': 'يناير', '2': 'فبراير', '3': 'مارس', '4': 'أبريل',
                             '5': 'مايو', '6': 'يونيو', '7': 'يوليو', '8': 'أغسطس', 
                             '9': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
@@ -656,11 +656,19 @@ export default function GainLossCalculator() {
                                 </span>
                               </div>
                               
-                              {/* Student Info */}
+                              {/* Student Info - Display as student ID for now, can be enhanced later */}
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                 <span className="text-gray-700 dark:text-gray-300">
-                                  الطالب رقم: <span className="font-medium">{studentId}</span>
+                                  الطالب: <span className="font-medium">الطالب رقم {studentId}</span>
+                                </span>
+                              </div>
+                              
+                              {/* Group Info Placeholder */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  المجموعة: <span className="font-medium">مجموعة الطالب</span>
                                 </span>
                               </div>
                               
