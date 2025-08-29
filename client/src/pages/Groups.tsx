@@ -2432,10 +2432,29 @@ export default function Groups() {
                         return !isStandardSubject;
                       });
                     } else {
+                      // Debug logging for filtering
+                      console.log("🔍 Filtering Debug:", {
+                        existingGroupsFilter,
+                        totalAdminGroups: adminCreatedGroups.length,
+                        groupEducationLevels: adminCreatedGroups.map(g => ({
+                          id: g.id,
+                          name: g.name,
+                          educationLevel: g.educationLevel,
+                          grade: g.grade
+                        }))
+                      });
+                      
                       filteredGroups = adminCreatedGroups.filter(
-                        (group) =>
-                          group.educationLevel === existingGroupsFilter,
+                        (group) => {
+                          const matches = group.educationLevel === existingGroupsFilter;
+                          if (!matches) {
+                            console.log(`❌ Group "${group.name}" educationLevel "${group.educationLevel}" doesn't match filter "${existingGroupsFilter}"`);
+                          }
+                          return matches;
+                        }
                       );
+                      
+                      console.log(`✅ Filtered ${filteredGroups.length} groups for level "${existingGroupsFilter}"`);
                     }
 
                     return filteredGroups.length > 0 ? (
@@ -4012,7 +4031,7 @@ export default function Groups() {
                 </div>
 
                 {/* Group Identifier */}
-                {createGroupSubject && getExistingGroupsForSubject(createGroupSubject).length > 0 && (
+                {createGroupSubject && createGroupGrade && getExistingGroupsForSubject(createGroupSubject).length > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       تمييز المجموعة (اختياري)

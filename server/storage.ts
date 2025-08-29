@@ -1845,6 +1845,7 @@ export class DatabaseStorage implements IStorage {
           description: groups.description,
           category: groups.category,
           educationLevel: groups.educationLevel,
+          grade: groups.grade, // Add grade field
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
           subjectName: teachingModules.name,
