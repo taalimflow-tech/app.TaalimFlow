@@ -5286,6 +5286,10 @@ export class DatabaseStorage implements IStorage {
       // and were likely created automatically for this specific payment
       
       // First, check if there are any financial entries that could match
+      // Convert payment amount (string) to number for comparison with decimal field
+      const paymentAmountAsNumber = parseFloat(paymentRecord.amount || '0');
+      console.log(`🔍 Payment amount (string): "${paymentRecord.amount}", converted to number: ${paymentAmountAsNumber}`);
+      
       const potentialBenefits = await db
         .select()
         .from(financialEntries)
@@ -5295,11 +5299,52 @@ export class DatabaseStorage implements IStorage {
             eq(financialEntries.type, "gain"),
             eq(financialEntries.year, year),
             eq(financialEntries.month, month),
-            eq(financialEntries.amount, paymentRecord.amount),
+            eq(financialEntries.amount, paymentAmountAsNumber.toString()),
           ),
         );
 
       console.log(`🔍 Found ${potentialBenefits.length} potential benefit entries with same amount, year, month`);
+      
+      if (potentialBenefits.length > 0) {
+        console.log(`🔍 Potential benefits details:`, potentialBenefits.map(b => ({
+          id: b.id,
+          amount: b.amount,
+          type: typeof b.amount,
+          year: b.year,
+          month: b.month,
+          type: b.type
+        })));
+      } else {
+        console.log(`❓ No benefits found. Searching criteria:`, {
+          schoolId,
+          type: "gain",
+          year,
+          month,
+          paymentAmount: paymentRecord.amount,
+          paymentAmountAsNumber,
+          paymentAmountAsString: paymentAmountAsNumber.toString()
+        });
+        
+        // Let's also check what financial entries exist for this school/year/month
+        const allFinancialEntriesForPeriod = await db
+          .select()
+          .from(financialEntries)
+          .where(
+            and(
+              eq(financialEntries.schoolId, schoolId),
+              eq(financialEntries.year, year),
+              eq(financialEntries.month, month),
+            ),
+          );
+        
+        console.log(`📊 All financial entries for ${month}/${year}:`, allFinancialEntriesForPeriod.map(e => ({
+          id: e.id,
+          type: e.type,
+          amount: e.amount,
+          amountType: typeof e.amount,
+          remarks: e.remarks?.substring(0, 50) + '...'
+        })));
+      }
 
       // Only proceed with deletion if there's exactly 1 matching entry
       // This prevents accidental deletion of multiple entries with same amount
