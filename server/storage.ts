@@ -1583,7 +1583,7 @@ export class DatabaseStorage implements IStorage {
         subjectName: teachingModules.name,
         subjectNameAr: teachingModules.nameAr,
         educationLevel: teachingModules.educationLevel,
-        grade: teachingModules.grade,
+        grades: teachingModules.grades,
       })
       .from(users)
       .leftJoin(
@@ -1626,7 +1626,7 @@ export class DatabaseStorage implements IStorage {
           name: row.subjectName,
           nameAr: row.subjectNameAr,
           educationLevel: row.educationLevel,
-          grade: row.grade,
+          grades: row.grades,
         });
       }
     });
