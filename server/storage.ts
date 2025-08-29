@@ -2025,11 +2025,32 @@ export class DatabaseStorage implements IStorage {
 
     // If groupId is null, create a new group first
     if (!groupId && groupData && schoolId) {
+      // Check for existing groups with same subject and education level to determine group number
+      const existingGroups = await db
+        .select({ groupNumber: groups.groupNumber })
+        .from(groups)
+        .where(
+          and(
+            eq(groups.schoolId, schoolId),
+            eq(groups.subjectId, groupData.subjectId),
+            eq(groups.educationLevel, groupData.educationLevel),
+            eq(groups.isAdminManaged, true)
+          )
+        )
+        .orderBy(desc(groups.groupNumber));
+
+      // Determine next group number
+      const nextGroupNumber = existingGroups.length > 0 ? Math.max(...existingGroups.map(g => g.groupNumber || 1)) + 1 : 1;
+      
+      // Create group name with automatic numbering
+      const baseName = groupData.name;
+      const finalGroupName = nextGroupNumber === 1 ? baseName : `${baseName} (${nextGroupNumber})`;
+
       const [newGroup] = await db
         .insert(groups)
         .values({
           schoolId: schoolId,
-          name: groupData.name,
+          name: finalGroupName,
           description:
             groupData.description ||
             `مجموعة تعليمية لمادة ${groupData.name || "غير محددة"}`,
@@ -2038,6 +2059,7 @@ export class DatabaseStorage implements IStorage {
           subjectId: groupData.subjectId,
           teacherId: teacherId,
           isAdminManaged: true,
+          groupNumber: nextGroupNumber,
         })
         .returning();
       actualGroupId = newGroup.id;

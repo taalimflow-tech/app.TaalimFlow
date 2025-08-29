@@ -146,6 +146,7 @@ export const groups = pgTable("groups", {
   isAdminManaged: boolean("is_admin_managed").default(false), // Admin-managed vs public groups
   scheduleCellId: integer("schedule_cell_id").references(() => scheduleCells.id), // Link to scheduled lesson
   lessonsPerWeek: integer("lessons_per_week").default(1), // 1 or 2 lessons per week
+  groupNumber: integer("group_number").default(1).notNull(), // For handling multiple groups of same subject
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -556,6 +557,7 @@ export const insertGroupSchema = createInsertSchema(groups).pick({
   category: true,
   imageUrl: true,
   maxMembers: true,
+  groupNumber: true,
 });
 
 export const insertFormationSchema = createInsertSchema(formations).pick({
