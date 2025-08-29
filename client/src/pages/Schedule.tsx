@@ -48,7 +48,7 @@ interface TeachingModule {
   name: string;
   nameAr: string;
   educationLevel: string;
-  grades?: string[];
+  grade?: string;
 }
 
 interface Teacher {
@@ -311,7 +311,7 @@ export default function Schedule() {
   const filteredSubjects = useMemo(() => {
     if (!modules || modules.length === 0) return [];
     
-    // Filter modules by education level only (ignore grade for broader subject selection)
+    // Filter modules by education level and grade
     let filtered = modules.filter((module: TeachingModule) => {
       // Match education level (both Arabic and English formats)
       const levelMatch = cellForm.educationLevel === '' || 
@@ -321,7 +321,14 @@ export default function Schedule() {
         (cellForm.educationLevel === 'المتوسط' && module.educationLevel === 'Middle') ||
         (cellForm.educationLevel === 'الثانوي' && module.educationLevel === 'Secondary');
       
-      return levelMatch;
+      if (!levelMatch) return false;
+      
+      // Match grade if selected
+      if (cellForm.grade && module.grade) {
+        return module.grade === cellForm.grade || module.grade === 'جميع المستويات';
+      }
+      
+      return true;
     });
     
     // Remove duplicates by Arabic name
@@ -335,7 +342,7 @@ export default function Schedule() {
     
     // Sort alphabetically by Arabic name
     return uniqueModules.sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'));
-  }, [modules, cellForm.educationLevel]);
+  }, [modules, cellForm.educationLevel, cellForm.grade]);
 
   // Memoized filtered teachers for performance optimization  
   const filteredTeachers = useMemo(() => {
