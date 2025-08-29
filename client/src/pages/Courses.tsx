@@ -277,8 +277,8 @@ export default function Courses() {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const currentDate = receiptData.date.toLocaleDateString('ar-SA');
-    const currentTime = receiptData.date.toLocaleTimeString('ar-SA', { 
+    const currentDate = receiptData.date.toLocaleDateString('en-GB');
+    const currentTime = receiptData.date.toLocaleTimeString('en-GB', { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
