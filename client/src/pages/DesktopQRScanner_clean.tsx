@@ -1613,7 +1613,14 @@ export default function DesktopQRScanner() {
       'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
-    const monthName = monthNames[monthNum - 1] || `الشهر ${monthNum}`;
+    
+    // Ensure monthNum is a valid integer
+    const validMonthNum = parseInt(String(monthNum), 10);
+    if (isNaN(validMonthNum) || validMonthNum < 1 || validMonthNum > 12) {
+      return `شهر غير صحيح (${monthNum})`;
+    }
+    
+    const monthName = monthNames[validMonthNum - 1];
     return year ? `${monthName} ${year}` : monthName;
   };
 
