@@ -4981,8 +4981,8 @@ export class DatabaseStorage implements IStorage {
         month,
         schoolId,
       );
-      // Paid only if record exists AND isPaid = true
-      return payment ? payment.isPaid : false;
+      // Paid only if record exists AND isPaid = true AND NOT refunded
+      return payment ? (payment.isPaid && !payment.isRefunded) : false;
     } catch (error) {
       console.error("Error checking if student is paid:", error);
       return false;
@@ -5003,8 +5003,8 @@ export class DatabaseStorage implements IStorage {
         month,
         schoolId,
       );
-      // Unpaid if: 1) No record exists, OR 2) Record exists but isPaid = false
-      return payment ? !payment.isPaid : true;
+      // Unpaid if: 1) No record exists, OR 2) Record exists but isPaid = false, OR 3) Record is refunded
+      return payment ? (!payment.isPaid || payment.isRefunded) : true;
     } catch (error) {
       console.error("Error checking if student is unpaid:", error);
       return true; // Default to unpaid on error
@@ -5073,7 +5073,7 @@ export class DatabaseStorage implements IStorage {
         const payment = existingPayments.find((p) => p.studentId === studentId);
         return {
           studentId,
-          isPaid: payment ? payment.isPaid : false, // No record = unpaid
+          isPaid: payment ? (payment.isPaid && !payment.isRefunded) : false, // No record = unpaid, refunded = unpaid
           amount: payment?.amount,
           paidAt: payment?.paidAt,
         };
@@ -5534,13 +5534,16 @@ export class DatabaseStorage implements IStorage {
   async getStudentInfo(studentId: number, studentType: string, schoolId: number): Promise<{ name: string } | null> {
     try {
       if (studentType === "student") {
+        // For direct students: studentId refers to students table, need to join with users table
         const student = await db
           .select({ name: users.name })
-          .from(users)
-          .where(and(eq(users.id, studentId), eq(users.schoolId, schoolId)))
+          .from(students)
+          .innerJoin(users, eq(students.userId, users.id))
+          .where(and(eq(students.id, studentId), eq(students.schoolId, schoolId)))
           .limit(1);
         return student[0] || null;
       } else if (studentType === "child") {
+        // For children: studentId refers directly to children table
         const child = await db
           .select({ name: children.name })
           .from(children)
