@@ -5326,17 +5326,82 @@ export class DatabaseStorage implements IStorage {
 
       if (associatedBenefits.length > 0) {
         console.log(`💰 Creating corresponding LOSS entries instead of deleting gains...`);
+        
+        // Get detailed information about the payment for comprehensive loss entry
+        let studentInfo = '';
+        let groupInfo = '';
+        
+        try {
+          // Get student information
+          const student = await db
+            .select({
+              id: students.id,
+              firstName: students.firstName,
+              lastName: students.lastName,
+              studentType: students.studentType,
+            })
+            .from(students)
+            .where(eq(students.id, studentId))
+            .limit(1);
+          
+          if (student.length > 0) {
+            const studentData = student[0];
+            studentInfo = `${studentData.firstName} ${studentData.lastName} (${studentData.studentType === 'direct' ? 'طالب مباشر' : 'طفل'})`;
+          } else {
+            studentInfo = `طالب رقم ${studentId}`;
+          }
+          
+          // Get group information if groupId exists in payment record
+          if (paymentRecord.groupId) {
+            const group = await db
+              .select({
+                id: groups.id,
+                grade: groups.grade,
+                subjectId: groups.subjectId,
+                identifier: groups.identifier,
+              })
+              .from(groups)
+              .where(eq(groups.id, paymentRecord.groupId))
+              .limit(1);
+            
+            if (group.length > 0) {
+              const groupData = group[0];
+              
+              // Get subject name
+              const subject = await db
+                .select({
+                  nameAr: subjects.nameAr,
+                  name: subjects.name,
+                })
+                .from(subjects)
+                .where(eq(subjects.id, groupData.subjectId))
+                .limit(1);
+              
+              const subjectName = subject.length > 0 ? (subject[0].nameAr || subject[0].name) : 'مادة غير محددة';
+              const groupIdentifier = groupData.identifier ? ` - ${groupData.identifier}` : '';
+              groupInfo = ` | المجموعة: ${groupData.grade} - ${subjectName}${groupIdentifier} (رقم ${groupData.id})`;
+            } else {
+              groupInfo = ` | المجموعة: رقم ${paymentRecord.groupId}`;
+            }
+          }
+        } catch (infoError) {
+          console.error('⚠️ Could not fetch detailed information for loss entry:', infoError);
+          studentInfo = `طالب رقم ${studentId}`;
+          groupInfo = paymentRecord.groupId ? ` | المجموعة: رقم ${paymentRecord.groupId}` : '';
+        }
+
         for (const benefit of associatedBenefits) {
           console.log(
             `📝 Creating loss entry to offset gain ID: ${benefit.id}, amount: ${benefit.amount}`,
           );
           
-          // Create a loss entry with the same amount to offset the gain
+          // Create a comprehensive loss entry with detailed information
+          const currentDate = new Date().toLocaleDateString('ar-SA');
           const lossEntry = {
             schoolId: schoolId,
             type: "loss" as const,
             amount: benefit.amount, // Same amount as the gain
-            remarks: `إلغاء دفعة الطالب ${studentId} - شهر ${month}/${year} (مقابل الربح رقم ${benefit.id})`,
+            remarks: `إلغاء دفعة: ${studentInfo} - شهر ${month}/${year} - مبلغ ${paymentRecord.amount} دج${groupInfo} | تاريخ الإلغاء: ${currentDate} | مقابل الربح رقم ${benefit.id}`,
             year: year,
             month: month,
             recordedBy: benefit.recordedBy, // Use same user who recorded the original gain
@@ -5345,7 +5410,7 @@ export class DatabaseStorage implements IStorage {
           try {
             const createdLossEntry = await this.createFinancialEntry(lossEntry);
             console.log(
-              `✅ SUCCESS: Created loss entry ID: ${createdLossEntry.id} to offset gain entry ${benefit.id}`,
+              `✅ SUCCESS: Created detailed loss entry ID: ${createdLossEntry.id} to offset gain entry ${benefit.id}`,
             );
           } catch (lossError) {
             console.error(
