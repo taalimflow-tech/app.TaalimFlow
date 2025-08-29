@@ -1585,6 +1585,7 @@ export class DatabaseStorage implements IStorage {
         profilePicture: users.profilePicture,
         role: users.role,
         gender: users.gender,
+        specializationId: teacherSpecializations.id, // Add the actual specialization record ID
         subjectId: teachingModules.id,
         subjectName: teachingModules.name,
         subjectNameAr: teachingModules.nameAr,
@@ -1628,7 +1629,8 @@ export class DatabaseStorage implements IStorage {
 
       if (row.subjectId) {
         teachersMap.get(row.id).specializations.push({
-          id: row.subjectId,
+          id: row.specializationId, // Use the actual specialization record ID
+          moduleId: row.subjectId, // Keep module ID for reference
           name: row.subjectName,
           nameAr: row.subjectNameAr,
           educationLevel: row.educationLevel,
