@@ -425,6 +425,12 @@ export const courseRegistrations = pgTable("course_registrations", {
   email: text("email").notNull(),
   childName: text("child_name"), // Child's name if registrant_type is "child"
   childAge: integer("child_age"), // Child's age if applicable
+  paymentStatus: text("payment_status", {
+    enum: ["unpaid", "paid"],
+  }).default("unpaid").notNull(), // Payment status for course subscription
+  paidAt: timestamp("paid_at"), // When payment was made
+  paidBy: integer("paid_by"), // Admin who processed the payment
+  receiptId: text("receipt_id"), // Receipt identifier for payment tracking
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -965,6 +971,10 @@ export const insertCourseRegistrationSchema = createInsertSchema(
   email: true,
   childName: true,
   childAge: true,
+  paymentStatus: true,
+  paidAt: true,
+  paidBy: true,
+  receiptId: true,
 });
 
 // Push notification schemas

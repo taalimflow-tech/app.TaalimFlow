@@ -2667,6 +2667,10 @@ export class DatabaseStorage implements IStorage {
         email: courseRegistrations.email,
         childName: courseRegistrations.childName,
         childAge: courseRegistrations.childAge,
+        paymentStatus: courseRegistrations.paymentStatus,
+        paidAt: courseRegistrations.paidAt,
+        paidBy: courseRegistrations.paidBy,
+        receiptId: courseRegistrations.receiptId,
         createdAt: courseRegistrations.createdAt,
         courseTitle: courses.title,
         coursePrice: courses.price,
@@ -2712,6 +2716,34 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return !!registration;
+  }
+
+  async updateCourseRegistrationPayment(
+    registrationId: number,
+    schoolId: number,
+    updateData: {
+      paymentStatus?: string;
+      paidAt?: Date | null;
+      paidBy?: number;
+      receiptId?: string;
+    }
+  ): Promise<CourseRegistration> {
+    const [registration] = await db
+      .update(courseRegistrations)
+      .set(updateData)
+      .where(
+        and(
+          eq(courseRegistrations.id, registrationId),
+          eq(courseRegistrations.schoolId, schoolId)
+        )
+      )
+      .returning();
+
+    if (!registration) {
+      throw new Error('Course registration not found');
+    }
+
+    return registration;
   }
 
   async getNotifications(

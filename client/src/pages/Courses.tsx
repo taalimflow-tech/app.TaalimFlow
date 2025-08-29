@@ -211,7 +211,7 @@ export default function Courses() {
       const financialEntry = {
         schoolId: user.schoolId,
         type: 'gain',
-        amount: coursePrice,
+        amount: coursePrice.toString(), // Convert to string for decimal validation
         remarks: `دفع رسوم اشتراك الدورة: ${course.title} - المسجل: ${registration.fullName} - نوع التسجيل: ${registration.registrantType === 'child' ? 'طفل' : 'مباشر'}`,
         year: currentDate.getFullYear(),
         month: currentDate.getMonth() + 1,
@@ -228,6 +228,18 @@ export default function Courses() {
 
       const createdEntry = await response.json();
 
+      // Update course registration payment status
+      const updateResponse = await apiRequest('PUT', `/api/course-registrations/${registrationId}/payment`, {
+        paymentStatus: 'paid',
+        paidAt: currentDate.toISOString(),
+        paidBy: user.id,
+        receiptId: receiptId
+      });
+
+      if (!updateResponse.ok) {
+        console.warn('Failed to update payment status in registration');
+      }
+
       // Generate and display receipt
       generateCoursePaymentReceipt({
         receiptId,
@@ -243,9 +255,10 @@ export default function Courses() {
         description: `تم إنشاء إيصال رقم: ${receiptId}`
       });
 
-      // Refresh financial entries if needed
+      // Refresh financial entries and course registrations
       queryClient.invalidateQueries({ queryKey: ['/api', 'gain-loss-entries'] });
       queryClient.invalidateQueries({ queryKey: ['/api/financial-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/course-registrations'] });
 
     } catch (error: any) {
       console.error('Payment error:', error);
@@ -1278,39 +1291,62 @@ export default function Courses() {
                                     <span className="text-sm font-medium text-green-600">
                                       {selectedCourseForView.price} دج
                                     </span>
-                                    <Button
-                                      onClick={() => handleCoursePayment(registration, selectedCourseForView)}
-                                      disabled={processingPayment[registration.id]}
-                                      size="sm"
-                                      className="bg-green-600 hover:bg-green-700 text-white"
-                                    >
-                                      {processingPayment[registration.id] ? (
-                                        <>
-                                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-1"></div>
-                                          جاري المعالجة...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <CreditCard className="w-4 h-4 ml-1" />
-                                          دفع الرسوم
-                                        </>
-                                      )}
-                                    </Button>
-                                    <Button
-                                      onClick={() => generateCoursePaymentReceipt({
-                                        receiptId: `PREVIEW-${Date.now()}`,
-                                        registrationInfo: registration,
-                                        courseInfo: selectedCourseForView,
-                                        amount: parseFloat(selectedCourseForView.price) || 0,
-                                        date: new Date(),
-                                        adminName: user.firstName + ' ' + user.lastName
-                                      })}
-                                      size="sm"
-                                      variant="outline"
-                                      title="معاينة الإيصال"
-                                    >
-                                      <FileText className="w-4 h-4" />
-                                    </Button>
+                                    
+                                    {/* Payment Status Badge */}
+                                    {registration.paymentStatus === 'paid' ? (
+                                      <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        مدفوع
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-1 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                        غير مدفوع
+                                      </div>
+                                    )}
+
+                                    {/* Payment Button - Only show if not paid */}
+                                    {registration.paymentStatus !== 'paid' && (
+                                      <Button
+                                        onClick={() => handleCoursePayment(registration, selectedCourseForView)}
+                                        disabled={processingPayment[registration.id]}
+                                        size="sm"
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                      >
+                                        {processingPayment[registration.id] ? (
+                                          <>
+                                            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-1"></div>
+                                            جاري المعالجة...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <CreditCard className="w-4 h-4 ml-1" />
+                                            دفع الرسوم
+                                          </>
+                                        )}
+                                      </Button>
+                                    )}
+
+                                    {/* Receipt Button - Only show if paid */}
+                                    {registration.paymentStatus === 'paid' && registration.receiptId && (
+                                      <Button
+                                        onClick={() => generateCoursePaymentReceipt({
+                                          receiptId: registration.receiptId,
+                                          registrationInfo: registration,
+                                          courseInfo: selectedCourseForView,
+                                          amount: parseFloat(selectedCourseForView.price) || 0,
+                                          date: registration.paidAt ? new Date(registration.paidAt) : new Date(),
+                                          adminName: user.firstName + ' ' + user.lastName
+                                        })}
+                                        size="sm"
+                                        variant="outline"
+                                        title="عرض الإيصال"
+                                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                                      >
+                                        <FileText className="w-4 h-4 ml-1" />
+                                        عرض الإيصال
+                                      </Button>
+                                    )}
                                   </div>
                                 )}
                               </div>

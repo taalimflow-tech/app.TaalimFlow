@@ -3317,6 +3317,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update course registration payment status
+  app.put("/api/course-registrations/:id/payment", async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة لتحديث حالة الدفع" });
+      }
+
+      const registrationId = parseInt(req.params.id);
+      const schoolId = req.session.user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
+      }
+
+      const updateData = {
+        paymentStatus: req.body.paymentStatus,
+        paidAt: req.body.paidAt ? new Date(req.body.paidAt) : null,
+        paidBy: req.body.paidBy,
+        receiptId: req.body.receiptId
+      };
+
+      const updatedRegistration = await storage.updateCourseRegistrationPayment(
+        registrationId,
+        schoolId,
+        updateData
+      );
+
+      res.json(updatedRegistration);
+    } catch (error) {
+      console.error("Update course registration payment error:", error);
+      res.status(500).json({ error: "فشل في تحديث حالة الدفع" });
+    }
+  });
+
   app.get("/api/course-registrations", async (req, res) => {
     try {
       if (!req.session.user) {
