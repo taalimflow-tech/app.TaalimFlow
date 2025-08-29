@@ -503,6 +503,42 @@ export default function Teachers() {
     },
   });
 
+  // Delete Teacher Specialization Mutation
+  const deleteSpecializationMutation = useMutation({
+    mutationFn: async (specializationId: number) => {
+      const response = await apiRequest('DELETE', `/api/teacher-specializations/${specializationId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorData}`);
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم حذف التخصص بنجاح",
+        description: `تم إزالة التخصص من المعلم`,
+      });
+      
+      // Invalidate and refetch teachers
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers-with-specializations'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "فشل في حذف التخصص",
+        description: error?.message || 'حدث خطأ غير متوقع أثناء حذف التخصص',
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteSpecialization = (specializationId: number, specializationName: string) => {
+    if (window.confirm(`هل أنت متأكد من حذف تخصص "${specializationName}"؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+      deleteSpecializationMutation.mutate(specializationId);
+    }
+  };
+
   const handleDeleteTeacher = (teacherId: number, teacherName: string) => {
     if (window.confirm(`هل أنت متأكد من حذف المعلم "${teacherName}"؟ لا يمكن التراجع عن هذا الإجراء.`)) {
       deleteTeacherMutation.mutate(teacherId);
@@ -1204,13 +1240,26 @@ export default function Teachers() {
                       };
                       
                       return (
-                        <span 
+                        <div 
                           key={index}
-                          className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${getLevelColors(spec.educationLevel)}`}
+                          className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${getLevelColors(spec.educationLevel)} group`}
                         >
-                          {spec.nameAr}
-                          <span className="mr-1 opacity-75">({spec.educationLevel})</span>
-                        </span>
+                          <span>
+                            {spec.nameAr}
+                            <span className="mr-1 opacity-75">({spec.educationLevel})</span>
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSpecialization(spec.id, spec.nameAr);
+                            }}
+                            disabled={deleteSpecializationMutation.isPending}
+                            className="mr-2 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 disabled:opacity-50"
+                            title="حذف التخصص"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
