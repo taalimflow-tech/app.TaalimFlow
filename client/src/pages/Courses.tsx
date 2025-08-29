@@ -25,6 +25,8 @@ export default function Courses() {
   const [selectedChild, setSelectedChild] = useState<any>(null);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [processingPayment, setProcessingPayment] = useState<{ [key: number]: boolean }>({});
+  const [showManualRegistrationModal, setShowManualRegistrationModal] = useState(false);
+  const [selectedStudentForRegistration, setSelectedStudentForRegistration] = useState<any>(null);
   
   const [courseData, setCourseData] = useState({
     title: '',
@@ -60,6 +62,12 @@ export default function Courses() {
   const { data: teachingModules = [] } = useQuery({
     queryKey: ['/api/teaching-modules'],
     enabled: !!user && !authLoading,
+  });
+
+  // Query for all students (for manual registration)
+  const { data: allStudents = [] } = useQuery({
+    queryKey: ['/api/students'],
+    enabled: !!user && !authLoading && user.role === 'admin',
   });
 
   const createCourseMutation = useMutation({
@@ -177,6 +185,61 @@ export default function Courses() {
       });
     }
   });
+
+  // Manual registration mutation for admin
+  const manualRegistrationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/course-registrations', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'فشل في التسجيل اليدوي');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم تسجيل الطالب بنجاح' });
+      setShowManualRegistrationModal(false);
+      setSelectedStudentForRegistration(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/course-registrations'] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'خطأ في التسجيل اليدوي', 
+        description: error.message || 'حدث خطأ غير متوقع',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  // Handle manual student registration
+  const handleManualRegistration = (student: any) => {
+    if (!selectedCourseForView) return;
+
+    const registrationData = {
+      courseId: selectedCourseForView.id,
+      registrantType: 'self',
+      fullName: student.fullName || student.name,
+      phone: student.phone || student.contactInfo?.phone || '',
+      email: student.email || student.contactInfo?.email || '',
+      childId: null,
+      childName: null,
+      childAge: null,
+    };
+
+    manualRegistrationMutation.mutate(registrationData);
+  };
+
+  // Get available students for manual registration (exclude already registered)
+  const getAvailableStudentsForRegistration = () => {
+    if (!selectedCourseForView || !allStudents) return [];
+    
+    const registeredUserIds = getRegistrationsForCourse(selectedCourseForView.id)
+      .map((reg: any) => reg.userId);
+    
+    return allStudents.filter((student: any) => 
+      !registeredUserIds.includes(student.userId)
+    );
+  };
 
   // Payment handler for course subscription fees
   const handleCoursePayment = async (registration: any, course: any) => {
@@ -1229,9 +1292,21 @@ export default function Courses() {
                     
                     return courseRegs.length > 0 ? (
                       <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Users className="w-4 h-4 text-primary" />
-                          <span className="font-medium">عدد التسجيلات: {courseRegs.length}</span>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-primary" />
+                            <span className="font-medium">عدد التسجيلات: {courseRegs.length}</span>
+                          </div>
+                          {user?.role === 'admin' && (
+                            <Button
+                              onClick={() => setShowManualRegistrationModal(true)}
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              <Plus className="w-4 h-4 ml-1" />
+                              تسجيل طالب يدوياً
+                            </Button>
+                          )}
                         </div>
                         
                         <div className="grid gap-4">
@@ -1352,7 +1427,17 @@ export default function Courses() {
                     ) : (
                       <div className="text-center py-12">
                         <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">لا توجد تسجيلات لهذه الدورة حتى الآن</p>
+                        <p className="text-gray-500 mb-4">لا توجد تسجيلات لهذه الدورة حتى الآن</p>
+                        {user?.role === 'admin' && (
+                          <Button
+                            onClick={() => setShowManualRegistrationModal(true)}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Plus className="w-4 h-4 ml-1" />
+                            تسجيل طالب يدوياً
+                          </Button>
+                        )}
                       </div>
                     );
                   })()}
@@ -1365,6 +1450,106 @@ export default function Courses() {
                 onClick={() => {
                   setShowRegistrationsModal(false);
                   setSelectedCourseForView(null);
+                }}
+                variant="outline"
+              >
+                إغلاق
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Registration Modal */}
+      {showManualRegistrationModal && selectedCourseForView && user?.role === 'admin' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold dark:text-white flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                تسجيل طالب يدوياً - {selectedCourseForView.title}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowManualRegistrationModal(false);
+                  setSelectedStudentForRegistration(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto max-h-[60vh]">
+              {(() => {
+                const availableStudents = getAvailableStudentsForRegistration();
+                
+                return availableStudents.length > 0 ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      اختر طالباً لتسجيله في الدورة ({availableStudents.length} طالب متاح)
+                    </p>
+                    
+                    {availableStudents.map((student: any) => (
+                      <Card key={student.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Users className="w-5 h-5 text-blue-500" />
+                            <div>
+                              <p className="font-medium">{student.fullName || student.name}</p>
+                              <div className="flex items-center gap-4 text-sm text-gray-500">
+                                {student.phone && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />
+                                    {student.phone}
+                                  </span>
+                                )}
+                                {student.email && (
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="w-3 h-3" />
+                                    {student.email}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Button
+                            onClick={() => handleManualRegistration(student)}
+                            disabled={manualRegistrationMutation.isPending}
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            {manualRegistrationMutation.isPending ? (
+                              <>
+                                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-1"></div>
+                                جاري التسجيل...
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-4 h-4 ml-1" />
+                                تسجيل
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">جميع الطلاب مسجلون في هذه الدورة بالفعل</p>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t flex justify-end">
+              <Button
+                onClick={() => {
+                  setShowManualRegistrationModal(false);
+                  setSelectedStudentForRegistration(null);
                 }}
                 variant="outline"
               >
