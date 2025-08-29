@@ -2899,11 +2899,7 @@ export default function Groups() {
 
                                 {/* Title */}
                                 <h3 className="font-semibold text-gray-800 dark:text-gray-200">
-                                  {group.nameAr ||
-                                    group.subjectName ||
-                                    group.subjectNameAr ||
-                                    group.name_ar ||
-                                    "مادة غير محددة"}
+                                  {group.name || "مجموعة غير محددة"}
                                 </h3>
 
                                 {/* Teacher */}
