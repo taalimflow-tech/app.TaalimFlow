@@ -630,6 +630,51 @@ export default function GainLossCalculator() {
                           );
                         }
                         
+                        // Handle payment cancellation entries
+                        // Format: "إلغاء دفعة الطالب 24 - شهر 9/2025 (مقابل الربح رقم 190)"
+                        const cancellationMatch = entry.remarks.match(/إلغاء دفعة الطالب (\d+) - شهر (\d+)\/(\d+)/);
+                        
+                        if (cancellationMatch) {
+                          const [, studentId, month, year] = cancellationMatch;
+                          
+                          // Arabic month names
+                          const arabicMonths = {
+                            '1': 'يناير', '2': 'فبراير', '3': 'مارس', '4': 'أبريل',
+                            '5': 'مايو', '6': 'يونيو', '7': 'يوليو', '8': 'أغسطس', 
+                            '9': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
+                          };
+                          
+                          const monthName = arabicMonths[month] || month;
+                          
+                          return (
+                            <div className="space-y-3">
+                              {/* Cancellation Icon and Title */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                <span className="font-semibold text-red-700 dark:text-red-300 text-lg">
+                                  إلغاء دفعة طالب
+                                </span>
+                              </div>
+                              
+                              {/* Student Info */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="text-gray-700 dark:text-gray-300">
+                                  الطالب رقم: <span className="font-medium">{studentId}</span>
+                                </span>
+                              </div>
+                              
+                              {/* Month/Year Info */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span className="text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                                  شهر {monthName}/{year}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
                         // Final fallback for completely different format
                         return (
                           <div className="text-gray-600 dark:text-gray-300 leading-relaxed">
