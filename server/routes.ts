@@ -5005,20 +5005,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Delete payment record - HARD DELETE from database
+  // Refund payment record - Mark as refunded and create loss entry
   app.delete("/api/payments/delete", async (req, res) => {
     try {
-      console.log("🗑️ DELETE payment request received:", req.body);
+      console.log("💰 REFUND payment request received:", req.body);
       
       if (!req.session?.user || req.session.user.role !== "admin") {
         console.log("❌ Access denied - user not admin:", req.session?.user?.role);
         return res
           .status(403)
-          .json({ error: "غير مسموح لك بحذف المدفوعات" });
+          .json({ error: "غير مسموح لك باسترداد المدفوعات" });
       }
 
-      const { studentId, year, month, schoolId } = req.body;
-      console.log("📝 Extracted parameters:", { studentId, year, month, schoolId });
+      const { studentId, year, month, schoolId, refundReason } = req.body;
+      console.log("📝 Extracted parameters:", { studentId, year, month, schoolId, refundReason });
       
       // Convert all parameters to proper types
       const parsedStudentId = parseInt(studentId);
@@ -5034,58 +5034,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify the school ID matches the admin's school
       if (parsedSchoolId !== req.session.user.schoolId) {
         console.log("❌ School ID mismatch:", parsedSchoolId, "vs", req.session.user.schoolId);
-        return res.status(403).json({ error: "غير مسموح بحذف مدفوعات مدرسة أخرى" });
+        return res.status(403).json({ error: "غير مسموح باسترداد مدفوعات مدرسة أخرى" });
       }
 
-      // Hard delete the payment record from database
-      console.log("🔄 Calling deletePaymentRecord with parsed values:", {
+      // Process refund instead of deletion
+      console.log("🔄 Calling refundPaymentRecord with parsed values:", {
         studentId: parsedStudentId,
         year: parsedYear, 
         month: parsedMonth,
-        schoolId: parsedSchoolId
+        schoolId: parsedSchoolId,
+        refundedBy: req.session.user.id,
+        refundReason: refundReason || "استرداد دفعة"
       });
       
-      const deleted = await storage.deletePaymentRecord(
+      const refundResult = await storage.refundPaymentRecord(
         parsedStudentId,
         parsedYear,
         parsedMonth,
-        parsedSchoolId
+        parsedSchoolId,
+        req.session.user.id,
+        refundReason || "استرداد دفعة"
       );
 
-      console.log("✅ Delete operation result:", deleted);
+      console.log("✅ Refund operation result:", refundResult);
       
-      if (deleted) {
-        // Also delete related financial entries created from payment receipts
-        try {
-          console.log("🔄 Attempting to delete related financial entries...");
-          await storage.deleteFinancialEntriesByPayment(
-            parsedStudentId,
-            parsedYear,
-            parsedMonth,
-            parsedSchoolId
-          );
-          console.log("✅ Related financial entries deleted successfully");
-        } catch (finError) {
-          console.warn("⚠️ Could not delete related financial entries:", finError);
-          // Don't fail the payment deletion if financial entry deletion fails
-        }
-        
+      if (refundResult.success) {
         res.json({ 
-          message: "تم حذف سجل الدفع بنجاح",
-          deleted: true,
+          message: "تم استرداد المدفوعة بنجاح",
+          success: true,
+          refunded: true,
+          refundData: refundResult.refundData,
           details: {
             studentId: parsedStudentId,
             year: parsedYear,
-            month: parsedMonth
+            month: parsedMonth,
+            studentName: refundResult.refundData?.studentName,
+            groupName: refundResult.refundData?.groupName,
+            amount: refundResult.refundData?.amount
           }
         });
       } else {
-        res.status(404).json({ error: "لم يتم العثور على سجل الدفع أو فشل الحذف" });
+        res.status(404).json({ error: "لم يتم العثور على سجل الدفع أو فشل الاسترداد أو تم استرداده مسبقاً" });
       }
     } catch (error) {
-      console.error("❌ Error deleting payment - Full error:", error);
+      console.error("❌ Error processing refund - Full error:", error);
       res.status(500).json({ 
-        error: "فشل في حذف سجل الدفع",
+        error: "فشل في استرداد المدفوعة",
         details: error instanceof Error ? error.message : String(error)
       });
     }

@@ -537,6 +537,56 @@ export default function GainLossCalculator() {
                     {/* Payment Details */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                       {(() => {
+                        // Parse refund format: "استرداد دفعة - الطالب: NAME - المجموعة: GROUP - الشهر المستردة: MONTH/YEAR - السبب: REASON"
+                        const refundMatch = entry.remarks.match(/استرداد دفعة - الطالب: ([^-]+) - المجموعة: ([^-]+) - الشهر المستردة: ([^-]+) - السبب: (.+)/);
+                        
+                        if (refundMatch) {
+                          const [, studentName, groupName, refundedMonth, refundReason] = refundMatch;
+                          return (
+                            <div className="space-y-4 border-l-4 border-orange-400 bg-orange-50 dark:bg-orange-900/20 p-4 rounded-r-lg">
+                              {/* Refund Header */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                                <span className="font-bold text-orange-800 dark:text-orange-300 text-lg">
+                                  استرداد دفعة
+                                </span>
+                              </div>
+                              
+                              {/* Student Name */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="font-semibold text-gray-800 dark:text-gray-200">
+                                  الطالب: {studentName.trim()}
+                                </span>
+                              </div>
+                              
+                              {/* Group Name */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                <span className="text-gray-700 dark:text-gray-300">
+                                  المجموعة: {groupName.trim()}
+                                </span>
+                              </div>
+                              
+                              {/* Refunded Month */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                <span className="text-gray-700 dark:text-gray-300">
+                                  الشهر المستردة: {refundedMonth.trim()}
+                                </span>
+                              </div>
+                              
+                              {/* Refund Reason */}
+                              <div className="flex items-start gap-2">
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full mt-1.5"></div>
+                                <span className="text-gray-700 dark:text-gray-300 italic">
+                                  سبب الاسترداد: {refundReason.trim()}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
                         // Parse payment receipt format: "إيصال دفع رقم: REC-XXX - الطالب: NAME - DETAILS"
                         const receiptMatch = entry.remarks.match(/إيصال دفع رقم: ([^-]+) - الطالب: ([^-]+) - (.+)/);
                         

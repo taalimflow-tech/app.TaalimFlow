@@ -3562,84 +3562,92 @@ export default function Groups() {
                                               const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                                               const paymentAmount = paymentRecord?.amount;
                                               
-                                              const handleDeletePayment = async () => {
-                                              if (!confirm(`هل أنت متأكد من حذف دفعة ${studentName} لشهر ${currentMonth}/${currentYear}؟`)) {
-                                                return;
-                                              }
-                                              
-                                              try {
-                                                console.log('Deleting payment for:', { studentId, year: currentYear, month: currentMonth, schoolId: user?.schoolId });
+                                              const handleRefundPayment = async () => {
+                                                const refundReason = prompt(
+                                                  `سبب استرداد دفعة ${studentName} لشهر ${currentMonth}/${currentYear}:`,
+                                                  "طلب ولي الأمر"
+                                                );
                                                 
-                                                const response = await fetch('/api/payments/delete', {
-                                                  method: 'DELETE',
-                                                  headers: {
-                                                    'Content-Type': 'application/json',
-                                                  },
-                                                  credentials: 'include',
-                                                  body: JSON.stringify({
-                                                    studentId: studentId,
-                                                    year: currentYear,
-                                                    month: currentMonth,
-                                                    schoolId: user?.schoolId
-                                                  })
-                                                });
+                                                if (refundReason === null) return; // User cancelled
                                                 
-                                                const result = await response.json();
-                                                console.log('Delete response:', result);
+                                                if (!confirm(`هل أنت متأكد من استرداد دفعة ${studentName} لشهر ${currentMonth}/${currentYear}؟\n\nسبب الاسترداد: ${refundReason || "غير محدد"}\n\nملاحظة: سيتم إنشاء سجل خسارة في الحاسبة المالية.`)) {
+                                                  return;
+                                                }
                                                 
-                                                if (response.ok) {
-                                                  toast({
-                                                    title: "تم حذف الدفعة",
-                                                    description: "تم حذف سجل الدفع وما يرتبط به من سجلات الأرباح بنجاح",
+                                                try {
+                                                  console.log('Refunding payment for:', { studentId, year: currentYear, month: currentMonth, schoolId: user?.schoolId, refundReason });
+                                                  
+                                                  const response = await fetch('/api/payments/delete', {
+                                                    method: 'DELETE',
+                                                    headers: {
+                                                      'Content-Type': 'application/json',
+                                                    },
+                                                    credentials: 'include',
+                                                    body: JSON.stringify({
+                                                      studentId: studentId,
+                                                      year: currentYear,
+                                                      month: currentMonth,
+                                                      schoolId: user?.schoolId,
+                                                      refundReason: refundReason || "استرداد دفعة"
+                                                    })
                                                   });
                                                   
-                                                  // Force refresh payment status
-                                                  queryClient.invalidateQueries({
-                                                    queryKey: [
-                                                      "/api/groups",
-                                                      managementGroup?.id,
-                                                      "payment-status",
-                                                      currentYear,
-                                                      currentMonth,
-                                                    ],
-                                                  });
+                                                  const result = await response.json();
+                                                  console.log('Refund response:', result);
                                                   
-                                                  // Also refresh the main group data
-                                                  queryClient.invalidateQueries({
-                                                    queryKey: ["/api/groups", managementGroup?.id],
-                                                  });
-                                                  
-                                                  // 🎯 NEW: IMMEDIATE BENEFIT CALCULATOR REFRESH
-                                                  // Small delay to ensure backend processing is complete, then refresh all caches
-                                                  setTimeout(() => {
-                                                    // Invalidate the benefit calculator cache so it updates immediately
-                                                    queryClient.invalidateQueries({
-                                                      queryKey: ['/api', 'gain-loss-entries'],
+                                                  if (response.ok) {
+                                                    toast({
+                                                      title: "تم استرداد الدفعة",
+                                                      description: `تم استرداد دفعة ${result.refundData?.studentName || studentName} بمبلغ ${result.refundData?.amount || 'غير محدد'} دج لشهر ${currentMonth}/${currentYear}`,
                                                     });
                                                     
-                                                    // Also refresh financial reports if they exist
+                                                    // Force refresh payment status
                                                     queryClient.invalidateQueries({
-                                                      queryKey: ['/api/financial-reports'],
+                                                      queryKey: [
+                                                        "/api/groups",
+                                                        managementGroup?.id,
+                                                        "payment-status",
+                                                        currentYear,
+                                                        currentMonth,
+                                                      ],
                                                     });
                                                     
-                                                    console.log('✅ All caches invalidated: payments, groups, and benefit calculator');
-                                                  }, 500); // 500ms delay to ensure backend completion
-                                                } else {
+                                                    // Also refresh the main group data
+                                                    queryClient.invalidateQueries({
+                                                      queryKey: ["/api/groups", managementGroup?.id],
+                                                    });
+                                                    
+                                                    // 🎯 IMMEDIATE BENEFIT CALCULATOR REFRESH
+                                                    // Small delay to ensure backend processing is complete, then refresh all caches
+                                                    setTimeout(() => {
+                                                      // Invalidate the benefit calculator cache so it updates immediately
+                                                      queryClient.invalidateQueries({
+                                                        queryKey: ['/api', 'gain-loss-entries'],
+                                                      });
+                                                      
+                                                      // Also refresh financial reports if they exist
+                                                      queryClient.invalidateQueries({
+                                                        queryKey: ['/api/financial-reports'],
+                                                      });
+                                                      
+                                                      console.log('✅ All caches invalidated: payments, groups, and benefit calculator');
+                                                    }, 500); // 500ms delay to ensure backend completion
+                                                  } else {
+                                                    toast({
+                                                      title: "خطأ في استرداد الدفعة",
+                                                      description: result.error || "فشل استرداد الدفعة",
+                                                      variant: "destructive",
+                                                    });
+                                                  }
+                                                } catch (error) {
+                                                  console.error('Refund error:', error);
                                                   toast({
-                                                    title: "خطأ في حذف الدفعة",
-                                                    description: result.error || "فشل حذف سجل الدفع",
+                                                    title: "خطأ",
+                                                    description: "حدث خطأ أثناء استرداد الدفعة",
                                                     variant: "destructive",
                                                   });
                                                 }
-                                              } catch (error) {
-                                                console.error('Delete error:', error);
-                                                toast({
-                                                  title: "خطأ",
-                                                  description: "حدث خطأ أثناء حذف الدفعة",
-                                                  variant: "destructive",
-                                                });
-                                              }
-                                            };
+                                              };
                                             
                                             return (
                                               <>
@@ -3653,11 +3661,11 @@ export default function Groups() {
                                                   </span>
                                                   {isMonthPaid && user?.role === 'admin' && (
                                                     <button
-                                                      onClick={handleDeletePayment}
-                                                      className="p-1 hover:bg-red-100 rounded transition-colors"
-                                                      title="حذف الدفعة"
+                                                      onClick={handleRefundPayment}
+                                                      className="p-1 hover:bg-orange-100 rounded transition-colors"
+                                                      title="استرداد الدفعة"
                                                     >
-                                                      <Trash2 className="w-4 h-4 text-red-600" />
+                                                      <Trash2 className="w-4 h-4 text-orange-600" />
                                                     </button>
                                                   )}
                                                 </div>

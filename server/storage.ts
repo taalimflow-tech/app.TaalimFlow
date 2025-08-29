@@ -5426,6 +5426,135 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async refundPaymentRecord(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number,
+    refundedBy: number,
+    refundReason: string = "استرداد دفعة",
+  ): Promise<{ success: boolean; refundData?: any }> {
+    try {
+      console.log(`💰 REFUND - Attempting to refund payment record:`, {
+        studentId,
+        year,
+        month,
+        schoolId,
+        refundedBy,
+        refundReason,
+      });
+
+      // Check if record exists and is not already refunded
+      const existingPayment = await db
+        .select()
+        .from(studentMonthlyPayments)
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+            eq(studentMonthlyPayments.isRefunded, false),
+          ),
+        );
+
+      if (existingPayment.length === 0) {
+        console.log(`❌ No payment record found to refund or already refunded`);
+        return { success: false };
+      }
+
+      const paymentRecord = existingPayment[0];
+      console.log(`💳 Payment record to refund:`, paymentRecord);
+
+      // Get student information for refund details
+      const studentInfo = await this.getStudentInfo(studentId, paymentRecord.studentType, schoolId);
+      const groupInfo = await this.getGroupById(paymentRecord.groupId, schoolId);
+      
+      // Mark payment as refunded
+      await db
+        .update(studentMonthlyPayments)
+        .set({
+          isRefunded: true,
+          refundedAt: new Date(),
+          refundedBy: refundedBy,
+          refundReason: refundReason,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(studentMonthlyPayments.studentId, studentId),
+            eq(studentMonthlyPayments.year, year),
+            eq(studentMonthlyPayments.month, month),
+            eq(studentMonthlyPayments.schoolId, schoolId),
+          ),
+        );
+
+      // Create a financial entry for the refund (as a loss)
+      const refundRemarks = `استرداد دفعة - الطالب: ${studentInfo?.name || 'غير معروف'} - المجموعة: ${groupInfo?.groupName || 'غير معروف'} - الشهر المستردة: ${month}/${year} - السبب: ${refundReason}`;
+      
+      const refundEntry = await db
+        .insert(financialEntries)
+        .values({
+          schoolId: schoolId,
+          type: "loss",
+          amount: paymentRecord.amount,
+          remarks: refundRemarks,
+          year: new Date().getFullYear(),
+          month: new Date().getMonth() + 1,
+          recordedBy: refundedBy,
+          receiptId: `REFUND-${paymentRecord.id}-${Date.now()}`,
+        })
+        .returning();
+
+      console.log(`✅ Refund processed successfully`, {
+        paymentId: paymentRecord.id,
+        refundEntryId: refundEntry[0].id,
+        amount: paymentRecord.amount,
+      });
+
+      return {
+        success: true,
+        refundData: {
+          paymentId: paymentRecord.id,
+          studentName: studentInfo?.name,
+          groupName: groupInfo?.groupName,
+          amount: paymentRecord.amount,
+          refundedMonth: `${month}/${year}`,
+          refundReason,
+          refundEntryId: refundEntry[0].id,
+        },
+      };
+    } catch (error) {
+      console.error("❌ Error processing refund:", error);
+      return { success: false };
+    }
+  }
+
+  // Helper method to get student information
+  async getStudentInfo(studentId: number, studentType: string, schoolId: number): Promise<{ name: string } | null> {
+    try {
+      if (studentType === "student") {
+        const student = await db
+          .select({ name: users.name })
+          .from(users)
+          .where(and(eq(users.id, studentId), eq(users.schoolId, schoolId)))
+          .limit(1);
+        return student[0] || null;
+      } else if (studentType === "child") {
+        const child = await db
+          .select({ name: children.name })
+          .from(children)
+          .where(and(eq(children.id, studentId), eq(children.schoolId, schoolId)))
+          .limit(1);
+        return child[0] || null;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting student info:", error);
+      return null;
+    }
+  }
+
   async getStudentPaymentHistory(
     studentId: number,
     schoolId: number,

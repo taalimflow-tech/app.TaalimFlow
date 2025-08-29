@@ -334,9 +334,13 @@ export const studentMonthlyPayments = pgTable(
     year: integer("year").notNull(),
     month: integer("month").notNull(), // 1-12
     isPaid: boolean("is_paid").default(true).notNull(), // Always true since we only create records for payments
+    isRefunded: boolean("is_refunded").default(false).notNull(), // Track if payment was refunded
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
     paidAt: timestamp("paid_at").notNull(),
     paidBy: integer("paid_by").references(() => users.id), // admin who marked as paid
+    refundedAt: timestamp("refunded_at"), // When refund was processed
+    refundedBy: integer("refunded_by").references(() => users.id), // admin who processed refund
+    refundReason: text("refund_reason"), // Reason for refund
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
