@@ -9,7 +9,7 @@ import { Course } from '@shared/schema';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, Users, Phone, Mail, Calendar, Plus, Edit, Trash, BookOpen, Clock, GraduationCap, BookOpenText, Timer } from 'lucide-react';
+import { Eye, Users, Phone, Mail, Calendar, Plus, Edit, Trash, BookOpen, Clock, GraduationCap, BookOpenText, Timer, CreditCard, FileText } from 'lucide-react';
 
 export default function Courses() {
   const { user, loading: authLoading } = useAuth();
@@ -24,6 +24,7 @@ export default function Courses() {
   const [showChildSelectionModal, setShowChildSelectionModal] = useState(false);
   const [selectedChild, setSelectedChild] = useState<any>(null);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [processingPayment, setProcessingPayment] = useState<{ [key: number]: boolean }>({});
   
   const [courseData, setCourseData] = useState({
     title: '',
@@ -176,6 +177,245 @@ export default function Courses() {
       });
     }
   });
+
+  // Payment handler for course subscription fees
+  const handleCoursePayment = async (registration: any, course: any) => {
+    if (!user || user.role !== 'admin') {
+      toast({
+        title: 'غير مسموح',
+        description: 'فقط المسؤولون يمكنهم تسجيل الدفعات',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const registrationId = registration.id;
+    const coursePrice = parseFloat(course.price) || 0;
+    
+    if (coursePrice <= 0) {
+      toast({
+        title: 'خطأ في السعر',
+        description: 'يجب أن يكون سعر الدورة أكبر من صفر',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setProcessingPayment(prev => ({ ...prev, [registrationId]: true }));
+
+    try {
+      const currentDate = new Date();
+      const receiptId = `COURSE-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      
+      // Create financial gain entry
+      const financialEntry = {
+        schoolId: user.schoolId,
+        type: 'gain',
+        amount: coursePrice,
+        remarks: `دفع رسوم اشتراك الدورة: ${course.title} - المسجل: ${registration.fullName} - نوع التسجيل: ${registration.registrantType === 'child' ? 'طفل' : 'مباشر'}`,
+        year: currentDate.getFullYear(),
+        month: currentDate.getMonth() + 1,
+        recordedBy: user.id,
+        receiptId: receiptId
+      };
+
+      const response = await apiRequest('POST', '/api/financial-entries', financialEntry);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'فشل في إنشاء سجل الدفع');
+      }
+
+      const createdEntry = await response.json();
+
+      // Generate and display receipt
+      generateCoursePaymentReceipt({
+        receiptId,
+        registrationInfo: registration,
+        courseInfo: course,
+        amount: coursePrice,
+        date: currentDate,
+        adminName: user.firstName + ' ' + user.lastName
+      });
+
+      toast({
+        title: 'تم تسجيل الدفع بنجاح',
+        description: `تم إنشاء إيصال رقم: ${receiptId}`
+      });
+
+      // Refresh financial entries if needed
+      queryClient.invalidateQueries({ queryKey: ['/api', 'gain-loss-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/financial-reports'] });
+
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: 'خطأ في تسجيل الدفع',
+        description: error.message || 'حدث خطأ غير متوقع',
+        variant: 'destructive'
+      });
+    } finally {
+      setProcessingPayment(prev => ({ ...prev, [registrationId]: false }));
+    }
+  };
+
+  // Generate and display payment receipt
+  const generateCoursePaymentReceipt = (receiptData: any) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const currentDate = receiptData.date.toLocaleDateString('ar-SA');
+    const currentTime = receiptData.date.toLocaleTimeString('ar-SA', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <title>إيصال دفع رسوم الدورة</title>
+        <style>
+          body { 
+            font-family: 'Arial', sans-serif; 
+            margin: 20px; 
+            direction: rtl;
+            background: white;
+          }
+          .receipt { 
+            max-width: 400px; 
+            margin: 0 auto; 
+            border: 2px solid #333; 
+            padding: 20px;
+            background: white;
+          }
+          .header { 
+            text-align: center; 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+          }
+          .title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+          }
+          .subtitle { 
+            font-size: 14px; 
+            color: #666; 
+          }
+          .section { 
+            margin-bottom: 15px; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+          }
+          .section-title { 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 8px; 
+            font-size: 14px; 
+          }
+          .field { 
+            margin-bottom: 5px; 
+            font-size: 13px; 
+          }
+          .field strong { 
+            color: #444; 
+          }
+          .amount { 
+            text-align: center; 
+            font-size: 20px; 
+            font-weight: bold; 
+            background: #f5f5f5; 
+            padding: 15px; 
+            border: 2px solid #333; 
+            margin: 20px 0; 
+          }
+          .footer { 
+            text-align: center; 
+            font-size: 12px; 
+            color: #666; 
+            border-top: 1px solid #ddd; 
+            padding-top: 15px; 
+            margin-top: 20px; 
+          }
+          .receipt-id { 
+            background: #f0f0f0; 
+            padding: 8px; 
+            text-align: center; 
+            font-family: monospace; 
+            font-size: 12px; 
+            margin-bottom: 15px; 
+          }
+          @media print {
+            body { margin: 0; }
+            .receipt { max-width: none; margin: 0; border: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="header">
+            <div class="title">إيصال دفع رسوم الدورة</div>
+            <div class="subtitle">Receipt for Course Subscription Fee</div>
+          </div>
+
+          <div class="receipt-id">
+            رقم الإيصال: ${receiptData.receiptId}
+          </div>
+
+          <div class="section">
+            <div class="section-title">📚 معلومات الدورة</div>
+            <div class="field"><strong>اسم الدورة:</strong> ${receiptData.courseInfo.title}</div>
+            <div class="field"><strong>الوصف:</strong> ${receiptData.courseInfo.description || 'غير محدد'}</div>
+            <div class="field"><strong>المدة:</strong> ${receiptData.courseInfo.duration || 'غير محدد'}</div>
+            ${receiptData.courseInfo.educationLevel ? `<div class="field"><strong>المستوى التعليمي:</strong> ${receiptData.courseInfo.educationLevel}</div>` : ''}
+            ${receiptData.courseInfo.grade ? `<div class="field"><strong>الصف:</strong> ${receiptData.courseInfo.grade}</div>` : ''}
+          </div>
+
+          <div class="section">
+            <div class="section-title">👤 معلومات المسجل</div>
+            <div class="field"><strong>الاسم الكامل:</strong> ${receiptData.registrationInfo.fullName}</div>
+            <div class="field"><strong>نوع التسجيل:</strong> ${receiptData.registrationInfo.registrantType === 'child' ? 'طفل' : 'مباشر'}</div>
+            <div class="field"><strong>رقم الهاتف:</strong> ${receiptData.registrationInfo.phone}</div>
+            <div class="field"><strong>البريد الإلكتروني:</strong> ${receiptData.registrationInfo.email}</div>
+            ${receiptData.registrationInfo.userName ? `<div class="field"><strong>اسم المستخدم:</strong> ${receiptData.registrationInfo.userName}</div>` : ''}
+          </div>
+
+          <div class="amount">
+            المبلغ المدفوع: ${receiptData.amount} دج
+          </div>
+
+          <div class="section">
+            <div class="section-title">ℹ️ تفاصيل الدفع</div>
+            <div class="field"><strong>التاريخ:</strong> ${currentDate}</div>
+            <div class="field"><strong>الوقت:</strong> ${currentTime}</div>
+            <div class="field"><strong>المسؤول:</strong> ${receiptData.adminName}</div>
+            <div class="field"><strong>نوع الدفع:</strong> رسوم اشتراك الدورة</div>
+          </div>
+
+          <div class="footer">
+            <div>شكراً لك على دفع رسوم الدورة</div>
+            <div>تم إنشاء هذا الإيصال تلقائياً في ${currentDate} ${currentTime}</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 500);
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(receiptHTML);
+    printWindow.document.close();
+  };
 
   // Helper function to check if current user is already registered for a course
   const isUserRegistered = (courseId: number) => {
@@ -1025,11 +1265,54 @@ export default function Courses() {
                                 </div>
                               </div>
                               
-                              <div className="mt-3 pt-3 border-t flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-gray-500" />
-                                <p className="text-sm text-gray-500">
-                                  تاريخ التسجيل: {new Date(registration.createdAt).toLocaleDateString('en-GB')}
-                                </p>
+                              <div className="mt-3 pt-3 border-t flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="w-4 h-4 text-gray-500" />
+                                  <p className="text-sm text-gray-500">
+                                    تاريخ التسجيل: {new Date(registration.createdAt).toLocaleDateString('en-GB')}
+                                  </p>
+                                </div>
+                                
+                                {user?.role === 'admin' && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-green-600">
+                                      {selectedCourseForView.price} دج
+                                    </span>
+                                    <Button
+                                      onClick={() => handleCoursePayment(registration, selectedCourseForView)}
+                                      disabled={processingPayment[registration.id]}
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                      {processingPayment[registration.id] ? (
+                                        <>
+                                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-1"></div>
+                                          جاري المعالجة...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CreditCard className="w-4 h-4 ml-1" />
+                                          دفع الرسوم
+                                        </>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      onClick={() => generateCoursePaymentReceipt({
+                                        receiptId: `PREVIEW-${Date.now()}`,
+                                        registrationInfo: registration,
+                                        courseInfo: selectedCourseForView,
+                                        amount: parseFloat(selectedCourseForView.price) || 0,
+                                        date: new Date(),
+                                        adminName: user.firstName + ' ' + user.lastName
+                                      })}
+                                      size="sm"
+                                      variant="outline"
+                                      title="معاينة الإيصال"
+                                    >
+                                      <FileText className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             </Card>
                           ))}
