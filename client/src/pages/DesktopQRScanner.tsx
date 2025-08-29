@@ -1492,6 +1492,15 @@ function DesktopQRScanner() {
     try {
       setIsProcessing(true);
 
+      // Calculate total number of months selected across all groups
+      const totalMonthsSelected = Object.values(selectedGroups).reduce((total, groupData) => {
+        return total + groupData.months.length;
+      }, 0);
+      
+      // Calculate total amount (entered amount × number of months)
+      const perMonthAmount = parseFloat(paymentAmount);
+      const totalAmount = perMonthAmount * totalMonthsSelected;
+
       // Create transactions for each selected group/month combination
       const transactions = [];
       const academicMonths = generateAcademicYearMonths(8, 2025); // Get correct year for each month
@@ -1506,7 +1515,7 @@ function DesktopQRScanner() {
             studentId: scannedProfile.id,
             studentType: scannedProfile.type,
             groupId: parseInt(groupId),
-            amount: Math.round(parseFloat(paymentAmount)), // Each month gets the full amount, not divided
+            amount: Math.round(perMonthAmount), // Each month gets the entered amount per month
             paymentMethod: 'cash', // Always cash
             notes: paymentNotes,
             month,
@@ -1529,7 +1538,7 @@ function DesktopQRScanner() {
           credentials: 'include',
           body: JSON.stringify({
             transactions,
-            totalAmount: parseFloat(paymentAmount),
+            totalAmount: totalAmount, // Use calculated total amount
             receiptId: result.receiptId,
             studentName: scannedProfile.name
           })
@@ -1554,7 +1563,7 @@ function DesktopQRScanner() {
         receiptId: result.receiptId || `REC-${Date.now()}`,
         studentName: scannedProfile.name,
         paymentDate: new Date().toLocaleDateString('ar-SA'),
-        amount: parseFloat(paymentAmount),
+        amount: totalAmount, // Show total calculated amount on receipt
         groups: Object.entries(selectedGroups).map(([groupId, groupData]) => ({
           groupName: groupData.groupName,
           subjectName: groupData.subjectName,
@@ -1562,57 +1571,63 @@ function DesktopQRScanner() {
         }))
       };
 
-      // 🆕 AUTOMATIC GAIN ENTRY: Add receipt amount to financial gains
+      // 🆕 AUTOMATIC GAIN ENTRIES: Create separate financial gain entry for each month
       try {
-        console.log('🔄 Creating automatic gain entry for receipt:', ticket.receiptId);
+        console.log('🔄 Creating automatic gain entries for receipt:', ticket.receiptId);
         
-        // Build detailed payment information with groups and months
-        const paymentDetails = Object.entries(selectedGroups).map(([groupId, groupData]) => {
-          const monthNames = groupData.months.map(m => getMonthName(m)).join('، ');
-          return `${groupData.subjectName} ${groupData.groupName} (${monthNames})`;
-        }).join(' - ');
+        // Create a separate financial entry for each month selected
+        const gainEntryPromises = [];
         
-        const currentDate = new Date();
-        const gainResponse = await fetch('/api/gain-loss-entries', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            type: 'gain',
-            amount: paymentAmount.trim(),
-            remarks: `إيصال دفع رقم: ${ticket.receiptId} - الطالب: ${scannedProfile.name} - ${paymentDetails}`,
-            year: currentDate.getFullYear(),
-            month: currentDate.getMonth() + 1
-          })
-        });
+        for (const [groupId, groupData] of Object.entries(selectedGroups)) {
+          for (const month of groupData.months) {
+            // Find the correct year for this month
+            const academicMonth = academicMonths.find(am => am.month === month);
+            const correctYear = academicMonth ? academicMonth.year : new Date().getFullYear();
+            
+            const monthName = getMonthName(month);
+            const paymentDetails = `${groupData.subjectName} ${groupData.groupName} - ${monthName}`;
+            
+            const gainEntryPromise = fetch('/api/gain-loss-entries', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                type: 'gain',
+                amount: perMonthAmount.toString(), // Amount per month
+                remarks: `إيصال دفع رقم: ${ticket.receiptId} - الطالب: ${scannedProfile.name} - ${paymentDetails}`,
+                year: correctYear,
+                month: parseInt(month),
+                receiptId: ticket.receiptId // Add receipt ID for deletion tracking
+              })
+            });
+            
+            gainEntryPromises.push(gainEntryPromise);
+          }
+        }
 
-        if (gainResponse.ok) {
-          console.log('✅ Automatic gain entry created successfully');
+        // Execute all gain entry creations
+        const gainResponses = await Promise.allSettled(gainEntryPromises);
+        const successfulEntries = gainResponses.filter(result => 
+          result.status === 'fulfilled' && result.value.ok
+        ).length;
+        
+        if (successfulEntries > 0) {
+          console.log(`✅ Created ${successfulEntries} automatic gain entries successfully`);
           // Invalidate gain-loss cache to refresh the data
           queryClient.invalidateQueries({ queryKey: ['/api', 'gain-loss-entries'] });
           toast({
             title: "تم إنشاء إيصال الدفع بنجاح",
-            description: `إيصال رقم: ${ticket.receiptId} - تم إضافة المبلغ للأرباح تلقائياً`
+            description: `إيصال رقم: ${ticket.receiptId} - تم إضافة ${successfulEntries} قيد للأرباح تلقائياً`
           });
         } else {
-          const errorData = await gainResponse.json().catch(() => ({}));
-          console.error('❌ Failed to create automatic gain entry. Status:', gainResponse.status, 'Error:', errorData);
-          
-          // Show different messages based on error type
-          if (gainResponse.status === 401 || gainResponse.status === 403) {
-            toast({
-              title: "تم إنشاء إيصال الدفع بنجاح",
-              description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر وأضف المبلغ يدوياً`
-            });
-          } else {
-            toast({
-              title: "تم إنشاء إيصال الدفع بنجاح",
-              description: `إيصال رقم: ${ticket.receiptId} - تعذر إضافة المبلغ للأرباح تلقائياً: ${errorData.error || 'خطأ غير معروف'}`
-            });
-          }
+          console.error('❌ Failed to create any automatic gain entries');
+          toast({
+            title: "تم إنشاء إيصال الدفع بنجاح",
+            description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر وأضف المبلغ يدوياً`
+          });
         }
       } catch (gainError) {
-        console.error('❌ Error creating automatic gain entry:', gainError);
+        console.error('❌ Error creating automatic gain entries:', gainError);
         toast({
           title: "تم إنشاء إيصال الدفع بنجاح",
           description: `إيصال رقم: ${ticket.receiptId} - لإضافة المبلغ للأرباح، افتح حاسبة الأرباح والخسائر`

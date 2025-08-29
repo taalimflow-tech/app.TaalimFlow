@@ -274,6 +274,7 @@ export const financialEntries = pgTable("financial_entries", {
   year: integer("year").notNull(),
   month: integer("month").notNull(), // 1-12
   recordedBy: integer("recorded_by").references(() => users.id).notNull(),
+  receiptId: text("receipt_id"), // For tracking which payment receipt created this entry
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -771,6 +772,7 @@ export const insertFinancialEntrySchema = createInsertSchema(financialEntries).p
   year: true,
   month: true,
   recordedBy: true,
+  receiptId: true,
 });
 
 // Course schemas

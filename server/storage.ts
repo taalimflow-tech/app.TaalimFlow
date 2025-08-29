@@ -606,6 +606,12 @@ export interface IStorage {
   ): Promise<FinancialEntry[]>;
   resetFinancialEntries(schoolId: number): Promise<void>;
   deleteFinancialEntryById(entryId: number): Promise<boolean>;
+  deleteFinancialEntriesByPayment(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number
+  ): Promise<void>;
 
   // Child-specific queries for parent access
   getStudentById(studentId: number): Promise<Student | undefined>;
@@ -7096,6 +7102,46 @@ export class DatabaseStorage implements IStorage {
         .where(eq(financialEntries.schoolId, schoolId));
     } catch (error) {
       console.error("Error resetting financial entries:", error);
+      throw error;
+    }
+  }
+
+  async deleteFinancialEntriesByPayment(
+    studentId: number,
+    year: number,
+    month: number,
+    schoolId: number
+  ): Promise<void> {
+    try {
+      console.log(`🗑️ Deleting financial entries for payment - Student: ${studentId}, Year: ${year}, Month: ${month}, School: ${schoolId}`);
+      
+      // Delete financial entries that match the payment details
+      // We use school ID, year, month and student name in remarks to find related entries
+      const studentQuery = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, studentId))
+        .limit(1);
+      
+      if (studentQuery.length > 0) {
+        const studentName = studentQuery[0].name;
+        
+        // Delete entries that contain the student name and are from the same school, year, and month
+        await db
+          .delete(financialEntries)
+          .where(
+            and(
+              eq(financialEntries.schoolId, schoolId),
+              eq(financialEntries.year, year),
+              eq(financialEntries.month, month),
+              like(financialEntries.remarks, `%${studentName}%`)
+            )
+          );
+        
+        console.log(`✅ Deleted financial entries for payment - Student: ${studentName}`);
+      }
+    } catch (error) {
+      console.error("❌ Error deleting financial entries by payment:", error);
       throw error;
     }
   }

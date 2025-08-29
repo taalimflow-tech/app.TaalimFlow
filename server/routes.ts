@@ -4985,6 +4985,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("✅ Delete operation result:", deleted);
       
       if (deleted) {
+        // Also delete related financial entries created from payment receipts
+        try {
+          console.log("🔄 Attempting to delete related financial entries...");
+          await storage.deleteFinancialEntriesByPayment(
+            parsedStudentId,
+            parsedYear,
+            parsedMonth,
+            parsedSchoolId
+          );
+          console.log("✅ Related financial entries deleted successfully");
+        } catch (finError) {
+          console.warn("⚠️ Could not delete related financial entries:", finError);
+          // Don't fail the payment deletion if financial entry deletion fails
+        }
+        
         res.json({ 
           message: "تم حذف سجل الدفع بنجاح",
           deleted: true,
