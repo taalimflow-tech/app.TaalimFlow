@@ -382,19 +382,14 @@ export default function Courses() {
           <div class="section">
             <div class="section-title">📚 معلومات الدورة</div>
             <div class="field"><strong>اسم الدورة:</strong> ${receiptData.courseInfo.title}</div>
-            <div class="field"><strong>الوصف:</strong> ${receiptData.courseInfo.description || 'غير محدد'}</div>
             <div class="field"><strong>المدة:</strong> ${receiptData.courseInfo.duration || 'غير محدد'}</div>
-            ${receiptData.courseInfo.educationLevel ? `<div class="field"><strong>المستوى التعليمي:</strong> ${receiptData.courseInfo.educationLevel}</div>` : ''}
             ${receiptData.courseInfo.grade ? `<div class="field"><strong>الصف:</strong> ${receiptData.courseInfo.grade}</div>` : ''}
           </div>
 
           <div class="section">
             <div class="section-title">👤 معلومات المسجل</div>
             <div class="field"><strong>الاسم الكامل:</strong> ${receiptData.registrationInfo.fullName}</div>
-            <div class="field"><strong>نوع التسجيل:</strong> ${receiptData.registrationInfo.registrantType === 'child' ? 'طفل' : 'مباشر'}</div>
             <div class="field"><strong>رقم الهاتف:</strong> ${receiptData.registrationInfo.phone}</div>
-            <div class="field"><strong>البريد الإلكتروني:</strong> ${receiptData.registrationInfo.email}</div>
-            ${receiptData.registrationInfo.userName ? `<div class="field"><strong>اسم المستخدم:</strong> ${receiptData.registrationInfo.userName}</div>` : ''}
           </div>
 
           <div class="amount">
