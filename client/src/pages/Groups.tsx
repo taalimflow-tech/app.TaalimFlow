@@ -3589,8 +3589,8 @@ export default function Groups() {
                                                 
                                                 if (response.ok) {
                                                   toast({
-                                                    title: "تم حذف الدفعة",
-                                                    description: "تم حذف سجل الدفع وما يرتبط به من سجلات الأرباح بنجاح",
+                                                    title: "تم إلغاء الدفعة",
+                                                    description: "تم حذف سجل الدفع وإضافة سجل خسارة مقابل لتوازن الحسابات",
                                                   });
                                                   
                                                   // Force refresh payment status

@@ -5325,32 +5325,34 @@ export class DatabaseStorage implements IStorage {
       );
 
       if (associatedBenefits.length > 0) {
-        console.log(`🗑️ HARD DELETING associated benefit entries...`);
+        console.log(`💰 Creating corresponding LOSS entries instead of deleting gains...`);
         for (const benefit of associatedBenefits) {
-          // HARD DELETE - Direct permanent deletion from database
           console.log(
-            `🔥 HARD DELETING benefit entry ID: ${benefit.id}, amount: ${benefit.amount}`,
+            `📝 Creating loss entry to offset gain ID: ${benefit.id}, amount: ${benefit.amount}`,
           );
-          await db
-            .delete(financialEntries)
-            .where(eq(financialEntries.id, benefit.id));
+          
+          // Create a loss entry with the same amount to offset the gain
+          const lossEntry = {
+            schoolId: schoolId,
+            type: "loss" as const,
+            amount: benefit.amount, // Same amount as the gain
+            remarks: `إلغاء دفعة الطالب ${studentId} - شهر ${month}/${year} (مقابل الربح رقم ${benefit.id})`,
+            year: year,
+            month: month,
+            recordedBy: benefit.recordedBy, // Use same user who recorded the original gain
+          };
 
-          // Verify the benefit entry is permanently gone
-          const verifyBenefitDelete = await db
-            .select()
-            .from(financialEntries)
-            .where(eq(financialEntries.id, benefit.id));
-
-          if (verifyBenefitDelete.length === 0) {
+          try {
+            const createdLossEntry = await this.createFinancialEntry(lossEntry);
             console.log(
-              `✅ SUCCESS: Benefit entry ${benefit.id} PERMANENTLY DELETED from database`,
+              `✅ SUCCESS: Created loss entry ID: ${createdLossEntry.id} to offset gain entry ${benefit.id}`,
             );
-          } else {
-            console.log(
-              `❌ FAILURE: Benefit entry ${benefit.id} still exists, attempting raw SQL deletion...`,
+          } catch (lossError) {
+            console.error(
+              `❌ FAILURE: Could not create loss entry for gain ${benefit.id}:`,
+              lossError,
             );
-            // Fallback raw SQL for hard delete
-            await this.hardDeleteFinancialEntryByRawSQL(benefit.id);
+            throw new Error(`Failed to create offsetting loss entry: ${lossError}`);
           }
         }
       }
