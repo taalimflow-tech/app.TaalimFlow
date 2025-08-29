@@ -1226,7 +1226,7 @@ export default function Teachers() {
                   </Label>
                   <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     {teacherForSpecialization.specializations.map((spec, index) => {
-                      console.log('🔍 Specialization data:', spec); // Debug log
+                      
                       const getLevelColors = (level: string) => {
                         switch (level) {
                           case 'الابتدائي':
@@ -1248,7 +1248,7 @@ export default function Teachers() {
                           <span>
                             {spec.nameAr}
                             <span className="mr-1 opacity-75">({spec.educationLevel})</span>
-                            <span className="mr-1 text-xs opacity-50">[SpecID: {spec.id}, ModuleID: {spec.moduleId || 'N/A'}]</span>
+                            
                           </span>
                           <button
                             onClick={(e) => {
