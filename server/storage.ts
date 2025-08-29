@@ -5326,79 +5326,17 @@ export class DatabaseStorage implements IStorage {
 
       if (associatedBenefits.length > 0) {
         console.log(`💰 Creating corresponding LOSS entries instead of deleting gains...`);
-        
-        // Get student information for better loss entry description
-        let studentName = `الطالب ${studentId}`;
-        let groupName = 'المجموعة';
-        
-        try {
-          // Fetch student information
-          const studentInfo = await db
-            .select({
-              studentName: students.fullName,
-              userName: users.fullName,
-            })
-            .from(students)
-            .leftJoin(users, eq(students.userId, users.id))
-            .where(
-              and(
-                eq(students.id, studentId),
-                eq(students.schoolId, schoolId)
-              )
-            )
-            .limit(1);
-            
-          if (studentInfo.length > 0) {
-            studentName = studentInfo[0].studentName || studentInfo[0].userName || `الطالب ${studentId}`;
-          }
-          
-          // Fetch group information for this student
-          const groupInfo = await db
-            .select({
-              groupName: groups.name,
-              subjectName: subjects.nameAr,
-            })
-            .from(groupMixedAssignments)
-            .leftJoin(groups, eq(groupMixedAssignments.groupId, groups.id))
-            .leftJoin(subjects, eq(groups.subjectId, subjects.id))
-            .where(
-              and(
-                eq(groupMixedAssignments.studentId, studentId),
-                eq(groups.schoolId, schoolId)
-              )
-            )
-            .limit(1);
-            
-          if (groupInfo.length > 0) {
-            const subject = groupInfo[0].subjectName || 'المادة';
-            const group = groupInfo[0].groupName || 'مجموعة';
-            groupName = `${subject} - ${group}`;
-          }
-        } catch (infoError) {
-          console.error('Error fetching student/group info:', infoError);
-          // Continue with default names if fetch fails
-        }
-        
         for (const benefit of associatedBenefits) {
           console.log(
             `📝 Creating loss entry to offset gain ID: ${benefit.id}, amount: ${benefit.amount}`,
           );
           
-          // Arabic month names for better formatting
-          const arabicMonths: Record<number, string> = {
-            1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
-            5: 'مايو', 6: 'يونيو', 7: 'يوليو', 8: 'أغسطس', 
-            9: 'سبتمبر', 10: 'أكتوبر', 11: 'نوفمبر', 12: 'ديسمبر'
-          };
-          
-          const monthName = arabicMonths[month] || month.toString();
-          
-          // Create a loss entry with enhanced information
+          // Create a loss entry with the same amount to offset the gain
           const lossEntry = {
             schoolId: schoolId,
             type: "loss" as const,
             amount: benefit.amount, // Same amount as the gain
-            remarks: `إلغاء دفعة ${studentName} - ${groupName} - شهر ${monthName}/${year} (مقابل الربح رقم ${benefit.id})`,
+            remarks: `إلغاء دفعة الطالب ${studentId} - شهر ${month}/${year} (مقابل الربح رقم ${benefit.id})`,
             year: year,
             month: month,
             recordedBy: benefit.recordedBy, // Use same user who recorded the original gain

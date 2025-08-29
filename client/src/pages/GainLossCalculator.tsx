@@ -631,51 +631,11 @@ export default function GainLossCalculator() {
                         }
                         
                         // Handle payment cancellation entries
-                        // New enhanced format: "إلغاء دفعة StudentName - GroupName - شهر MonthName/Year (مقابل الربح رقم ID)"
-                        // Legacy format: "إلغاء دفعة الطالب 24 - شهر 9/2025 (مقابل الربح رقم 190)"
-                        const enhancedCancellationMatch = entry.remarks.match(/إلغاء دفعة (.+?) - (.+?) - شهر (.+?)\/(\d+)/);
-                        const legacyCancellationMatch = entry.remarks.match(/إلغاء دفعة الطالب (\d+) - شهر (\d+)\/(\d+)/);
+                        // Format: "إلغاء دفعة الطالب 24 - شهر 9/2025 (مقابل الربح رقم 190)"
+                        const cancellationMatch = entry.remarks.match(/إلغاء دفعة الطالب (\d+) - شهر (\d+)\/(\d+)/);
                         
-                        if (enhancedCancellationMatch) {
-                          const [, studentName, groupName, monthName, year] = enhancedCancellationMatch;
-                          
-                          return (
-                            <div className="space-y-3">
-                              {/* Cancellation Icon and Title */}
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                <span className="font-semibold text-red-700 dark:text-red-300 text-lg">
-                                  إلغاء دفعة طالب
-                                </span>
-                              </div>
-                              
-                              {/* Student Info */}
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span className="text-gray-700 dark:text-gray-300">
-                                  الطالب: <span className="font-medium">{studentName}</span>
-                                </span>
-                              </div>
-                              
-                              {/* Group Info */}
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                <span className="text-gray-600 dark:text-gray-400">
-                                  المجموعة: <span className="font-medium">{groupName}</span>
-                                </span>
-                              </div>
-                              
-                              {/* Month/Year Info */}
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                <span className="text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-                                  شهر {monthName}/{year}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        } else if (legacyCancellationMatch) {
-                          const [, studentId, month, year] = legacyCancellationMatch;
+                        if (cancellationMatch) {
+                          const [, studentId, month, year] = cancellationMatch;
                           
                           // Arabic month names
                           const arabicMonths: Record<string, string> = {
@@ -696,11 +656,19 @@ export default function GainLossCalculator() {
                                 </span>
                               </div>
                               
-                              {/* Student Info - Legacy format showing ID */}
+                              {/* Student Info - Display as student ID for now, can be enhanced later */}
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                 <span className="text-gray-700 dark:text-gray-300">
                                   الطالب: <span className="font-medium">الطالب رقم {studentId}</span>
+                                </span>
+                              </div>
+                              
+                              {/* Group Info Placeholder */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  المجموعة: <span className="font-medium">مجموعة الطالب</span>
                                 </span>
                               </div>
                               
