@@ -3562,92 +3562,108 @@ export default function Groups() {
                                               const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                                               const paymentAmount = paymentRecord?.amount;
                                               
-                                              const handleRefundPayment = async () => {
-                                                const refundReason = prompt(
-                                                  `سبب استرداد دفعة ${studentName} لشهر ${currentMonth}/${currentYear}:`,
-                                                  "طلب ولي الأمر"
-                                                );
-                                                
-                                                if (refundReason === null) return; // User cancelled
-                                                
-                                                if (!confirm(`هل أنت متأكد من استرداد دفعة ${studentName} لشهر ${currentMonth}/${currentYear}؟\n\nسبب الاسترداد: ${refundReason || "غير محدد"}\n\nملاحظة: سيتم إنشاء سجل خسارة في الحاسبة المالية.`)) {
-                                                  return;
+                                              // State for benefit records
+                                              const [benefitRecords, setBenefitRecords] = React.useState<any[]>([]);
+                                              const [showBenefitDetails, setShowBenefitDetails] = React.useState(false);
+                                              
+                                              // Fetch associated benefit records when payment exists
+                                              React.useEffect(() => {
+                                                if (isMonthPaid && paymentAmount) {
+                                                  const fetchBenefitRecords = async () => {
+                                                    try {
+                                                      const response = await fetch(`/api/payments/benefit-records?studentId=${studentId}&year=${currentYear}&month=${currentMonth}&amount=${paymentAmount}&schoolId=${user?.schoolId}`, {
+                                                        credentials: 'include'
+                                                      });
+                                                      if (response.ok) {
+                                                        const records = await response.json();
+                                                        setBenefitRecords(records);
+                                                      }
+                                                    } catch (error) {
+                                                      console.error('Error fetching benefit records:', error);
+                                                    }
+                                                  };
+                                                  fetchBenefitRecords();
                                                 }
+                                              }, [isMonthPaid, paymentAmount, studentId, currentYear, currentMonth]);
+                                              
+                                              const handleDeletePayment = async () => {
+                                              if (!confirm(`هل أنت متأكد من حذف دفعة ${studentName} لشهر ${currentMonth}/${currentYear}؟`)) {
+                                                return;
+                                              }
+                                              
+                                              try {
+                                                console.log('Deleting payment for:', { studentId, year: currentYear, month: currentMonth, schoolId: user?.schoolId });
                                                 
-                                                try {
-                                                  console.log('Refunding payment for:', { studentId, year: currentYear, month: currentMonth, schoolId: user?.schoolId, refundReason });
-                                                  
-                                                  const response = await fetch('/api/payments/delete', {
-                                                    method: 'DELETE',
-                                                    headers: {
-                                                      'Content-Type': 'application/json',
-                                                    },
-                                                    credentials: 'include',
-                                                    body: JSON.stringify({
-                                                      studentId: studentId,
-                                                      year: currentYear,
-                                                      month: currentMonth,
-                                                      schoolId: user?.schoolId,
-                                                      refundReason: refundReason || "استرداد دفعة"
-                                                    })
+                                                const response = await fetch('/api/payments/delete', {
+                                                  method: 'DELETE',
+                                                  headers: {
+                                                    'Content-Type': 'application/json',
+                                                  },
+                                                  credentials: 'include',
+                                                  body: JSON.stringify({
+                                                    studentId: studentId,
+                                                    year: currentYear,
+                                                    month: currentMonth,
+                                                    schoolId: user?.schoolId
+                                                  })
+                                                });
+                                                
+                                                const result = await response.json();
+                                                console.log('Delete response:', result);
+                                                
+                                                if (response.ok) {
+                                                  toast({
+                                                    title: "تم حذف الدفعة",
+                                                    description: "تم حذف سجل الدفع وما يرتبط به من سجلات الأرباح بنجاح",
                                                   });
                                                   
-                                                  const result = await response.json();
-                                                  console.log('Refund response:', result);
+                                                  // Force refresh payment status
+                                                  queryClient.invalidateQueries({
+                                                    queryKey: [
+                                                      "/api/groups",
+                                                      managementGroup?.id,
+                                                      "payment-status",
+                                                      currentYear,
+                                                      currentMonth,
+                                                    ],
+                                                  });
                                                   
-                                                  if (response.ok) {
-                                                    toast({
-                                                      title: "تم استرداد الدفعة",
-                                                      description: `تم استرداد دفعة ${result.refundData?.studentName || studentName} بمبلغ ${result.refundData?.amount || 'غير محدد'} دج لشهر ${currentMonth}/${currentYear}`,
-                                                    });
-                                                    
-                                                    // Force refresh payment status
+                                                  // Also refresh the main group data
+                                                  queryClient.invalidateQueries({
+                                                    queryKey: ["/api/groups", managementGroup?.id],
+                                                  });
+                                                  
+                                                  // 🎯 NEW: IMMEDIATE BENEFIT CALCULATOR REFRESH
+                                                  // Small delay to ensure backend processing is complete, then refresh all caches
+                                                  setTimeout(() => {
+                                                    // Invalidate the benefit calculator cache so it updates immediately
                                                     queryClient.invalidateQueries({
-                                                      queryKey: [
-                                                        "/api/groups",
-                                                        managementGroup?.id,
-                                                        "payment-status",
-                                                        currentYear,
-                                                        currentMonth,
-                                                      ],
+                                                      queryKey: ['/api', 'gain-loss-entries'],
                                                     });
                                                     
-                                                    // Also refresh the main group data
+                                                    // Also refresh financial reports if they exist
                                                     queryClient.invalidateQueries({
-                                                      queryKey: ["/api/groups", managementGroup?.id],
+                                                      queryKey: ['/api/financial-reports'],
                                                     });
                                                     
-                                                    // 🎯 IMMEDIATE BENEFIT CALCULATOR REFRESH
-                                                    // Small delay to ensure backend processing is complete, then refresh all caches
-                                                    setTimeout(() => {
-                                                      // Invalidate the benefit calculator cache so it updates immediately
-                                                      queryClient.invalidateQueries({
-                                                        queryKey: ['/api', 'gain-loss-entries'],
-                                                      });
-                                                      
-                                                      // Also refresh financial reports if they exist
-                                                      queryClient.invalidateQueries({
-                                                        queryKey: ['/api/financial-reports'],
-                                                      });
-                                                      
-                                                      console.log('✅ All caches invalidated: payments, groups, and benefit calculator');
-                                                    }, 500); // 500ms delay to ensure backend completion
-                                                  } else {
-                                                    toast({
-                                                      title: "خطأ في استرداد الدفعة",
-                                                      description: result.error || "فشل استرداد الدفعة",
-                                                      variant: "destructive",
-                                                    });
-                                                  }
-                                                } catch (error) {
-                                                  console.error('Refund error:', error);
+                                                    console.log('✅ All caches invalidated: payments, groups, and benefit calculator');
+                                                  }, 500); // 500ms delay to ensure backend completion
+                                                } else {
                                                   toast({
-                                                    title: "خطأ",
-                                                    description: "حدث خطأ أثناء استرداد الدفعة",
+                                                    title: "خطأ في حذف الدفعة",
+                                                    description: result.error || "فشل حذف سجل الدفع",
                                                     variant: "destructive",
                                                   });
                                                 }
-                                              };
+                                              } catch (error) {
+                                                console.error('Delete error:', error);
+                                                toast({
+                                                  title: "خطأ",
+                                                  description: "حدث خطأ أثناء حذف الدفعة",
+                                                  variant: "destructive",
+                                                });
+                                              }
+                                            };
                                             
                                             return (
                                               <>
@@ -3661,11 +3677,11 @@ export default function Groups() {
                                                   </span>
                                                   {isMonthPaid && user?.role === 'admin' && (
                                                     <button
-                                                      onClick={handleRefundPayment}
-                                                      className="p-1 hover:bg-orange-100 rounded transition-colors"
-                                                      title="استرداد الدفعة"
+                                                      onClick={handleDeletePayment}
+                                                      className="p-1 hover:bg-red-100 rounded transition-colors"
+                                                      title="حذف الدفعة"
                                                     >
-                                                      <Trash2 className="w-4 h-4 text-orange-600" />
+                                                      <Trash2 className="w-4 h-4 text-red-600" />
                                                     </button>
                                                   )}
                                                 </div>
@@ -3676,6 +3692,39 @@ export default function Groups() {
                                                   <span className="text-xs font-semibold text-gray-700">
                                                     {paymentAmount} دج
                                                   </span>
+                                                )}
+                                                {/* Display associated benefit records */}
+                                                {isMonthPaid && benefitRecords.length > 0 && (
+                                                  <div className="mt-1">
+                                                    <button
+                                                      onClick={() => setShowBenefitDetails(!showBenefitDetails)}
+                                                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                    >
+                                                      {benefitRecords.length} سجل ربح مرتبط
+                                                    </button>
+                                                    {showBenefitDetails && (
+                                                      <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
+                                                        <div className="font-medium text-blue-800 dark:text-blue-300 mb-1">
+                                                          سجلات الأرباح المرتبطة:
+                                                        </div>
+                                                        {benefitRecords.map((record, index) => (
+                                                          <div key={record.id} className="text-blue-700 dark:text-blue-400 mb-1">
+                                                            <div>رقم السجل: {record.id}</div>
+                                                            <div>المبلغ: {record.amount} دج</div>
+                                                            <div>الملاحظات: {record.remarks}</div>
+                                                            <div>تاريخ الإنشاء: {new Date(record.createdAt).toLocaleDateString('ar-SA')}</div>
+                                                            {index < benefitRecords.length - 1 && <hr className="my-1 border-blue-200" />}
+                                                          </div>
+                                                        ))}
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                )}
+                                                {/* Warning if multiple benefit records found */}
+                                                {isMonthPaid && benefitRecords.length > 1 && (
+                                                  <div className="mt-1 text-xs text-orange-600 dark:text-orange-400">
+                                                    ⚠️ عدة سجلات أرباح بنفس المبلغ
+                                                  </div>
                                                 )}
                                               </>
                                             );

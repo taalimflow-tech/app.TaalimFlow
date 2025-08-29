@@ -241,7 +241,7 @@ export interface IStorage {
   // Group methods
   getGroups(): Promise<Group[]>;
   getGroupsBySchool(schoolId: number): Promise<Group[]>;
-  getGroupById(id: number, schoolId?: number): Promise<Group | undefined>;
+  getGroupById(id: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
   deleteGroup(id: number, schoolId?: number): Promise<void>;
 
@@ -1815,18 +1815,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(groups.createdAt));
   }
 
-  async getGroupById(id: number, schoolId?: number): Promise<Group | undefined> {
-    const conditions = [eq(groups.id, id)];
-    
-    // Add school validation if schoolId is provided
-    if (schoolId !== undefined) {
-      conditions.push(eq(groups.schoolId, schoolId));
-    }
-    
+  async getGroupById(id: number): Promise<Group | undefined> {
     const result = await db
       .select()
       .from(groups)
-      .where(and(...conditions))
+      .where(eq(groups.id, id))
       .limit(1);
     return result[0];
   }
@@ -4955,8 +4948,7 @@ export class DatabaseStorage implements IStorage {
     schoolId: number,
   ): Promise<StudentMonthlyPayment | undefined> {
     try {
-      // Get ALL payment records for this student/month/year
-      const payments = await db
+      const [payment] = await db
         .select()
         .from(studentMonthlyPayments)
         .where(
@@ -4967,11 +4959,8 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.schoolId, schoolId),
           ),
         )
-        .orderBy(desc(studentMonthlyPayments.paidAt)); // Most recent first
-      
-      // Return the most recent active (non-refunded) payment
-      const activePayment = payments.find((p) => !p.isRefunded);
-      return activePayment || undefined;
+        .limit(1);
+      return payment || undefined;
     } catch (error) {
       console.error("Error getting student payment status:", error);
       return undefined;
@@ -4992,8 +4981,8 @@ export class DatabaseStorage implements IStorage {
         month,
         schoolId,
       );
-      // Paid only if record exists AND isPaid = true AND NOT refunded
-      return payment ? (payment.isPaid && !payment.isRefunded) : false;
+      // Paid only if record exists AND isPaid = true
+      return payment ? payment.isPaid : false;
     } catch (error) {
       console.error("Error checking if student is paid:", error);
       return false;
@@ -5014,8 +5003,8 @@ export class DatabaseStorage implements IStorage {
         month,
         schoolId,
       );
-      // Unpaid if: 1) No record exists, OR 2) Record exists but isPaid = false, OR 3) Record is refunded
-      return payment ? (!payment.isPaid || payment.isRefunded) : true;
+      // Unpaid if: 1) No record exists, OR 2) Record exists but isPaid = false
+      return payment ? !payment.isPaid : true;
     } catch (error) {
       console.error("Error checking if student is unpaid:", error);
       return true; // Default to unpaid on error
@@ -5081,19 +5070,12 @@ export class DatabaseStorage implements IStorage {
 
       // Create complete status array for all students
       return studentIds.map((studentId) => {
-        // Find ALL payments for this student (could be multiple due to refunds)
-        const studentPayments = existingPayments.filter((p) => p.studentId === studentId);
-        
-        // Find the most recent ACTIVE (non-refunded) payment
-        const activePayment = studentPayments
-          .filter((p) => !p.isRefunded && p.isPaid)
-          .sort((a, b) => new Date(b.paidAt || 0).getTime() - new Date(a.paidAt || 0).getTime())[0];
-        
+        const payment = existingPayments.find((p) => p.studentId === studentId);
         return {
           studentId,
-          isPaid: !!activePayment, // True if there's at least one active paid payment
-          amount: activePayment?.amount,
-          paidAt: activePayment?.paidAt,
+          isPaid: payment ? payment.isPaid : false, // No record = unpaid
+          amount: payment?.amount,
+          paidAt: payment?.paidAt,
         };
       });
     } catch (error) {
@@ -5188,9 +5170,8 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Check if payment already exists to prevent duplicates (NOW GROUP-SPECIFIC)
-      // Only check for NON-REFUNDED payments to allow new payments for refunded months
       console.log(
-        `🔍 DUPLICATE CHECK: Looking for existing ACTIVE payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}, groupId: ${groupId}`,
+        `🔍 DUPLICATE CHECK: Looking for existing payment - studentId: ${studentId}, year: ${year}, month: ${month}, schoolId: ${schoolId}, groupId: ${groupId}`,
       );
       const [existingPayment] = await db
         .select()
@@ -5202,7 +5183,6 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.month, month),
             eq(studentMonthlyPayments.schoolId, schoolId),
             eq(studentMonthlyPayments.groupId, groupId), // CRITICAL: Check group-specific duplicates
-            eq(studentMonthlyPayments.isRefunded, false), // Only check for non-refunded payments
           ),
         )
         .limit(1);
@@ -5225,7 +5205,7 @@ export class DatabaseStorage implements IStorage {
 
       if (existingPayment) {
         console.log(
-          `🚫 DUPLICATE PAYMENT DETECTED: Active payment already exists for studentId ${studentId}, ${month}/${year}`,
+          `🚫 DUPLICATE PAYMENT DETECTED: Payment already exists for studentId ${studentId}, ${month}/${year}`,
         );
         console.log(`🚫 Existing payment:`, existingPayment);
         console.log(
@@ -5302,8 +5282,11 @@ export class DatabaseStorage implements IStorage {
       // 🎯 NEW: CASCADING DELETE - Remove associated benefit entries
       console.log(`🔍 Looking for associated benefit entries to delete...`);
 
-      // Find benefit entries that match this payment (gains created for this payment amount)
-      const associatedBenefits = await db
+      // 🎯 SAFER APPROACH: Only delete financial entries that have exact characteristics
+      // and were likely created automatically for this specific payment
+      
+      // First, check if there are any financial entries that could match
+      const potentialBenefits = await db
         .select()
         .from(financialEntries)
         .where(
@@ -5315,6 +5298,27 @@ export class DatabaseStorage implements IStorage {
             eq(financialEntries.amount, paymentRecord.amount),
           ),
         );
+
+      console.log(`🔍 Found ${potentialBenefits.length} potential benefit entries with same amount, year, month`);
+
+      // Only proceed with deletion if there's exactly 1 matching entry
+      // This prevents accidental deletion of multiple entries with same amount
+      let associatedBenefits: any[] = [];
+      
+      if (potentialBenefits.length === 1) {
+        // Safe to delete - only one entry matches
+        associatedBenefits = potentialBenefits;
+        console.log(`✅ Safe to delete: Found exactly 1 matching financial entry`);
+      } else if (potentialBenefits.length > 1) {
+        // Risky - multiple entries with same amount
+        console.log(`⚠️ RISK DETECTED: Found ${potentialBenefits.length} financial entries with same amount`);
+        console.log(`🛡️ SAFETY MEASURE: Will NOT delete any financial entries to prevent data loss`);
+        associatedBenefits = []; // Don't delete any
+      } else {
+        // No matching entries found
+        console.log(`ℹ️ No matching financial entries found for deletion`);
+        associatedBenefits = [];
+      }
 
       console.log(
         `📊 Found ${associatedBenefits.length} associated benefit entries`,
@@ -5443,138 +5447,6 @@ export class DatabaseStorage implements IStorage {
       );
     } catch (error) {
       console.error(`❌ RAW SQL DELETE failed:`, error);
-    }
-  }
-
-  async refundPaymentRecord(
-    studentId: number,
-    year: number,
-    month: number,
-    schoolId: number,
-    refundedBy: number,
-    refundReason: string = "استرداد دفعة",
-  ): Promise<{ success: boolean; refundData?: any }> {
-    try {
-      console.log(`💰 REFUND - Attempting to refund payment record:`, {
-        studentId,
-        year,
-        month,
-        schoolId,
-        refundedBy,
-        refundReason,
-      });
-
-      // Check if record exists and is not already refunded
-      const existingPayment = await db
-        .select()
-        .from(studentMonthlyPayments)
-        .where(
-          and(
-            eq(studentMonthlyPayments.studentId, studentId),
-            eq(studentMonthlyPayments.year, year),
-            eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId),
-            eq(studentMonthlyPayments.isRefunded, false),
-          ),
-        );
-
-      if (existingPayment.length === 0) {
-        console.log(`❌ No payment record found to refund or already refunded`);
-        return { success: false };
-      }
-
-      const paymentRecord = existingPayment[0];
-      console.log(`💳 Payment record to refund:`, paymentRecord);
-
-      // Get student information for refund details
-      const studentInfo = await this.getStudentInfo(studentId, paymentRecord.studentType, schoolId);
-      const groupInfo = await this.getGroupById(paymentRecord.groupId, schoolId);
-      
-      // Mark payment as refunded
-      await db
-        .update(studentMonthlyPayments)
-        .set({
-          isRefunded: true,
-          refundedAt: new Date(),
-          refundedBy: refundedBy,
-          refundReason: refundReason,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(studentMonthlyPayments.studentId, studentId),
-            eq(studentMonthlyPayments.year, year),
-            eq(studentMonthlyPayments.month, month),
-            eq(studentMonthlyPayments.schoolId, schoolId),
-          ),
-        );
-
-      // Create a financial entry for the refund (as a loss)
-      const refundRemarks = `استرداد دفعة - الطالب: ${studentInfo?.name || 'غير معروف'} - المجموعة: ${groupInfo?.name || 'غير معروف'} - الشهر المستردة: ${month}/${year} - السبب: ${refundReason}`;
-      
-      const refundEntry = await db
-        .insert(financialEntries)
-        .values({
-          schoolId: schoolId,
-          type: "loss",
-          amount: paymentRecord.amount,
-          remarks: refundRemarks,
-          year: new Date().getFullYear(),
-          month: new Date().getMonth() + 1,
-          recordedBy: refundedBy,
-          receiptId: `REFUND-${paymentRecord.id}-${Date.now()}`,
-        })
-        .returning();
-
-      console.log(`✅ Refund processed successfully`, {
-        paymentId: paymentRecord.id,
-        refundEntryId: refundEntry[0].id,
-        amount: paymentRecord.amount,
-      });
-
-      return {
-        success: true,
-        refundData: {
-          paymentId: paymentRecord.id,
-          studentName: studentInfo?.name,
-          groupName: groupInfo?.groupName,
-          amount: paymentRecord.amount,
-          refundedMonth: `${month}/${year}`,
-          refundReason,
-          refundEntryId: refundEntry[0].id,
-        },
-      };
-    } catch (error) {
-      console.error("❌ Error processing refund:", error);
-      return { success: false };
-    }
-  }
-
-  // Helper method to get student information
-  async getStudentInfo(studentId: number, studentType: string, schoolId: number): Promise<{ name: string } | null> {
-    try {
-      if (studentType === "student") {
-        // For direct students: studentId refers to students table, need to join with users table
-        const student = await db
-          .select({ name: users.name })
-          .from(students)
-          .innerJoin(users, eq(students.userId, users.id))
-          .where(and(eq(students.id, studentId), eq(students.schoolId, schoolId)))
-          .limit(1);
-        return student[0] || null;
-      } else if (studentType === "child") {
-        // For children: studentId refers directly to children table
-        const child = await db
-          .select({ name: children.name })
-          .from(children)
-          .where(and(eq(children.id, studentId), eq(children.schoolId, schoolId)))
-          .limit(1);
-        return child[0] || null;
-      }
-      return null;
-    } catch (error) {
-      console.error("Error getting student info:", error);
-      return null;
     }
   }
 

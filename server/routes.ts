@@ -4924,8 +4924,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
 
           if (existingPayment) {
-            // Payment record exists in database - use actual isPaid value AND check if refunded
-            const isPaidStatus = (existingPayment.isPaid ?? true) && !existingPayment.isRefunded;
+            // Payment record exists in database - use actual isPaid value
+            const isPaidStatus = existingPayment.isPaid ?? true;
             paymentStatuses.push({
               studentId: studentId,
               userId: existingPayment.userId,
@@ -5005,20 +5005,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Refund payment record - Mark as refunded and create loss entry
+  // Delete payment record - HARD DELETE from database
   app.delete("/api/payments/delete", async (req, res) => {
     try {
-      console.log("💰 REFUND payment request received:", req.body);
+      console.log("🗑️ DELETE payment request received:", req.body);
       
       if (!req.session?.user || req.session.user.role !== "admin") {
         console.log("❌ Access denied - user not admin:", req.session?.user?.role);
         return res
           .status(403)
-          .json({ error: "غير مسموح لك باسترداد المدفوعات" });
+          .json({ error: "غير مسموح لك بحذف المدفوعات" });
       }
 
-      const { studentId, year, month, schoolId, refundReason } = req.body;
-      console.log("📝 Extracted parameters:", { studentId, year, month, schoolId, refundReason });
+      const { studentId, year, month, schoolId } = req.body;
+      console.log("📝 Extracted parameters:", { studentId, year, month, schoolId });
       
       // Convert all parameters to proper types
       const parsedStudentId = parseInt(studentId);
@@ -5034,52 +5034,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify the school ID matches the admin's school
       if (parsedSchoolId !== req.session.user.schoolId) {
         console.log("❌ School ID mismatch:", parsedSchoolId, "vs", req.session.user.schoolId);
-        return res.status(403).json({ error: "غير مسموح باسترداد مدفوعات مدرسة أخرى" });
+        return res.status(403).json({ error: "غير مسموح بحذف مدفوعات مدرسة أخرى" });
       }
 
-      // Process refund instead of deletion
-      console.log("🔄 Calling refundPaymentRecord with parsed values:", {
+      // Hard delete the payment record from database
+      console.log("🔄 Calling deletePaymentRecord with parsed values:", {
         studentId: parsedStudentId,
         year: parsedYear, 
         month: parsedMonth,
-        schoolId: parsedSchoolId,
-        refundedBy: req.session.user.id,
-        refundReason: refundReason || "استرداد دفعة"
+        schoolId: parsedSchoolId
       });
       
-      const refundResult = await storage.refundPaymentRecord(
+      const deleted = await storage.deletePaymentRecord(
         parsedStudentId,
         parsedYear,
         parsedMonth,
-        parsedSchoolId,
-        req.session.user.id,
-        refundReason || "استرداد دفعة"
+        parsedSchoolId
       );
 
-      console.log("✅ Refund operation result:", refundResult);
+      console.log("✅ Delete operation result:", deleted);
       
-      if (refundResult.success) {
+      if (deleted) {
+        // Also delete related financial entries created from payment receipts
+        try {
+          console.log("🔄 Attempting to delete related financial entries...");
+          await storage.deleteFinancialEntriesByPayment(
+            parsedStudentId,
+            parsedYear,
+            parsedMonth,
+            parsedSchoolId
+          );
+          console.log("✅ Related financial entries deleted successfully");
+        } catch (finError) {
+          console.warn("⚠️ Could not delete related financial entries:", finError);
+          // Don't fail the payment deletion if financial entry deletion fails
+        }
+        
         res.json({ 
-          message: "تم استرداد المدفوعة بنجاح",
-          success: true,
-          refunded: true,
-          refundData: refundResult.refundData,
+          message: "تم حذف سجل الدفع بنجاح",
+          deleted: true,
           details: {
             studentId: parsedStudentId,
             year: parsedYear,
-            month: parsedMonth,
-            studentName: refundResult.refundData?.studentName,
-            groupName: refundResult.refundData?.groupName,
-            amount: refundResult.refundData?.amount
+            month: parsedMonth
           }
         });
       } else {
-        res.status(404).json({ error: "لم يتم العثور على سجل الدفع أو فشل الاسترداد أو تم استرداده مسبقاً" });
+        res.status(404).json({ error: "لم يتم العثور على سجل الدفع أو فشل الحذف" });
       }
     } catch (error) {
-      console.error("❌ Error processing refund - Full error:", error);
+      console.error("❌ Error deleting payment - Full error:", error);
       res.status(500).json({ 
-        error: "فشل في استرداد المدفوعة",
+        error: "فشل في حذف سجل الدفع",
         details: error instanceof Error ? error.message : String(error)
       });
     }
@@ -6210,6 +6216,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("❌ Error resetting balance:", error);
       res.status(500).json({ error: "فشل في إعادة تعيين الرصيد" });
+    }
+  });
+
+  // Get associated benefit records for a payment
+  app.get("/api/payments/benefit-records", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const { studentId, year, month, amount, schoolId } = req.query;
+
+      if (!studentId || !year || !month || !amount || !schoolId) {
+        return res.status(400).json({ error: "بيانات ناقصة" });
+      }
+
+      // Find potential benefit entries that match this payment
+      const potentialBenefits = await storage.getFinancialEntries(
+        parseInt(schoolId as string),
+        parseInt(year as string),
+        parseInt(month as string)
+      );
+
+      // Filter to only gain entries with matching amount
+      const matchingBenefits = potentialBenefits.filter(entry => 
+        entry.type === 'gain' && 
+        parseFloat(entry.amount) === parseFloat(amount as string)
+      );
+
+      res.json(matchingBenefits);
+    } catch (error) {
+      console.error("Error fetching benefit records:", error);
+      res.status(500).json({ error: "خطأ في جلب سجلات الأرباح" });
     }
   });
 
