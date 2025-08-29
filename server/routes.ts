@@ -6289,21 +6289,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`📝 Payment logic: studentId=${transaction.studentId}, studentType=${transaction.studentType}, determined userId=${userId}`);
 
-          // Check if payment already exists for this specific school/student/year/month
-          const existingPayment = await storage.getStudentPaymentStatus(
-            transaction.studentId,
-            transaction.year,
-            transaction.month,
-            schoolId
-          );
-
-          if (existingPayment && existingPayment.isPaid) {
-            console.log(`⚠️ Payment already exists and is PAID for studentId=${transaction.studentId}, month=${transaction.month}/${transaction.year} - skipping`);
-            continue; // Skip this transaction
-          }
-
           console.log(
-            `📝 Creating payment record for studentId=${transaction.studentId}, userId=${userId}, month ${transaction.month}/${transaction.year}, amount: ${transaction.amount}`,
+            `📝 Creating payment record for studentId=${transaction.studentId}, userId=${userId}, groupId=${transaction.groupId}, month ${transaction.month}/${transaction.year}, amount: ${transaction.amount}`,
           );
           
           const paymentRecord = await storage.createStudentPayment(
