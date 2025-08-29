@@ -5282,8 +5282,11 @@ export class DatabaseStorage implements IStorage {
       // 🎯 NEW: CASCADING DELETE - Remove associated benefit entries
       console.log(`🔍 Looking for associated benefit entries to delete...`);
 
-      // Find benefit entries that match this payment (gains created for this payment amount)
-      const associatedBenefits = await db
+      // 🎯 SAFER APPROACH: Only delete financial entries that have exact characteristics
+      // and were likely created automatically for this specific payment
+      
+      // First, check if there are any financial entries that could match
+      const potentialBenefits = await db
         .select()
         .from(financialEntries)
         .where(
@@ -5295,6 +5298,27 @@ export class DatabaseStorage implements IStorage {
             eq(financialEntries.amount, paymentRecord.amount),
           ),
         );
+
+      console.log(`🔍 Found ${potentialBenefits.length} potential benefit entries with same amount, year, month`);
+
+      // Only proceed with deletion if there's exactly 1 matching entry
+      // This prevents accidental deletion of multiple entries with same amount
+      let associatedBenefits: any[] = [];
+      
+      if (potentialBenefits.length === 1) {
+        // Safe to delete - only one entry matches
+        associatedBenefits = potentialBenefits;
+        console.log(`✅ Safe to delete: Found exactly 1 matching financial entry`);
+      } else if (potentialBenefits.length > 1) {
+        // Risky - multiple entries with same amount
+        console.log(`⚠️ RISK DETECTED: Found ${potentialBenefits.length} financial entries with same amount`);
+        console.log(`🛡️ SAFETY MEASURE: Will NOT delete any financial entries to prevent data loss`);
+        associatedBenefits = []; // Don't delete any
+      } else {
+        // No matching entries found
+        console.log(`ℹ️ No matching financial entries found for deletion`);
+        associatedBenefits = [];
+      }
 
       console.log(
         `📊 Found ${associatedBenefits.length} associated benefit entries`,
