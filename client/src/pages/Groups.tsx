@@ -3562,30 +3562,6 @@ export default function Groups() {
                                               const isMonthPaid = paymentRecord ? paymentRecord.isPaid : false;
                                               const paymentAmount = paymentRecord?.amount;
                                               
-                                              // State for benefit records
-                                              const [benefitRecords, setBenefitRecords] = React.useState<any[]>([]);
-                                              const [showBenefitDetails, setShowBenefitDetails] = React.useState(false);
-                                              
-                                              // Fetch associated benefit records when payment exists
-                                              React.useEffect(() => {
-                                                if (isMonthPaid && paymentAmount) {
-                                                  const fetchBenefitRecords = async () => {
-                                                    try {
-                                                      const response = await fetch(`/api/payments/benefit-records?studentId=${studentId}&year=${currentYear}&month=${currentMonth}&amount=${paymentAmount}&schoolId=${user?.schoolId}`, {
-                                                        credentials: 'include'
-                                                      });
-                                                      if (response.ok) {
-                                                        const records = await response.json();
-                                                        setBenefitRecords(records);
-                                                      }
-                                                    } catch (error) {
-                                                      console.error('Error fetching benefit records:', error);
-                                                    }
-                                                  };
-                                                  fetchBenefitRecords();
-                                                }
-                                              }, [isMonthPaid, paymentAmount, studentId, currentYear, currentMonth]);
-                                              
                                               const handleDeletePayment = async () => {
                                               if (!confirm(`هل أنت متأكد من حذف دفعة ${studentName} لشهر ${currentMonth}/${currentYear}؟`)) {
                                                 return;
@@ -3692,39 +3668,6 @@ export default function Groups() {
                                                   <span className="text-xs font-semibold text-gray-700">
                                                     {paymentAmount} دج
                                                   </span>
-                                                )}
-                                                {/* Display associated benefit records */}
-                                                {isMonthPaid && benefitRecords.length > 0 && (
-                                                  <div className="mt-1">
-                                                    <button
-                                                      onClick={() => setShowBenefitDetails(!showBenefitDetails)}
-                                                      className="text-xs text-blue-600 hover:text-blue-800 underline"
-                                                    >
-                                                      {benefitRecords.length} سجل ربح مرتبط
-                                                    </button>
-                                                    {showBenefitDetails && (
-                                                      <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
-                                                        <div className="font-medium text-blue-800 dark:text-blue-300 mb-1">
-                                                          سجلات الأرباح المرتبطة:
-                                                        </div>
-                                                        {benefitRecords.map((record, index) => (
-                                                          <div key={record.id} className="text-blue-700 dark:text-blue-400 mb-1">
-                                                            <div>رقم السجل: {record.id}</div>
-                                                            <div>المبلغ: {record.amount} دج</div>
-                                                            <div>الملاحظات: {record.remarks}</div>
-                                                            <div>تاريخ الإنشاء: {new Date(record.createdAt).toLocaleDateString('ar-SA')}</div>
-                                                            {index < benefitRecords.length - 1 && <hr className="my-1 border-blue-200" />}
-                                                          </div>
-                                                        ))}
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                )}
-                                                {/* Warning if multiple benefit records found */}
-                                                {isMonthPaid && benefitRecords.length > 1 && (
-                                                  <div className="mt-1 text-xs text-orange-600 dark:text-orange-400">
-                                                    ⚠️ عدة سجلات أرباح بنفس المبلغ
-                                                  </div>
                                                 )}
                                               </>
                                             );
