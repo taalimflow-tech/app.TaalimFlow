@@ -1247,6 +1247,7 @@ export default function Teachers() {
                           <span>
                             {spec.nameAr}
                             <span className="mr-1 opacity-75">({spec.educationLevel})</span>
+                            <span className="mr-1 text-xs opacity-50">[ID: {spec.id}]</span>
                           </span>
                           <button
                             onClick={(e) => {
