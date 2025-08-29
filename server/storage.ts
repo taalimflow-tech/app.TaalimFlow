@@ -4955,7 +4955,8 @@ export class DatabaseStorage implements IStorage {
     schoolId: number,
   ): Promise<StudentMonthlyPayment | undefined> {
     try {
-      const [payment] = await db
+      // Get ALL payment records for this student/month/year
+      const payments = await db
         .select()
         .from(studentMonthlyPayments)
         .where(
@@ -4966,8 +4967,11 @@ export class DatabaseStorage implements IStorage {
             eq(studentMonthlyPayments.schoolId, schoolId),
           ),
         )
-        .limit(1);
-      return payment || undefined;
+        .orderBy(desc(studentMonthlyPayments.paidAt)); // Most recent first
+      
+      // Return the most recent active (non-refunded) payment
+      const activePayment = payments.find((p) => !p.isRefunded);
+      return activePayment || undefined;
     } catch (error) {
       console.error("Error getting student payment status:", error);
       return undefined;
@@ -5077,12 +5081,19 @@ export class DatabaseStorage implements IStorage {
 
       // Create complete status array for all students
       return studentIds.map((studentId) => {
-        const payment = existingPayments.find((p) => p.studentId === studentId);
+        // Find ALL payments for this student (could be multiple due to refunds)
+        const studentPayments = existingPayments.filter((p) => p.studentId === studentId);
+        
+        // Find the most recent ACTIVE (non-refunded) payment
+        const activePayment = studentPayments
+          .filter((p) => !p.isRefunded && p.isPaid)
+          .sort((a, b) => new Date(b.paidAt || 0).getTime() - new Date(a.paidAt || 0).getTime())[0];
+        
         return {
           studentId,
-          isPaid: payment ? (payment.isPaid && !payment.isRefunded) : false, // No record = unpaid, refunded = unpaid
-          amount: payment?.amount,
-          paidAt: payment?.paidAt,
+          isPaid: !!activePayment, // True if there's at least one active paid payment
+          amount: activePayment?.amount,
+          paidAt: activePayment?.paidAt,
         };
       });
     } catch (error) {
