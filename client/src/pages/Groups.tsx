@@ -1263,11 +1263,14 @@ export default function Groups() {
     );
   };
 
-  // Get existing groups for duplication detection
+  // Get existing groups for duplication detection (now considers grade)
   const getExistingGroupsForSubject = (subjectId: string) => {
-    if (!subjectId || !adminGroups) return [];
+    if (!subjectId || !adminGroups || !createGroupGrade) return [];
     return adminGroups.filter(
-      (group) => group.subjectId === parseInt(subjectId) && !group.isPlaceholder,
+      (group) => 
+        group.subjectId === parseInt(subjectId) && 
+        group.grade === createGroupGrade &&
+        !group.isPlaceholder,
     );
   };
 
