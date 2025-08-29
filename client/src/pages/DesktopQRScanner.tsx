@@ -573,6 +573,9 @@ function DesktopQRScanner() {
   // Collapsible state for tables
   const [isGroupsCollapsed, setIsGroupsCollapsed] = useState(false);
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
+  
+  // Individual amounts for each group - key format: "groupId"
+  const [groupAmounts, setGroupAmounts] = useState<{[groupId: string]: string}>({});
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -1465,11 +1468,18 @@ function DesktopQRScanner() {
     console.log('Selected Groups:', selectedGroups);
     console.log('User Role:', user?.role);
     
-    if (!scannedProfile || !paymentAmount || Object.keys(selectedGroups).length === 0) {
+    // Validate that all selected groups have amounts entered
+    const hasEmptyAmounts = Object.keys(selectedGroups).some(groupId => {
+      const hasMonths = selectedGroups[parseInt(groupId)].months.length > 0;
+      const hasAmount = groupAmounts[groupId] && parseFloat(groupAmounts[groupId]) > 0;
+      return hasMonths && !hasAmount;
+    });
+    
+    if (!scannedProfile || Object.keys(selectedGroups).length === 0 || hasEmptyAmounts) {
       console.log('❌ Validation failed: Missing basic requirements');
       toast({
         title: "معلومات ناقصة",
-        description: "يرجى تحديد المجموعات والأشهر والمبلغ",
+        description: hasEmptyAmounts ? "يرجى إدخال المبلغ لجميع المجموعات المحددة" : "يرجى تحديد المجموعات والأشهر والمبلغ",
         variant: "destructive"
       });
       return;
@@ -1492,20 +1502,21 @@ function DesktopQRScanner() {
     try {
       setIsProcessing(true);
 
-      // Calculate total number of months selected across all groups
-      const totalMonthsSelected = Object.values(selectedGroups).reduce((total, groupData) => {
-        return total + groupData.months.length;
+      // Calculate total amount from all group amounts
+      const totalAmount = Object.values(groupAmounts).reduce((total, amount) => {
+        return total + (parseFloat(amount) || 0);
       }, 0);
-      
-      // Calculate total amount (entered amount × number of months)
-      const perMonthAmount = parseFloat(paymentAmount);
-      const totalAmount = perMonthAmount * totalMonthsSelected;
 
       // Create transactions for each selected group/month combination
       const transactions = [];
       const academicMonths = generateAcademicYearMonths(8, 2025); // Get correct year for each month
       
       for (const [groupId, groupData] of Object.entries(selectedGroups)) {
+        // Get the total amount entered for this group
+        const groupTotalAmount = parseFloat(groupAmounts[groupId]) || 0;
+        // Calculate per-month amount (divide by number of months selected)
+        const perMonthAmount = groupTotalAmount / groupData.months.length;
+        
         for (const month of groupData.months) {
           // Find the correct year for this month in the academic year
           const academicMonth = academicMonths.find(am => am.month === month);
@@ -1515,7 +1526,7 @@ function DesktopQRScanner() {
             studentId: scannedProfile.id,
             studentType: scannedProfile.type,
             groupId: parseInt(groupId),
-            amount: Math.round(perMonthAmount), // Each month gets the entered amount per month
+            amount: Math.round(perMonthAmount), // Each month gets portion of group amount
             paymentMethod: 'cash', // Always cash
             notes: paymentNotes,
             month,
@@ -1567,7 +1578,9 @@ function DesktopQRScanner() {
         groups: Object.entries(selectedGroups).map(([groupId, groupData]) => ({
           groupName: groupData.groupName,
           subjectName: groupData.subjectName,
-          months: groupData.months.map(m => getMonthName(m))
+          months: groupData.months.map(m => getMonthName(m)),
+          groupAmount: parseFloat(groupAmounts[groupId]) || 0, // Individual group amount
+          perMonthAmount: (parseFloat(groupAmounts[groupId]) || 0) / groupData.months.length // Amount per month
         }))
       };
 
@@ -1579,6 +1592,10 @@ function DesktopQRScanner() {
         const gainEntryPromises = [];
         
         for (const [groupId, groupData] of Object.entries(selectedGroups)) {
+          // Get the total amount entered for this group and calculate per-month amount
+          const groupTotalAmount = parseFloat(groupAmounts[groupId]) || 0;
+          const perMonthAmount = groupTotalAmount / groupData.months.length;
+          
           for (const month of groupData.months) {
             // Find the correct year for this month
             const academicMonth = academicMonths.find(am => am.month === month);
@@ -1593,7 +1610,7 @@ function DesktopQRScanner() {
               credentials: 'include',
               body: JSON.stringify({
                 type: 'gain',
-                amount: perMonthAmount.toString(), // Amount per month
+                amount: perMonthAmount.toFixed(2), // Amount per month (portion of group total)
                 remarks: `إيصال دفع رقم: ${ticket.receiptId} - الطالب: ${scannedProfile.name} - ${paymentDetails}`,
                 year: correctYear,
                 month: parseInt(month),
@@ -1722,6 +1739,7 @@ function DesktopQRScanner() {
       setPaymentAmount('');
       setPaymentNotes('');
       setSelectedGroups({});
+      setGroupAmounts({}); // Reset individual group amounts
 
     } catch (error: any) {
       console.error('Ticket generation error:', error);
@@ -2694,20 +2712,71 @@ function DesktopQRScanner() {
                     {/* Payment Details */}
                     <Separator />
                     <div className="mt-4">
-                      <Label htmlFor="amount" className="dark:text-gray-300">المبلغ الإجمالي (دج)</Label>
-                      <Input
-                        id="amount"
-                        type="number"
-                        placeholder="أدخل المبلغ"
-                        value={paymentAmount}
-                        onChange={(e) => setPaymentAmount(e.target.value)}
-                        className="mt-1"
-                      />
+                      <Label className="dark:text-gray-300 text-lg font-semibold block mb-4">تفاصيل المبالغ لكل مجموعة</Label>
+                      
+                      {/* Individual amount inputs for each group */}
+                      <div className="space-y-4">
+                        {Object.entries(selectedGroups).map(([groupId, groupData]) => {
+                          if (groupData.months.length === 0) return null;
+                          
+                          return (
+                            <div key={groupId} className="border dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                              <div className="mb-3">
+                                <h4 className="font-medium text-sm dark:text-gray-200">{groupData.subjectName}</h4>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  {groupData.groupName} - الأشهر المحددة: {groupData.months.map(m => getMonthName(m)).join('، ')}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor={`amount-${groupId}`} className="dark:text-gray-300 text-sm">
+                                  المبلغ الإجمالي للمجموعة ({groupData.months.length} شهر)
+                                </Label>
+                                <Input
+                                  id={`amount-${groupId}`}
+                                  type="number"
+                                  placeholder="أدخل المبلغ لهذه المجموعة"
+                                  value={groupAmounts[groupId] || ''}
+                                  onChange={(e) => setGroupAmounts(prev => ({
+                                    ...prev,
+                                    [groupId]: e.target.value
+                                  }))}
+                                  className="mt-1"
+                                />
+                                
+                                {/* Show per-month amount calculation */}
+                                {groupAmounts[groupId] && !isNaN(parseFloat(groupAmounts[groupId])) && groupData.months.length > 0 && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    المبلغ لكل شهر: {(parseFloat(groupAmounts[groupId]) / groupData.months.length).toFixed(2)} دج
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Payment Summary */}
+                      {Object.keys(selectedGroups).length > 0 && (
+                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium text-blue-800 dark:text-blue-300">المجموع الكلي:</span>
+                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                              {Object.values(groupAmounts).reduce((total, amount) => {
+                                return total + (parseFloat(amount) || 0);
+                              }, 0).toFixed(2)} دج
+                            </span>
+                          </div>
+                          <div className="text-xs text-blue-600 dark:text-blue-400">
+                            مجموع جميع المبالغ المدخلة للمجموعات المحددة
+                          </div>
+                        </div>
+                      )}
                       
                       <Button 
                         onClick={generatePaymentTicket}
                         className="mt-4 w-full"
-                        disabled={!paymentAmount || Object.keys(selectedGroups).length === 0}
+                        disabled={Object.keys(selectedGroups).length === 0 || Object.values(groupAmounts).every(amount => !amount)}
                       >
                         <FileText className="h-4 w-4 ml-2" />
                         إنشاء إيصال الدفع
@@ -2741,7 +2810,13 @@ function DesktopQRScanner() {
                       <div className="font-medium text-blue-800 dark:text-blue-300">{group.groupName}</div>
                       <div className="text-sm text-blue-600 dark:text-blue-400">{group.subjectName}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        الأشهر المدفوعة: {group.months.join(', ')}
+                        الأشهر المدفوعة: {group.months.join(', ')} ({group.months.length} أشهر)
+                      </div>
+                      <div className="text-sm font-medium text-green-600 dark:text-green-400 mt-1">
+                        المبلغ الإجمالي: {group.groupAmount.toFixed(2)} دج
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        المبلغ الشهري: {group.perMonthAmount.toFixed(2)} دج/شهر
                       </div>
                     </div>
                   ))}
