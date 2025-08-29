@@ -6219,6 +6219,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get associated benefit records for a payment
+  app.get("/api/payments/benefit-records", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const { studentId, year, month, amount, schoolId } = req.query;
+
+      if (!studentId || !year || !month || !amount || !schoolId) {
+        return res.status(400).json({ error: "بيانات ناقصة" });
+      }
+
+      // Find potential benefit entries that match this payment
+      const potentialBenefits = await storage.getFinancialEntries(
+        parseInt(schoolId as string),
+        parseInt(year as string),
+        parseInt(month as string)
+      );
+
+      // Filter to only gain entries with matching amount
+      const matchingBenefits = potentialBenefits.filter(entry => 
+        entry.type === 'gain' && 
+        parseFloat(entry.amount) === parseFloat(amount as string)
+      );
+
+      res.json(matchingBenefits);
+    } catch (error) {
+      console.error("Error fetching benefit records:", error);
+      res.status(500).json({ error: "خطأ في جلب سجلات الأرباح" });
+    }
+  });
+
   // Get payment history for a student in a specific group
   app.post("/api/scan-student-qr/get-payments", async (req, res) => {
     console.log("💰 Getting payment history");
