@@ -553,13 +553,24 @@ export default function GainLossCalculator() {
                             { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800', textColor: 'text-purple-700 dark:text-purple-300', icon: Receipt },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
+                              
+                              // Extract only group name - look for patterns like "مجموعة X" or "group X"
                               let displayText = subjectText;
-                              monthNames.forEach(month => {
-                                if (subjectText.includes(month) && !subjectText.includes('202')) {
-                                  const currentYear = new Date().getFullYear();
-                                  displayText = subjectText.replace(month, `${month} ${currentYear}`);
-                                }
-                              });
+                              
+                              // Extract group name if it contains "مجموعة"
+                              const groupMatch = subjectText.match(/مجموعة\s+([^\s]+(?:\s+[^\s]+)*?)(?:\s+(?:مع|في|من|إلى|يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر|202\d)|$)/);
+                              if (groupMatch) {
+                                displayText = `مجموعة ${groupMatch[1]}`;
+                              } else {
+                                // If no "مجموعة" pattern, try to extract just the core group name
+                                // Remove teacher names (مع X), subjects, and dates
+                                displayText = subjectText
+                                  .replace(/\s*مع\s+[^\s]+/g, '') // Remove "مع أحمد"
+                                  .replace(/\s*(?:يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\d*\s*/g, '') // Remove months
+                                  .replace(/\s*(?:اللغة الإنجليزية|اللغة الفرنسية|اللغة العربية|الرياضيات|العلوم|الفيزياء|الكيمياء|التاريخ|الجغرافيا)\s*/g, '') // Remove common subjects
+                                  .trim();
+                              }
+                              
                               return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800', textColor: 'text-green-700 dark:text-green-300', icon: BookOpen };
                             })
                           ];
@@ -602,13 +613,24 @@ export default function GainLossCalculator() {
                             { label: 'رقم الإيصال', value: receiptId, color: 'bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800', textColor: 'text-purple-700 dark:text-purple-300', icon: Receipt },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
+                              
+                              // Extract only group name - look for patterns like "مجموعة X" or "group X"
                               let displayText = subjectText;
-                              monthNames.forEach(month => {
-                                if (subjectText.includes(month) && !subjectText.includes('202')) {
-                                  const currentYear = new Date().getFullYear();
-                                  displayText = subjectText.replace(month, `${month} ${currentYear}`);
-                                }
-                              });
+                              
+                              // Extract group name if it contains "مجموعة"
+                              const groupMatch = subjectText.match(/مجموعة\s+([^\s]+(?:\s+[^\s]+)*?)(?:\s+(?:مع|في|من|إلى|يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر|202\d)|$)/);
+                              if (groupMatch) {
+                                displayText = `مجموعة ${groupMatch[1]}`;
+                              } else {
+                                // If no "مجموعة" pattern, try to extract just the core group name
+                                // Remove teacher names (مع X), subjects, and dates
+                                displayText = subjectText
+                                  .replace(/\s*مع\s+[^\s]+/g, '') // Remove "مع أحمد"
+                                  .replace(/\s*(?:يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\d*\s*/g, '') // Remove months
+                                  .replace(/\s*(?:اللغة الإنجليزية|اللغة الفرنسية|اللغة العربية|الرياضيات|العلوم|الفيزياء|الكيمياء|التاريخ|الجغرافيا)\s*/g, '') // Remove common subjects
+                                  .trim();
+                              }
+                              
                               return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800', textColor: 'text-green-700 dark:text-green-300', icon: BookOpen };
                             })
                           ];
