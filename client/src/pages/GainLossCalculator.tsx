@@ -549,8 +549,8 @@ export default function GainLossCalculator() {
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
                           const allTags = [
-                            { label: 'الطالب', value: studentName.trim(), color: 'bg-gradient-to-r from-blue-500 to-purple-600 text-white', icon: 'User' },
-                            { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-gradient-to-r from-gray-600 to-gray-800 text-white', icon: 'Receipt' },
+                            { label: 'الطالب', value: studentName.trim(), color: 'bg-blue-600 text-white' },
+                            { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-purple-600 text-white' },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               let displayText = subjectText;
@@ -560,22 +560,18 @@ export default function GainLossCalculator() {
                                   displayText = subjectText.replace(month, `${month} ${currentYear}`);
                                 }
                               });
-                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white', icon: 'BookOpen' };
+                              return { label: '', value: displayText, color: 'bg-green-600 text-white' };
                             })
                           ];
                           
                           return (
                             <div className="flex flex-wrap gap-1">
-                              {allTags.map((tag, index) => {
-                                const IconComponent = tag.icon === 'User' ? User : tag.icon === 'Receipt' ? Receipt : BookOpen;
-                                return (
-                                  <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm ${tag.color}`}>
-                                    <IconComponent className="w-3 h-3" />
-                                    {tag.label && <span className="opacity-90">{tag.label}:</span>}
-                                    <span>{tag.value}</span>
-                                  </div>
-                                );
-                              })}
+                              {allTags.map((tag, index) => (
+                                <div key={index} className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${tag.color}`}>
+                                  {tag.label && <span>{tag.label}: </span>}
+                                  <span>{tag.value}</span>
+                                </div>
+                              ))}
                             </div>
                           );
                         }
@@ -598,8 +594,8 @@ export default function GainLossCalculator() {
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
                           const allTags = [
-                            { label: 'الطالب', value: studentName, color: 'bg-gradient-to-r from-blue-500 to-purple-600 text-white', icon: 'User' },
-                            { label: 'رقم الإيصال', value: receiptId, color: 'bg-gradient-to-r from-gray-600 to-gray-800 text-white', icon: 'Receipt' },
+                            { label: 'الطالب', value: studentName, color: 'bg-blue-600 text-white' },
+                            { label: 'رقم الإيصال', value: receiptId, color: 'bg-purple-600 text-white' },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               let displayText = subjectText;
@@ -609,30 +605,25 @@ export default function GainLossCalculator() {
                                   displayText = subjectText.replace(month, `${month} ${currentYear}`);
                                 }
                               });
-                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white', icon: 'BookOpen' };
+                              return { label: '', value: displayText, color: 'bg-green-600 text-white' };
                             })
                           ];
                           
                           return (
                             <div className="flex flex-wrap gap-1">
-                              {allTags.map((tag, index) => {
-                                const IconComponent = tag.icon === 'User' ? User : tag.icon === 'Receipt' ? Receipt : BookOpen;
-                                return (
-                                  <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm ${tag.color}`}>
-                                    <IconComponent className="w-3 h-3" />
-                                    {tag.label && <span className="opacity-90">{tag.label}:</span>}
-                                    <span>{tag.value}</span>
-                                  </div>
-                                );
-                              })}
+                              {allTags.map((tag, index) => (
+                                <div key={index} className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${tag.color}`}>
+                                  {tag.label && <span>{tag.label}: </span>}
+                                  <span>{tag.value}</span>
+                                </div>
+                              ))}
                             </div>
                           );
                         }
                         
                         // Final fallback for completely different format
                         return (
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r from-orange-500 to-red-600 text-white">
-                            <FileText className="w-3 h-3" />
+                          <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-600 text-white">
                             {entry.remarks}
                           </div>
                         );
