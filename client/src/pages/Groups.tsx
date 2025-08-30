@@ -563,7 +563,7 @@ export default function Groups() {
   // Admin group management state
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [showJoinForm, setShowJoinForm] = useState(false);
-  const [showAdminGroups, setShowAdminGroups] = useState(false);
+  const [showAdminGroups, setShowAdminGroups] = useState(true);
   const [selectedAdminGroup, setSelectedAdminGroup] = useState<any>(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
@@ -1829,13 +1829,6 @@ export default function Groups() {
                       إنشاء وإدارة المجموعات الدراسية للطلاب
                     </p>
                   </div>
-                  <button
-                    onClick={() => fixCustomSubjectsMutation.mutate()}
-                    disabled={fixCustomSubjectsMutation.isPending}
-                    className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                  >
-                    {fixCustomSubjectsMutation.isPending ? "جاري الإصلاح..." : "🔧 إصلاح المواد المخصصة"}
-                  </button>
                 </div>
               </div>
               <div className="flex items-center gap-6">
