@@ -2902,10 +2902,10 @@ export default function Groups() {
 
               <form onSubmit={handleJoinGroup} className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                     هل تريد الانضمام إلى هذه المجموعة؟
                   </p>
-                  <p className="text-sm text-gray-700 mb-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
                     <strong>الوصف:</strong> {selectedGroup.description}
                   </p>
                 </div>
@@ -2975,7 +2975,7 @@ export default function Groups() {
               <form onSubmit={handleUpdateAssignments} className="space-y-6">
                 {/* Teacher Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     اختيار المعلم
                   </label>
                   <select
@@ -2985,7 +2985,7 @@ export default function Groups() {
                         e.target.value ? parseInt(e.target.value) : null,
                       )
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     required
                   >
                     <option value="">اختر معلم...</option>
@@ -3020,7 +3020,7 @@ export default function Groups() {
                     selectedAdminGroup.educationLevel,
                     selectedAdminGroup.subjectId,
                   ).length === 0 && (
-                    <p className="text-xs text-amber-600 mt-1">
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                       ⚠️ لا يوجد معلمين متخصصين في هذه المادة - يظهر جميع
                       المعلمين
                     </p>
@@ -3031,12 +3031,12 @@ export default function Groups() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Currently Assigned Students */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       الطلاب المسجلين حالياً ({selectedStudents.length})
                     </label>
-                    <div className="max-h-60 overflow-y-auto border border-green-300 rounded-md p-2 bg-green-50">
+                    <div className="max-h-60 overflow-y-auto border border-green-300 dark:border-green-600 rounded-md p-2 bg-green-50 dark:bg-green-900/20">
                       {selectedStudents.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                           لا يوجد طلاب مسجلين في هذه المجموعة
                         </p>
                       ) : (
@@ -3048,7 +3048,7 @@ export default function Groups() {
                             .map((student) => (
                               <div
                                 key={student.id}
-                                className="flex items-center space-x-2 p-2 bg-white rounded border border-green-200"
+                                className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-700 rounded border border-green-200 dark:border-green-600"
                               >
                                 <input
                                   type="checkbox"
@@ -3059,15 +3059,15 @@ export default function Groups() {
                                   className="mr-2 text-green-600"
                                 />
                                 <div className="flex-1">
-                                  <p className="font-medium text-green-800">
+                                  <p className="font-medium text-green-800 dark:text-green-300">
                                     {student.name}
                                   </p>
-                                  <p className="text-sm text-green-600">
+                                  <p className="text-sm text-green-600 dark:text-green-400">
                                     المستوى: {student.educationLevel}
                                     {student.grade && ` - ${student.grade}`}
                                   </p>
                                 </div>
-                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded">
                                   مسجل
                                 </span>
                               </div>
@@ -3079,7 +3079,7 @@ export default function Groups() {
 
                   {/* Available Students */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       الطلاب المتاحين (
                       {
                         availableStudents.filter(
@@ -3088,11 +3088,11 @@ export default function Groups() {
                       }
                       )
                     </label>
-                    <div className="max-h-60 overflow-y-auto border border-blue-300 rounded-md p-2 bg-blue-50">
+                    <div className="max-h-60 overflow-y-auto border border-blue-300 dark:border-blue-600 rounded-md p-2 bg-blue-50 dark:bg-blue-900/20">
                       {availableStudents.filter(
                         (s) => !selectedStudents.includes(s.id),
                       ).length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                           جميع الطلاب المتاحين مسجلين بالفعل
                         </p>
                       ) : (
@@ -3319,9 +3319,9 @@ export default function Groups() {
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && groupToDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-red-800">
+                <h3 className="text-lg font-semibold text-red-800 dark:text-red-400">
                   تأكيد حذف المجموعة
                 </h3>
                 <Button
@@ -3334,16 +3334,16 @@ export default function Groups() {
               </div>
 
               <div className="mb-6">
-                <p className="text-gray-700 mb-2">
+                <p className="text-gray-700 dark:text-gray-300 mb-2">
                   هل أنت متأكد من أنك تريد حذف هذه المجموعة؟
                 </p>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="font-medium">{groupToDelete.name}</p>
-                  <p className="text-sm text-gray-600">
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{groupToDelete.name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {getSimpleLevelFormat(groupToDelete)} -{" "}
                     {groupToDelete.nameAr || groupToDelete.subjectName}
                   </p>
-                  <p className="text-sm text-red-600 mt-2">
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-2">
                     ⚠️ سيتم حذف جميع الطلاب المسجلين في هذه المجموعة
                   </p>
                 </div>
