@@ -598,6 +598,44 @@ function DesktopQRScanner() {
   }
 
   // Search and filter functions
+  const handleSearchWithFilters = async (educationLevel?: string, role?: string) => {
+    setIsSearching(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.append('search', searchQuery.trim());
+      if (educationLevel !== undefined) params.append('educationLevel', educationLevel);
+      else if (selectedEducationLevel) params.append('educationLevel', selectedEducationLevel);
+      if (role !== undefined) params.append('role', role);
+      else if (selectedRole) params.append('role', selectedRole);
+      
+      // Use new QR scanner endpoint that searches both students and children
+      const response = await fetch(`/api/qr-scanner/search?${params.toString()}`);
+
+      if (response.ok) {
+        const results = await response.json();
+        // The results already include both students and children
+        setSearchResults(results);
+        setShowStudentList(true);
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "خطأ في البحث",
+          description: errorData.message || "حدث خطأ أثناء البحث",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "خطأ في البحث",
+        description: "حدث خطأ أثناء البحث، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleSearch = async () => {
     setIsSearching(true);
     try {
@@ -2414,7 +2452,11 @@ function DesktopQRScanner() {
                 <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
                   <div>
                     <Label className="text-sm font-medium mb-2">المستوى التعليمي</Label>
-                    <Select value={selectedEducationLevel} onValueChange={setSelectedEducationLevel}>
+                    <Select value={selectedEducationLevel} onValueChange={(value) => {
+                      setSelectedEducationLevel(value);
+                      // Auto-search when filter changes
+                      setTimeout(() => handleSearchWithFilters(value, selectedRole), 10);
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر المستوى التعليمي" />
                       </SelectTrigger>
@@ -2428,7 +2470,11 @@ function DesktopQRScanner() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium mb-2">نوع المستخدم</Label>
-                    <Select value={selectedRole} onValueChange={setSelectedRole}>
+                    <Select value={selectedRole} onValueChange={(value) => {
+                      setSelectedRole(value);
+                      // Auto-search when filter changes
+                      setTimeout(() => handleSearchWithFilters(selectedEducationLevel, value), 10);
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر نوع المستخدم" />
                       </SelectTrigger>
@@ -2447,10 +2493,11 @@ function DesktopQRScanner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedEducationLevel('الابتدائي');
                     setSelectedRole('');
-                    handleSearch();
+                    // Use setTimeout to ensure state is updated before search
+                    setTimeout(() => handleSearchWithFilters('الابتدائي', ''), 10);
                   }}
                 >
                   الابتدائي
@@ -2458,10 +2505,10 @@ function DesktopQRScanner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedEducationLevel('المتوسط');
                     setSelectedRole('');
-                    handleSearch();
+                    setTimeout(() => handleSearchWithFilters('المتوسط', ''), 10);
                   }}
                 >
                   المتوسط
@@ -2469,10 +2516,10 @@ function DesktopQRScanner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedEducationLevel('الثانوي');
                     setSelectedRole('');
-                    handleSearch();
+                    setTimeout(() => handleSearchWithFilters('الثانوي', ''), 10);
                   }}
                 >
                   الثانوي
@@ -2480,10 +2527,10 @@ function DesktopQRScanner() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedEducationLevel('');
                     setSelectedRole('child');
-                    handleSearch();
+                    setTimeout(() => handleSearchWithFilters('', 'child'), 10);
                   }}
                 >
                   الأطفال
