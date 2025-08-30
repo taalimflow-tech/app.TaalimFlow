@@ -549,8 +549,8 @@ export default function GainLossCalculator() {
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
                           const allTags = [
-                            { label: 'الطالب', value: studentName.trim(), color: 'bg-blue-600 text-white' },
-                            { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-purple-600 text-white' },
+                            { label: 'الطالب', value: studentName.trim(), color: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800', textColor: 'text-blue-700 dark:text-blue-300', icon: User },
+                            { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800', textColor: 'text-purple-700 dark:text-purple-300', icon: Receipt },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               let displayText = subjectText;
@@ -560,18 +560,22 @@ export default function GainLossCalculator() {
                                   displayText = subjectText.replace(month, `${month} ${currentYear}`);
                                 }
                               });
-                              return { label: '', value: displayText, color: 'bg-green-600 text-white' };
+                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800', textColor: 'text-green-700 dark:text-green-300', icon: BookOpen };
                             })
                           ];
                           
                           return (
                             <div className="flex flex-wrap gap-1">
-                              {allTags.map((tag, index) => (
-                                <div key={index} className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${tag.color}`}>
-                                  {tag.label && <span>{tag.label}: </span>}
-                                  <span>{tag.value}</span>
-                                </div>
-                              ))}
+                              {allTags.map((tag, index) => {
+                                const IconComponent = tag.icon;
+                                return (
+                                  <div key={index} className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium ${tag.color} ${tag.textColor}`}>
+                                    <IconComponent className="w-3.5 h-3.5 flex-shrink-0" />
+                                    {tag.label && <span className="whitespace-nowrap">{tag.label}: </span>}
+                                    <span className="whitespace-nowrap">{tag.value}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           );
                         }
@@ -594,8 +598,8 @@ export default function GainLossCalculator() {
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
                           const allTags = [
-                            { label: 'الطالب', value: studentName, color: 'bg-blue-600 text-white' },
-                            { label: 'رقم الإيصال', value: receiptId, color: 'bg-purple-600 text-white' },
+                            { label: 'الطالب', value: studentName, color: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800', textColor: 'text-blue-700 dark:text-blue-300', icon: User },
+                            { label: 'رقم الإيصال', value: receiptId, color: 'bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800', textColor: 'text-purple-700 dark:text-purple-300', icon: Receipt },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               let displayText = subjectText;
@@ -605,26 +609,31 @@ export default function GainLossCalculator() {
                                   displayText = subjectText.replace(month, `${month} ${currentYear}`);
                                 }
                               });
-                              return { label: '', value: displayText, color: 'bg-green-600 text-white' };
+                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800', textColor: 'text-green-700 dark:text-green-300', icon: BookOpen };
                             })
                           ];
                           
                           return (
                             <div className="flex flex-wrap gap-1">
-                              {allTags.map((tag, index) => (
-                                <div key={index} className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${tag.color}`}>
-                                  {tag.label && <span>{tag.label}: </span>}
-                                  <span>{tag.value}</span>
-                                </div>
-                              ))}
+                              {allTags.map((tag, index) => {
+                                const IconComponent = tag.icon;
+                                return (
+                                  <div key={index} className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium ${tag.color} ${tag.textColor}`}>
+                                    <IconComponent className="w-3.5 h-3.5 flex-shrink-0" />
+                                    {tag.label && <span className="whitespace-nowrap">{tag.label}: </span>}
+                                    <span className="whitespace-nowrap">{tag.value}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           );
                         }
                         
                         // Final fallback for completely different format
                         return (
-                          <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-600 text-white">
-                            {entry.remarks}
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300">
+                            <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="whitespace-nowrap">{entry.remarks}</span>
                           </div>
                         );
                       })()}
