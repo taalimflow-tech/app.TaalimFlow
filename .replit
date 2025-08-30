@@ -1,0 +1,6 @@
+modules = ["nodejs-20", "web", "postgresql-16"]
+run = "npm run dev"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
