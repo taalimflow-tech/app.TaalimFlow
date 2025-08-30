@@ -535,64 +535,43 @@ export default function GainLossCalculator() {
                     </div>
 
                     {/* Payment Details */}
-                    <div className="bg-white dark:bg-gray-800 rounded p-2 border border-gray-200 dark:border-gray-600">
+                    <div className="bg-white dark:bg-gray-800 rounded p-1.5 border border-gray-200 dark:border-gray-600">
                       {(() => {
                         // Parse payment receipt format: "إيصال دفع رقم: REC-XXX - الطالب: NAME - DETAILS"
                         const receiptMatch = entry.remarks.match(/إيصال دفع رقم: ([^-]+) - الطالب: ([^-]+) - (.+)/);
                         
                         if (receiptMatch) {
                           const [, receiptId, studentName, paymentDetails] = receiptMatch;
+                          
+                          // Parse payment details and create all tags
+                          const subjects = paymentDetails.trim().split(' - ');
+                          const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                             'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                          
+                          const allTags = [
+                            { label: 'الطالب', value: studentName.trim(), color: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' },
+                            { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+                            ...subjects.map(subject => {
+                              const subjectText = subject.trim();
+                              let displayText = subjectText;
+                              monthNames.forEach(month => {
+                                if (subjectText.includes(month) && !subjectText.includes('202')) {
+                                  const currentYear = new Date().getFullYear();
+                                  displayText = subjectText.replace(month, `${month} ${currentYear}`);
+                                }
+                              });
+                              return { label: '', value: displayText, color: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' };
+                            })
+                          ];
+                          
                           return (
-                            <div className="space-y-1">
-                              {/* Student Name */}
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">الطالب:</span>
-                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
-                                  {studentName.trim()}
-                                </span>
-                              </div>
-                              
-                              {/* Receipt ID */}
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">رقم الإيصال:</span>
-                                <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded font-mono">
-                                  {receiptId.trim()}
-                                </span>
-                              </div>
-                              
-                              {/* Payment Details - Each subject on separate line */}
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">المواد والأشهر:</span>
-                                <div className="text-xs text-gray-700 dark:text-gray-300">
-                                  {(() => {
-                                    // Parse payment details format: "Subject1 Group1 (months) - Subject2 Group2 (months)"
-                                    const subjects = paymentDetails.trim().split(' - ');
-                                    
-                                    return subjects.map((subject, index) => {
-                                      // Enhanced parsing to include year in month display
-                                      const subjectText = subject.trim();
-                                      // Look for month patterns and add year context
-                                      const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
-                                                         'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-                                      
-                                      let displayText = subjectText;
-                                      monthNames.forEach(month => {
-                                        if (subjectText.includes(month) && !subjectText.includes('202')) {
-                                          // Add current year if month is mentioned but no year is present
-                                          const currentYear = new Date().getFullYear();
-                                          displayText = subjectText.replace(month, `${month} ${currentYear}`);
-                                        }
-                                      });
-                                      
-                                      return displayText;
-                                    }).join(' • ');
-                                  })()
-                                  }
+                            <div className="flex flex-wrap gap-1">
+                              {allTags.map((tag, index) => (
+                                <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${tag.color}`}>
+                                  {tag.label && <span className="opacity-70">{tag.label}:</span>}
+                                  <span>{tag.value}</span>
                                 </div>
-                              </div>
+                              ))}
                             </div>
                           );
                         }
@@ -609,64 +588,42 @@ export default function GainLossCalculator() {
                           const receiptId = receiptPart.replace('إيصال دفع رقم: ', '').trim();
                           const studentName = studentPart.replace('الطالب: ', '').trim();
                           
+                          // Parse payment details and create all tags
+                          const subjects = paymentPart.trim().split(' - ');
+                          const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                             'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                          
+                          const allTags = [
+                            { label: 'الطالب', value: studentName, color: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' },
+                            { label: 'رقم الإيصال', value: receiptId, color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+                            ...subjects.map(subject => {
+                              const subjectText = subject.trim();
+                              let displayText = subjectText;
+                              monthNames.forEach(month => {
+                                if (subjectText.includes(month) && !subjectText.includes('202')) {
+                                  const currentYear = new Date().getFullYear();
+                                  displayText = subjectText.replace(month, `${month} ${currentYear}`);
+                                }
+                              });
+                              return { label: '', value: displayText, color: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' };
+                            })
+                          ];
+                          
                           return (
-                            <div className="space-y-1">
-                              {/* Student Name */}
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">الطالب:</span>
-                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
-                                  {studentName}
-                                </span>
-                              </div>
-                              
-                              {/* Receipt ID */}
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">رقم الإيصال:</span>
-                                <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded font-mono">
-                                  {receiptId}
-                                </span>
-                              </div>
-                              
-                              {/* Payment Details - Each subject on separate line */}
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">المواد والأشهر:</span>
-                                <div className="text-xs text-gray-700 dark:text-gray-300">
-                                  {(() => {
-                                    // Split by " - " to separate different subjects
-                                    const subjects = paymentPart.trim().split(' - ');
-                                    
-                                    return subjects.map((subject, index) => {
-                                      // Enhanced parsing to include year in month display
-                                      const subjectText = subject.trim();
-                                      // Look for month patterns and add year context
-                                      const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
-                                                         'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-                                      
-                                      let displayText = subjectText;
-                                      monthNames.forEach(month => {
-                                        if (subjectText.includes(month) && !subjectText.includes('202')) {
-                                          // Add current year if month is mentioned but no year is present
-                                          const currentYear = new Date().getFullYear();
-                                          displayText = subjectText.replace(month, `${month} ${currentYear}`);
-                                        }
-                                      });
-                                      
-                                      return displayText;
-                                    }).join(' • ');
-                                  })()
-                                  }
+                            <div className="flex flex-wrap gap-1">
+                              {allTags.map((tag, index) => (
+                                <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${tag.color}`}>
+                                  {tag.label && <span className="opacity-70">{tag.label}:</span>}
+                                  <span>{tag.value}</span>
                                 </div>
-                              </div>
+                              ))}
                             </div>
                           );
                         }
                         
                         // Final fallback for completely different format
                         return (
-                          <div className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
+                          <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                             {entry.remarks}
                           </div>
                         );
