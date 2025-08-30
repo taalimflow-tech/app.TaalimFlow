@@ -43,7 +43,7 @@ export default function AdminContent() {
   console.log('AdminContent: Current user:', user);
   console.log('AdminContent: User role:', user?.role);
   
-  const [activeTab, setActiveTab] = useState<'announcement' | 'blog' | 'group' | 'formation' | 'teacher'>('announcement');
+  const [activeTab, setActiveTab] = useState<'announcement' | 'blog' | 'group' | 'formation'>('announcement');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<CreateFormData>({
     title: '',
@@ -426,8 +426,7 @@ export default function AdminContent() {
     { id: 'announcement', label: 'الإعلانات', icon: Megaphone },
     { id: 'blog', label: 'المقالات', icon: FileText },
     { id: 'group', label: 'المجموعات', icon: Users },
-    { id: 'formation', label: 'التكوينات', icon: BookOpen },
-    { id: 'teacher', label: 'المعلمين', icon: Users }
+    { id: 'formation', label: 'التكوينات', icon: BookOpen }
   ];
 
   if (user?.role !== 'admin') {
@@ -498,7 +497,6 @@ export default function AdminContent() {
               {activeTab === 'blog' && 'إنشاء مقال جديد'}
               {activeTab === 'group' && 'إنشاء مجموعة جديدة'}
               {activeTab === 'formation' && 'إنشاء تكوين جديد'}
-              {activeTab === 'teacher' && 'إضافة معلم جديد'}
             </CardTitle>
             <Button
               variant="ghost"
@@ -866,7 +864,6 @@ export default function AdminContent() {
             {activeTab === 'blog' && `المقالات الموجودة (${blogPosts.length})`}
             {activeTab === 'group' && `المجموعات الموجودة (${groups.length})`}
             {activeTab === 'formation' && `التكوينات الموجودة (${formations.length})`}
-            {activeTab === 'teacher' && `المعلمين الموجودين (${teachers.length})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -998,8 +995,8 @@ export default function AdminContent() {
                   <p className="text-gray-500 text-center py-8">لا توجد تكوينات</p>
                 ) : (
                   formations.map((formation: any) => (
-                    <div key={formation.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1 flex items-center gap-3">
+                    <div key={formation.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-3">
+                      <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-3">
                         {formation.imageUrl && (
                           <img 
                             src={formation.imageUrl} 
@@ -1010,7 +1007,7 @@ export default function AdminContent() {
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-gray-900 truncate">{formation.title}</h4>
                           <p className="text-sm text-gray-600 mt-1 line-clamp-2">{formation.description}</p>
-                          <div className="flex gap-4 mt-1">
+                          <div className="flex flex-col sm:flex-row sm:gap-4 gap-1 mt-1">
                             <span className="text-xs text-gray-500 truncate">المدة: {formation.duration}</span>
                             <span className="text-xs text-gray-500 truncate">السعر: {formation.price}</span>
                             <span className="text-xs text-gray-500 truncate">الفئة: {formation.category}</span>
@@ -1022,7 +1019,7 @@ export default function AdminContent() {
                         disabled={deleteFormationMutation.isPending}
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50 self-end sm:self-center flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -1032,52 +1029,6 @@ export default function AdminContent() {
               </>
             )}
 
-            {/* Teachers List */}
-            {activeTab === 'teacher' && (
-              <>
-                {teachers.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">لا يوجد معلمين</p>
-                ) : (
-                  teachers.map((teacher: any) => (
-                    <div key={teacher.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1 flex items-center gap-3">
-                        {teacher.imageUrl && (
-                          <img 
-                            src={teacher.imageUrl} 
-                            alt={teacher.name} 
-                            className="w-16 h-16 object-contain rounded-lg flex-shrink-0"
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">{teacher.name}</h4>
-                          <p className="text-sm text-gray-600 mt-1 truncate">المادة: {teacher.subject}</p>
-                          <div className="flex gap-4 mt-1">
-                            {teacher.email && (
-                              <span className="text-xs text-gray-500 truncate">البريد: {teacher.email}</span>
-                            )}
-                            {teacher.phone && (
-                              <span className="text-xs text-gray-500 truncate">الهاتف: {teacher.phone}</span>
-                            )}
-                          </div>
-                          {teacher.bio && (
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{teacher.bio}</p>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => deleteTeacherMutation.mutate(teacher.id)}
-                        disabled={deleteTeacherMutation.isPending}
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))
-                )}
-              </>
-            )}
           </div>
         </CardContent>
       </Card>
