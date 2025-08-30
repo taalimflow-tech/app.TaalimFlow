@@ -2041,86 +2041,9 @@ export default function Groups() {
                     </div>
                   ) : (
                     <div className="space-y-6">
-                      {/* Modern Hierarchical Selection */}
-                      <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                          اختر المستوى والسنة
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          {/* Education Level Selection */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              المستوى التعليمي
-                            </label>
-                            <select
-                              value={selectedLevel}
-                              onChange={(e) =>
-                                handleLevelChange(e.target.value)
-                              }
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                              <option value="">اختر المستوى...</option>
-                              <option value="جميع المستويات">
-                                جميع المستويات (المواد العامة)
-                              </option>
-                              <option value="الابتدائي">الابتدائي</option>
-                              <option value="المتوسط">المتوسط</option>
-                              <option value="الثانوي">الثانوي</option>
-                            </select>
-                          </div>
-
-                          {/* Grade Selection */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              السنة الدراسية
-                            </label>
-                            <select
-                              value={selectedGrade}
-                              onChange={(e) =>
-                                handleGradeChange(e.target.value)
-                              }
-                              disabled={!selectedLevel}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-600"
-                            >
-                              <option value="">اختر السنة...</option>
-                              {getAvailableGrades(selectedLevel).map(
-                                (grade) => (
-                                  <option key={grade.value} value={grade.value}>
-                                    {grade.label}
-                                  </option>
-                                ),
-                              )}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Instruction Message */}
-                        {selectedLevel &&
-                          selectedLevel !== "جميع المستويات" &&
-                          !selectedGrade && (
-                            <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-                              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                                الرجاء اختيار السنة الدراسية لعرض المواد المتاحة
-                              </p>
-                            </div>
-                          )}
-
-                        {/* Universal Level Message */}
-                        {selectedLevel === "جميع المستويات" && (
-                          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-                            <p className="text-sm text-blue-800 dark:text-blue-200">
-                              عرض المواد العامة المتاحة لجميع المستويات
-                              التعليمية
-                            </p>
-                          </div>
-                        )}
-                      </div>
 
                       {/* Subject Groups Grid */}
-                      {((selectedLevel && selectedGrade) ||
-                        selectedLevel === "جميع المستويات") && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
+                      <div className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-blue-200 dark:border-gray-700 p-8 shadow-lg">
                           <div className="flex items-center mb-4">
                             <div
                               className={`px-3 py-1 rounded-full text-sm font-medium ${getEducationLevelColor(selectedLevel)}`}
@@ -2335,7 +2258,6 @@ export default function Groups() {
                             </div>
                           )}
                         </div>
-                      )}
                     </div>
                   )}
                 </CardContent>
