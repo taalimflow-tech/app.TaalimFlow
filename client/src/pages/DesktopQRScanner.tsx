@@ -572,8 +572,8 @@ function DesktopQRScanner() {
   const [attendanceRefreshTrigger, setAttendanceRefreshTrigger] = useState(0);
 
   // Collapsible state for tables
-  const [isGroupsCollapsed, setIsGroupsCollapsed] = useState(false);
-  const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
+  const [isGroupsCollapsed, setIsGroupsCollapsed] = useState(true);
+  const [isStatsCollapsed, setIsStatsCollapsed] = useState(true);
   
   // Individual amounts for each group - key format: "groupId"
   const [groupAmounts, setGroupAmounts] = useState<{[groupId: string]: string}>({});
@@ -2532,10 +2532,10 @@ function DesktopQRScanner() {
           </div>
 
           {/* Detailed Information Tabs */}
-          <Tabs defaultValue="payments" className="w-full">
+          <Tabs defaultValue="payment-form" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
+              {user.role === 'admin' && <TabsTrigger value="payment-form">تسجيل الدفعة</TabsTrigger>}
               <TabsTrigger value="payments">المدفوعات</TabsTrigger>
-              {user.role === 'admin' && <TabsTrigger value="payment-form">تسجيل دفعة</TabsTrigger>}
             </TabsList>
 
 
