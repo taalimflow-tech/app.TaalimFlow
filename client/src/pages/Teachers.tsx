@@ -804,22 +804,23 @@ export default function Teachers() {
                       <Button 
                         variant="outline"
                         size="sm"
-                        className="px-3"
-                        onClick={() => handleEditTeacher(teacher)}
-                        title="تعديل بيانات المعلم"
+                        className="px-2"
+                        onClick={() => handleAddSpecialization(teacher)}
+                        disabled={addSpecializationMutation.isPending}
+                        title="إضافة تخصص"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Plus className="w-4 h-4 mr-1" />
+                        إضافة تخصص
                       </Button>
                       
                       <Button 
                         variant="outline"
                         size="sm"
                         className="px-3"
-                        onClick={() => handleAddSpecialization(teacher)}
-                        disabled={addSpecializationMutation.isPending}
-                        title="إضافة تخصص"
+                        onClick={() => handleEditTeacher(teacher)}
+                        title="تعديل بيانات المعلم"
                       >
-                        <UserPlus className="w-4 h-4" />
+                        <Edit className="w-4 h-4" />
                       </Button>
                       
                       <Button 
