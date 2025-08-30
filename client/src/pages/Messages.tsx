@@ -510,7 +510,7 @@ export default function Messages() {
                             e.stopPropagation();
                             handleMarkAsRead(message.id);
                           }}
-                          className="text-xs"
+                          className="text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
                         >
                           <MessageCircle className="w-3 h-3 mr-1" />
                           تم القراءة
@@ -529,7 +529,7 @@ export default function Messages() {
                                 e.stopPropagation();
                                 handleUnblockUser(otherUserId);
                               }}
-                              className="text-xs"
+                              className="text-xs bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
                             >
                               <ShieldOff className="w-3 h-3 mr-1" />
                               إلغاء الحظر
@@ -543,7 +543,7 @@ export default function Messages() {
                                   e.stopPropagation();
                                   handleBlockUser(otherUserId);
                                 }}
-                                className="text-xs"
+                                className="text-xs bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
                               >
                                 <Shield className="w-3 h-3 mr-1" />
                                 حظر
@@ -555,7 +555,7 @@ export default function Messages() {
                                   e.stopPropagation();
                                   handleReportUser(otherUserId, otherUserName);
                                 }}
-                                className="text-xs"
+                                className="text-xs bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100"
                               >
                                 <AlertTriangle className="w-3 h-3 mr-1" />
                                 إبلاغ
