@@ -1075,33 +1075,33 @@ export default function SuperAdminSimple() {
         )}
 
         {/* School Access Instructions */}
-        <Card className="mb-8">
+        <Card className="mb-8 dark:bg-gray-800 dark:border-gray-700">
           <CardHeader>
             <CardTitle>كيفية الوصول إلى المدارس</CardTitle>
             <CardDescription>طرق الوصول إلى كل مدرسة في النظام</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">الوصول عبر الكود</h4>
-                <p className="text-blue-700 text-sm mb-2">
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">الوصول عبر الكود</h4>
+                <p className="text-blue-700 dark:text-blue-300 text-sm mb-2">
                   يمكن للمستخدمين الوصول إلى مدرستهم عبر الرابط التالي:
                 </p>
-                <code className="bg-blue-100 px-2 py-1 rounded text-sm">
+                <code className="bg-blue-100 dark:bg-blue-800/50 px-2 py-1 rounded text-sm dark:text-blue-200">
                   /school/[school-code]
                 </code>
               </div>
               
               {schools.filter((s: any) => s.domain).length > 0 && (
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <h4 className="font-semibold text-green-900 mb-2">النطاقات المخصصة</h4>
-                  <p className="text-green-700 text-sm mb-2">
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">النطاقات المخصصة</h4>
+                  <p className="text-green-700 dark:text-green-300 text-sm mb-2">
                     المدارس التي لديها نطاقات مخصصة:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-sm">
                     {schools.filter((s: any) => s.domain).map((school: any) => (
-                      <li key={school.id} className="text-green-700">
-                        <strong>{school.name}</strong>: {school.domain}
+                      <li key={school.id} className="text-green-700 dark:text-green-300">
+                        <strong className="dark:text-green-200">{school.name}</strong>: <span className="dark:text-green-300">{school.domain}</span>
                       </li>
                     ))}
                   </ul>
@@ -1113,7 +1113,7 @@ export default function SuperAdminSimple() {
 
         {/* Features List */}
         <div className="mt-8">
-          <Card>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
               <CardTitle>ميزات النظام متعدد المدارس</CardTitle>
             </CardHeader>
@@ -1121,22 +1121,22 @@ export default function SuperAdminSimple() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <h4 className="font-semibold text-green-600">✓ فصل البيانات الكامل</h4>
-                  <p className="text-sm text-gray-600">كل مدرسة لها بيانات منفصلة تماماً</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">كل مدرسة لها بيانات منفصلة تماماً</p>
                 </div>
                 
                 <div className="space-y-2">
                   <h4 className="font-semibold text-green-600">✓ تخصيص العلامة التجارية</h4>
-                  <p className="text-sm text-gray-600">ألوان وشعارات مخصصة لكل مدرسة</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">ألوان وشعارات مخصصة لكل مدرسة</p>
                 </div>
                 
                 <div className="space-y-2">
                   <h4 className="font-semibold text-green-600">✓ إدارة مركزية</h4>
-                  <p className="text-sm text-gray-600">إدارة جميع المدارس من لوحة واحدة</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">إدارة جميع المدارس من لوحة واحدة</p>
                 </div>
                 
                 <div className="space-y-2">
                   <h4 className="font-semibold text-green-600">✓ وصول آمن</h4>
-                  <p className="text-sm text-gray-600">وصول مخفي ومحمي بمفتاح سري</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">وصول مخفي ومحمي بمفتاح سري</p>
                 </div>
               </div>
             </CardContent>
@@ -1146,7 +1146,7 @@ export default function SuperAdminSimple() {
         {/* School Statistics Modal */}
         {showStatsModal && selectedSchool && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-3 rtl:space-x-reverse">
