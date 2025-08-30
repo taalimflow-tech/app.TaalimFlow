@@ -1270,7 +1270,7 @@ export default function Courses() {
       {/* Course Registrations Modal (Admin Only) */}
       {showRegistrationsModal && selectedCourseForView && user?.role === 'admin' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[85vh] overflow-hidden">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold dark:text-white flex items-center gap-2">
                 <Users className="w-5 h-5" />
