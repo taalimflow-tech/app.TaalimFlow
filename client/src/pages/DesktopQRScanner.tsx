@@ -2612,9 +2612,6 @@ function DesktopQRScanner() {
                           </div>
                         ) : availableGroups.length > 0 ? (
                           <>
-                            <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm dark:text-blue-300">
-                              <strong>Debug:</strong> Found {availableGroups.length} groups: {JSON.stringify(availableGroups.map(g => ({id: g.id, name: g.name})))}
-                            </div>
                             {availableGroups.map((group: any) => (
                             <div key={group.id} className="border dark:border-gray-700 rounded-lg p-4">
                               <div className="flex items-center justify-between mb-3">
@@ -2723,14 +2720,6 @@ function DesktopQRScanner() {
                           </>
                         ) : (
                           <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm rounded">
-                              <strong>Debug Info:</strong><br/>
-                              Available groups: {availableGroups.length}<br/>
-                              Loading: {loadingGroups ? 'Yes' : 'No'}<br/>
-                              Profile ID: {scannedProfile?.id}<br/>
-                              Profile type: {scannedProfile?.type}<br/>
-                              Has enrolledGroups: {scannedProfile?.enrolledGroups ? scannedProfile.enrolledGroups.length : 'undefined'}
-                            </div>
                             <Users className="h-8 w-8 mx-auto mb-2 opacity-20" />
                             <p>لا توجد مجموعات متاحة لهذا الطالب</p>
                           </div>
