@@ -1117,7 +1117,7 @@ export default function AdminVerification() {
                       {/* Subject Selection */}
                       {selectedEducationLevel && selectedGrade && availableSubjects.length > 0 && (
                         <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800" dir="rtl">
-                          <Label className="text-xs font-semibold text-gray-900 block mb-3">
+                          <Label className="text-xs font-semibold text-gray-900 dark:text-gray-100 block mb-3">
                             <GraduationCap className="w-4 h-4 inline mr-1" />
                             المواد التي يريد دراستها
                           </Label>
@@ -1142,7 +1142,7 @@ export default function AdminVerification() {
                             ))}
                           </div>
                           {selectedSubjects.length > 0 && (
-                            <p className="text-xs text-purple-600 mt-2">
+                            <p className="text-xs text-purple-600 dark:text-purple-400 mt-2">
                               تم اختيار {selectedSubjects.length} مادة
                             </p>
                           )}
@@ -1150,8 +1150,8 @@ export default function AdminVerification() {
                       )}
 
                       {/* Verification Notes */}
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200" dir="rtl">
-                        <Label htmlFor="notes" className="text-xs font-semibold text-gray-900 block mb-2">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800" dir="rtl">
+                        <Label htmlFor="notes" className="text-xs font-semibold text-gray-900 dark:text-gray-100 block mb-2">
                           ملاحظات التحقق (اختياري)
                         </Label>
                         <Textarea
