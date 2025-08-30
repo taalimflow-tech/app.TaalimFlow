@@ -1825,7 +1825,7 @@ function DesktopQRScanner() {
       amount: parseFloat(payment.amount) || 0,
       groups: [{
         groupName: payment.notes || 'مجموعة غير محددة',
-        subjectName: payment.subjectName || 'مادة غير محددة',
+        subjectName: payment.notes || 'مادة غير محددة',
         months: [getMonthName(payment.month, payment.year)]
       }]
     };
