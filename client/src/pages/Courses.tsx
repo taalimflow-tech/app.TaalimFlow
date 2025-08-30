@@ -1370,9 +1370,7 @@ export default function Courses() {
                                   <Users className="w-4 h-4 text-gray-500" />
                                   <div>
                                     <p className="font-medium">{registration.fullName}</p>
-                                    <p className="text-sm text-gray-500">
-                                      {registration.registrantType === 'child' ? 'طفل' : registration.fullName}
-                                    </p>
+                                    <p className="text-sm text-gray-500">اسم المستخدم</p>
                                   </div>
                                 </div>
                                 
