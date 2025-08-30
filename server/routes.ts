@@ -58,6 +58,7 @@ import { SMSService } from "./sms-service";
 import { EmailService } from "./email-service";
 import PushNotificationService from "./push-service";
 import { insertPushSubscriptionSchema } from "../shared/schema";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
 // Remove global currentUser variable to prevent session bleeding between users
 // We'll use req.session.user instead for proper session management
@@ -1572,6 +1573,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "تم حذف المقال بنجاح" });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete blog post" });
+    }
+  });
+
+  // Blog attachment routes
+  app.post("/api/blog-attachments/upload", async (req, res) => {
+    try {
+      const currentUser = req.session.user;
+      if (!currentUser || currentUser.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getBlogAttachmentUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/blog-attachments/:objectPath(*)", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getBlogAttachmentFile(
+        `/blog-attachments/${req.params.objectPath}`
+      );
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error downloading attachment:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
     }
   });
 

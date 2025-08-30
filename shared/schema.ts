@@ -82,6 +82,10 @@ export const blogPosts = pgTable("blog_posts", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   imageUrl: text("image_url"),
+  attachmentUrl: text("attachment_url"), // URL or link to attached file
+  attachmentName: text("attachment_name"), // Original filename
+  attachmentSize: integer("attachment_size"), // File size in bytes
+  attachmentType: text("attachment_type"), // File MIME type
   authorId: integer("author_id").references(() => users.id),
   published: boolean("published").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -654,6 +658,10 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
   title: true,
   content: true,
   imageUrl: true,
+  attachmentUrl: true,
+  attachmentName: true,
+  attachmentSize: true,
+  attachmentType: true,
   published: true,
 });
 
