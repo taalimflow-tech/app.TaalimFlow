@@ -4412,12 +4412,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create super admin user (without schoolId)
-      const bcrypt = await import("bcrypt");
-      const hashedPassword = await bcrypt.hash(data.password, 10);
-
+      // Note: storage.createUser() handles password hashing internally
       const newUser = await storage.createUser({
         email: data.email,
-        password: hashedPassword,
+        password: data.password,
         name: data.name,
         phone: data.phone,
         role: "super_admin",
