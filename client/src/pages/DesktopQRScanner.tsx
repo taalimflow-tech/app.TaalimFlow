@@ -1581,7 +1581,7 @@ function DesktopQRScanner() {
       const ticket = {
         receiptId: result.receiptId || `REC-${Date.now()}`,
         studentName: scannedProfile.name,
-        paymentDate: new Date().toLocaleDateString('ar-SA'),
+        paymentDate: new Date().toLocaleDateString('en-US'),
         amount: totalAmount, // Show total calculated amount on receipt
         groups: Object.entries(selectedGroups).map(([groupId, groupData]) => ({
           groupName: groupData.groupName,
@@ -1816,6 +1816,9 @@ function DesktopQRScanner() {
   const printTicket = () => {
     if (!generatedTicket) return;
     
+    // Get school information from localStorage
+    const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || 'null');
+    
     // Create receipt HTML content
     const receiptHTML = `
     <!DOCTYPE html>
@@ -1863,6 +1866,11 @@ function DesktopQRScanner() {
           font-weight: 600;
           color: #2563eb;
           margin-bottom: 8px;
+        }
+        .school-info {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 4px;
         }
         .receipt-id {
           font-size: 12px;
@@ -1949,7 +1957,9 @@ function DesktopQRScanner() {
       <div class="receipt-container">
         <div class="header">
           <div class="title">إيصال دفع</div>
-          <div class="school-name">مؤسسة تعليمية</div>
+          <div class="school-name">${selectedSchool?.name || 'مؤسسة تعليمية'}</div>
+          ${selectedSchool?.address ? `<div class="school-info">العنوان: ${selectedSchool.address}</div>` : ''}
+          ${selectedSchool?.phone ? `<div class="school-info">الهاتف: ${selectedSchool.phone}</div>` : ''}
           <div class="receipt-id">رقم الإيصال: ${generatedTicket.receiptId}</div>
           <div class="receipt-id">تاريخ الدفع: ${generatedTicket.paymentDate}</div>
         </div>
@@ -1985,6 +1995,8 @@ function DesktopQRScanner() {
 
         <div class="footer">
           شكراً لكم على دفع الرسوم في الوقت المحدد
+          <br><br>
+          تم إنشاء هذا الإيصال باستعمال برنامج TaalimFlow
         </div>
       </div>
     </body>
