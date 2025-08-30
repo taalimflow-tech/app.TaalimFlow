@@ -1958,8 +1958,9 @@ function DesktopQRScanner() {
         <div class="header">
           <div class="title">إيصال دفع</div>
           <div class="school-name">${selectedSchool?.name || 'مؤسسة تعليمية'}</div>
-          ${selectedSchool?.address ? `<div class="school-info">العنوان: ${selectedSchool.address}</div>` : ''}
-          ${selectedSchool?.phone ? `<div class="school-info">الهاتف: ${selectedSchool.phone}</div>` : ''}
+          ${selectedSchool?.fullAddress ? `<div class="school-info">العنوان: ${selectedSchool.fullAddress}</div>` : ''}
+          ${selectedSchool?.adminPhone ? `<div class="school-info">الهاتف: ${selectedSchool.adminPhone}</div>` : ''}
+          ${selectedSchool?.schoolEmail ? `<div class="school-info">البريد الإلكتروني: ${selectedSchool.schoolEmail}</div>` : ''}
           <div class="receipt-id">رقم الإيصال: ${generatedTicket.receiptId}</div>
           <div class="receipt-id">تاريخ الدفع: ${generatedTicket.paymentDate}</div>
         </div>
