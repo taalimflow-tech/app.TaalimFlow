@@ -25,8 +25,8 @@ export default function SchoolSubscription() {
 
   // Fetch subscription status for the current school
   const { data: subscriptionStatus, isLoading, error } = useQuery<SubscriptionStatus>({
-    queryKey: ['/api/schools/subscription-status', selectedSchool?.id],
-    enabled: !!selectedSchool?.id && user?.role === 'admin',
+    queryKey: ['/api/school/subscription'],
+    enabled: !!user?.role === 'admin',
   });
 
   if (!user || user.role !== 'admin') {

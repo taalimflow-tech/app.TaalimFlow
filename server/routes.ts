@@ -4587,12 +4587,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schoolId = parseInt(req.params.id);
       const { subscriptionExpiry, subscriptionStatus, subscriptionNotes } = req.body;
 
-      if (!subscriptionExpiry && !subscriptionStatus) {
-        return res.status(400).json({ error: "تاريخ انتهاء الاشتراك أو حالة الاشتراك مطلوبة" });
+      // Allow updating any of the subscription fields
+      if (!subscriptionExpiry && !subscriptionStatus && !subscriptionNotes) {
+        return res.status(400).json({ error: "يجب تحديد على الأقل أحد قيم الاشتراك" });
       }
 
       await storage.updateSchoolSubscription(schoolId, {
-        subscriptionExpiry: subscriptionExpiry ? new Date(subscriptionExpiry) : undefined,
+        subscriptionExpiry: subscriptionExpiry ? new Date(subscriptionExpiry) : null,
         subscriptionStatus,
         subscriptionNotes,
         subscriptionLastUpdated: new Date(),

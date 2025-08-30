@@ -4614,22 +4614,35 @@ export class DatabaseStorage implements IStorage {
   async updateSchoolSubscription(
     schoolId: number,
     subscriptionData: {
-      subscriptionExpiry?: Date;
+      subscriptionExpiry?: Date | null;
       subscriptionStatus?: string;
       subscriptionNotes?: string;
       subscriptionLastUpdated?: Date;
       subscriptionUpdatedBy?: number;
     },
   ): Promise<void> {
+    // Only update fields that are provided
+    const updateData: any = {};
+    
+    if (subscriptionData.subscriptionExpiry !== undefined) {
+      updateData.subscriptionExpiry = subscriptionData.subscriptionExpiry;
+    }
+    if (subscriptionData.subscriptionStatus !== undefined) {
+      updateData.subscriptionStatus = subscriptionData.subscriptionStatus;
+    }
+    if (subscriptionData.subscriptionNotes !== undefined) {
+      updateData.subscriptionNotes = subscriptionData.subscriptionNotes;
+    }
+    if (subscriptionData.subscriptionLastUpdated !== undefined) {
+      updateData.subscriptionLastUpdated = subscriptionData.subscriptionLastUpdated;
+    }
+    if (subscriptionData.subscriptionUpdatedBy !== undefined) {
+      updateData.subscriptionUpdatedBy = subscriptionData.subscriptionUpdatedBy;
+    }
+
     await db
       .update(schools)
-      .set({
-        subscriptionExpiry: subscriptionData.subscriptionExpiry,
-        subscriptionStatus: subscriptionData.subscriptionStatus,
-        subscriptionNotes: subscriptionData.subscriptionNotes,
-        subscriptionLastUpdated: subscriptionData.subscriptionLastUpdated,
-        subscriptionUpdatedBy: subscriptionData.subscriptionUpdatedBy,
-      })
+      .set(updateData)
       .where(eq(schools.id, schoolId));
   }
 
