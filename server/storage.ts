@@ -125,6 +125,18 @@ export interface IStorage {
     adminKey: string,
     teacherKey: string,
   ): Promise<void>;
+  updateSchoolSubscription(
+    schoolId: number,
+    subscriptionData: {
+      subscriptionExpiry?: Date;
+      subscriptionStatus?: string;
+      subscriptionNotes?: string;
+      subscriptionLastUpdated?: Date;
+      subscriptionUpdatedBy?: number;
+    },
+  ): Promise<void>;
+  getSchoolSubscriptionStatus(schoolId: number): Promise<any>;
+  getSchoolsWithExpiringSubscriptions(daysThreshold: number): Promise<any[]>;
 
   // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
@@ -4596,6 +4608,102 @@ export class DatabaseStorage implements IStorage {
         teacherKey,
       })
       .where(eq(schools.id, schoolId));
+  }
+
+  // School Subscription methods implementation
+  async updateSchoolSubscription(
+    schoolId: number,
+    subscriptionData: {
+      subscriptionExpiry?: Date;
+      subscriptionStatus?: string;
+      subscriptionNotes?: string;
+      subscriptionLastUpdated?: Date;
+      subscriptionUpdatedBy?: number;
+    },
+  ): Promise<void> {
+    await db
+      .update(schools)
+      .set({
+        subscriptionExpiry: subscriptionData.subscriptionExpiry,
+        subscriptionStatus: subscriptionData.subscriptionStatus,
+        subscriptionNotes: subscriptionData.subscriptionNotes,
+        subscriptionLastUpdated: subscriptionData.subscriptionLastUpdated,
+        subscriptionUpdatedBy: subscriptionData.subscriptionUpdatedBy,
+      })
+      .where(eq(schools.id, schoolId));
+  }
+
+  async getSchoolSubscriptionStatus(schoolId: number): Promise<any> {
+    const [school] = await db
+      .select({
+        id: schools.id,
+        name: schools.name,
+        subscriptionExpiry: schools.subscriptionExpiry,
+        subscriptionStatus: schools.subscriptionStatus,
+        subscriptionNotes: schools.subscriptionNotes,
+        subscriptionLastUpdated: schools.subscriptionLastUpdated,
+      })
+      .from(schools)
+      .where(eq(schools.id, schoolId));
+
+    if (!school) {
+      throw new Error("المدرسة غير موجودة");
+    }
+
+    // Calculate days remaining
+    const daysRemaining = school.subscriptionExpiry
+      ? Math.ceil(
+          (new Date(school.subscriptionExpiry).getTime() - new Date().getTime()) /
+            (1000 * 60 * 60 * 24),
+        )
+      : null;
+
+    return {
+      ...school,
+      daysRemaining,
+      isExpiring: daysRemaining !== null && daysRemaining <= 7 && daysRemaining > 0,
+      isExpired: daysRemaining !== null && daysRemaining <= 0,
+    };
+  }
+
+  async getSchoolsWithExpiringSubscriptions(daysThreshold: number): Promise<any[]> {
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getDate() + daysThreshold);
+
+    const expiringSchools = await db
+      .select({
+        id: schools.id,
+        name: schools.name,
+        code: schools.code,
+        subscriptionExpiry: schools.subscriptionExpiry,
+        subscriptionStatus: schools.subscriptionStatus,
+        subscriptionNotes: schools.subscriptionNotes,
+      })
+      .from(schools)
+      .where(
+        and(
+          eq(schools.active, true),
+          ne(schools.subscriptionStatus, "suspended"),
+          sql`${schools.subscriptionExpiry} IS NOT NULL AND ${schools.subscriptionExpiry} <= ${thresholdDate}`,
+        ),
+      )
+      .orderBy(asc(schools.subscriptionExpiry));
+
+    return expiringSchools.map((school) => {
+      const daysRemaining = school.subscriptionExpiry
+        ? Math.ceil(
+            (new Date(school.subscriptionExpiry).getTime() - new Date().getTime()) /
+              (1000 * 60 * 60 * 24),
+          )
+        : null;
+
+      return {
+        ...school,
+        daysRemaining,
+        isExpiring: daysRemaining !== null && daysRemaining <= daysThreshold && daysRemaining > 0,
+        isExpired: daysRemaining !== null && daysRemaining <= 0,
+      };
+    });
   }
 
   // Group Schedule methods implementation

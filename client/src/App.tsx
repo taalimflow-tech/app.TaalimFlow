@@ -39,6 +39,7 @@ import FinancialReports from "@/pages/FinancialReports";
 import GainLossCalculator from "@/pages/GainLossCalculator";
 import { Notifications } from "@/pages/Notifications";
 import AdminFormationRegistrations from "@/pages/AdminFormationRegistrations";
+import SchoolSubscription from "@/pages/SchoolSubscription";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -174,6 +175,10 @@ function AppRoutes() {
           
           <Route path="/school/:code/gain-loss-calculator">
             <AuthWrapper><Layout><GainLossCalculator /></Layout></AuthWrapper>
+          </Route>
+          
+          <Route path="/school/:code/school-subscription">
+            <AuthWrapper><Layout><SchoolSubscription /></Layout></AuthWrapper>
           </Route>
           
           {/* School Selection Route (must come after specific routes) */}

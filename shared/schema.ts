@@ -26,6 +26,12 @@ export const schools = pgTable("schools", {
   secondaryColor: text("secondary_color").default("#1e40af"),
   settings: jsonb("settings"), // Additional school-specific settings
   active: boolean("active").default(true),
+  // Subscription fields
+  subscriptionExpiry: timestamp("subscription_expiry"), // When subscription expires
+  subscriptionStatus: text("subscription_status").default("active"), // active, expired, suspended
+  subscriptionNotes: text("subscription_notes"), // Admin notes about subscription
+  subscriptionLastUpdated: timestamp("subscription_last_updated"),
+  subscriptionUpdatedBy: integer("subscription_updated_by"), // Super admin who updated
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

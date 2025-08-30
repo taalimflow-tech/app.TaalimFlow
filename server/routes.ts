@@ -4575,6 +4575,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Super Admin - School Subscription Management
+  app.patch("/api/super-admin/schools/:id/subscription", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
+        return res
+          .status(403)
+          .json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const schoolId = parseInt(req.params.id);
+      const { subscriptionExpiry, subscriptionStatus, subscriptionNotes } = req.body;
+
+      if (!subscriptionExpiry && !subscriptionStatus) {
+        return res.status(400).json({ error: "تاريخ انتهاء الاشتراك أو حالة الاشتراك مطلوبة" });
+      }
+
+      await storage.updateSchoolSubscription(schoolId, {
+        subscriptionExpiry: subscriptionExpiry ? new Date(subscriptionExpiry) : undefined,
+        subscriptionStatus,
+        subscriptionNotes,
+        subscriptionLastUpdated: new Date(),
+        subscriptionUpdatedBy: req.session.user.id,
+      });
+
+      res.json({ message: "تم تحديث اشتراك المدرسة بنجاح" });
+    } catch (error) {
+      console.error("Error updating school subscription:", error);
+      res.status(500).json({ error: "فشل في تحديث اشتراك المدرسة" });
+    }
+  });
+
+  // Get school subscription status (for school admins)
+  app.get("/api/school/subscription", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "صلاحيات المدير مطلوبة لعرض حالة الاشتراك" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const subscriptionInfo = await storage.getSchoolSubscriptionStatus(schoolId);
+      res.json(subscriptionInfo);
+    } catch (error) {
+      console.error("Error fetching subscription status:", error);
+      res.status(500).json({ error: "فشل في جلب حالة الاشتراك" });
+    }
+  });
+
+  // Get schools with expiring subscriptions (for alerts)
+  app.get("/api/super-admin/schools/expiring-subscriptions", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
+        return res
+          .status(403)
+          .json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const daysThreshold = parseInt(req.query.days as string) || 7;
+      const expiringSchools = await storage.getSchoolsWithExpiringSubscriptions(daysThreshold);
+      res.json(expiringSchools);
+    } catch (error) {
+      console.error("Error fetching expiring subscriptions:", error);
+      res.status(500).json({ error: "فشل في جلب الاشتراكات المنتهية" });
+    }
+  });
+
   // Group Attendance Routes
   app.get("/api/groups/:groupId/attendance", async (req, res) => {
     try {
