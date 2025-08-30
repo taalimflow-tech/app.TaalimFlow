@@ -3002,13 +3002,29 @@ export default function Groups() {
                           : teachers;
 
                       return teachersToShow.map((teacher) => {
-                        const specialization = teacher.specializations.find(
+                        // Get the teacher's specializations - show all of them or the one that matches the group's subject
+                        const matchingSpecialization = teacher.specializations.find(
                           (s: any) => s.id === selectedAdminGroup.subjectId,
                         );
-                        const specName = specialization?.name || "تخصص عام";
+                        
+                        let specDisplay = "";
+                        if (matchingSpecialization) {
+                          // If teacher has the exact specialty for this subject
+                          specDisplay = matchingSpecialization.nameAr || matchingSpecialization.name;
+                        } else if (teacher.specializations && teacher.specializations.length > 0) {
+                          // Show all teacher's specializations
+                          const specNames = teacher.specializations
+                            .map((s: any) => s.nameAr || s.name)
+                            .filter(Boolean)
+                            .join(", ");
+                          specDisplay = specNames || "معلم عام";
+                        } else {
+                          specDisplay = "معلم عام";
+                        }
+                        
                         return (
                           <option key={teacher.id} value={teacher.id}>
-                            {teacher.name} ({specName})
+                            {teacher.name} ({specDisplay})
                           </option>
                         );
                       });
