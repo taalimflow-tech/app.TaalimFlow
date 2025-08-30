@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Minus, RotateCcw, Calculator, TrendingUp, TrendingDown, Filter, User, Receipt, BookOpen, FileText } from 'lucide-react';
+import { Plus, Minus, RotateCcw, Calculator, TrendingUp, TrendingDown, Filter, User, Receipt, BookOpen, FileText, Calendar } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -548,9 +548,31 @@ export default function GainLossCalculator() {
                           const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
+                          // Extract month/year information
+                          const monthYearTags = [];
+                          subjects.forEach(subject => {
+                            const subjectText = subject.trim();
+                            // Look for month/year patterns like "أغسطس 2025" or "أغسطس/2025"
+                            const monthYearMatch = subjectText.match(/(يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\/?\s*(\d{4})/);
+                            if (monthYearMatch) {
+                              const [, monthName, year] = monthYearMatch;
+                              const monthYearDisplay = `${monthName} / ${year}`;
+                              if (!monthYearTags.some(tag => tag.value === monthYearDisplay)) {
+                                monthYearTags.push({
+                                  label: 'الشهر',
+                                  value: monthYearDisplay,
+                                  color: 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 border border-amber-200 dark:border-amber-800',
+                                  textColor: 'text-amber-700 dark:text-amber-300',
+                                  icon: Calendar
+                                });
+                              }
+                            }
+                          });
+
                           const allTags = [
                             { label: 'الطالب', value: studentName.trim(), color: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800', textColor: 'text-blue-700 dark:text-blue-300', icon: User },
                             { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800', textColor: 'text-purple-700 dark:text-purple-300', icon: Receipt },
+                            ...monthYearTags,
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               
@@ -566,13 +588,16 @@ export default function GainLossCalculator() {
                                 // Remove teacher names (مع X), subjects, and dates
                                 displayText = subjectText
                                   .replace(/\s*مع\s+[^\s]+/g, '') // Remove "مع أحمد"
-                                  .replace(/\s*(?:يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\d*\s*/g, '') // Remove months
+                                  .replace(/\s*(?:يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\/?\s*\d*\s*/g, '') // Remove months and years
                                   .replace(/\s*(?:اللغة الإنجليزية|اللغة الفرنسية|اللغة العربية|الرياضيات|العلوم|الفيزياء|الكيمياء|التاريخ|الجغرافيا)\s*/g, '') // Remove common subjects
                                   .trim();
                               }
                               
-                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800', textColor: 'text-green-700 dark:text-green-300', icon: BookOpen };
-                            })
+                              // Skip empty text after cleaning
+                              if (!displayText || displayText.length < 2) return null;
+                              
+                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border border-emerald-200 dark:border-emerald-800', textColor: 'text-emerald-700 dark:text-emerald-300', icon: BookOpen };
+                            }).filter(Boolean)
                           ];
                           
                           return (
@@ -608,9 +633,31 @@ export default function GainLossCalculator() {
                           const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
+                          // Extract month/year information
+                          const monthYearTags = [];
+                          subjects.forEach(subject => {
+                            const subjectText = subject.trim();
+                            // Look for month/year patterns like "أغسطس 2025" or "أغسطس/2025"
+                            const monthYearMatch = subjectText.match(/(يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\/?\s*(\d{4})/);
+                            if (monthYearMatch) {
+                              const [, monthName, year] = monthYearMatch;
+                              const monthYearDisplay = `${monthName} / ${year}`;
+                              if (!monthYearTags.some(tag => tag.value === monthYearDisplay)) {
+                                monthYearTags.push({
+                                  label: 'الشهر',
+                                  value: monthYearDisplay,
+                                  color: 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 border border-amber-200 dark:border-amber-800',
+                                  textColor: 'text-amber-700 dark:text-amber-300',
+                                  icon: Calendar
+                                });
+                              }
+                            }
+                          });
+                          
                           const allTags = [
                             { label: 'الطالب', value: studentName, color: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800', textColor: 'text-blue-700 dark:text-blue-300', icon: User },
                             { label: 'رقم الإيصال', value: receiptId, color: 'bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200 dark:border-purple-800', textColor: 'text-purple-700 dark:text-purple-300', icon: Receipt },
+                            ...monthYearTags,
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               
@@ -626,13 +673,16 @@ export default function GainLossCalculator() {
                                 // Remove teacher names (مع X), subjects, and dates
                                 displayText = subjectText
                                   .replace(/\s*مع\s+[^\s]+/g, '') // Remove "مع أحمد"
-                                  .replace(/\s*(?:يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\d*\s*/g, '') // Remove months
+                                  .replace(/\s*(?:يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*\/?\s*\d*\s*/g, '') // Remove months and years
                                   .replace(/\s*(?:اللغة الإنجليزية|اللغة الفرنسية|اللغة العربية|الرياضيات|العلوم|الفيزياء|الكيمياء|التاريخ|الجغرافيا)\s*/g, '') // Remove common subjects
                                   .trim();
                               }
                               
-                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800', textColor: 'text-green-700 dark:text-green-300', icon: BookOpen };
-                            })
+                              // Skip empty text after cleaning
+                              if (!displayText || displayText.length < 2) return null;
+                              
+                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border border-emerald-200 dark:border-emerald-800', textColor: 'text-emerald-700 dark:text-emerald-300', icon: BookOpen };
+                            }).filter(Boolean)
                           ];
                           
                           return (
