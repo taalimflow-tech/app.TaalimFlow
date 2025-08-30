@@ -43,13 +43,13 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4" dir="rtl">
-        <h2 className="text-lg font-bold mb-4">الإبلاغ عن {userName}</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" dir="rtl">
+        <h2 className="text-lg font-bold mb-4 dark:text-white">الإبلاغ عن {userName}</h2>
         
         <div className="space-y-4">
           {/* First Confirmation */}
-          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-            <p className="text-sm text-yellow-800 mb-3">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm text-yellow-800 dark:text-yellow-300 mb-3">
               هل تريد الإبلاغ عن هذا المستخدم بسبب محتوى غير لائق أو مزعج؟
             </p>
             <div className="flex items-center gap-3">
@@ -62,7 +62,7 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
               />
               <label 
                 htmlFor="confirm-inappropriate" 
-                className="text-sm font-medium cursor-pointer"
+                className="text-sm font-medium cursor-pointer dark:text-gray-300"
               >
                 نعم، أؤكد أن هذا المستخدم يرسل محتوى غير لائق أو مزعج
               </label>
@@ -71,8 +71,8 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
           
           {/* Second Confirmation - Only shows if first is checked */}
           {firstConfirmation && (
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <p className="text-sm text-red-800 mb-3">
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+              <p className="text-sm text-red-800 dark:text-red-300 mb-3">
                 هل تريد من المدراء حظر هذا المستخدم نهائياً من التطبيق؟
               </p>
               <div className="flex items-center gap-3">
@@ -85,13 +85,13 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
                 />
                 <label 
                   htmlFor="confirm-ban" 
-                  className="text-sm font-medium cursor-pointer"
+                  className="text-sm font-medium cursor-pointer dark:text-gray-300"
                 >
                   نعم، أريد من المدراء حظر هذا المستخدم نهائياً من التطبيق
                 </label>
               </div>
-              <div className="bg-gray-100 p-2 rounded-lg mt-2">
-                <p className="text-xs text-gray-600">
+              <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg mt-2">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   تحذير: سيتم إرسال الإبلاغ للمراجعة وقد يؤدي إلى حظر المستخدم من الوصول للتطبيق بالكامل
                 </p>
               </div>
@@ -99,11 +99,11 @@ const ReportModal = ({ isOpen, onClose, onReport, userName }: {
           )}
           
           <div>
-            <label className="block text-sm font-medium mb-2">تفاصيل إضافية (اختياري)</label>
+            <label className="block text-sm font-medium mb-2 dark:text-gray-300">تفاصيل إضافية (اختياري)</label>
             <textarea 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 border rounded-md h-20"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md h-20"
               placeholder="اكتب تفاصيل إضافية..."
             />
           </div>
@@ -204,8 +204,8 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl mx-4 h-[80vh] flex flex-col" dir="rtl">
-        <div className="p-4 border-b flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl mx-4 h-[80vh] flex flex-col" dir="rtl">
+        <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {userProfilePicture ? (
               <img 
@@ -214,13 +214,13 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
                 className="w-10 h-10 rounded-full object-contain"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                <User className="w-5 h-5 text-gray-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </div>
             )}
             <div>
-              <h2 className="text-lg font-bold">{userName}</h2>
-              <p className="text-sm text-gray-500">محادثة</p>
+              <h2 className="text-lg font-bold dark:text-white">{userName}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">محادثة</p>
             </div>
           </div>
           <Button variant="outline" onClick={onClose} className="text-xs">
@@ -242,10 +242,10 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
                     <div className={`max-w-[70%] rounded-2xl p-3 ${
                       isMyMessage 
                         ? 'bg-blue-500 text-white' 
-                        : 'bg-gray-200 text-gray-800'
+                        : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200'
                     }`}>
                       <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-1 ${isMyMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+                      <p className={`text-xs mt-1 ${isMyMessage ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>
                         {formatDistanceToNow(new Date(message.createdAt), { 
                           addSuffix: true, 
                           locale: ar 
@@ -258,13 +258,13 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500">لا توجد رسائل في هذه المحادثة</p>
+              <p className="text-gray-500 dark:text-gray-400">لا توجد رسائل في هذه المحادثة</p>
             </div>
           )}
         </div>
 
         {/* Message Input Section - Messenger Style */}
-        <div className="p-4 border-t bg-white">
+        <div className="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex gap-2 items-end">
             <input
               type="text"
@@ -277,7 +277,7 @@ const ChatHistoryModal = ({ isOpen, onClose, userId, userName, userProfilePictur
                   handleSendMessage();
                 }
               }}
-              className="flex-1 p-3 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Button 
               onClick={handleSendMessage}
