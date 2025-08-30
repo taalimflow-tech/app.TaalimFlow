@@ -26,39 +26,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Notification sound utility functions
-function playNotificationSound() {
-  try {
-    // Send message to all open tabs to play sound
-    self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(clients => {
-      clients.forEach(client => {
-        client.postMessage({
-          type: 'PLAY_NOTIFICATION_SOUND',
-          payload: { soundType: 'normal' }
-        });
-      });
-    });
-  } catch (error) {
-    console.warn('Could not trigger notification sound:', error);
-  }
-}
-
-function playImportantNotificationSound() {
-  try {
-    // Send message to all open tabs to play important sound
-    self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(clients => {
-      clients.forEach(client => {
-        client.postMessage({
-          type: 'PLAY_NOTIFICATION_SOUND',
-          payload: { soundType: 'important' }
-        });
-      });
-    });
-  } catch (error) {
-    console.warn('Could not trigger important notification sound:', error);
-  }
-}
-
 // Handle push notifications
 self.addEventListener('push', (event) => {
   let notificationData = {
@@ -87,16 +54,6 @@ self.addEventListener('push', (event) => {
       // Fallback to text data
       notificationData.body = event.data.text();
     }
-  }
-
-  // Play notification sound based on type
-  const isImportantNotification = notificationData.type === 'course_created' || 
-                                  notificationData.requireInteraction;
-  
-  if (isImportantNotification) {
-    playImportantNotificationSound();
-  } else {
-    playNotificationSound();
   }
 
   event.waitUntil(
