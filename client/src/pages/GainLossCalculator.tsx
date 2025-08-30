@@ -547,6 +547,7 @@ export default function GainLossCalculator() {
                               {/* Student Name */}
                               <div className="flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">الطالب:</span>
                                 <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">
                                   {studentName.trim()}
                                 </span>
@@ -555,25 +556,47 @@ export default function GainLossCalculator() {
                               {/* Receipt ID */}
                               <div className="flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">رقم الإيصال:</span>
                                 <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded font-mono">
-                                  إيصال: {receiptId.trim()}
+                                  {receiptId.trim()}
                                 </span>
                               </div>
                               
                               {/* Payment Details - Each subject on separate line */}
                               <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">المواد والأشهر:</span>
+                                </div>
                                 {(() => {
                                   // Parse payment details format: "Subject1 Group1 (months) - Subject2 Group2 (months)"
                                   const subjects = paymentDetails.trim().split(' - ');
                                   
-                                  return subjects.map((subject, index) => (
-                                    <div key={index} className="flex items-start gap-1.5">
-                                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-0.5"></div>
-                                      <div className="text-xs text-gray-700 dark:text-gray-300 leading-tight">
-                                        {subject.trim()}
+                                  return subjects.map((subject, index) => {
+                                    // Enhanced parsing to include year in month display
+                                    const subjectText = subject.trim();
+                                    // Look for month patterns and add year context
+                                    const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                                       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                                    
+                                    let displayText = subjectText;
+                                    monthNames.forEach(month => {
+                                      if (subjectText.includes(month) && !subjectText.includes('202')) {
+                                        // Add current year if month is mentioned but no year is present
+                                        const currentYear = new Date().getFullYear();
+                                        displayText = subjectText.replace(month, `${month} ${currentYear}`);
+                                      }
+                                    });
+                                    
+                                    return (
+                                      <div key={index} className="flex items-start gap-1.5 ml-3">
+                                        <div className="w-1 h-1 bg-green-400 rounded-full mt-1"></div>
+                                        <div className="text-xs text-gray-700 dark:text-gray-300 leading-tight">
+                                          {displayText}
+                                        </div>
                                       </div>
-                                    </div>
-                                  ));
+                                    );
+                                  });
                                 })()}
                               </div>
                             </div>
@@ -597,6 +620,7 @@ export default function GainLossCalculator() {
                               {/* Student Name */}
                               <div className="flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">الطالب:</span>
                                 <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">
                                   {studentName}
                                 </span>
@@ -605,25 +629,47 @@ export default function GainLossCalculator() {
                               {/* Receipt ID */}
                               <div className="flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">رقم الإيصال:</span>
                                 <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded font-mono">
-                                  إيصال: {receiptId}
+                                  {receiptId}
                                 </span>
                               </div>
                               
                               {/* Payment Details - Each subject on separate line */}
                               <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">المواد والأشهر:</span>
+                                </div>
                                 {(() => {
                                   // Split by " - " to separate different subjects
                                   const subjects = paymentPart.trim().split(' - ');
                                   
-                                  return subjects.map((subject, index) => (
-                                    <div key={index} className="flex items-start gap-1.5">
-                                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-0.5"></div>
-                                      <div className="text-xs text-gray-700 dark:text-gray-300 leading-tight">
-                                        {subject.trim()}
+                                  return subjects.map((subject, index) => {
+                                    // Enhanced parsing to include year in month display
+                                    const subjectText = subject.trim();
+                                    // Look for month patterns and add year context
+                                    const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                                       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                                    
+                                    let displayText = subjectText;
+                                    monthNames.forEach(month => {
+                                      if (subjectText.includes(month) && !subjectText.includes('202')) {
+                                        // Add current year if month is mentioned but no year is present
+                                        const currentYear = new Date().getFullYear();
+                                        displayText = subjectText.replace(month, `${month} ${currentYear}`);
+                                      }
+                                    });
+                                    
+                                    return (
+                                      <div key={index} className="flex items-start gap-1.5 ml-3">
+                                        <div className="w-1 h-1 bg-green-400 rounded-full mt-1"></div>
+                                        <div className="text-xs text-gray-700 dark:text-gray-300 leading-tight">
+                                          {displayText}
+                                        </div>
                                       </div>
-                                    </div>
-                                  ));
+                                    );
+                                  });
                                 })()}
                               </div>
                             </div>
