@@ -864,7 +864,7 @@ export default function Courses() {
                   <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg mb-4">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-300 font-medium">السعر:</span>
-                      <span className="text-primary font-bold text-lg">{course.price}</span>
+                      <span className="text-green-600 font-bold text-lg">{course.price} دج</span>
                     </div>
                   </div>
 
