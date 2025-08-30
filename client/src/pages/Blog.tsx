@@ -1,11 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { BlogPost } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText, Download } from 'lucide-react';
 
 export default function Blog() {
   const { user, loading: authLoading } = useAuth();
@@ -14,17 +12,6 @@ export default function Blog() {
     queryKey: ['/api/blog-posts'],
     enabled: !!user && !authLoading,
   });
-
-  const handleDownloadAttachment = (attachmentUrl: string, fileName: string) => {
-    // Create a temporary link element and trigger download
-    const link = document.createElement('a');
-    link.href = attachmentUrl;
-    link.download = fileName;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   if (loading) {
     return (
@@ -62,37 +49,7 @@ export default function Blog() {
                     />
                   </div>
                 )}
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{post.content}</p>
-                
-                {/* File Attachment Section */}
-                {post.attachmentUrl && post.attachmentName && (
-                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {post.attachmentName}
-                          </p>
-                          {post.attachmentSize && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {(post.attachmentSize / 1024 / 1024).toFixed(2)} ميجابايت
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDownloadAttachment(post.attachmentUrl!, post.attachmentName!)}
-                        className="flex items-center gap-1"
-                      >
-                        <Download className="w-4 h-4" />
-                        تحميل
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{post.content}</p>
               </CardContent>
             </Card>
           ))

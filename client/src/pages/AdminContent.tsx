@@ -11,8 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
-import { ObjectUploader } from '@/components/ObjectUploader';
-import type { UploadResult } from '@uppy/core';
 
 interface CreateFormData {
   title: string;
@@ -32,9 +30,6 @@ interface CreateFormData {
   educationLevels?: string[];
   experience?: string;
   qualifications?: string;
-  attachmentUrl?: string;
-  attachmentName?: string;
-  attachmentSize?: number;
 }
 
 export default function AdminContent() {
@@ -73,7 +68,6 @@ export default function AdminContent() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [attachmentUploading, setAttachmentUploading] = useState(false);
 
   // Announcement creation mutation
   const createAnnouncementMutation = useMutation({
@@ -301,10 +295,7 @@ export default function AdminContent() {
       bio: '',
       email: '',
       phone: '',
-      imageUrl: '',
-      attachmentUrl: '',
-      attachmentName: '',
-      attachmentSize: 0
+      imageUrl: ''
     });
     setImageFile(null);
     setImagePreview(null);
@@ -354,54 +345,6 @@ export default function AdminContent() {
     }
   };
 
-  // File attachment handlers
-  const handleGetUploadParameters = async () => {
-    try {
-      const response = await apiRequest('POST', '/api/blog-attachments/upload');
-      const data = await response.json();
-      return {
-        method: 'PUT' as const,
-        url: data.uploadURL,
-      };
-    } catch (error) {
-      console.error('Error getting upload parameters:', error);
-      throw error;
-    }
-  };
-
-  const handleAttachmentComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    setAttachmentUploading(false);
-    if (result.successful && result.successful.length > 0) {
-      const file = result.successful[0];
-      const uploadURL = file.uploadURL;
-      const fileName = file.name;
-      const fileSize = file.size;
-
-      // Update form data with attachment information
-      setFormData(prev => ({
-        ...prev,
-        attachmentUrl: uploadURL,
-        attachmentName: fileName,
-        attachmentSize: fileSize
-      }));
-
-      toast({ 
-        title: 'تم رفع الملف بنجاح',
-        description: `تم رفع الملف: ${fileName}`
-      });
-    }
-  };
-
-  const removeAttachment = () => {
-    setFormData(prev => ({
-      ...prev,
-      attachmentUrl: '',
-      attachmentName: '',
-      attachmentSize: 0
-    }));
-    toast({ title: 'تم إزالة الملف المرفق' });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submission started');
@@ -437,10 +380,7 @@ export default function AdminContent() {
         title: formData.title,
         content: formData.content,
         published: true,
-        imageUrl: imageUrl || null,
-        attachmentUrl: formData.attachmentUrl || null,
-        attachmentName: formData.attachmentName || null,
-        attachmentSize: formData.attachmentSize || null
+        imageUrl: imageUrl || null
       });
     } else if (activeTab === 'group') {
       createGroupMutation.mutate({
@@ -655,53 +595,6 @@ export default function AdminContent() {
                         <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-lg bg-gray-100" />
                       </div>
                     )}
-                  </div>
-
-                  {/* File Attachment */}
-                  <div>
-                    <Label>مرفق المقال (اختياري - حد أقصى 5 ميجابايت)</Label>
-                    <div className="mt-2">
-                      {formData.attachmentUrl ? (
-                        <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {formData.attachmentName}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {formData.attachmentSize ? `${(formData.attachmentSize / 1024 / 1024).toFixed(2)} ميجابايت` : ''}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={removeAttachment}
-                            className="text-red-600 hover:text-red-800 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={5242880} // 5MB in bytes
-                          onGetUploadParameters={handleGetUploadParameters}
-                          onComplete={handleAttachmentComplete}
-                          buttonClassName="w-full"
-                        >
-                          <div className="flex items-center gap-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-purple-400 dark:hover:border-purple-500 transition-colors">
-                            <Plus className="w-5 h-5" />
-                            <span>إضافة مرفق</span>
-                          </div>
-                        </ObjectUploader>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      يمكنك رفع ملفات PDF، DOC، DOCX، XLS، XLSX، PPT، PPTX، TXT، ZIP حتى 5 ميجابايت
-                    </p>
                   </div>
                 </>
               )}
@@ -1034,22 +927,9 @@ export default function AdminContent() {
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate">{post.title}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{post.content}</p>
-                          {post.attachmentUrl && post.attachmentName && (
-                            <div className="flex items-center gap-1 mt-2">
-                              <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                              <span className="text-xs text-purple-600 dark:text-purple-400 truncate">
-                                مرفق: {post.attachmentName}
-                              </span>
-                              {post.attachmentSize && (
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  ({(post.attachmentSize / 1024 / 1024).toFixed(1)} ميجابايت)
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                          <h4 className="font-medium text-gray-900 truncate">{post.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{post.content}</p>
+                          <p className="text-xs text-gray-400 mt-1">
                             {new Date(post.createdAt).toLocaleDateString('en-US')}
                           </p>
                         </div>

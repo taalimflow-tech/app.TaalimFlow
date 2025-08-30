@@ -25,9 +25,6 @@ export interface BlogPost {
   imageUrl?: string;
   authorId: string;
   published: boolean;
-  attachmentUrl?: string;
-  attachmentName?: string;
-  attachmentSize?: number;
   createdAt: Date;
   updatedAt: Date;
 }
