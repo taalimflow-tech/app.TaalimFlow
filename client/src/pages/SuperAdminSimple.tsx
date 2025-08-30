@@ -562,20 +562,20 @@ export default function SuperAdminSimple() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <Building2 className="h-8 w-8 text-blue-600" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">لوحة المسؤول العام</h1>
-                <p className="text-sm text-gray-500">إدارة جميع المدارس والمؤسسات التعليمية</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">لوحة المسؤول العام</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">إدارة جميع المدارس والمؤسسات التعليمية</p>
               </div>
             </div>
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <span className="text-sm text-gray-600">مرحباً، {user.name}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">مرحباً، {user.name}</span>
               <Button variant="outline" onClick={() => logout()}>تسجيل الخروج</Button>
             </div>
           </div>
@@ -585,13 +585,13 @@ export default function SuperAdminSimple() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Success Message */}
         <div className="mb-8">
-          <Card className="border-green-200 bg-green-50">
+          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
             <CardContent className="pt-6">
               <div className="flex items-center space-x-3 rtl:space-x-reverse">
                 <Shield className="h-8 w-8 text-green-600" />
                 <div>
-                  <h3 className="text-lg font-semibold text-green-900">نظام إدارة المدارس جاهز!</h3>
-                  <p className="text-green-700">
+                  <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">نظام إدارة المدارس جاهز!</h3>
+                  <p className="text-green-700 dark:text-green-200"
                     تم تنفيذ نظام إدارة متعدد المدارس بالكامل مع فصل البيانات الكامل بين المدارس
                   </p>
                 </div>
@@ -607,8 +607,8 @@ export default function SuperAdminSimple() {
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <School className="h-8 w-8 text-blue-600" />
                 <div>
-                  <p className="text-2xl font-bold">{schools.length}</p>
-                  <p className="text-sm text-gray-600">إجمالي المدارس</p>
+                  <p className="text-2xl font-bold dark:text-white">{schools.length}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">إجمالي المدارس</p>
                 </div>
               </div>
             </CardContent>
@@ -619,8 +619,8 @@ export default function SuperAdminSimple() {
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <Users className="h-8 w-8 text-green-600" />
                 <div>
-                  <p className="text-2xl font-bold">{schools.filter((s: any) => s.active).length}</p>
-                  <p className="text-sm text-gray-600">المدارس النشطة</p>
+                  <p className="text-2xl font-bold dark:text-white">{schools.filter((s: any) => s.active).length}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">المدارس النشطة</p>
                 </div>
               </div>
             </CardContent>
@@ -631,8 +631,8 @@ export default function SuperAdminSimple() {
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <Globe className="h-8 w-8 text-purple-600" />
                 <div>
-                  <p className="text-2xl font-bold">{schools.filter((s: any) => s.domain).length}</p>
-                  <p className="text-sm text-gray-600">نطاقات مخصصة</p>
+                  <p className="text-2xl font-bold dark:text-white">{schools.filter((s: any) => s.domain).length}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">نطاقات مخصصة</p>
                 </div>
               </div>
             </CardContent>
@@ -643,8 +643,8 @@ export default function SuperAdminSimple() {
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <Calendar className="h-8 w-8 text-orange-600" />
                 <div>
-                  <p className="text-2xl font-bold">{new Date().toLocaleDateString('en-US')}</p>
-                  <p className="text-sm text-gray-600">تاريخ اليوم</p>
+                  <p className="text-2xl font-bold dark:text-white">{new Date().toLocaleDateString('en-US')}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">تاريخ اليوم</p>
                 </div>
               </div>
             </CardContent>
@@ -668,12 +668,12 @@ export default function SuperAdminSimple() {
           <CardContent>
             {schoolsLoading ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">جاري تحميل المدارس...</p>
+                <p className="text-gray-500 dark:text-gray-400">جاري تحميل المدارس...</p>
               </div>
             ) : schools.length === 0 ? (
               <div className="text-center py-8">
                 <School className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">لا توجد مدارس مسجلة بعد</p>
+                <p className="text-gray-500 dark:text-gray-400 mb-4">لا توجد مدارس مسجلة بعد</p>
                 <Button onClick={() => setShowCreateSchool(true)}>
                   <Plus className="h-4 w-4 ml-2" />
                   أضف أول مدرسة
@@ -682,7 +682,7 @@ export default function SuperAdminSimple() {
             ) : (
               <div className="space-y-3">
                 {schools.map((school: any) => (
-                  <div key={school.id} className="border rounded-lg p-3 bg-white">
+                  <div key={school.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
                         {school.logoUrl ? (
@@ -701,14 +701,14 @@ export default function SuperAdminSimple() {
                         )}
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                            <h3 className="text-sm font-medium">{school.name}</h3>
-                            <span className="text-xs text-gray-500">({school.code})</span>
+                            <h3 className="text-sm font-medium dark:text-white">{school.name}</h3>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">({school.code})</span>
                             <Badge variant="outline" className="text-xs px-1 py-0">
                               {school.userCount || 0}
                             </Badge>
                           </div>
                           {school.location && (
-                            <div className="text-xs text-gray-500 mt-1">{school.location}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{school.location}</div>
                           )}
                         </div>
                       </div>
@@ -754,7 +754,7 @@ export default function SuperAdminSimple() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                           onClick={() => handleDeleteSchool(school.id, school.name)}
                           disabled={deleteSchoolMutation.isPending}
                           title="حذف"
@@ -779,8 +779,8 @@ export default function SuperAdminSimple() {
             </CardHeader>
             <CardContent>
               {error && (
-                <Alert className="mb-4 border-red-500/50 bg-red-500/10">
-                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                <Alert className="mb-4 border-red-500/50 bg-red-500/10 dark:bg-red-500/20">
+                  <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
                 </Alert>
               )}
               
@@ -850,14 +850,14 @@ export default function SuperAdminSimple() {
                     onChange={handleLogoChange}
                     className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     يقبل ملفات الصور (JPG, PNG, SVG) - الحد الأقصى 2 ميجابايت
                   </p>
                   
                   {logoPreview && (
                     <div className="mt-3">
-                      <Label className="text-sm text-gray-600 mb-2 block">معاينة الشعار:</Label>
-                      <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                      <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">معاينة الشعار:</Label>
+                      <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
                         <img 
                           src={logoPreview} 
                           alt="معاينة شعار المدرسة" 
@@ -869,18 +869,18 @@ export default function SuperAdminSimple() {
                 </div>
 
                 {/* Access Keys Section */}
-                <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="space-y-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
                       <Key className="h-5 w-5 text-yellow-600" />
-                      <Label className="text-yellow-800 font-semibold">مفاتيح الوصول</Label>
+                      <Label className="text-yellow-800 dark:text-yellow-200 font-semibold">مفاتيح الوصول</Label>
                     </div>
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
                       onClick={generateKeys}
-                      className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                      className="text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-800/30"
                     >
                       <RefreshCw className="h-4 w-4 ml-2" />
                       توليد مفاتيح جديدة
@@ -967,7 +967,7 @@ export default function SuperAdminSimple() {
         {/* Access Keys Modal */}
         {selectedSchool && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-2xl">
+            <Card className="w-full max-w-2xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
