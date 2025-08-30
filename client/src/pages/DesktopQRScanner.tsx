@@ -1819,7 +1819,7 @@ function DesktopQRScanner() {
     
     // Create receipt data from payment information
     const receiptData = {
-      receiptId: payment.receiptId,
+      receiptId: payment.receiptId || `REC-${payment.id}-${Date.now()}`,
       studentName: scannedProfile?.name || 'غير محدد',
       paymentDate: payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
       amount: payment.amount || 0,
@@ -2802,17 +2802,15 @@ function DesktopQRScanner() {
                             <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                               مدفوع
                             </Badge>
-                            {payment.receiptId && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => reprintReceipt(payment)}
-                                className="h-6 px-2 text-xs"
-                                title="إعادة طباعة الإيصال"
-                              >
-                                <Printer className="h-3 w-3" />
-                              </Button>
-                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => reprintReceipt(payment)}
+                              className="h-6 px-2 text-xs"
+                              title="إعادة طباعة الإيصال"
+                            >
+                              <Printer className="h-3 w-3" />
+                            </Button>
                           </div>
                           {payment.paidAt && (
                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
