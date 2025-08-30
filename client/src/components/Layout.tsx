@@ -14,7 +14,7 @@ export function Layout({ children }: LayoutProps) {
         <DesktopSidebar />
         <div className="flex-1">
           <Header />
-          <main className="p-8 max-w-7xl mx-auto bg-white dark:bg-gray-900">
+          <main className="p-8 w-full bg-white dark:bg-gray-900">
             {children}
           </main>
         </div>
