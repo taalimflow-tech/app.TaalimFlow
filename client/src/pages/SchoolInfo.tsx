@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import imageCompression from 'browser-image-compression';
 
 interface SchoolInfo {
   id: number;
@@ -65,16 +66,35 @@ export default function SchoolInfo() {
     }
   }, [schoolInfo]);
 
-  // Handle logo file selection
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle logo file selection with compression
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogoPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Compress the image
+        const compressedFile = await imageCompression(file, {
+          maxSizeMB: 0.5, // 500KB max
+          maxWidthOrHeight: 800, // Max dimension 800px
+          useWebWorker: true,
+          initialQuality: 0.8
+        });
+        
+        setLogoFile(compressedFile);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setLogoPreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        console.error('Image compression error:', error);
+        // Fallback to original file if compression fails
+        setLogoFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setLogoPreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

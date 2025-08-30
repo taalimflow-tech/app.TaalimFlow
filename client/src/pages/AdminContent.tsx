@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import imageCompression from 'browser-image-compression';
 
 interface CreateFormData {
   title: string;
@@ -302,16 +303,35 @@ export default function AdminContent() {
     setShowForm(false);
   };
 
-  // Image upload handler
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image upload handler with compression
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Compress the image
+        const compressedFile = await imageCompression(file, {
+          maxSizeMB: 1, // 1MB max for content images
+          maxWidthOrHeight: 1200, // Max dimension 1200px
+          useWebWorker: true,
+          initialQuality: 0.8
+        });
+        
+        setImageFile(compressedFile);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        console.error('Image compression error:', error);
+        // Fallback to original file if compression fails
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

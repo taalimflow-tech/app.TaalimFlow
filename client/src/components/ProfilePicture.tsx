@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
 
 interface ProfilePictureProps {
   currentPicture?: string;
@@ -25,8 +26,16 @@ export function ProfilePicture({ currentPicture, userName, onUpdate }: ProfilePi
 
     setLoading(true);
     try {
+      // Compress the image before upload
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.3, // 300KB max for profile pictures
+        maxWidthOrHeight: 400, // Max dimension 400px for profile pics
+        useWebWorker: true,
+        initialQuality: 0.8
+      });
+
       const formData = new FormData();
-      formData.append('profilePicture', file);
+      formData.append('profilePicture', compressedFile);
 
       const response = await fetch('/api/profile/picture/upload', {
         method: 'POST',
@@ -45,6 +54,7 @@ export function ProfilePicture({ currentPicture, userName, onUpdate }: ProfilePi
         throw new Error('Failed to upload profile picture');
       }
     } catch (error) {
+      console.error('Profile picture upload/compression error:', error);
       toast({
         title: "خطأ",
         description: "فشل في رفع الصورة الشخصية",
