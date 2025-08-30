@@ -492,36 +492,36 @@ export default function GainLossCalculator() {
                   {filteredEntries.slice(0, 15).map((entry: FinancialEntry) => (
                   <div
                     key={entry.id}
-                    className={`p-5 rounded-xl border-2 shadow-sm hover:shadow-md transition-shadow ${
+                    className={`p-3 sm:p-4 rounded-lg border shadow-sm hover:shadow-md transition-shadow ${
                       entry.type === 'gain' 
                         ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700' 
                         : 'bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700'
                     }`}
                   >
                     {/* Header with amount and date */}
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className={`p-1.5 sm:p-2 rounded-full ${
                           entry.type === 'gain' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                         }`}>
                           {entry.type === 'gain' ? (
-                            <TrendingUp className="w-4 h-4" />
+                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                           ) : (
-                            <TrendingDown className="w-4 h-4" />
+                            <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />
                           )}
                         </div>
                         <div>
-                          <span className={`text-xl font-bold ${
+                          <span className={`text-lg sm:text-xl font-bold ${
                             entry.type === 'gain' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
                           }`}>
                             {entry.type === 'gain' ? '+' : '-'}{parseFloat(entry.amount).toLocaleString('ar-DZ')} دج
                           </span>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {entry.type === 'gain' ? 'ربح' : 'خسارة'}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right bg-white dark:bg-gray-800 px-3 py-1 rounded-lg">
+                      <div className="text-right bg-white dark:bg-gray-800 px-2 sm:px-3 py-1 rounded-lg">
                         <div className="text-xs text-gray-600 dark:text-gray-300 font-medium">
                           {new Date(entry.createdAt).toLocaleDateString('ar-DZ')}
                         </div>
@@ -535,7 +535,7 @@ export default function GainLossCalculator() {
                     </div>
 
                     {/* Payment Details */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-600">
                       {(() => {
                         // Parse payment receipt format: "إيصال دفع رقم: REC-XXX - الطالب: NAME - DETAILS"
                         const receiptMatch = entry.remarks.match(/إيصال دفع رقم: ([^-]+) - الطالب: ([^-]+) - (.+)/);
@@ -543,33 +543,33 @@ export default function GainLossCalculator() {
                         if (receiptMatch) {
                           const [, receiptId, studentName, paymentDetails] = receiptMatch;
                           return (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                               {/* Student Name */}
                               <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-lg">
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full"></div>
+                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-base sm:text-lg">
                                   {studentName.trim()}
                                 </span>
                               </div>
                               
                               {/* Receipt ID */}
                               <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full font-mono">
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full"></div>
+                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full font-mono">
                                   إيصال: {receiptId.trim()}
                                 </span>
                               </div>
                               
                               {/* Payment Details - Each subject on separate line */}
-                              <div className="space-y-2">
+                              <div className="space-y-1.5 sm:space-y-2">
                                 {(() => {
                                   // Parse payment details format: "Subject1 Group1 (months) - Subject2 Group2 (months)"
                                   const subjects = paymentDetails.trim().split(' - ');
                                   
                                   return subjects.map((subject, index) => (
                                     <div key={index} className="flex items-start gap-2">
-                                      <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                                      <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full mt-1 sm:mt-1.5"></div>
+                                      <div className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                                         {subject.trim()}
                                       </div>
                                     </div>
@@ -593,33 +593,33 @@ export default function GainLossCalculator() {
                           const studentName = studentPart.replace('الطالب: ', '').trim();
                           
                           return (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                               {/* Student Name */}
                               <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-lg">
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full"></div>
+                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-base sm:text-lg">
                                   {studentName}
                                 </span>
                               </div>
                               
                               {/* Receipt ID */}
                               <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full font-mono">
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full"></div>
+                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full font-mono">
                                   إيصال: {receiptId}
                                 </span>
                               </div>
                               
                               {/* Payment Details - Each subject on separate line */}
-                              <div className="space-y-2">
+                              <div className="space-y-1.5 sm:space-y-2">
                                 {(() => {
                                   // Split by " - " to separate different subjects
                                   const subjects = paymentPart.trim().split(' - ');
                                   
                                   return subjects.map((subject, index) => (
                                     <div key={index} className="flex items-start gap-2">
-                                      <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                                      <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full mt-1 sm:mt-1.5"></div>
+                                      <div className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                                         {subject.trim()}
                                       </div>
                                     </div>
@@ -632,7 +632,7 @@ export default function GainLossCalculator() {
                         
                         // Final fallback for completely different format
                         return (
-                          <div className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                          <div className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                             {entry.remarks}
                           </div>
                         );
