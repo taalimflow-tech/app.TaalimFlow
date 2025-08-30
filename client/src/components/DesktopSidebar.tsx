@@ -31,6 +31,7 @@ export function DesktopSidebar() {
 
   const baseNavItems: NavItem[] = [
     { icon: Home, label: 'الرئيسية', path: `${basePath}/home` || '/' },
+    { icon: Building2, label: 'حول المدرسة', path: `${basePath}/school-info` || '/school-info' },
     { icon: Calendar, label: 'الجدول الدراسي', path: `${basePath}/schedule` || '/schedule' },
     { icon: MessageCircle, label: 'المعلمين', path: `${basePath}/teachers` || '/teachers' },
     { icon: Mail, label: 'الرسائل', path: `${basePath}/messages` || '/messages' },
@@ -43,7 +44,6 @@ export function DesktopSidebar() {
   
   if (user?.role === 'admin') {
     roleSpecificItems = [
-      { icon: Building2, label: 'حول المدرسة', path: `${basePath}/school-info` || '/school-info' },
       { icon: Shield, label: 'لوحة الإدارة', path: `${basePath}/admin` || '/admin' },
       { icon: QrCode, label: 'الماسح المكتبي', path: `${basePath}/desktop-scanner` || '/desktop-scanner' },
       { icon: Calculator, label: 'الأرباح والخسائر', path: `${basePath}/gain-loss-calculator` || '/gain-loss-calculator' },
