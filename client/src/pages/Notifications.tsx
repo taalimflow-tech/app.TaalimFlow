@@ -123,9 +123,9 @@ export function Notifications() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ export function Notifications() {
               </Button>
               <div className="flex items-center gap-2">
                 <Bell className="w-6 h-6 text-purple-600" />
-                <h1 className="text-2xl font-bold text-gray-900">الإشعارات</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الإشعارات</h1>
               </div>
             </div>
             
@@ -165,14 +165,14 @@ export function Notifications() {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-gray-500">جاري تحميل الإشعارات...</p>
+              <p className="text-gray-500 dark:text-gray-400">جاري تحميل الإشعارات...</p>
             </div>
           </div>
         ) : notifications.length === 0 ? (
           <div className="text-center py-16">
             <Bell className="w-16 h-16 mx-auto mb-6 text-gray-300" />
-            <h3 className="text-xl font-medium text-gray-900 mb-2">لا توجد إشعارات</h3>
-            <p className="text-gray-500">ستظهر إشعاراتك هنا عند وصولها</p>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">لا توجد إشعارات</h3>
+            <p className="text-gray-500 dark:text-gray-400">ستظهر إشعاراتك هنا عند وصولها</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -180,7 +180,7 @@ export function Notifications() {
               <Card
                 key={notification.id}
                 className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                  !notification.read ? 'border-l-4 border-l-blue-500 bg-blue-50/50' : 'hover:bg-gray-50'
+                  !notification.read ? 'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
@@ -207,15 +207,15 @@ export function Notifications() {
                         )}
                       </div>
                       
-                      <h3 className="font-semibold text-gray-900 mb-2 text-base leading-6">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-base leading-6">
                         {notification.title}
                       </h3>
                       
-                      <p className="text-gray-700 mb-3 text-sm leading-5">
+                      <p className="text-gray-700 dark:text-gray-300 mb-3 text-sm leading-5">
                         {notification.message}
                       </p>
                       
-                      <p className="text-gray-500 text-xs">
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">
                         {new Date(notification.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
