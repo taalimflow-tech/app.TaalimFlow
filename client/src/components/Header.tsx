@@ -1,20 +1,44 @@
 
-import { Bell, Menu, LogOut, User, Settings, Sun, Moon } from 'lucide-react';
+import { Bell, Menu, LogOut, User, Settings, Sun, Moon, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 
 
 export function Header() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [location, navigate] = useLocation();
+  const [isShowingSettings, setIsShowingSettings] = useState(false);
+  const [previousLocation, setPreviousLocation] = useState('/');
 
 
   // Get school context from storage
   const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || 'null');
   const schoolCode = sessionStorage.getItem('schoolCode');
+
+  // Track location changes to store previous location
+  useEffect(() => {
+    if (!location.includes('/profile') && !location.includes('/notifications')) {
+      setPreviousLocation(location);
+      setIsShowingSettings(false);
+    }
+    if (location.includes('/profile') || location.includes('/notifications')) {
+      setIsShowingSettings(true);
+    }
+  }, [location]);
+
+  const handleMobileMenuClick = () => {
+    if (isShowingSettings) {
+      // Navigate back to previous page
+      navigate(previousLocation);
+    } else {
+      // Navigate to settings/profile
+      navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile');
+    }
+  };
 
   // Fetch unread notification count
   const { data: unreadCount = { count: 0 } } = useQuery<{ count: number }>({
@@ -27,10 +51,14 @@ export function Header() {
     <header className="bg-gradient-to-r from-white via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-40 shadow-sm backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
       <div className="lg:max-w-none lg:px-8 max-w-md mx-auto px-4 py-4 flex items-center justify-between">
         <button 
-          onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
+          onClick={handleMobileMenuClick}
           className="lg:hidden p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
-          <Menu className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          {isShowingSettings ? (
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          ) : (
+            <Settings className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          )}
         </button>
         
         {/* Desktop: Page title */}
