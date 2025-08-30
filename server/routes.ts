@@ -3193,6 +3193,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const course = await storage.createCourse(insertCourseData);
+      
+      // Send notification to all students and parents about the new course
+      try {
+        const { PushNotificationService } = await import("./push-service");
+        
+        const notificationPayload = {
+          title: "دورة جديدة متاحة!",
+          body: `دورة "${course.title}" متاحة الآن للتسجيل - بتاريخ ${course.courseDate} في ${course.courseTime}`,
+          type: "course_created",
+          data: {
+            courseId: course.id,
+            url: "/courses"
+          },
+          icon: "/icon-192x192.png",
+          tag: `course_${course.id}`,
+          requireInteraction: true
+        };
+
+        // Send to students and parents (exclude admin/teacher roles)
+        await PushNotificationService.sendToRoles(
+          schoolId,
+          ['student', 'parent'],
+          notificationPayload
+        );
+
+        console.log(`Course creation notification sent for course: ${course.title}`);
+      } catch (notificationError) {
+        console.error("Failed to send course creation notification:", notificationError);
+        // Don't fail the course creation if notification fails
+      }
+      
       res.json(course);
     } catch (error) {
       console.error("Course creation error:", error);

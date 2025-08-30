@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Layout } from "@/components/Layout";
 import { Toaster } from "@/components/ui/toaster";
+import { NotificationSoundService } from "@/lib/notificationSound";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/Login";
 import Home from "@/pages/Home";
@@ -196,6 +197,43 @@ function Router() {
 }
 
 function App() {
+  React.useEffect(() => {
+    // Initialize notification sound service
+    NotificationSoundService.init();
+
+    // Listen for service worker messages
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'PLAY_NOTIFICATION_SOUND') {
+        const { soundType } = event.data.payload;
+        
+        if (soundType === 'important') {
+          NotificationSoundService.playImportantNotificationSound();
+        } else {
+          NotificationSoundService.playNotificationSound();
+        }
+      }
+    };
+
+    // Register service worker message listener
+    navigator.serviceWorker?.addEventListener('message', handleMessage);
+
+    // Register service worker if not already registered
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered successfully:', registration);
+        })
+        .catch((error) => {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+
+    // Cleanup
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
