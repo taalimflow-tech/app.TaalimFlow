@@ -26,7 +26,13 @@ export default function Courses() {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [processingPayment, setProcessingPayment] = useState<{ [key: number]: boolean }>({});
   const [showManualRegistrationModal, setShowManualRegistrationModal] = useState(false);
+  const [showNewStudentRegistrationModal, setShowNewStudentRegistrationModal] = useState(false);
   const [selectedStudentForRegistration, setSelectedStudentForRegistration] = useState<any>(null);
+  const [newStudentData, setNewStudentData] = useState({
+    fullName: '',
+    phone: '',
+    email: ''
+  });
   
   const [courseData, setCourseData] = useState({
     title: '',
@@ -66,7 +72,7 @@ export default function Courses() {
 
   // Query for all students (for manual registration)
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['/api/students'],
+    queryKey: ['/api/qr-scanner/search'],
     enabled: !!user && !authLoading && user.role === 'admin',
   });
 
@@ -200,6 +206,7 @@ export default function Courses() {
       toast({ title: 'تم تسجيل الطالب بنجاح' });
       setShowManualRegistrationModal(false);
       setSelectedStudentForRegistration(null);
+      resetNewStudentForm();
       queryClient.invalidateQueries({ queryKey: ['/api/course-registrations'] });
     },
     onError: (error: any) => {
@@ -211,7 +218,7 @@ export default function Courses() {
     }
   });
 
-  // Handle manual student registration
+  // Handle manual student registration for existing students
   const handleManualRegistration = (student: any) => {
     if (!selectedCourseForView) return;
 
@@ -227,6 +234,41 @@ export default function Courses() {
     };
 
     manualRegistrationMutation.mutate(registrationData);
+  };
+
+  // Handle new student registration (without user account)
+  const handleNewStudentRegistration = () => {
+    if (!selectedCourseForView || !newStudentData.fullName || !newStudentData.phone) {
+      toast({
+        title: 'بيانات ناقصة',
+        description: 'الاسم الكامل ورقم الهاتف مطلوبان',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const registrationData = {
+      courseId: selectedCourseForView.id,
+      registrantType: 'self',
+      fullName: newStudentData.fullName,
+      phone: newStudentData.phone,
+      email: newStudentData.email || '',
+      childId: null,
+      childName: null,
+      childAge: null,
+    };
+
+    manualRegistrationMutation.mutate(registrationData);
+  };
+
+  // Reset new student form
+  const resetNewStudentForm = () => {
+    setNewStudentData({
+      fullName: '',
+      phone: '',
+      email: ''
+    });
+    setShowNewStudentRegistrationModal(false);
   };
 
   // Get available students for manual registration (exclude already registered)
@@ -1298,14 +1340,24 @@ export default function Courses() {
                             <span className="font-medium">عدد التسجيلات: {courseRegs.length}</span>
                           </div>
                           {user?.role === 'admin' && (
-                            <Button
-                              onClick={() => setShowManualRegistrationModal(true)}
-                              size="sm"
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                              <Plus className="w-4 h-4 ml-1" />
-                              تسجيل طالب يدوياً
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => setShowManualRegistrationModal(true)}
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                <Users className="w-4 h-4 ml-1" />
+                                تسجيل طالب مسجل
+                              </Button>
+                              <Button
+                                onClick={() => setShowNewStudentRegistrationModal(true)}
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                <Plus className="w-4 h-4 ml-1" />
+                                إضافة طالب جديد
+                              </Button>
+                            </div>
                           )}
                         </div>
                         
@@ -1429,14 +1481,24 @@ export default function Courses() {
                         <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-500 mb-4">لا توجد تسجيلات لهذه الدورة حتى الآن</p>
                         {user?.role === 'admin' && (
-                          <Button
-                            onClick={() => setShowManualRegistrationModal(true)}
-                            size="sm"
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                          >
-                            <Plus className="w-4 h-4 ml-1" />
-                            تسجيل طالب يدوياً
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => setShowManualRegistrationModal(true)}
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              <Users className="w-4 h-4 ml-1" />
+                              تسجيل طالب مسجل
+                            </Button>
+                            <Button
+                              onClick={() => setShowNewStudentRegistrationModal(true)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              <Plus className="w-4 h-4 ml-1" />
+                              إضافة طالب جديد
+                            </Button>
+                          </div>
                         )}
                       </div>
                     );
@@ -1554,6 +1616,110 @@ export default function Courses() {
                 variant="outline"
               >
                 إغلاق
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Student Registration Modal */}
+      {showNewStudentRegistrationModal && selectedCourseForView && user?.role === 'admin' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold dark:text-white flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                إضافة طالب جديد
+              </h2>
+              <button
+                onClick={resetNewStudentForm}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-600 dark:text-blue-400">
+                الدورة: {selectedCourseForView.title}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="fullName" className="block text-sm font-medium mb-1">
+                  الاسم الكامل *
+                </Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={newStudentData.fullName}
+                  onChange={(e) => setNewStudentData(prev => ({
+                    ...prev,
+                    fullName: e.target.value
+                  }))}
+                  placeholder="أدخل الاسم الكامل للطالب"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone" className="block text-sm font-medium mb-1">
+                  رقم الهاتف *
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={newStudentData.phone}
+                  onChange={(e) => setNewStudentData(prev => ({
+                    ...prev,
+                    phone: e.target.value
+                  }))}
+                  placeholder="أدخل رقم الهاتف"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email" className="block text-sm font-medium mb-1">
+                  البريد الإلكتروني (اختياري)
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newStudentData.email}
+                  onChange={(e) => setNewStudentData(prev => ({
+                    ...prev,
+                    email: e.target.value
+                  }))}
+                  placeholder="أدخل البريد الإلكتروني"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t flex justify-end gap-2">
+              <Button
+                onClick={resetNewStudentForm}
+                variant="outline"
+              >
+                إلغاء
+              </Button>
+              <Button
+                onClick={handleNewStudentRegistration}
+                disabled={manualRegistrationMutation.isPending || !newStudentData.fullName || !newStudentData.phone}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {manualRegistrationMutation.isPending ? (
+                  <>
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-1"></div>
+                    جاري التسجيل...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 ml-1" />
+                    تسجيل الطالب
+                  </>
+                )}
               </Button>
             </div>
           </div>
