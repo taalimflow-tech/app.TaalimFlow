@@ -1813,9 +1813,28 @@ function DesktopQRScanner() {
     return methods[method as keyof typeof methods] || method;
   };
 
-  const reprintReceipt = (payment: any) => {
+  const reprintReceipt = async (payment: any) => {
     // Get school information from localStorage
     const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || 'null');
+    
+    // Find group information using groupId
+    let groupInfo = { name: payment.notes || 'مجموعة غير محددة', subjectName: 'مادة غير محددة' };
+    
+    if (payment.groupId || (payment as any).groupId) {
+      const groupId = payment.groupId || (payment as any).groupId;
+      try {
+        // Find the group in availableGroups (already loaded)
+        const foundGroup = availableGroups.find((g: any) => g.id === groupId);
+        if (foundGroup) {
+          groupInfo = {
+            name: foundGroup.name,
+            subjectName: foundGroup.subjectName || foundGroup.nameAr || foundGroup.name
+          };
+        }
+      } catch (error) {
+        console.log('Could not fetch group info, using fallback');
+      }
+    }
     
     // Create receipt data from payment information
     const receiptData = {
@@ -1824,8 +1843,8 @@ function DesktopQRScanner() {
       paymentDate: payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
       amount: parseFloat(payment.amount) || 0,
       groups: [{
-        groupName: payment.notes || 'مجموعة غير محددة',
-        subjectName: payment.notes || 'مادة غير محددة',
+        groupName: groupInfo.name,
+        subjectName: groupInfo.subjectName,
         months: [getMonthName(payment.month, payment.year)]
       }]
     };
