@@ -1472,7 +1472,7 @@ export default function Courses() {
                         <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-500 mb-4">لا توجد تسجيلات لهذه الدورة حتى الآن</p>
                         {user?.role === 'admin' && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 justify-center">
                             <Button
                               onClick={() => setShowManualRegistrationModal(true)}
                               size="sm"
