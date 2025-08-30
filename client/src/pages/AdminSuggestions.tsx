@@ -66,7 +66,7 @@ export default function AdminSuggestions() {
     <div className="px-4 py-6">
       <div className="flex items-center gap-2 mb-6">
         <Lightbulb className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-bold text-gray-800">الاقتراحات المقدمة</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">الاقتراحات المقدمة</h2>
       </div>
 
       {isLoading ? (
@@ -77,8 +77,8 @@ export default function AdminSuggestions() {
         <Card>
           <CardContent className="p-8 text-center">
             <Lightbulb className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium text-gray-800 mb-2">لا توجد اقتراحات</h3>
-            <p className="text-gray-500">لم يتم تقديم أي اقتراحات حتى الآن</p>
+            <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">لا توجد اقتراحات</h3>
+            <p className="text-gray-500 dark:text-gray-400">لم يتم تقديم أي اقتراحات حتى الآن</p>
           </CardContent>
         </Card>
       ) : (
@@ -88,7 +88,7 @@ export default function AdminSuggestions() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-gray-800 mb-2">
+                    <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
                       {suggestion.title}
                     </CardTitle>
                     <div className="flex items-center gap-2 mb-2">
@@ -112,11 +112,11 @@ export default function AdminSuggestions() {
               </CardHeader>
               
               <CardContent>
-                <p className="text-gray-600 mb-4 leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
                   {suggestion.content}
                 </p>
                 
-                <div className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                   <span>
                     تاريخ التقديم: {new Date(suggestion.createdAt).toLocaleDateString('en-US')}
                   </span>
