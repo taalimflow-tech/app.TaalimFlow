@@ -1,7 +1,7 @@
 {
-  "name": "مدرستي - منصة التعلم الذكية",
-  "short_name": "مدرستي",
-  "description": "منصة تعليمية متكاملة للمدارس ومراكز التدريب الخاصة",
+  "name": "مدرستي - TaalimFlow",
+  "short_name": "TaalimFlow",
+  "description": "TaalimFlow - منصة تعليمية متكاملة للمدارس ومراكز التدريب الخاصة",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAFAFA",

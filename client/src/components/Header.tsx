@@ -98,7 +98,7 @@ export function Header() {
             <h1 className="text-lg font-bold text-gray-800 dark:text-gray-200">
               {selectedSchool?.name || 'مدرستي'}
             </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">منصة التعلم الذكية</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">TaalimFlow</p>
           </div>
         </div>
         

@@ -445,7 +445,7 @@ export default function Login() {
                 {validSchool ? validSchool.name : 'مدرستي'}
               </CardTitle>
               <CardDescription>
-                {validSchool ? 'منصة المدرسة الإلكترونية' : 'منصة التعلم الذكية'}
+                {validSchool ? 'منصة المدرسة الإلكترونية' : 'TaalimFlow'}
               </CardDescription>
               
               {!validSchool && (

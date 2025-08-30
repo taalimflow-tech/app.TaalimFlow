@@ -37,7 +37,7 @@ export default function PublicHome() {
             نظام إدارة المدارس
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            منصة تعليمية متكاملة تربط الطلاب وأولياء الأمور والمعلمين والإدارة في بيئة تعليمية حديثة
+            TaalimFlow - منصة تعليمية متكاملة تربط الطلاب وأولياء الأمور والمعلمين والإدارة في بيئة تعليمية حديثة
           </p>
           <Button 
             size="lg" 
