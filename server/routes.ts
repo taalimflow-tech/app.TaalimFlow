@@ -3582,6 +3582,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get detailed school information for editing (Admin only)
+  app.get("/api/school/info", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      if (req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      if (!req.session.user.schoolId) {
+        return res.status(404).json({ error: "لا توجد مدرسة مرتبطة بالحساب" });
+      }
+
+      const school = await storage.getSchoolById(req.session.user.schoolId);
+
+      if (!school) {
+        return res.status(404).json({ error: "لم يتم العثور على بيانات المدرسة" });
+      }
+
+      res.json({
+        id: school.id,
+        name: school.name,
+        wilaya: school.location || '',
+        fullAddress: school.fullAddress || '',
+        adminPhone: school.adminPhone || '',
+        schoolEmail: school.schoolEmail || '',
+        website: school.website || '',
+        logoUrl: school.logoUrl || ''
+      });
+    } catch (error) {
+      console.error("Error getting school info:", error);
+      res.status(500).json({ error: "فشل في جلب معلومات المدرسة" });
+    }
+  });
+
+  // Update school information (Admin only)
+  app.put("/api/school/info", async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      if (req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      if (!req.session.user.schoolId) {
+        return res.status(404).json({ error: "لا توجد مدرسة مرتبطة بالحساب" });
+      }
+
+      const { name, wilaya, fullAddress, adminPhone, schoolEmail, website, logoUrl } = req.body;
+
+      if (!name || name.trim() === '') {
+        return res.status(400).json({ error: "اسم المدرسة مطلوب" });
+      }
+
+      const updatedSchool = await storage.updateSchool(req.session.user.schoolId, {
+        name: name.trim(),
+        location: wilaya || '',
+        logoUrl: logoUrl || '',
+        fullAddress: fullAddress || '',
+        adminPhone: adminPhone || '',
+        schoolEmail: schoolEmail || '',
+        website: website || ''
+      } as any);
+
+      res.json({
+        message: "تم تحديث معلومات المدرسة بنجاح",
+        school: updatedSchool
+      });
+    } catch (error) {
+      console.error("Error updating school info:", error);
+      res.status(500).json({ error: "فشل في تحديث معلومات المدرسة" });
+    }
+  });
+
   app.post("/api/notifications/:id/read", async (req, res) => {
     try {
       if (!req.session?.user) {
@@ -3608,6 +3686,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res
         .status(500)
         .json({ error: "Failed to mark all notifications as read" });
+    }
+  });
+
+  // School logo upload endpoint (Admin only)
+  app.post("/api/upload/school-logo", upload.single('logo'), async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
+      }
+
+      if (req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "لم يتم رفع أي ملف" });
+      }
+
+      // Create URL for the uploaded logo
+      const logoUrl = `/uploads/${req.file.filename}`;
+
+      res.json({
+        message: "تم رفع شعار المدرسة بنجاح",
+        logoUrl: logoUrl,
+      });
+    } catch (error) {
+      console.error("Error uploading school logo:", error);
+      res.status(500).json({ error: "فشل في رفع شعار المدرسة" });
     }
   });
 

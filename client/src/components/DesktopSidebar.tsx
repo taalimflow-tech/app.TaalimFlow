@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator, Bell, CreditCard } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator, Bell, CreditCard, Building2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -43,6 +43,7 @@ export function DesktopSidebar() {
   
   if (user?.role === 'admin') {
     roleSpecificItems = [
+      { icon: Building2, label: 'حول المدرسة', path: `${basePath}/school-info` || '/school-info' },
       { icon: Shield, label: 'لوحة الإدارة', path: `${basePath}/admin` || '/admin' },
       { icon: QrCode, label: 'الماسح المكتبي', path: `${basePath}/desktop-scanner` || '/desktop-scanner' },
       { icon: Calculator, label: 'الأرباح والخسائر', path: `${basePath}/gain-loss-calculator` || '/gain-loss-calculator' },

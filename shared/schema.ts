@@ -19,6 +19,10 @@ export const schools = pgTable("schools", {
   code: text("code").notNull().unique(), // URL-friendly school identifier
   domain: text("domain"), // Optional custom domain
   location: text("location"), // Wilaya location (Algerian province)
+  fullAddress: text("full_address"), // Complete address
+  adminPhone: text("admin_phone"), // Admin contact phone
+  schoolEmail: text("school_email"), // School email address
+  website: text("website"), // School website URL
   adminKey: text("admin_key").notNull(), // Secret key for admin registration
   teacherKey: text("teacher_key").notNull(), // Secret key for teacher registration
   logoUrl: text("logo_url"),
@@ -749,6 +753,10 @@ export const insertSchoolSchema = createInsertSchema(schools).pick({
   code: true,
   domain: true,
   location: true,
+  fullAddress: true,
+  adminPhone: true,
+  schoolEmail: true,
+  website: true,
   adminKey: true,
   teacherKey: true,
   logoUrl: true,
