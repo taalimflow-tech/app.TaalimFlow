@@ -256,6 +256,7 @@ export default function Courses() {
       childId: null,
       childName: null,
       childAge: null,
+      isNewStudent: true, // Flag to indicate this is a new student without an account
     };
 
     manualRegistrationMutation.mutate(registrationData);
@@ -1370,16 +1371,8 @@ export default function Courses() {
                                   <div>
                                     <p className="font-medium">{registration.fullName}</p>
                                     <p className="text-sm text-gray-500">
-                                      {registration.registrantType === 'child' ? 'طفل' : 'مباشر'}
+                                      {registration.registrantType === 'child' ? 'طفل' : registration.fullName}
                                     </p>
-                                  </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <Users className="w-4 h-4 text-blue-500" />
-                                  <div>
-                                    <p className="font-medium">{registration.userName || 'غير محدد'}</p>
-                                    <p className="text-sm text-gray-500">اسم المستخدم</p>
                                   </div>
                                 </div>
                                 

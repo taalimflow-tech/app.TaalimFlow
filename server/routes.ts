@@ -3256,10 +3256,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "المستخدم غير مرتبط بمدرسة محددة" });
       }
 
+      // For new students without accounts, don't assign userId
       const registrationData = {
         ...req.body,
         schoolId,
-        userId,
+        userId: req.body.isNewStudent ? null : userId,
       };
 
       const registration = await storage.createCourseRegistration(registrationData);

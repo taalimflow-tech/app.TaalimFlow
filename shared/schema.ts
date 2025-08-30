@@ -414,8 +414,7 @@ export const courseRegistrations = pgTable("course_registrations", {
     .notNull(),
   courseId: integer("course_id").references(() => courses.id),
   userId: integer("user_id")
-    .references(() => users.id)
-    .notNull(), // Registering user (student or parent)
+    .references(() => users.id), // Registering user (student or parent) - null for new students without accounts
   registrantType: text("registrant_type", {
     enum: ["self", "child"],
   }).notNull(), // self for students, child for parents
