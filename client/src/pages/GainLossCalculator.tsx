@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Minus, RotateCcw, Calculator, TrendingUp, TrendingDown, Filter } from 'lucide-react';
+import { Plus, Minus, RotateCcw, Calculator, TrendingUp, TrendingDown, Filter, User, Receipt, BookOpen, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -549,8 +549,8 @@ export default function GainLossCalculator() {
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
                           const allTags = [
-                            { label: 'الطالب', value: studentName.trim(), color: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' },
-                            { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+                            { label: 'الطالب', value: studentName.trim(), color: 'bg-gradient-to-r from-blue-500 to-purple-600 text-white', icon: 'User' },
+                            { label: 'رقم الإيصال', value: receiptId.trim(), color: 'bg-gradient-to-r from-gray-600 to-gray-800 text-white', icon: 'Receipt' },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               let displayText = subjectText;
@@ -560,18 +560,22 @@ export default function GainLossCalculator() {
                                   displayText = subjectText.replace(month, `${month} ${currentYear}`);
                                 }
                               });
-                              return { label: '', value: displayText, color: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' };
+                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white', icon: 'BookOpen' };
                             })
                           ];
                           
                           return (
                             <div className="flex flex-wrap gap-1">
-                              {allTags.map((tag, index) => (
-                                <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${tag.color}`}>
-                                  {tag.label && <span className="opacity-70">{tag.label}:</span>}
-                                  <span>{tag.value}</span>
-                                </div>
-                              ))}
+                              {allTags.map((tag, index) => {
+                                const IconComponent = tag.icon === 'User' ? User : tag.icon === 'Receipt' ? Receipt : BookOpen;
+                                return (
+                                  <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm ${tag.color}`}>
+                                    <IconComponent className="w-3 h-3" />
+                                    {tag.label && <span className="opacity-90">{tag.label}:</span>}
+                                    <span>{tag.value}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           );
                         }
@@ -594,8 +598,8 @@ export default function GainLossCalculator() {
                                              'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                           
                           const allTags = [
-                            { label: 'الطالب', value: studentName, color: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' },
-                            { label: 'رقم الإيصال', value: receiptId, color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+                            { label: 'الطالب', value: studentName, color: 'bg-gradient-to-r from-blue-500 to-purple-600 text-white', icon: 'User' },
+                            { label: 'رقم الإيصال', value: receiptId, color: 'bg-gradient-to-r from-gray-600 to-gray-800 text-white', icon: 'Receipt' },
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               let displayText = subjectText;
@@ -605,25 +609,30 @@ export default function GainLossCalculator() {
                                   displayText = subjectText.replace(month, `${month} ${currentYear}`);
                                 }
                               });
-                              return { label: '', value: displayText, color: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' };
+                              return { label: '', value: displayText, color: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white', icon: 'BookOpen' };
                             })
                           ];
                           
                           return (
                             <div className="flex flex-wrap gap-1">
-                              {allTags.map((tag, index) => (
-                                <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${tag.color}`}>
-                                  {tag.label && <span className="opacity-70">{tag.label}:</span>}
-                                  <span>{tag.value}</span>
-                                </div>
-                              ))}
+                              {allTags.map((tag, index) => {
+                                const IconComponent = tag.icon === 'User' ? User : tag.icon === 'Receipt' ? Receipt : BookOpen;
+                                return (
+                                  <div key={index} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm ${tag.color}`}>
+                                    <IconComponent className="w-3 h-3" />
+                                    {tag.label && <span className="opacity-90">{tag.label}:</span>}
+                                    <span>{tag.value}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           );
                         }
                         
                         // Final fallback for completely different format
                         return (
-                          <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm bg-gradient-to-r from-orange-500 to-red-600 text-white">
+                            <FileText className="w-3 h-3" />
                             {entry.remarks}
                           </div>
                         );
