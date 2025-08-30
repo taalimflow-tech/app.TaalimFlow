@@ -1822,7 +1822,7 @@ function DesktopQRScanner() {
       receiptId: payment.receiptId || `REC-${payment.id}-${Date.now()}`,
       studentName: scannedProfile?.name || 'غير محدد',
       paymentDate: payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
-      amount: payment.amount || 0,
+      amount: parseFloat(payment.amount) || 0,
       groups: [{
         groupName: payment.notes || 'مجموعة غير محددة',
         subjectName: payment.subjectName || 'مادة غير محددة',
