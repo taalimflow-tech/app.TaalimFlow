@@ -970,13 +970,17 @@ export default function Courses() {
               
               <div>
                 <Label htmlFor="price">السعر</Label>
-                <Input
-                  id="price"
-                  value={courseData.price}
-                  onChange={(e) => setCourseData({ ...courseData, price: e.target.value })}
-                  placeholder="مثال: 5000 دج"
-                  className="text-right"
-                />
+                <div className="relative">
+                  <Input
+                    id="price"
+                    type="number"
+                    value={courseData.price}
+                    onChange={(e) => setCourseData({ ...courseData, price: e.target.value })}
+                    placeholder="5000"
+                    className="text-right pl-10"
+                  />
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">دج</span>
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -1214,7 +1218,7 @@ export default function Courses() {
                   <strong>الوصف:</strong> {selectedCourse.description}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                  <strong>السعر:</strong> {selectedCourse.price}
+                  <strong>السعر:</strong> {selectedCourse.price} دج
                 </p>
                 {selectedCourse.duration && (
                   <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
@@ -1297,7 +1301,7 @@ export default function Courses() {
                     <strong>الوقت:</strong> {selectedCourseForView.courseTime}
                   </p>
                   <p className="text-gray-600 dark:text-gray-300">
-                    <strong>السعر:</strong> {selectedCourseForView.price}
+                    <strong>السعر:</strong> {selectedCourseForView.price} دج
                   </p>
                 </div>
                 <div>
