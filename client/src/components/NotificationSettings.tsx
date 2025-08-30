@@ -212,6 +212,17 @@ export default function NotificationSettings() {
                 <AlertDescription>
                   تم رفض صلاحية الإشعارات. يرجى تفعيلها من إعدادات المتصفح للموقع.
                 </AlertDescription>
+                <div className="mt-3">
+                  <Button
+                    onClick={handleEnableNotifications}
+                    disabled={isLoading}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    طلب الصلاحية
+                  </Button>
+                </div>
               </Alert>
             )}
           </div>
