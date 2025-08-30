@@ -591,7 +591,7 @@ export default function SuperAdminSimple() {
                 <Shield className="h-8 w-8 text-green-600" />
                 <div>
                   <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">نظام إدارة المدارس جاهز!</h3>
-                  <p className="text-green-700 dark:text-green-200"
+                  <p className="text-green-700 dark:text-green-200">
                     تم تنفيذ نظام إدارة متعدد المدارس بالكامل مع فصل البيانات الكامل بين المدارس
                   </p>
                 </div>
