@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw, BarChart } from "lucide-react";
+import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw, BarChart, CreditCard } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -36,7 +36,13 @@ export default function SuperAdminSimple() {
   const [selectedSchool, setSelectedSchool] = useState(null);
   const [showKeysModal, setShowKeysModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [editingKeys, setEditingKeys] = useState({ adminKey: '', teacherKey: '' });
+  const [subscriptionData, setSubscriptionData] = useState({
+    subscriptionExpiry: '',
+    subscriptionStatus: 'active',
+    subscriptionNotes: ''
+  });
   const queryClient = useQueryClient();
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
@@ -144,6 +150,40 @@ export default function SuperAdminSimple() {
     },
     onError: (error: any) => {
       setError(error.message || "فشل في تحديث مفاتيح الوصول");
+    }
+  });
+
+  // Update school subscription mutation
+  const updateSubscriptionMutation = useMutation({
+    mutationFn: ({ schoolId, subscriptionData }: { 
+      schoolId: number, 
+      subscriptionData: { 
+        subscriptionExpiry?: string; 
+        subscriptionStatus?: string; 
+        subscriptionNotes?: string; 
+      } 
+    }) => {
+      const payload = {
+        subscriptionExpiry: subscriptionData.subscriptionExpiry ? new Date(subscriptionData.subscriptionExpiry) : null,
+        subscriptionStatus: subscriptionData.subscriptionStatus,
+        subscriptionNotes: subscriptionData.subscriptionNotes,
+        subscriptionLastUpdated: new Date(),
+        subscriptionUpdatedBy: user?.id
+      };
+      return apiRequest('PATCH', `/api/super-admin/schools/${schoolId}/subscription`, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/schools'] });
+      setShowSubscriptionModal(false);
+      setSelectedSchool(null);
+      setSubscriptionData({
+        subscriptionExpiry: '',
+        subscriptionStatus: 'active',
+        subscriptionNotes: ''
+      });
+    },
+    onError: (error: any) => {
+      setError(error.message || "فشل في تحديث بيانات الاشتراك");
     }
   });
 
@@ -739,6 +779,24 @@ export default function SuperAdminSimple() {
                           title="مفاتيح"
                         >
                           <Key className="h-3 w-3" />
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={() => {
+                            setSelectedSchool(school);
+                            setSubscriptionData({
+                              subscriptionExpiry: school.subscriptionExpiry ? new Date(school.subscriptionExpiry).toISOString().split('T')[0] : '',
+                              subscriptionStatus: school.subscriptionStatus || 'active',
+                              subscriptionNotes: school.subscriptionNotes || ''
+                            });
+                            setShowSubscriptionModal(true);
+                          }}
+                          title="إدارة الاشتراك"
+                        >
+                          <CreditCard className="h-3 w-3" />
                         </Button>
                         
                         <Button
@@ -1343,6 +1401,151 @@ export default function SuperAdminSimple() {
                         disabled={updateKeysMutation.isPending}
                       >
                         {updateKeysMutation.isPending ? 'جاري التحديث...' : 'تحديث المفاتيح'}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription Management Modal */}
+        {showSubscriptionModal && selectedSchool && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-3 rtl:space-x-reverse">
+                    <CreditCard className="h-6 w-6 text-blue-600" />
+                    <span>إدارة اشتراك - {selectedSchool.name}</span>
+                  </CardTitle>
+                  <CardDescription>
+                    تحديث تفاصيل اشتراك المدرسة وتاريخ انتهاء الصلاحية
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {error && (
+                    <Alert className="border-red-500/50 bg-red-500/10 dark:bg-red-500/20">
+                      <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    updateSubscriptionMutation.mutate({
+                      schoolId: selectedSchool.id,
+                      subscriptionData
+                    });
+                  }} className="space-y-4">
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="subscription-expiry">تاريخ انتهاء الاشتراك</Label>
+                      <Input
+                        id="subscription-expiry"
+                        type="date"
+                        value={subscriptionData.subscriptionExpiry}
+                        onChange={(e) => setSubscriptionData({
+                          ...subscriptionData, 
+                          subscriptionExpiry: e.target.value
+                        })}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        اترك فارغًا إذا كان الاشتراك مفتوحًا بدون تاريخ انتهاء
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="subscription-status">حالة الاشتراك</Label>
+                      <Select
+                        value={subscriptionData.subscriptionStatus}
+                        onValueChange={(value) => setSubscriptionData({
+                          ...subscriptionData, 
+                          subscriptionStatus: value
+                        })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر حالة الاشتراك" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">نشط</SelectItem>
+                          <SelectItem value="expired">منتهي الصلاحية</SelectItem>
+                          <SelectItem value="suspended">معلق</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="subscription-notes">ملاحظات إدارية</Label>
+                      <Input
+                        id="subscription-notes"
+                        type="text"
+                        value={subscriptionData.subscriptionNotes}
+                        onChange={(e) => setSubscriptionData({
+                          ...subscriptionData, 
+                          subscriptionNotes: e.target.value
+                        })}
+                        placeholder="ملاحظات حول الاشتراك (اختياري)"
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        ملاحظات خاصة بالإدارة العليا حول اشتراك هذه المدرسة
+                      </p>
+                    </div>
+
+                    {/* Current subscription info */}
+                    {selectedSchool.subscriptionExpiry && (
+                      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">معلومات الاشتراك الحالي:</h4>
+                        <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                          <p><strong>تاريخ الانتهاء:</strong> {new Date(selectedSchool.subscriptionExpiry).toLocaleDateString('ar-EG')}</p>
+                          <p><strong>الحالة:</strong> {selectedSchool.subscriptionStatus === 'active' ? 'نشط' : 
+                                                      selectedSchool.subscriptionStatus === 'expired' ? 'منتهي الصلاحية' : 
+                                                      selectedSchool.subscriptionStatus === 'suspended' ? 'معلق' : 
+                                                      selectedSchool.subscriptionStatus}</p>
+                          {selectedSchool.subscriptionNotes && (
+                            <p><strong>الملاحظات:</strong> {selectedSchool.subscriptionNotes}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                        <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-yellow-600 text-sm font-bold">!</span>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-yellow-800 dark:text-yellow-200">ملاحظة هامة:</h4>
+                          <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                            ستظهر تحديثات الاشتراك فورًا لإدارة المدرسة. سيتم إرسال تنبيهات تلقائية عند اقتراب انتهاء الاشتراك (7 أيام).
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowSubscriptionModal(false);
+                          setSelectedSchool(null);
+                          setSubscriptionData({
+                            subscriptionExpiry: '',
+                            subscriptionStatus: 'active',
+                            subscriptionNotes: ''
+                          });
+                        }}
+                      >
+                        إلغاء
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={updateSubscriptionMutation.isPending}
+                      >
+                        {updateSubscriptionMutation.isPending ? 'جاري التحديث...' : 'تحديث الاشتراك'}
                       </Button>
                     </div>
                   </form>
