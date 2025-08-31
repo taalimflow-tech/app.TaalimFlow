@@ -278,8 +278,6 @@ export default function SchoolInfo() {
                     />
                   </div>
                 </div>
-              </div>
-            </div>
 
                 {/* Address */}
                 <div>
@@ -292,7 +290,6 @@ export default function SchoolInfo() {
                     className="mt-2"
                   />
                 </div>
-            </div>
 
                 {/* Contact Information */}
                 <div className="grid md:grid-cols-2 gap-6">
@@ -318,8 +315,6 @@ export default function SchoolInfo() {
                     />
                   </div>
                 </div>
-              </div>
-            </div>
 
                 {/* Website */}
                 <div>
@@ -333,7 +328,6 @@ export default function SchoolInfo() {
                     className="mt-2"
                   />
                 </div>
-            </div>
 
                 {/* Submit Button - Only for admins */}
                 <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
