@@ -253,140 +253,86 @@ export default function SchoolInfo() {
                   />
                   <p className="text-xs text-gray-500 mt-2">اختر صورة لشعار المدرسة (PNG, JPG)</p>
                 </div>
-            ) : (
-              /* Non-admin: Read-only Content */
-              <div className="space-y-6">
-                {/* Read-only Logo Display */}
-                <div className="text-center">
-                  <Label className="text-base font-medium block mb-4">شعار المدرسة</Label>
-                  <div className="mb-4">
-                    {logoPreview ? (
-                      <img 
-                        src={logoPreview} 
-                        alt="School Logo" 
-                        className="w-32 h-32 object-contain mx-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2"
-                      />
-                    ) : (
-                      <div className="w-32 h-32 mx-auto rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
-                        <Camera className="w-8 h-8 text-gray-400" />
-                      </div>
-                    )}
+
+                {/* Admin: Basic Information - Editable */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="name" className="text-base font-medium">اسم المدرسة</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="أدخل اسم المدرسة"
+                      className="mt-2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="wilaya" className="text-base font-medium">الولاية</Label>
+                    <Input
+                      id="wilaya"
+                      value={formData.wilaya}
+                      onChange={(e) => setFormData({ ...formData, wilaya: e.target.value })}
+                      placeholder="أدخل اسم الولاية"
+                      className="mt-2"
+                    />
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Basic Information */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="name" className="text-base font-medium">اسم المدرسة</Label>
-                {user.role === 'admin' ? (
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="أدخل اسم المدرسة"
-                    className="mt-2"
-                    required
-                  />
-                ) : (
-                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                    <span className="text-gray-900 dark:text-gray-100">{formData.name || 'غير محدد'}</span>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="wilaya" className="text-base font-medium">الولاية</Label>
-                {user.role === 'admin' ? (
-                  <Input
-                    id="wilaya"
-                    value={formData.wilaya}
-                    onChange={(e) => setFormData({ ...formData, wilaya: e.target.value })}
-                    placeholder="أدخل اسم الولاية"
-                    className="mt-2"
-                  />
-                ) : (
-                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                    <span className="text-gray-900 dark:text-gray-100">{formData.wilaya || 'غير محدد'}</span>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* Address */}
-            <div>
-              <Label htmlFor="fullAddress" className="text-base font-medium">العنوان الكامل</Label>
-              {user.role === 'admin' ? (
-                <Input
-                  id="fullAddress"
-                  value={formData.fullAddress}
-                  onChange={(e) => setFormData({ ...formData, fullAddress: e.target.value })}
-                  placeholder="أدخل العنوان الكامل للمدرسة"
-                  className="mt-2"
-                />
-              ) : (
-                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-900 dark:text-gray-100">{formData.fullAddress || 'غير محدد'}</span>
+                {/* Address */}
+                <div>
+                  <Label htmlFor="fullAddress" className="text-base font-medium">العنوان الكامل</Label>
+                  <Input
+                    id="fullAddress"
+                    value={formData.fullAddress}
+                    onChange={(e) => setFormData({ ...formData, fullAddress: e.target.value })}
+                    placeholder="أدخل العنوان الكامل للمدرسة"
+                    className="mt-2"
+                  />
                 </div>
-              )}
             </div>
 
-            {/* Contact Information */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="adminPhone" className="text-base font-medium">هاتف الإدارة</Label>
-                {user.role === 'admin' ? (
-                  <Input
-                    id="adminPhone"
-                    value={formData.adminPhone}
-                    onChange={(e) => setFormData({ ...formData, adminPhone: e.target.value })}
-                    placeholder="رقم هاتف إدارة المدرسة"
-                    className="mt-2"
-                  />
-                ) : (
-                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                    <span className="text-gray-900 dark:text-gray-100">{formData.adminPhone || 'غير محدد'}</span>
+                {/* Contact Information */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="adminPhone" className="text-base font-medium">هاتف الإدارة</Label>
+                    <Input
+                      id="adminPhone"
+                      value={formData.adminPhone}
+                      onChange={(e) => setFormData({ ...formData, adminPhone: e.target.value })}
+                      placeholder="رقم هاتف إدارة المدرسة"
+                      className="mt-2"
+                    />
                   </div>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="schoolEmail" className="text-base font-medium">البريد الإلكتروني</Label>
-                {user.role === 'admin' ? (
-                  <Input
-                    id="schoolEmail"
-                    type="email"
-                    value={formData.schoolEmail}
-                    onChange={(e) => setFormData({ ...formData, schoolEmail: e.target.value })}
-                    placeholder="البريد الإلكتروني للمدرسة"
-                    className="mt-2"
-                  />
-                ) : (
-                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                    <span className="text-gray-900 dark:text-gray-100">{formData.schoolEmail || 'غير محدد'}</span>
+                  <div>
+                    <Label htmlFor="schoolEmail" className="text-base font-medium">البريد الإلكتروني</Label>
+                    <Input
+                      id="schoolEmail"
+                      type="email"
+                      value={formData.schoolEmail}
+                      onChange={(e) => setFormData({ ...formData, schoolEmail: e.target.value })}
+                      placeholder="البريد الإلكتروني للمدرسة"
+                      className="mt-2"
+                    />
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Website */}
-            <div>
-              <Label htmlFor="website" className="text-base font-medium">الموقع الإلكتروني</Label>
-              {user.role === 'admin' ? (
-                <Input
-                  id="website"
-                  type="url"
-                  value={formData.website}
-                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  placeholder="https://example.com"
-                  className="mt-2"
-                />
-              ) : (
-                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-900 dark:text-gray-100">{formData.website || 'غير محدد'}</span>
                 </div>
-              )}
+              </div>
+            </div>
+
+                {/* Website */}
+                <div>
+                  <Label htmlFor="website" className="text-base font-medium">الموقع الإلكتروني</Label>
+                  <Input
+                    id="website"
+                    type="url"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://example.com"
+                    className="mt-2"
+                  />
+                </div>
             </div>
 
                 {/* Submit Button - Only for admins */}
@@ -415,6 +361,75 @@ export default function SchoolInfo() {
                   </Button>
                 </div>
               </form>
+            ) : (
+              /* Non-admin: Read-only View */
+              <div className="space-y-6">
+                {/* Read-only Logo Display */}
+                <div className="text-center">
+                  <Label className="text-base font-medium block mb-4">شعار المدرسة</Label>
+                  <div className="mb-4">
+                    {logoPreview ? (
+                      <img 
+                        src={logoPreview} 
+                        alt="School Logo" 
+                        className="w-32 h-32 object-contain mx-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 mx-auto rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                        <Camera className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Read-only Basic Information */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-base font-medium">اسم المدرسة</Label>
+                    <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-gray-100">{formData.name || 'غير محدد'}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-base font-medium">الولاية</Label>
+                    <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-gray-100">{formData.wilaya || 'غير محدد'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Read-only Address */}
+                <div>
+                  <Label className="text-base font-medium">العنوان الكامل</Label>
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-900 dark:text-gray-100">{formData.fullAddress || 'غير محدد'}</span>
+                  </div>
+                </div>
+
+                {/* Read-only Contact Information */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-base font-medium">هاتف الإدارة</Label>
+                    <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-gray-100">{formData.adminPhone || 'غير محدد'}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-base font-medium">البريد الإلكتروني</Label>
+                    <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-gray-100">{formData.schoolEmail || 'غير محدد'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Read-only Website */}
+                <div>
+                  <Label className="text-base font-medium">الموقع الإلكتروني</Label>
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-900 dark:text-gray-100">{formData.website || 'غير محدد'}</span>
+                  </div>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
