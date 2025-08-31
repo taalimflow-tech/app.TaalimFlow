@@ -3582,16 +3582,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get detailed school information for editing (Admin only)
+  // Get detailed school information (All authenticated users can view)
   app.get("/api/school/info", async (req, res) => {
     try {
       if (!req.session?.user) {
         return res.status(401).json({ error: "المستخدم غير مسجل دخول" });
       }
 
-      if (req.session.user.role !== "admin") {
-        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
-      }
+      // Allow all authenticated users to view school information
+      // (Only editing requires admin privileges)
 
       if (!req.session.user.schoolId) {
         return res.status(404).json({ error: "لا توجد مدرسة مرتبطة بالحساب" });
