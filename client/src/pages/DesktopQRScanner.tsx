@@ -1648,7 +1648,7 @@ function DesktopQRScanner() {
             const correctYear = academicMonth ? academicMonth.year : new Date().getFullYear();
             
             const monthName = getMonthName(month);
-            const paymentDetails = `${groupData.subjectName} ${groupData.groupName} - ${monthName}`;
+            const paymentDetails = `${groupData.subjectName} ${groupData.groupName} - ${monthName} ${correctYear}`;
             
             const gainEntryPromise = fetch('/api/gain-loss-entries', {
               method: 'POST',
