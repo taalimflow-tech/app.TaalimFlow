@@ -25,6 +25,194 @@ import {
   Trash2,
 } from "lucide-react";
 
+// Component for displaying student enrolled groups
+function StudentEnrolledGroupsSection() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Fetch student enrolled groups
+  const { data: studentGroups = [], isLoading, error } = useQuery({
+    queryKey: ["/api/student/groups", user?.id],
+    enabled: !!user?.id,
+  });
+
+  // Fetch children enrolled groups for parents
+  const { data: childrenGroups = [], isLoading: isLoadingChildren, error: childrenError } = useQuery({
+    queryKey: ["/api/children/groups"],
+    enabled: user?.role === "parent",
+  });
+
+  const getBadgeColor = (educationLevel: string) => {
+    switch (educationLevel) {
+      case "الابتدائي":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+      case "المتوسط":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+      case "الثانوي":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    }
+  };
+
+  if (isLoading || isLoadingChildren) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  if (error || childrenError) {
+    return (
+      <div className="text-center py-8">
+        <XCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
+        <p className="text-red-600 dark:text-red-400">
+          فشل في تحميل المجموعات. يرجى المحاولة مرة أخرى.
+        </p>
+      </div>
+    );
+  }
+
+  // Handle parent view - show children groups
+  if (user?.role === "parent") {
+    if (childrenGroups.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <BookOpen className="w-12 h-12 mx-auto text-emerald-400 mb-4" />
+          <p className="text-emerald-600 dark:text-emerald-400">
+            لا توجد مجموعات مسجل بها أطفالك حالياً
+          </p>
+          <p className="text-sm text-emerald-500 dark:text-emerald-500 mt-2">
+            سيظهر هنا المجموعات التعليمية التي يسجل بها أطفالك
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Group children by child */}
+        {Object.entries(
+          childrenGroups.reduce((acc: any, group: any) => {
+            const childName = group.childName || group.studentName;
+            if (!acc[childName]) {
+              acc[childName] = [];
+            }
+            acc[childName].push(group);
+            return acc;
+          }, {})
+        ).map(([childName, groups]) => (
+          <div key={childName} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-emerald-200 dark:border-emerald-700">
+            <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+              <User className="w-5 h-5 ml-2 text-emerald-600" />
+              {childName}
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(groups as any[]).map((group: any, index: number) => (
+                <Card key={`${childName}-${index}`} className="border border-emerald-100 dark:border-emerald-800 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor(group.educationLevel)}`}>
+                          {group.educationLevel}
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          مسجل
+                        </span>
+                      </div>
+
+                      <h5 className="font-semibold text-gray-800 dark:text-gray-200">
+                        {group.subjectName || group.groupName || "مجموعة تعليمية"}
+                      </h5>
+
+                      <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        {group.teacherName && (
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4" />
+                            <span>{group.teacherName}</span>
+                          </div>
+                        )}
+                        {group.grade && (
+                          <div className="flex items-center gap-2">
+                            <GraduationCap className="w-4 h-4" />
+                            <span>{group.grade}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Handle student view - show own groups
+  if (studentGroups.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <BookOpen className="w-12 h-12 mx-auto text-emerald-400 mb-4" />
+        <p className="text-emerald-600 dark:text-emerald-400">
+          لست مسجل في أي مجموعة حالياً
+        </p>
+        <p className="text-sm text-emerald-500 dark:text-emerald-500 mt-2">
+          سيظهر هنا المجموعات التعليمية التي تسجل بها
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {studentGroups.map((group: any, index: number) => (
+        <Card key={index} className="border border-emerald-100 dark:border-emerald-800 hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-start">
+                <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor(group.educationLevel)}`}>
+                  {group.educationLevel}
+                </span>
+                <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  مسجل
+                </span>
+              </div>
+
+              <h5 className="font-semibold text-gray-800 dark:text-gray-200">
+                {group.subjectName || group.groupName || "مجموعة تعليمية"}
+              </h5>
+
+              <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                {group.teacherName && (
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span>{group.teacherName}</span>
+                  </div>
+                )}
+                {group.grade && (
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4" />
+                    <span>{group.grade}</span>
+                  </div>
+                )}
+                {group.enrolledAt && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    تاريخ التسجيل: {new Date(group.enrolledAt).toLocaleDateString('ar-EG')}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 // Component for displaying scheduled dates attendance carousel
 function ScheduledDatesCarousel({
   groupId,
@@ -3774,6 +3962,32 @@ export default function Groups() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Student Enrolled Groups Section */}
+        {(user?.role === "student" || user?.role === "parent") && (
+          <div className="mb-8">
+            <Card className="border-2 border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-emerald-600" />
+                  <h3 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">
+                    {user?.role === "parent" ? "مجموعات أطفالي" : "مجموعاتي التعليمية"}
+                  </h3>
+                </div>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
+                  {user?.role === "parent" 
+                    ? "المجموعات التي سجل بها أطفالك في المدرسة"
+                    : "المجموعات التي سجلت بها في المدرسة"
+                  }
+                </p>
+              </CardHeader>
+
+              <CardContent className="pt-0">
+                <StudentEnrolledGroupsSection />
+              </CardContent>
+            </Card>
           </div>
         )}
 
