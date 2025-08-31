@@ -71,7 +71,7 @@ export function DesktopSidebar() {
   };
 
   return (
-    <aside className="w-80 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-l border-gray-200 dark:border-gray-700 min-h-screen flex flex-col shadow-lg">
+    <aside className="w-80 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-l border-gray-200 dark:border-gray-700 h-screen fixed right-0 top-0 flex flex-col shadow-lg overflow-hidden">
       {/* School Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="flex items-center gap-4">
@@ -101,7 +101,7 @@ export function DesktopSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
