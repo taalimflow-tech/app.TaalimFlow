@@ -42,10 +42,10 @@ export default function SchoolInfo() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Fetch current school information
+  // Fetch current school information - available to all authenticated users
   const { data: schoolInfo, isLoading } = useQuery<SchoolInfo>({
     queryKey: ['/api/school/info'],
-    enabled: user?.role === 'admin',
+    enabled: !!user, // Allow all authenticated users to view
   });
 
   // Update form data when school info loads
@@ -168,12 +168,12 @@ export default function SchoolInfo() {
     });
   };
 
-  if (!user || user.role !== 'admin') {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
         <div className="max-w-2xl mx-auto">
           <div className="text-center py-8">
-            <p className="text-red-600">غير مسموح لك بالوصول إلى هذه الصفحة</p>
+            <p className="text-red-600">يرجى تسجيل الدخول للوصول إلى هذه الصفحة</p>
           </div>
         </div>
       </div>
@@ -200,19 +200,19 @@ export default function SchoolInfo() {
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate(user.role === 'admin' ? '/admin' : '/home')}
               variant="outline"
               className="text-gray-600 hover:text-gray-800"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
-              العودة للإدارة
+              {user.role === 'admin' ? 'العودة للإدارة' : 'العودة للرئيسية'}
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                 حول المدرسة
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                تحديث معلومات وبيانات المدرسة
+                {user.role === 'admin' ? 'تحديث معلومات وبيانات المدرسة' : 'معلومات وبيانات المدرسة'}
               </p>
             </div>
           </div>
@@ -227,36 +227,60 @@ export default function SchoolInfo() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* School Logo */}
-              <div className="text-center">
-                <Label className="text-base font-medium block mb-4">شعار المدرسة</Label>
-                <div className="mb-4">
-                  {logoPreview ? (
-                    <img 
-                      src={logoPreview} 
-                      alt="School Logo" 
-                      className="w-32 h-32 object-contain mx-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 mx-auto rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
-                      <Camera className="w-8 h-8 text-gray-400" />
-                    </div>
-                  )}
+            {user.role === 'admin' ? (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Admin: School Logo with Upload */}
+                <div className="text-center">
+                  <Label className="text-base font-medium block mb-4">شعار المدرسة</Label>
+                  <div className="mb-4">
+                    {logoPreview ? (
+                      <img 
+                        src={logoPreview} 
+                        alt="School Logo" 
+                        className="w-32 h-32 object-contain mx-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 mx-auto rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                        <Camera className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="w-64 mx-auto"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">اختر صورة لشعار المدرسة (PNG, JPG)</p>
                 </div>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoChange}
-                  className="w-64 mx-auto"
-                />
-                <p className="text-xs text-gray-500 mt-2">اختر صورة لشعار المدرسة (PNG, JPG)</p>
+            ) : (
+              /* Non-admin: Read-only Content */
+              <div className="space-y-6">
+                {/* Read-only Logo Display */}
+                <div className="text-center">
+                  <Label className="text-base font-medium block mb-4">شعار المدرسة</Label>
+                  <div className="mb-4">
+                    {logoPreview ? (
+                      <img 
+                        src={logoPreview} 
+                        alt="School Logo" 
+                        className="w-32 h-32 object-contain mx-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 mx-auto rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                        <Camera className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
+            )}
 
-              {/* Basic Information */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="name" className="text-base font-medium">اسم المدرسة</Label>
+            {/* Basic Information */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="name" className="text-base font-medium">اسم المدرسة</Label>
+                {user.role === 'admin' ? (
                   <Input
                     id="name"
                     value={formData.name}
@@ -265,10 +289,16 @@ export default function SchoolInfo() {
                     className="mt-2"
                     required
                   />
-                </div>
+                ) : (
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-900 dark:text-gray-100">{formData.name || 'غير محدد'}</span>
+                  </div>
+                )}
+              </div>
 
-                <div>
-                  <Label htmlFor="wilaya" className="text-base font-medium">الولاية</Label>
+              <div>
+                <Label htmlFor="wilaya" className="text-base font-medium">الولاية</Label>
+                {user.role === 'admin' ? (
                   <Input
                     id="wilaya"
                     value={formData.wilaya}
@@ -276,12 +306,18 @@ export default function SchoolInfo() {
                     placeholder="أدخل اسم الولاية"
                     className="mt-2"
                   />
-                </div>
+                ) : (
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-900 dark:text-gray-100">{formData.wilaya || 'غير محدد'}</span>
+                  </div>
+                )}
               </div>
+            </div>
 
-              {/* Address */}
-              <div>
-                <Label htmlFor="fullAddress" className="text-base font-medium">العنوان الكامل</Label>
+            {/* Address */}
+            <div>
+              <Label htmlFor="fullAddress" className="text-base font-medium">العنوان الكامل</Label>
+              {user.role === 'admin' ? (
                 <Input
                   id="fullAddress"
                   value={formData.fullAddress}
@@ -289,12 +325,18 @@ export default function SchoolInfo() {
                   placeholder="أدخل العنوان الكامل للمدرسة"
                   className="mt-2"
                 />
-              </div>
+              ) : (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-900 dark:text-gray-100">{formData.fullAddress || 'غير محدد'}</span>
+                </div>
+              )}
+            </div>
 
-              {/* Contact Information */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="adminPhone" className="text-base font-medium">هاتف الإدارة</Label>
+            {/* Contact Information */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="adminPhone" className="text-base font-medium">هاتف الإدارة</Label>
+                {user.role === 'admin' ? (
                   <Input
                     id="adminPhone"
                     value={formData.adminPhone}
@@ -302,10 +344,16 @@ export default function SchoolInfo() {
                     placeholder="رقم هاتف إدارة المدرسة"
                     className="mt-2"
                   />
-                </div>
+                ) : (
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-900 dark:text-gray-100">{formData.adminPhone || 'غير محدد'}</span>
+                  </div>
+                )}
+              </div>
 
-                <div>
-                  <Label htmlFor="schoolEmail" className="text-base font-medium">البريد الإلكتروني</Label>
+              <div>
+                <Label htmlFor="schoolEmail" className="text-base font-medium">البريد الإلكتروني</Label>
+                {user.role === 'admin' ? (
                   <Input
                     id="schoolEmail"
                     type="email"
@@ -314,12 +362,18 @@ export default function SchoolInfo() {
                     placeholder="البريد الإلكتروني للمدرسة"
                     className="mt-2"
                   />
-                </div>
+                ) : (
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-900 dark:text-gray-100">{formData.schoolEmail || 'غير محدد'}</span>
+                  </div>
+                )}
               </div>
+            </div>
 
-              {/* Website */}
-              <div>
-                <Label htmlFor="website" className="text-base font-medium">الموقع الإلكتروني</Label>
+            {/* Website */}
+            <div>
+              <Label htmlFor="website" className="text-base font-medium">الموقع الإلكتروني</Label>
+              {user.role === 'admin' ? (
                 <Input
                   id="website"
                   type="url"
@@ -328,34 +382,40 @@ export default function SchoolInfo() {
                   placeholder="https://example.com"
                   className="mt-2"
                 />
-              </div>
+              ) : (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-900 dark:text-gray-100">{formData.website || 'غير محدد'}</span>
+                </div>
+              )}
+            </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
-                <Button
-                  type="submit"
-                  disabled={updateSchoolMutation.isPending || isUploading}
-                  className="bg-primary hover:bg-primary/90 text-white min-w-32"
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
-                      جاري رفع الشعار...
-                    </>
-                  ) : updateSchoolMutation.isPending ? (
-                    <>
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
-                      جاري الحفظ...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 ml-2" />
-                      حفظ التغييرات
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
+                {/* Submit Button - Only for admins */}
+                <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <Button
+                    type="submit"
+                    disabled={updateSchoolMutation.isPending || isUploading}
+                    className="bg-primary hover:bg-primary/90 text-white min-w-32"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
+                        جاري رفع الشعار...
+                      </>
+                    ) : updateSchoolMutation.isPending ? (
+                      <>
+                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
+                        جاري الحفظ...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 ml-2" />
+                        حفظ التغييرات
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            )}
           </CardContent>
         </Card>
 
