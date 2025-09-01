@@ -84,8 +84,8 @@ function AppRoutes() {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile container for screens under lg, full width for desktop */}
-      <div className="lg:max-w-none lg:w-full max-w-md mx-auto bg-white dark:bg-gray-900 min-h-screen">
+      {/* Responsive container - full width on all devices */}
+      <div className="w-full bg-white dark:bg-gray-900 min-h-screen">
         <Switch>
           {/* Public Routes */}
           <Route path="/" component={PublicHome} />
