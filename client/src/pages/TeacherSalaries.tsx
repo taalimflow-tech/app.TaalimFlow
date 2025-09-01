@@ -214,9 +214,9 @@ export default function TeacherSalaries() {
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                             {teacher.name}
                           </h3>
-                          {teacher.specializations.length > 0 && (
+                          {teacher.specializations?.length > 0 && (
                             <Badge variant="outline" className="text-xs">
-                              {teacher.specializations.length} تخصص
+                              {teacher.specializations?.length || 0} تخصص
                             </Badge>
                           )}
                         </div>
@@ -261,11 +261,11 @@ export default function TeacherSalaries() {
                   <CardContent className="pt-0">
                     <div className="space-y-4">
                       {/* Teacher Specializations */}
-                      {teacher.specializations.length > 0 && (
+                      {teacher.specializations?.length > 0 && (
                         <div>
                           <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">التخصصات</h4>
                           <div className="flex flex-wrap gap-2">
-                            {teacher.specializations.map((spec) => (
+                            {teacher.specializations?.map((spec) => (
                               <Badge
                                 key={spec.id}
                                 className={getEducationLevelColor(spec.educationLevel)}
