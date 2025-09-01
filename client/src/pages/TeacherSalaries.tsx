@@ -67,26 +67,67 @@ export default function TeacherSalaries() {
     enabled: user?.role === 'admin'
   });
 
-  // Fetch attendance counts for the selected month
-  const { data: attendanceCounts = {} } = useQuery<{ [groupId: number]: { present: number; total: number } }>({
-    queryKey: ['/api/groups/attendance-counts', selectedMonth, groups],
+  // Generate current month dates for filtering
+  const getCurrentMonthDates = (yearMonth: string) => {
+    const [year, month] = yearMonth.split('-');
+    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const endDate = new Date(parseInt(year), parseInt(month), 0);
+    
+    const dates = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      dates.push(new Date(d).toISOString().split('T')[0]);
+    }
+    return dates;
+  };
+
+  const currentMonthDates = getCurrentMonthDates(selectedMonth);
+
+  // Fetch attendance history for all groups (we'll process this client-side for each group)
+  const { data: allGroupAttendance = {} } = useQuery<{ [groupId: number]: any[] }>({
+    queryKey: ['/api/groups/all-attendance', groups.map(g => g.id)],
     queryFn: async () => {
       if (groups.length === 0) return {};
       
-      const [year, month] = selectedMonth.split('-');
-      const response = await apiRequest('/api/groups/attendance-counts', {
-        method: 'POST',
-        body: JSON.stringify({
-          groupIds: groups.map(g => g.id),
-          year: parseInt(year),
-          month: parseInt(month)
-        })
-      });
+      const attendanceData: { [groupId: number]: any[] } = {};
       
-      return response;
+      // Fetch attendance for each group
+      await Promise.all(
+        groups.map(async (group) => {
+          try {
+            const response = await fetch(`/api/groups/${group.id}/attendance-history`);
+            if (response.ok) {
+              const data = await response.json();
+              attendanceData[group.id] = Array.isArray(data) ? data : [];
+            } else {
+              attendanceData[group.id] = [];
+            }
+          } catch (error) {
+            console.error(`Error fetching attendance for group ${group.id}:`, error);
+            attendanceData[group.id] = [];
+          }
+        })
+      );
+      
+      return attendanceData;
     },
     enabled: user?.role === 'admin' && groups.length > 0
   });
+
+  // Calculate monthly attendance counts for each group
+  const getAttendanceCountsForGroup = (groupId: number) => {
+    const attendance = allGroupAttendance[groupId] || [];
+    const presentCount = attendance.filter((r: any) => {
+      const recordDate = r.attendanceDate?.split('T')[0];
+      return r.status === 'present' && currentMonthDates.includes(recordDate);
+    }).length;
+    
+    const totalCount = attendance.filter((r: any) => {
+      const recordDate = r.attendanceDate?.split('T')[0];
+      return currentMonthDates.includes(recordDate);
+    }).length;
+    
+    return { present: presentCount, total: totalCount };
+  };
 
   // Filter teachers based on search query
   const filteredTeachers = teachers.filter(teacher =>
@@ -364,7 +405,10 @@ export default function TeacherSalaries() {
                                   </p>
                                   <p className="text-xs text-gray-600 dark:text-gray-400">
                                     <Calendar className="w-3 h-3 inline mr-1" />
-                                    الحضور: {attendanceCounts[group.id]?.present || 0}/{attendanceCounts[group.id]?.total || 0}
+                                    الحضور: {(() => {
+                                      const counts = getAttendanceCountsForGroup(group.id);
+                                      return `${counts.present}/${counts.total}`;
+                                    })()}
                                   </p>
                                   {group.grade && (
                                     <p className="text-xs text-gray-600 dark:text-gray-400">
