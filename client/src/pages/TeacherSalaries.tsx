@@ -89,6 +89,7 @@ export default function TeacherSalaries() {
   // State for individual teacher calculation results
   const [individualResults, setIndividualResults] = useState<{ [teacherId: number]: number }>({});
   const [showPaymentHistory, setShowPaymentHistory] = useState<{ [teacherId: number]: boolean }>({});
+  const [selectedPayments, setSelectedPayments] = useState<{ [key: string]: boolean }>({});
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -1022,13 +1023,27 @@ export default function TeacherSalaries() {
                                     {/* Header */}
                                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
                                       <div className="flex justify-between items-center">
-                                        <div>
-                                          <h5 className="font-bold text-blue-800 dark:text-blue-200">
-                                            شهر {payment.month}
-                                          </h5>
-                                          <p className="text-xs text-blue-600 dark:text-blue-300">
-                                            تاريخ الحساب: {new Date(payment.paidDate).toLocaleDateString('ar-DZ')}
-                                          </p>
+                                        <div className="flex items-center gap-3">
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedPayments[`${teacher.id}-${index}`] || false}
+                                            onChange={(e) => {
+                                              const key = `${teacher.id}-${index}`;
+                                              setSelectedPayments(prev => ({
+                                                ...prev,
+                                                [key]: e.target.checked
+                                              }));
+                                            }}
+                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                          />
+                                          <div>
+                                            <h5 className="font-bold text-blue-800 dark:text-blue-200">
+                                              شهر {payment.month}
+                                            </h5>
+                                            <p className="text-xs text-blue-600 dark:text-blue-300">
+                                              تاريخ الحساب: {new Date(payment.paidDate).toLocaleDateString('ar-DZ')}
+                                            </p>
+                                          </div>
                                         </div>
                                         <div className="text-right">
                                           <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
