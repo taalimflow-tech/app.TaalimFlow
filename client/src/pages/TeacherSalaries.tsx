@@ -22,14 +22,11 @@ interface Teacher {
   name: string;
   email?: string;
   phone?: string;
-  bio?: string;
-  imageUrl?: string;
-  specializations: Array<{
-    id: number;
-    name: string;
-    nameAr: string;
-    educationLevel: string;
-  }>;
+  role: string;
+  schoolId: number;
+  profilePicture?: string;
+  verified?: boolean;
+  createdAt?: string;
 }
 
 interface Group {
@@ -214,11 +211,6 @@ export default function TeacherSalaries() {
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                             {teacher.name}
                           </h3>
-                          {teacher.specializations?.length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {teacher.specializations?.length || 0} تخصص
-                            </Badge>
-                          )}
                         </div>
                         {teacher.email && (
                           <p className="text-sm text-gray-500 dark:text-gray-400">{teacher.email}</p>
@@ -260,22 +252,6 @@ export default function TeacherSalaries() {
                 {isExpanded && (
                   <CardContent className="pt-0">
                     <div className="space-y-4">
-                      {/* Teacher Specializations */}
-                      {teacher.specializations?.length > 0 && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">التخصصات</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {teacher.specializations?.map((spec) => (
-                              <Badge
-                                key={spec.id}
-                                className={getEducationLevelColor(spec.educationLevel)}
-                              >
-                                {spec.nameAr} - {spec.educationLevel}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Assigned Groups */}
                       <div>

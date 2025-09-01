@@ -1453,11 +1453,11 @@ export class DatabaseStorage implements IStorage {
         name: users.name,
         email: users.email,
         phone: users.phone,
-        bio: users.bio,
-        imageUrl: users.imageUrl,
         role: users.role,
         schoolId: users.schoolId,
-        specializations: users.specializations
+        profilePicture: users.profilePicture,
+        verified: users.verified,
+        createdAt: users.createdAt
       })
       .from(users)
       .where(
