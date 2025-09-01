@@ -331,7 +331,7 @@ export default function TeacherSalaries() {
       const scheduledLessons = getScheduledLessonsForMonth(group.id);
       
       return {
-        groupName: group.name,
+        groupName: group.name || group.nameAr || group.subjectNameAr,
         subject: group.subjectNameAr,
         level: group.educationLevel,
         grade: group.grade,
@@ -517,7 +517,7 @@ export default function TeacherSalaries() {
       const scheduledLessons = getScheduledLessonsForMonth(group.id);
       
       return {
-        groupName: group.name,
+        groupName: group.name || group.nameAr || group.subjectNameAr,
         subject: group.subjectNameAr,
         level: group.educationLevel,
         students: group.studentsAssigned?.length || 0,
