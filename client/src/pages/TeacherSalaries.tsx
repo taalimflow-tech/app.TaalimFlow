@@ -24,6 +24,7 @@ import {
   History
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface Teacher {
   id: number;
@@ -66,6 +67,7 @@ interface BulkCalculationResult {
 
 export default function TeacherSalaries() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedTeacher, setExpandedTeacher] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -1027,12 +1029,39 @@ export default function TeacherSalaries() {
                                           <input
                                             type="checkbox"
                                             checked={selectedPayments[`${teacher.id}-${index}`] || false}
-                                            onChange={(e) => {
+                                            onChange={async (e) => {
                                               const key = `${teacher.id}-${index}`;
+                                              const isChecked = e.target.checked;
+                                              
+                                              // Update checkbox state
                                               setSelectedPayments(prev => ({
                                                 ...prev,
-                                                [key]: e.target.checked
+                                                [key]: isChecked
                                               }));
+
+                                              // If checked, record as expense in gain/loss system
+                                              if (isChecked) {
+                                                try {
+                                                  const teacherName = teachers?.find(t => t.id === teacher.id)?.name || 'معلم غير محدد';
+                                                  const paymentDate = new Date(payment.paidDate);
+                                                  
+                                                  await apiRequest('POST', '/api/financial-entries', {
+                                                    type: 'loss',
+                                                    amount: payment.amount,
+                                                    remarks: `راتب ${teacherName} - ${payment.month}`,
+                                                    year: paymentDate.getFullYear(),
+                                                    month: paymentDate.getMonth() + 1
+                                                  });
+                                                } catch (error) {
+                                                  console.error('Failed to record salary payment as expense:', error);
+                                                  // Optionally show toast notification
+                                                  toast({
+                                                    title: 'خطأ في تسجيل المصروف',
+                                                    description: 'فشل في تسجيل راتب المعلم في نظام الأرباح والخسائر',
+                                                    variant: 'destructive'
+                                                  });
+                                                }
+                                              }
                                             }}
                                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                                           />
