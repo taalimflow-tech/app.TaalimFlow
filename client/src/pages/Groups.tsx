@@ -2134,13 +2134,13 @@ export default function Groups() {
                 <CardContent className="pt-0">
                   {/* Custom Subject Creation Button - Only for School Admins */}
                   {user?.role === "admin" && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium text-green-800 mb-1">
+                          <h4 className="font-medium text-green-800 dark:text-green-200 mb-1">
                             إنشاء مادة مخصصة
                           </h4>
-                          <p className="text-sm text-green-600">
+                          <p className="text-sm text-green-600 dark:text-green-300">
                             أنشئ مواد جديدة خارج المنهج الرسمي
                           </p>
                         </div>
@@ -2148,7 +2148,7 @@ export default function Groups() {
                           variant="outline"
                           size="sm"
                           onClick={() => setShowCustomSubjectModal(true)}
-                          className="border-green-300 text-green-600 hover:bg-green-100"
+                          className="border-green-300 dark:border-green-600 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           إنشاء مادة مخصصة
@@ -2159,13 +2159,13 @@ export default function Groups() {
 
                   {/* Create New Group Button - Only for School Admins */}
                   {user?.role === "admin" && (
-                    <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium text-purple-800 mb-1">
+                          <h4 className="font-medium text-purple-800 dark:text-purple-200 mb-1">
                             إنشاء مجموعة جديدة
                           </h4>
-                          <p className="text-sm text-purple-600">
+                          <p className="text-sm text-purple-600 dark:text-purple-300">
                             إنشاء مجموعة تعليمية بخطوات محددة ومنظمة
                           </p>
                         </div>
@@ -2173,7 +2173,7 @@ export default function Groups() {
                           variant="outline"
                           size="sm"
                           onClick={() => setShowCreateGroupModal(true)}
-                          className="border-purple-300 text-purple-600 hover:bg-purple-100"
+                          className="border-purple-300 dark:border-purple-600 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-800"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           إنشاء مجموعة جديدة
@@ -2184,14 +2184,14 @@ export default function Groups() {
 
                   {/* Super Admin Info Message */}
                   {user?.role === "super_admin" && (
-                    <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <Users className="w-5 h-5 text-orange-600" />
+                        <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                         <div>
-                          <h4 className="font-medium text-orange-800 mb-1">
+                          <h4 className="font-medium text-orange-800 dark:text-orange-200 mb-1">
                             عرض المجموعات فقط
                           </h4>
-                          <p className="text-sm text-orange-600">
+                          <p className="text-sm text-orange-600 dark:text-orange-300">
                             المسؤولين العامين يمكنهم عرض وإدارة المجموعات
                             الموجودة، إنشاء مجموعات جديدة يتم من قبل مدير
                             المدرسة
