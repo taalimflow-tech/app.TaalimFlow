@@ -409,10 +409,12 @@ export default function TeacherSalaries() {
                                   </p>
                                   <p className="text-xs text-gray-600 dark:text-gray-400">
                                     <Calendar className="w-3 h-3 inline mr-1" />
-                                    الحضور: {(() => {
-                                      const counts = getAttendanceCountsForGroup(group.id);
-                                      return `${counts.present}/${counts.total}`;
-                                    })()}
+                                    الحضور: <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                      {(() => {
+                                        const counts = getAttendanceCountsForGroup(group.id);
+                                        return `${counts.present}/${counts.total}`;
+                                      })()}
+                                    </span>
                                   </p>
                                   {group.grade && (
                                     <p className="text-xs text-gray-600 dark:text-gray-400">

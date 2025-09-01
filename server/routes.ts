@@ -2402,8 +2402,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Group routes
   app.get("/api/groups", requireAuth, async (req, res) => {
     try {
-      const groups = await storage.getGroupsBySchool(req.session.user.schoolId);
-      res.json(groups);
+      const groups = await storage.getAdminGroups(req.session.user.schoolId);
+      // Filter out placeholder groups and only return real groups with student data
+      const realGroups = groups.filter(group => !group.isPlaceholder).map(group => ({
+        id: group.id,
+        name: group.name,
+        subjectName: group.subjectName,
+        subjectNameAr: group.nameAr,
+        educationLevel: group.educationLevel,
+        grade: group.grade,
+        teacherId: group.teacherId,
+        studentsAssigned: group.studentsAssigned || []
+      }));
+      res.json(realGroups);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch groups" });
     }
