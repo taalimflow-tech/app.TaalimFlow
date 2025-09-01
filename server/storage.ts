@@ -212,6 +212,7 @@ export interface IStorage {
   getTeachers(): Promise<Teacher[]>;
   getTeacher(id: number): Promise<Teacher | undefined>;
   getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
+  getTeacherUsers(schoolId: number): Promise<any[]>; // Get users with role=teacher
   createTeacher(teacher: InsertTeacher): Promise<Teacher>;
   updateTeacher(
     id: number,
@@ -1441,6 +1442,31 @@ export class DatabaseStorage implements IStorage {
       .from(teachers)
       .where(eq(teachers.schoolId, schoolId))
       .orderBy(desc(teachers.createdAt));
+  }
+
+  async getTeacherUsers(schoolId: number): Promise<any[]> {
+    // Get users with role='teacher' from the same school
+    // This returns the actual users that are referenced in groups.teacherId
+    return await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        bio: users.bio,
+        imageUrl: users.imageUrl,
+        role: users.role,
+        schoolId: users.schoolId,
+        specializations: users.specializations
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, "teacher")
+        )
+      )
+      .orderBy(desc(users.createdAt));
   }
 
   async createTeacher(insertTeacher: InsertTeacher): Promise<Teacher> {
