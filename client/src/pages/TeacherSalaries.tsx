@@ -143,6 +143,23 @@ export default function TeacherSalaries() {
     enabled: user?.role === 'admin' && groups.length > 0
   });
 
+  // Get scheduled lesson dates for the selected month
+  const getScheduledLessonsForMonth = (groupId: number) => {
+    // This should get the actual scheduled dates from the group's schedule
+    // For now, we'll use the attendance data approach but filter by unique dates only
+    const attendance = allGroupAttendance[groupId] || [];
+    const uniqueDates = new Set();
+    
+    attendance.forEach((r: any) => {
+      const recordDate = r.attendanceDate?.split('T')[0];
+      if (currentMonthDates.includes(recordDate)) {
+        uniqueDates.add(recordDate);
+      }
+    });
+    
+    return uniqueDates.size;
+  };
+
   // Calculate monthly attendance counts for each group
   const getAttendanceCountsForGroup = (groupId: number) => {
     const attendance = allGroupAttendance[groupId] || [];
@@ -151,12 +168,10 @@ export default function TeacherSalaries() {
       return r.status === 'present' && currentMonthDates.includes(recordDate);
     }).length;
     
-    const totalCount = attendance.filter((r: any) => {
-      const recordDate = r.attendanceDate?.split('T')[0];
-      return currentMonthDates.includes(recordDate);
-    }).length;
+    // Get actual number of scheduled lessons for this month
+    const scheduledLessons = getScheduledLessonsForMonth(groupId);
     
-    return { present: presentCount, total: totalCount };
+    return { present: presentCount, total: scheduledLessons };
   };
 
   // Handle payment input changes
