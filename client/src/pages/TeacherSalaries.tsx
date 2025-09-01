@@ -18,7 +18,9 @@ import {
   Clock,
   Calendar,
   Calculator,
-  RefreshCw
+  RefreshCw,
+  FileText,
+  Printer
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -301,6 +303,160 @@ export default function TeacherSalaries() {
       ...prev,
       [teacherId]: teacherSalary
     }));
+  };
+
+  // Create payslip function
+  const createPayslip = (teacherId: number) => {
+    const teacher = teachers?.find(t => t.id === teacherId);
+    const salary = individualResults[teacherId];
+    
+    if (!teacher || salary === undefined) {
+      alert('يرجى حساب الأجر أولاً');
+      return;
+    }
+
+    // Get teacher groups and their details
+    const teacherGroups = filteredGroups.filter(group => group.teacherId === teacherId);
+    const groupDetails = teacherGroups.map(group => {
+      const payment = groupPayments[group.id];
+      const counts = getAttendanceCountsForGroup(group.id);
+      const scheduledLessons = getScheduledLessonsForMonth(group.id);
+      
+      return {
+        groupName: group.name,
+        subject: group.subjectNameAr,
+        level: group.educationLevel,
+        grade: group.grade,
+        students: group.studentsAssigned?.length || 0,
+        attendance: counts.present,
+        lessons: scheduledLessons,
+        amount: payment?.amount || 0,
+        percentage: payment?.teacherPercentage || 0
+      };
+    });
+
+    // Generate payslip content
+    const payslipData = {
+      teacher: teacher.name,
+      month: selectedMonth,
+      totalSalary: salary,
+      groups: groupDetails,
+      generatedAt: new Date().toLocaleDateString('ar-DZ')
+    };
+
+    // Store payslip data in localStorage for printing
+    localStorage.setItem('currentPayslip', JSON.stringify(payslipData));
+    
+    // Show success message
+    console.log('📄 Payslip created:', payslipData);
+    alert(`تم إنشاء كشف الراتب للأستاذ ${teacher.name}\nالراتب الإجمالي: ${salary.toLocaleString()} دج`);
+  };
+
+  // Print payslip function
+  const printPayslip = (teacherId: number) => {
+    const teacher = teachers?.find(t => t.id === teacherId);
+    const salary = individualResults[teacherId];
+    
+    if (!teacher || salary === undefined) {
+      alert('يرجى حساب الأجر أولاً');
+      return;
+    }
+
+    // Create printable HTML content
+    const printContent = generatePayslipHTML(teacher, salary, teacherId);
+    
+    // Open print window
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  // Generate HTML for payslip printing
+  const generatePayslipHTML = (teacher: any, salary: number, teacherId: number) => {
+    const teacherGroups = filteredGroups.filter(group => group.teacherId === teacherId);
+    const schoolName = JSON.parse(localStorage.getItem('selectedSchool') || '{}').name || 'المدرسة';
+    
+    const groupRows = teacherGroups.map(group => {
+      const payment = groupPayments[group.id];
+      const counts = getAttendanceCountsForGroup(group.id);
+      const scheduledLessons = getScheduledLessonsForMonth(group.id);
+      
+      return `
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${group.name}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${group.subjectNameAr}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${group.educationLevel}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${counts.present}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${scheduledLessons}</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${payment?.amount || 0} دج</td>
+          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${payment?.teacherPercentage || 0}%</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <title>كشف راتب - ${teacher.name}</title>
+        <style>
+          body { font-family: 'Arial', sans-serif; margin: 20px; direction: rtl; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .school-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+          .title { font-size: 20px; margin-bottom: 20px; }
+          .info { margin-bottom: 20px; }
+          .info-row { margin: 10px 0; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+          th { background-color: #f5f5f5; font-weight: bold; }
+          .total { font-size: 18px; font-weight: bold; margin: 20px 0; text-align: center; }
+          .footer { margin-top: 40px; text-align: left; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="school-name">${schoolName}</div>
+          <div class="title">كشف راتب الأستاذ</div>
+        </div>
+        
+        <div class="info">
+          <div class="info-row"><strong>اسم الأستاذ:</strong> ${teacher.name}</div>
+          <div class="info-row"><strong>الشهر:</strong> ${selectedMonth}</div>
+          <div class="info-row"><strong>تاريخ الإصدار:</strong> ${new Date().toLocaleDateString('ar-DZ')}</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>اسم المجموعة</th>
+              <th>المادة</th>
+              <th>المستوى</th>
+              <th>الحضور</th>
+              <th>عدد الدروس</th>
+              <th>المبلغ</th>
+              <th>النسبة</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${groupRows}
+          </tbody>
+        </table>
+
+        <div class="total">
+          إجمالي الراتب: ${salary.toLocaleString()} دج
+        </div>
+
+        <div class="footer">
+          <p>التوقيع: ________________</p>
+          <p>التاريخ: ________________</p>
+        </div>
+      </body>
+      </html>
+    `;
   };
 
   // Filter teachers based on search query
@@ -702,7 +858,7 @@ export default function TeacherSalaries() {
                       )}
 
                       {/* Action Buttons */}
-                      <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -710,6 +866,26 @@ export default function TeacherSalaries() {
                         >
                           <Clock className="w-4 h-4 mr-2" />
                           حساب الأجر
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => createPayslip(teacher.id)}
+                          disabled={individualResults[teacher.id] === undefined}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          إنشاء كشف راتب
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => printPayslip(teacher.id)}
+                          disabled={individualResults[teacher.id] === undefined}
+                        >
+                          <Printer className="w-4 h-4 mr-2" />
+                          طباعة
                         </Button>
                       </div>
                     </div>
