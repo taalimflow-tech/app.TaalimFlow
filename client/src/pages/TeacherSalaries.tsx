@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   DollarSign, 
   Users, 
@@ -13,7 +15,8 @@ import {
   ChevronUp,
   User,
   GraduationCap,
-  Clock
+  Clock,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -47,6 +50,10 @@ export default function TeacherSalaries() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedTeacher, setExpandedTeacher] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -58,6 +65,27 @@ export default function TeacherSalaries() {
   const { data: groups = [], isLoading: groupsLoading } = useQuery<Group[]>({
     queryKey: ['/api/groups'],
     enabled: user?.role === 'admin'
+  });
+
+  // Fetch attendance counts for the selected month
+  const { data: attendanceCounts = {} } = useQuery<{ [groupId: number]: { present: number; total: number } }>({
+    queryKey: ['/api/groups/attendance-counts', selectedMonth, groups],
+    queryFn: async () => {
+      if (groups.length === 0) return {};
+      
+      const [year, month] = selectedMonth.split('-');
+      const response = await apiRequest('/api/groups/attendance-counts', {
+        method: 'POST',
+        body: JSON.stringify({
+          groupIds: groups.map(g => g.id),
+          year: parseInt(year),
+          month: parseInt(month)
+        })
+      });
+      
+      return response;
+    },
+    enabled: user?.role === 'admin' && groups.length > 0
   });
 
   // Filter teachers based on search query
@@ -80,6 +108,28 @@ export default function TeacherSalaries() {
   // Toggle expanded teacher view
   const toggleTeacherExpansion = (teacherId: number) => {
     setExpandedTeacher(expandedTeacher === teacherId ? null : teacherId);
+  };
+
+  // Generate month options for the selector
+  const generateMonthOptions = () => {
+    const options = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    
+    // Generate months for current year and previous year
+    for (let year = currentYear; year >= currentYear - 1; year--) {
+      const startMonth = year === currentYear ? now.getMonth() + 1 : 12;
+      for (let month = startMonth; month >= 1; month--) {
+        const value = `${year}-${String(month).padStart(2, '0')}`;
+        const arabicMonths = [
+          'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+          'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+        ];
+        const label = `${arabicMonths[month - 1]} ${year}`;
+        options.push({ value, label });
+      }
+    }
+    return options;
   };
 
   const getEducationLevelColor = (level: string) => {
@@ -117,16 +167,36 @@ export default function TeacherSalaries() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full md:w-80">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            type="text"
-            placeholder="البحث عن معلم..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10"
-          />
+        {/* Search and Month Selector */}
+        <div className="flex flex-col md:flex-row gap-3">
+          {/* Month Selector */}
+          <div className="flex items-center gap-2 w-full md:w-48">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="اختر الشهر" />
+              </SelectTrigger>
+              <SelectContent>
+                {generateMonthOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Search */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="البحث عن معلم..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10"
+            />
+          </div>
         </div>
       </div>
 
@@ -291,6 +361,10 @@ export default function TeacherSalaries() {
                                   <p className="text-xs text-gray-600 dark:text-gray-400">
                                     <Users className="w-3 h-3 inline mr-1" />
                                     {group.studentsAssigned?.length || 0} طالب
+                                  </p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                                    <Calendar className="w-3 h-3 inline mr-1" />
+                                    الحضور: {attendanceCounts[group.id]?.present || 0}/{attendanceCounts[group.id]?.total || 0}
                                   </p>
                                   {group.grade && (
                                     <p className="text-xs text-gray-600 dark:text-gray-400">

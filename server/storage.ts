@@ -470,6 +470,7 @@ export interface IStorage {
     year: number,
     month: number,
   ): Promise<GroupAttendance[]>;
+  getGroupAttendanceCountsByMonth(groupIds: number[], year: number, month: number): Promise<{ [groupId: number]: { present: number; total: number } }>;
 
   // Group Financial Transaction interface methods
   getGroupTransactions(
@@ -3819,6 +3820,51 @@ export class DatabaseStorage implements IStorage {
         ),
       )
       .orderBy(groupAttendance.attendanceDate);
+  }
+
+  async getGroupAttendanceCountsByMonth(
+    groupIds: number[],
+    year: number,
+    month: number,
+  ): Promise<{ [groupId: number]: { present: number; total: number } }> {
+    if (groupIds.length === 0) return {};
+
+    const startDate = new Date(year, month - 1, 1); // month - 1 because JS months are 0-indexed
+    const endDate = new Date(year, month, 0); // Last day of the month
+
+    // Get attendance records for all groups in the specified month
+    const attendanceRecords = await db
+      .select({
+        groupId: groupAttendance.groupId,
+        status: groupAttendance.status,
+      })
+      .from(groupAttendance)
+      .where(
+        and(
+          inArray(groupAttendance.groupId, groupIds),
+          sql`${groupAttendance.attendanceDate} >= ${startDate.toISOString().split("T")[0]}`,
+          sql`${groupAttendance.attendanceDate} <= ${endDate.toISOString().split("T")[0]}`,
+        ),
+      );
+
+    // Aggregate counts by group
+    const result: { [groupId: number]: { present: number; total: number } } = {};
+    
+    // Initialize all groups with zero counts
+    groupIds.forEach(groupId => {
+      result[groupId] = { present: 0, total: 0 };
+    });
+
+    // Count attendance records
+    attendanceRecords.forEach(record => {
+      const groupId = record.groupId;
+      result[groupId].total++;
+      if (record.status === 'present') {
+        result[groupId].present++;
+      }
+    });
+
+    return result;
   }
 
   // Group Financial Transaction methods

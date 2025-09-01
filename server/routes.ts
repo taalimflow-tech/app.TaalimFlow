@@ -4852,6 +4852,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get attendance counts for multiple groups by month
+  app.post("/api/groups/attendance-counts", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res.status(403).json({ error: "صلاحيات المدير مطلوبة" });
+      }
+
+      const { groupIds, year, month } = req.body;
+
+      if (!groupIds || !year || !month) {
+        return res.status(400).json({ error: "معرفات المجموعات والسنة والشهر مطلوبة" });
+      }
+
+      const attendanceCounts = await storage.getGroupAttendanceCountsByMonth(
+        groupIds,
+        parseInt(year),
+        parseInt(month),
+      );
+      res.json(attendanceCounts);
+    } catch (error) {
+      console.error("Error fetching attendance counts:", error);
+      res.status(500).json({ error: "فشل في جلب إحصائيات الحضور" });
+    }
+  });
+
   // Group Schedule Routes (Admin only)
   app.get("/api/groups/:groupId/scheduled-dates", async (req, res) => {
     try {
