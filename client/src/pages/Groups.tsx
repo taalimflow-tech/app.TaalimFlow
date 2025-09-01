@@ -2230,8 +2230,8 @@ export default function Groups() {
                   ) : (
                     <div className="space-y-6">
 
-                      {/* Subject Groups Grid */}
-                      <div className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-blue-200 dark:border-gray-700 p-8 shadow-lg">
+                      {/* Subject Groups Grid - Hidden */}
+                      <div className="hidden">
                           <div className="flex items-center mb-4">
                             <div
                               className={`px-3 py-1 rounded-full text-sm font-medium ${getEducationLevelColor(selectedLevel)}`}
