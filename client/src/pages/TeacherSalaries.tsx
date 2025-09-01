@@ -16,7 +16,8 @@ import {
   User,
   GraduationCap,
   Clock,
-  Calendar
+  Calendar,
+  Calculator
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -46,6 +47,19 @@ interface Group {
   }>;
 }
 
+interface BulkCalculationResult {
+  month: string;
+  totalTeachers: number;
+  totalGroups: number;
+  totalSalary: number;
+  teacherBreakdown: {
+    teacherId: number;
+    teacherName: string;
+    groupCount: number;
+    salary: number;
+  }[];
+}
+
 export default function TeacherSalaries() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,6 +78,9 @@ export default function TeacherSalaries() {
       return {};
     }
   });
+
+  // State for bulk calculation results
+  const [bulkResults, setBulkResults] = useState<BulkCalculationResult | null>(null);
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -158,6 +175,58 @@ export default function TeacherSalaries() {
     } catch (error) {
       console.error('Failed to save group payments to localStorage:', error);
     }
+  };
+
+  // Calculate salaries for all teachers
+  const calculateAllTeacherSalaries = () => {
+    const teacherBreakdown: BulkCalculationResult['teacherBreakdown'] = [];
+    let totalSalary = 0;
+    let totalGroups = 0;
+
+    filteredTeachers.forEach(teacher => {
+      const teacherGroups = getTeacherGroups(teacher.id);
+      let teacherSalary = 0;
+
+      teacherGroups.forEach(group => {
+        const payment = groupPayments[group.id];
+        if (payment?.amount && payment?.teacherPercentage) {
+          const amount = parseFloat(payment.amount) || 0;
+          const percentage = parseFloat(payment.teacherPercentage) || 0;
+          const attendanceCounts = getAttendanceCounts(group.id);
+          
+          // Calculate based on attendance ratio
+          const attendanceRatio = attendanceCounts.total > 0 ? attendanceCounts.present / attendanceCounts.total : 0;
+          const groupSalary = (amount * percentage / 100) * attendanceRatio;
+          teacherSalary += groupSalary;
+        }
+      });
+
+      if (teacherSalary > 0) {
+        teacherBreakdown.push({
+          teacherId: teacher.id,
+          teacherName: teacher.name,
+          groupCount: teacherGroups.length,
+          salary: teacherSalary
+        });
+        totalSalary += teacherSalary;
+      }
+      totalGroups += teacherGroups.length;
+    });
+
+    // Get month name for display
+    const [year, month] = selectedMonth.split('-');
+    const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('ar-SA', { 
+      year: 'numeric', 
+      month: 'long' 
+    });
+
+    setBulkResults({
+      month: monthName,
+      totalTeachers: filteredTeachers.length,
+      totalGroups,
+      totalSalary,
+      teacherBreakdown: teacherBreakdown.sort((a, b) => b.salary - a.salary) // Sort by highest salary
+    });
   };
 
   // Filter teachers based on search query
@@ -322,6 +391,53 @@ export default function TeacherSalaries() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bulk Calculation Button */}
+      <div className="mb-6">
+        <Button
+          onClick={calculateAllTeacherSalaries}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          disabled={filteredTeachers.length === 0 || teachersLoading || groupsLoading}
+        >
+          <Calculator className="w-4 h-4 mr-2" />
+          حساب أجور جميع المعلمين
+        </Button>
+      </div>
+
+      {/* Bulk Results Display */}
+      {bulkResults && (
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-3 flex items-center">
+            <Calculator className="w-5 h-5 mr-2" />
+            نتائج حساب الأجور - {bulkResults.month}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">إجمالي المعلمين</p>
+              <p className="text-xl font-bold text-green-700 dark:text-green-300">{bulkResults.totalTeachers}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">إجمالي المجموعات</p>
+              <p className="text-xl font-bold text-green-700 dark:text-green-300">{bulkResults.totalGroups}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">إجمالي الأجور</p>
+              <p className="text-xl font-bold text-green-700 dark:text-green-300">{bulkResults.totalSalary.toLocaleString()} دج</p>
+            </div>
+          </div>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {bulkResults.teacherBreakdown.map((result) => (
+              <div key={result.teacherId} className="flex justify-between items-center py-2 px-3 bg-white dark:bg-gray-800 rounded border">
+                <span className="font-medium">{result.teacherName}</span>
+                <div className="text-right">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{result.groupCount} مجموعات - </span>
+                  <span className="font-bold text-green-700 dark:text-green-300">{result.salary.toLocaleString()} دج</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Teachers List */}
       <div className="space-y-4">
