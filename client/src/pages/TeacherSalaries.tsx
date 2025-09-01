@@ -62,6 +62,16 @@ interface BulkCalculationResult {
     teacherName: string;
     groupCount: number;
     salary: number;
+    groups: {
+      groupName: string;
+      subject: string;
+      level: string;
+      attendance: number;
+      lessons: number;
+      amount: number;
+      percentage: number;
+      groupSalary: number;
+    }[];
   }[];
 }
 
@@ -233,6 +243,7 @@ export default function TeacherSalaries() {
     filteredTeachers.forEach(teacher => {
       const teacherGroups = getTeacherGroups(teacher.id);
       let teacherSalary = 0;
+      const groupDetails: BulkCalculationResult['teacherBreakdown'][0]['groups'] = [];
 
       teacherGroups.forEach(group => {
         const payment = groupPayments[group.id];
@@ -247,6 +258,18 @@ export default function TeacherSalaries() {
           const totalAttendance = attendanceCounts.present;
           const groupSalary = (amount * percentage) / (100 * lessonsCount) * totalAttendance;
           teacherSalary += groupSalary;
+
+          // Add group details
+          groupDetails.push({
+            groupName: group.name || group.nameAr || group.subjectNameAr || 'مجموعة غير محددة',
+            subject: group.subjectNameAr || group.subjectName || 'مادة غير محددة',
+            level: group.educationLevel || 'مستوى غير محدد',
+            attendance: totalAttendance,
+            lessons: lessonsCount,
+            amount: amount,
+            percentage: percentage,
+            groupSalary: groupSalary
+          });
         }
       });
 
@@ -255,7 +278,8 @@ export default function TeacherSalaries() {
           teacherId: teacher.id,
           teacherName: teacher.name,
           groupCount: teacherGroups.length,
-          salary: teacherSalary
+          salary: teacherSalary,
+          groups: groupDetails
         });
         totalSalary += teacherSalary;
       }
@@ -781,14 +805,147 @@ export default function TeacherSalaries() {
               <p className="text-xl font-bold text-green-700 dark:text-green-300">{bulkResults.totalSalary.toLocaleString()} دج</p>
             </div>
           </div>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
+          <div className="space-y-4">
             {bulkResults.teacherBreakdown.map((result) => (
-              <div key={result.teacherId} className="flex justify-between items-center py-2 px-3 bg-white dark:bg-gray-800 rounded border">
-                <span className="font-medium">{result.teacherName}</span>
-                <div className="text-right">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">{result.groupCount} مجموعات - </span>
-                  <span className="font-bold text-green-700 dark:text-green-300">{result.salary.toLocaleString()} دج</span>
+              <div key={result.teacherId} className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
+                {/* Teacher Header */}
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedPayments[`${result.teacherId}-bulk`] || false}
+                        onChange={async (e) => {
+                          const key = `${result.teacherId}-bulk`;
+                          const isChecked = e.target.checked;
+                          
+                          // Update checkbox state locally first
+                          setSelectedPayments(prev => ({
+                            ...prev,
+                            [key]: isChecked
+                          }));
+
+                          // Save payment status to database
+                          try {
+                            await apiRequest('POST', '/api/teacher-payment-status', {
+                              teacherId: result.teacherId,
+                              paymentMonth: bulkResults.month,
+                              isPaid: isChecked
+                            });
+                          } catch (statusError) {
+                            console.error('Failed to save payment status:', statusError);
+                            // Revert the local state if API call fails
+                            setSelectedPayments(prev => ({
+                              ...prev,
+                              [key]: !isChecked
+                            }));
+                          }
+
+                          // If checked, record as expense in gain/loss system
+                          if (isChecked) {
+                            try {
+                              const financialEntry = {
+                                type: 'loss' as const,
+                                amount: result.salary.toString(),
+                                remarks: `راتب ${result.teacherName} - ${bulkResults.month}`,
+                                year: new Date().getFullYear(),
+                                month: new Date().getMonth() + 1,
+                                receiptId: null
+                              };
+                              
+                              await apiRequest('POST', '/api/financial-entries', financialEntry);
+                              
+                              toast({
+                                title: 'تم تسجيل المصروف بنجاح',
+                                description: `تم إضافة راتب ${result.teacherName} إلى نظام الأرباح والخسائر`,
+                                variant: 'default'
+                              });
+                            } catch (error: any) {
+                              console.error('Failed to record salary payment as expense:', error);
+                              
+                              toast({
+                                title: 'خطأ في تسجيل المصروف',
+                                description: 'فشل في تسجيل راتب المعلم في نظام الأرباح والخسائر',
+                                variant: 'destructive'
+                              });
+                              
+                              // Uncheck the checkbox since the operation failed
+                              setSelectedPayments(prev => ({
+                                ...prev,
+                                [key]: false
+                              }));
+                            }
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <div>
+                        <h5 className="font-bold text-blue-800 dark:text-blue-200">
+                          {result.teacherName}
+                        </h5>
+                        <p className="text-xs text-blue-600 dark:text-blue-300">
+                          {result.groupCount} مجموعات
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                        {result.salary.toLocaleString()} دج
+                      </span>
+                      <p className="text-xs text-blue-600 dark:text-blue-300">إجمالي الراتب</p>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Groups Details Table */}
+                {result.groups && result.groups.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                          <th className="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-300">اسم المجموعة</th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">المادة</th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">المستوى</th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">الحضور</th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">عدد الدروس</th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">المبلغ</th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">النسبة</th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">الأجر</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.groups.map((group, groupIndex) => (
+                          <tr key={groupIndex} className="border-t border-gray-200 dark:border-gray-600">
+                            <td className="px-3 py-2 text-right font-medium text-gray-800 dark:text-gray-200">
+                              {group.groupName}
+                            </td>
+                            <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                              {group.subject}
+                            </td>
+                            <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                              {group.level}
+                            </td>
+                            <td className="px-3 py-2 text-center font-medium text-blue-600 dark:text-blue-400">
+                              {group.attendance}
+                            </td>
+                            <td className="px-3 py-2 text-center font-medium text-orange-600 dark:text-orange-400">
+                              {group.lessons}
+                            </td>
+                            <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                              {group.amount} دج
+                            </td>
+                            <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                              {group.percentage}%
+                            </td>
+                            <td className="px-3 py-2 text-center font-bold text-green-600 dark:text-green-400">
+                              {group.groupSalary.toLocaleString()} دج
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             ))}
           </div>
