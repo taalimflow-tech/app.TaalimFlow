@@ -236,24 +236,51 @@ export default function TeacherSalaries() {
 
   // Calculate salary for individual teacher
   const calculateIndividualTeacherSalary = (teacherId: number) => {
+    console.log('🧮 Calculating salary for teacher:', teacherId);
     const teacherGroups = getTeacherGroups(teacherId);
+    console.log('📚 Teacher groups:', teacherGroups);
     let teacherSalary = 0;
 
     teacherGroups.forEach(group => {
       const payment = groupPayments[group.id];
+      console.log(`💰 Payment data for group ${group.id}:`, payment);
+      
       if (payment?.amount && payment?.teacherPercentage) {
         const amount = parseFloat(payment.amount) || 0;
         const percentage = parseFloat(payment.teacherPercentage) || 0;
         const attendanceCounts = getAttendanceCountsForGroup(group.id);
         
+        console.log(`📊 Group ${group.id} calculation data:`, {
+          amount,
+          percentage,
+          attendanceCounts,
+          lessonsCount: attendanceCounts.total,
+          totalAttendance: attendanceCounts.present
+        });
+        
         // Calculate based on: (amount * percentage) / (100 * lessons_count) * total_attendance
         const lessonsCount = attendanceCounts.total;
         const totalAttendance = attendanceCounts.present;
+        
+        // Add safety check for division by zero
+        if (lessonsCount === 0) {
+          console.warn(`⚠️ Group ${group.id} has 0 lessons, skipping calculation`);
+          return;
+        }
+        
         const groupSalary = (amount * percentage) / (100 * lessonsCount) * totalAttendance;
+        console.log(`💵 Group ${group.id} salary calculation:`, {
+          formula: `(${amount} * ${percentage}) / (100 * ${lessonsCount}) * ${totalAttendance}`,
+          result: groupSalary
+        });
+        
         teacherSalary += groupSalary;
+      } else {
+        console.log(`❌ Group ${group.id} missing payment data:`, { amount: payment?.amount, percentage: payment?.teacherPercentage });
       }
     });
 
+    console.log(`🎯 Final teacher ${teacherId} salary:`, teacherSalary);
     setIndividualResults(prev => ({
       ...prev,
       [teacherId]: teacherSalary
