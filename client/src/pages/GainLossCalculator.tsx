@@ -136,13 +136,14 @@ export default function GainLossCalculator() {
   }, 0);
 
   // Calculate balances for all time periods
-  const calculateBalanceForPeriod = (period: 'today' | 'week' | 'month' | 'all') => {
+  const calculateBalanceForPeriod = (period: 'today' | 'week' | 'month' | 'year' | 'all') => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart);
     weekStart.setDate(todayStart.getDate() - 7);
     const monthStart = new Date(todayStart);
     monthStart.setDate(todayStart.getDate() - 30);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
     
     const filteredByPeriod = (entries as FinancialEntry[]).filter((entry: FinancialEntry) => {
       const entryDate = new Date(entry.createdAt);
@@ -154,6 +155,8 @@ export default function GainLossCalculator() {
           return entryDate >= weekStart;
         case 'month':
           return entryDate >= monthStart;
+        case 'year':
+          return entryDate >= yearStart;
         case 'all':
         default:
           return true;
@@ -169,6 +172,7 @@ export default function GainLossCalculator() {
   const todayBalance = calculateBalanceForPeriod('today');
   const weekBalance = calculateBalanceForPeriod('week');
   const monthBalance = calculateBalanceForPeriod('month');
+  const yearBalance = calculateBalanceForPeriod('year');
   const allTimeBalance = calculateBalanceForPeriod('all');
 
   // Create entry mutation
@@ -307,12 +311,12 @@ export default function GainLossCalculator() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {/* Today */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
               <div className="text-center">
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">اليوم</div>
-                <div className={`text-2xl font-bold ${todayBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-xl font-bold ${todayBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {todayBalance.toLocaleString('ar-DZ')} دج
                 </div>
               </div>
@@ -322,7 +326,7 @@ export default function GainLossCalculator() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
               <div className="text-center">
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">آخر 7 أيام</div>
-                <div className={`text-2xl font-bold ${weekBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-xl font-bold ${weekBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {weekBalance.toLocaleString('ar-DZ')} دج
                 </div>
               </div>
@@ -332,8 +336,18 @@ export default function GainLossCalculator() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
               <div className="text-center">
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">آخر 30 يوم</div>
-                <div className={`text-2xl font-bold ${monthBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-xl font-bold ${monthBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {monthBalance.toLocaleString('ar-DZ')} دج
+                </div>
+              </div>
+            </div>
+            
+            {/* This Year */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="text-center">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">هذا العام</div>
+                <div className={`text-xl font-bold ${yearBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {yearBalance.toLocaleString('ar-DZ')} دج
                 </div>
               </div>
             </div>
@@ -342,7 +356,7 @@ export default function GainLossCalculator() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
               <div className="text-center">
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">جميع الأوقات</div>
-                <div className={`text-2xl font-bold ${allTimeBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-xl font-bold ${allTimeBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {allTimeBalance.toLocaleString('ar-DZ')} دج
                 </div>
               </div>
