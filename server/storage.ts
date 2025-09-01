@@ -5593,13 +5593,12 @@ export class DatabaseStorage implements IStorage {
             `📝 Creating loss entry to offset gain ID: ${benefit.id}, amount: ${benefit.amount}`,
           );
           
-          // Create a comprehensive loss entry with detailed information
-          const currentDate = new Date().toLocaleDateString('ar-SA');
+          // Use the exact original receipt format from the gain entry for the loss entry
           const lossEntry = {
             schoolId: schoolId,
             type: "loss" as const,
             amount: benefit.amount, // Same amount as the gain
-            remarks: `إلغاء دفعة: ${studentInfo} - شهر ${month}/${year} - مبلغ ${paymentRecord.amount} دج${groupInfo} | تاريخ الإلغاء: ${currentDate} | مقابل الربح رقم ${benefit.id}`,
+            remarks: benefit.remarks, // Use the exact original receipt format
             year: year,
             month: month,
             recordedBy: benefit.recordedBy, // Use same user who recorded the original gain
