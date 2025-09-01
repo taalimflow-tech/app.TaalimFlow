@@ -247,42 +247,40 @@ export default function TeacherSalaries() {
 
       teacherGroups.forEach(group => {
         const payment = groupPayments[group.id];
-        if (payment?.amount && payment?.teacherPercentage) {
-          const amount = parseFloat(payment.amount) || 0;
-          const percentage = parseFloat(payment.teacherPercentage) || 0;
-          const attendanceCounts = getAttendanceCountsForGroup(group.id);
-          
-          // Calculate based on: (amount * percentage) / (100 * lessons_count) * total_attendance
-          // lessons_count = total possible attendance days for the month
-          const lessonsCount = attendanceCounts.total;
-          const totalAttendance = attendanceCounts.present;
-          const groupSalary = (amount * percentage) / (100 * lessonsCount) * totalAttendance;
-          teacherSalary += groupSalary;
+        const attendanceCounts = getAttendanceCountsForGroup(group.id);
+        
+        // Use payment data if available, otherwise use defaults for calculation
+        const amount = parseFloat(payment?.amount || '1000') || 1000; // Default 1000 DZD
+        const percentage = parseFloat(payment?.teacherPercentage || '50') || 50; // Default 50%
+        
+        // Calculate based on: (amount * percentage) / (100 * lessons_count) * total_attendance
+        const lessonsCount = attendanceCounts.total;
+        const totalAttendance = attendanceCounts.present;
+        const groupSalary = lessonsCount > 0 ? (amount * percentage) / (100 * lessonsCount) * totalAttendance : 0;
+        teacherSalary += groupSalary;
 
-          // Add group details
-          groupDetails.push({
-            groupName: group.name || group.nameAr || group.subjectNameAr || 'مجموعة غير محددة',
-            subject: group.subjectNameAr || group.subjectName || 'مادة غير محددة',
-            level: group.educationLevel || 'مستوى غير محدد',
-            attendance: totalAttendance,
-            lessons: lessonsCount,
-            amount: amount,
-            percentage: percentage,
-            groupSalary: groupSalary
-          });
-        }
+        // Add group details (show all groups, even those without payment data)
+        groupDetails.push({
+          groupName: group.name || group.subjectNameAr || 'مجموعة غير محددة',
+          subject: group.subjectNameAr || group.subjectName || 'مادة غير محددة',
+          level: group.educationLevel || 'مستوى غير محدد',
+          attendance: totalAttendance,
+          lessons: lessonsCount,
+          amount: amount,
+          percentage: percentage,
+          groupSalary: groupSalary
+        });
       });
 
-      if (teacherSalary > 0) {
-        teacherBreakdown.push({
-          teacherId: teacher.id,
-          teacherName: teacher.name,
-          groupCount: teacherGroups.length,
-          salary: teacherSalary,
-          groups: groupDetails
-        });
-        totalSalary += teacherSalary;
-      }
+      // Include ALL teachers, even those with 0 salary
+      teacherBreakdown.push({
+        teacherId: teacher.id,
+        teacherName: teacher.name,
+        groupCount: teacherGroups.length,
+        salary: teacherSalary,
+        groups: groupDetails
+      });
+      totalSalary += teacherSalary;
       totalGroups += teacherGroups.length;
     });
 
@@ -380,7 +378,7 @@ export default function TeacherSalaries() {
       const scheduledLessons = getScheduledLessonsForMonth(group.id);
       
       return {
-        groupName: group.name || group.nameAr || group.subjectNameAr,
+        groupName: group.name || group.subjectNameAr,
         subject: group.subjectNameAr,
         level: group.educationLevel,
         grade: group.grade,
@@ -566,7 +564,7 @@ export default function TeacherSalaries() {
       const scheduledLessons = getScheduledLessonsForMonth(group.id);
       
       return {
-        groupName: group.name || group.nameAr || group.subjectNameAr,
+        groupName: group.name || group.subjectNameAr,
         subject: group.subjectNameAr,
         level: group.educationLevel,
         students: group.studentsAssigned?.length || 0,
