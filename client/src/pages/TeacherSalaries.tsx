@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,6 +92,27 @@ export default function TeacherSalaries() {
   const [individualResults, setIndividualResults] = useState<{ [teacherId: number]: number }>({});
   const [showPaymentHistory, setShowPaymentHistory] = useState<{ [teacherId: number]: boolean }>({});
   const [selectedPayments, setSelectedPayments] = useState<{ [key: string]: boolean }>({});
+  
+  // Query to load existing payment statuses
+  const { data: paymentStatuses } = useQuery({
+    queryKey: ['/api/teacher-payment-status'],
+    enabled: !!user && user.role === 'admin'
+  });
+
+  // Initialize selectedPayments based on loaded payment statuses
+  useEffect(() => {
+    if (paymentStatuses && Array.isArray(paymentStatuses)) {
+      const paymentMap: { [key: string]: boolean } = {};
+      
+      // Create payment status map from the database
+      paymentStatuses.forEach((status: any) => {
+        const key = `${status.teacherId}-${status.paymentMonth}`;
+        paymentMap[key] = status.isPaid;
+      });
+      
+      setSelectedPayments(paymentMap);
+    }
+  }, [paymentStatuses]);
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -1033,11 +1054,28 @@ export default function TeacherSalaries() {
                                               const key = `${teacher.id}-${index}`;
                                               const isChecked = e.target.checked;
                                               
-                                              // Update checkbox state
+                                              // Update checkbox state locally first
                                               setSelectedPayments(prev => ({
                                                 ...prev,
                                                 [key]: isChecked
                                               }));
+
+                                              // Save payment status to database
+                                              try {
+                                                await apiRequest('POST', '/api/teacher-payment-status', {
+                                                  teacherId: teacher.id,
+                                                  paymentMonth: payment.month,
+                                                  isPaid: isChecked
+                                                });
+                                                console.log('Payment status saved successfully');
+                                              } catch (statusError) {
+                                                console.error('Failed to save payment status:', statusError);
+                                                // Optionally revert the local state if API call fails
+                                                setSelectedPayments(prev => ({
+                                                  ...prev,
+                                                  [key]: !isChecked
+                                                }));
+                                              }
 
                                               // If checked, record as expense in gain/loss system
                                               if (isChecked) {

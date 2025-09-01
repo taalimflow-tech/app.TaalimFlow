@@ -6366,6 +6366,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Teacher Payment Status Routes
+  app.get("/api/teacher-payment-status", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "صلاحيات المدير مطلوبة لعرض حالة دفع المعلمين" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const { teacherId, paymentMonth } = req.query;
+      const statuses = await storage.getTeacherPaymentStatuses(
+        schoolId,
+        teacherId ? parseInt(teacherId as string) : undefined,
+        paymentMonth as string | undefined
+      );
+
+      res.json(statuses);
+    } catch (error) {
+      console.error("❌ Error fetching teacher payment statuses:", error);
+      res.status(500).json({ error: "فشل في جلب حالة دفع المعلمين" });
+    }
+  });
+
+  app.post("/api/teacher-payment-status", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "صلاحيات المدير مطلوبة لتحديث حالة دفع المعلمين" });
+      }
+
+      const schoolId = req.session.user.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ error: "معرف المدرسة مطلوب" });
+      }
+
+      const { teacherId, paymentMonth, isPaid } = req.body;
+
+      if (!teacherId || !paymentMonth || typeof isPaid !== 'boolean') {
+        return res.status(400).json({ error: "بيانات ناقصة أو غير صحيحة" });
+      }
+
+      const status = await storage.updateTeacherPaymentStatus(
+        schoolId,
+        teacherId,
+        paymentMonth,
+        isPaid,
+        req.session.user.id
+      );
+
+      res.json(status);
+    } catch (error) {
+      console.error("❌ Error updating teacher payment status:", error);
+      res.status(500).json({ error: "فشل في تحديث حالة دفع المعلم" });
+    }
+  });
+
   // Gain/Loss Calculator Routes
   app.get("/api/gain-loss-entries", requireAuth, async (req, res) => {
     try {

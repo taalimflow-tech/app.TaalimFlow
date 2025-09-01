@@ -382,6 +382,30 @@ export const financialEntries = pgTable("financial_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Teacher Payment Status table - tracks which payments have been marked as paid
+export const teacherPaymentStatus = pgTable("teacher_payment_status", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id")
+    .references(() => schools.id)
+    .notNull(),
+  teacherId: integer("teacher_id")
+    .references(() => users.id)
+    .notNull(),
+  paymentMonth: text("payment_month").notNull(), // e.g., "2025-09"
+  isPaid: boolean("is_paid").default(false).notNull(),
+  markedPaidAt: timestamp("marked_paid_at"),
+  markedPaidBy: integer("marked_paid_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint to prevent duplicate status entries
+  uniquePaymentStatus: unique().on(
+    table.schoolId,
+    table.teacherId,
+    table.paymentMonth,
+  ),
+}));
+
 export const formationRegistrations = pgTable("formation_registrations", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id")
@@ -956,6 +980,17 @@ export const insertFinancialEntrySchema = createInsertSchema(
   receiptId: true,
 });
 
+export const insertTeacherPaymentStatusSchema = createInsertSchema(
+  teacherPaymentStatus,
+).pick({
+  schoolId: true,
+  teacherId: true,
+  paymentMonth: true,
+  isPaid: true,
+  markedPaidAt: true,
+  markedPaidBy: true,
+});
+
 // Course schemas
 export const insertCourseSchema = createInsertSchema(courses).pick({
   schoolId: true,
@@ -1071,6 +1106,8 @@ export type InsertStudentMonthlyPayment = z.infer<
 >;
 export type FinancialEntry = typeof financialEntries.$inferSelect;
 export type InsertFinancialEntry = z.infer<typeof insertFinancialEntrySchema>;
+export type TeacherPaymentStatus = typeof teacherPaymentStatus.$inferSelect;
+export type InsertTeacherPaymentStatus = z.infer<typeof insertTeacherPaymentStatusSchema>;
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type CourseRegistration = typeof courseRegistrations.$inferSelect;

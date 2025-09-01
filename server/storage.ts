@@ -29,6 +29,7 @@ import {
   groupScheduleAssignments,
   studentMonthlyPayments,
   financialEntries,
+  teacherPaymentStatus,
   pushSubscriptions,
   notificationLogs,
   type School,
@@ -87,6 +88,8 @@ import {
   type InsertStudentMonthlyPayment,
   type FinancialEntry,
   type InsertFinancialEntry,
+  type TeacherPaymentStatus,
+  type InsertTeacherPaymentStatus,
   type PushSubscription,
   type InsertPushSubscription,
   type NotificationLog,
@@ -626,6 +629,20 @@ export interface IStorage {
     month: number,
     schoolId: number
   ): Promise<void>;
+
+  // Teacher Payment Status methods
+  getTeacherPaymentStatuses(
+    schoolId: number,
+    teacherId?: number,
+    paymentMonth?: string
+  ): Promise<TeacherPaymentStatus[]>;
+  updateTeacherPaymentStatus(
+    schoolId: number,
+    teacherId: number,
+    paymentMonth: string,
+    isPaid: boolean,
+    markedBy: number
+  ): Promise<TeacherPaymentStatus>;
 
   // Child-specific queries for parent access
   getStudentById(studentId: number): Promise<Student | undefined>;
@@ -7559,6 +7576,88 @@ export class DatabaseStorage implements IStorage {
       return subject || null;
     } catch (error) {
       console.error("Error fetching teaching module by ID:", error);
+      throw error;
+    }
+  }
+
+  // Teacher Payment Status methods
+  async getTeacherPaymentStatuses(
+    schoolId: number,
+    teacherId?: number,
+    paymentMonth?: string
+  ): Promise<TeacherPaymentStatus[]> {
+    try {
+      let query = db
+        .select()
+        .from(teacherPaymentStatus)
+        .where(eq(teacherPaymentStatus.schoolId, schoolId));
+
+      if (teacherId) {
+        query = query.where(eq(teacherPaymentStatus.teacherId, teacherId));
+      }
+
+      if (paymentMonth) {
+        query = query.where(eq(teacherPaymentStatus.paymentMonth, paymentMonth));
+      }
+
+      return await query.orderBy(desc(teacherPaymentStatus.createdAt));
+    } catch (error) {
+      console.error("Error fetching teacher payment statuses:", error);
+      throw error;
+    }
+  }
+
+  async updateTeacherPaymentStatus(
+    schoolId: number,
+    teacherId: number,
+    paymentMonth: string,
+    isPaid: boolean,
+    markedBy: number
+  ): Promise<TeacherPaymentStatus> {
+    try {
+      // Try to update existing record first
+      const existing = await db
+        .select()
+        .from(teacherPaymentStatus)
+        .where(
+          and(
+            eq(teacherPaymentStatus.schoolId, schoolId),
+            eq(teacherPaymentStatus.teacherId, teacherId),
+            eq(teacherPaymentStatus.paymentMonth, paymentMonth)
+          )
+        )
+        .limit(1);
+
+      if (existing.length > 0) {
+        // Update existing record
+        const [updated] = await db
+          .update(teacherPaymentStatus)
+          .set({
+            isPaid: isPaid,
+            markedPaidAt: isPaid ? new Date() : null,
+            markedPaidBy: isPaid ? markedBy : null,
+            updatedAt: new Date()
+          })
+          .where(eq(teacherPaymentStatus.id, existing[0].id))
+          .returning();
+        return updated;
+      } else {
+        // Create new record
+        const [created] = await db
+          .insert(teacherPaymentStatus)
+          .values({
+            schoolId,
+            teacherId,
+            paymentMonth,
+            isPaid,
+            markedPaidAt: isPaid ? new Date() : null,
+            markedPaidBy: isPaid ? markedBy : null
+          })
+          .returning();
+        return created;
+      }
+    } catch (error) {
+      console.error("Error updating teacher payment status:", error);
       throw error;
     }
   }
