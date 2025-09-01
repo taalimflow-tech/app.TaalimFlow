@@ -445,7 +445,6 @@ export default function AdminContent() {
   const tabs = [
     { id: 'announcement', label: 'الإعلانات', icon: Megaphone },
     { id: 'blog', label: 'المقالات', icon: FileText },
-    { id: 'group', label: 'المجموعات', icon: Users },
     { id: 'formation', label: 'التكوينات', icon: BookOpen }
   ];
 
