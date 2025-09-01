@@ -1056,22 +1056,24 @@ export default function TeacherSalaries() {
                                                   
                                                   console.log('Sending financial entry:', financialEntry);
                                                   
-                                                  const response = await apiRequest('POST', '/api/financial-entries', financialEntry);
-                                                  
-                                                  if (!response.ok) {
-                                                    const errorData = await response.json();
-                                                    throw new Error(errorData.error || 'فشل في إضافة الإدخال المالي');
-                                                  }
-                                                  
+                                                  await apiRequest('POST', '/api/financial-entries', financialEntry);
                                                   console.log('Financial entry created successfully');
+                                                  
+                                                  // Show success toast
+                                                  toast({
+                                                    title: 'تم تسجيل المصروف بنجاح',
+                                                    description: `تم إضافة راتب ${teacherName} إلى نظام الأرباح والخسائر`,
+                                                    variant: 'default'
+                                                  });
                                                 } catch (error: any) {
                                                   console.error('Failed to record salary payment as expense:', error);
                                                   
-                                                  // Get more detailed error message
+                                                  // Extract error message from the thrown error
                                                   let errorMessage = 'فشل في تسجيل راتب المعلم في نظام الأرباح والخسائر';
-                                                  if (error.response) {
-                                                    const responseData = await error.response.json().catch(() => ({}));
-                                                    errorMessage = responseData.error || errorMessage;
+                                                  if (error.message) {
+                                                    errorMessage = error.message.includes('HTTP error!') 
+                                                      ? error.message.split('message: ')[1] || errorMessage
+                                                      : error.message;
                                                   }
                                                   
                                                   toast({
