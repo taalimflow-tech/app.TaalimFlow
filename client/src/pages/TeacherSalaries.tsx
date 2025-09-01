@@ -195,7 +195,7 @@ export default function TeacherSalaries() {
         if (payment?.amount && payment?.teacherPercentage) {
           const amount = parseFloat(payment.amount) || 0;
           const percentage = parseFloat(payment.teacherPercentage) || 0;
-          const attendanceCounts = getAttendanceCounts(group.id);
+          const attendanceCounts = getAttendanceCountsForGroup(group.id);
           
           // Calculate based on: (amount * (percentage / 100) * lessons_count) * total_attendance
           // lessons_count = total possible attendance days for the month
@@ -244,7 +244,7 @@ export default function TeacherSalaries() {
       if (payment?.amount && payment?.teacherPercentage) {
         const amount = parseFloat(payment.amount) || 0;
         const percentage = parseFloat(payment.teacherPercentage) || 0;
-        const attendanceCounts = getAttendanceCounts(group.id);
+        const attendanceCounts = getAttendanceCountsForGroup(group.id);
         
         // Calculate based on: (amount * (percentage / 100) * lessons_count) * total_attendance
         const lessonsCount = attendanceCounts.total;
