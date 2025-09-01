@@ -591,6 +591,15 @@ export default function GainLossCalculator() {
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
                               
+                              // Handle the new format "المجموعة : group name"
+                              if (subjectText.startsWith('المجموعة :') || subjectText.startsWith('المجموعة:')) {
+                                const groupName = subjectText.replace(/^المجموعة\s*:\s*/, '').trim();
+                                if (groupName && groupName.length > 2) {
+                                  return { label: '', value: groupName, color: 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border border-emerald-200 dark:border-emerald-800', textColor: 'text-emerald-700 dark:text-emerald-300', icon: BookOpen };
+                                }
+                                return null;
+                              }
+                              
                               // Extract only group name - look for patterns like "مجموعة X" or "group X"
                               let displayText = subjectText;
                               
@@ -675,6 +684,15 @@ export default function GainLossCalculator() {
                             ...monthYearTags,
                             ...subjects.map(subject => {
                               const subjectText = subject.trim();
+                              
+                              // Handle the new format "المجموعة : group name"
+                              if (subjectText.startsWith('المجموعة :') || subjectText.startsWith('المجموعة:')) {
+                                const groupName = subjectText.replace(/^المجموعة\s*:\s*/, '').trim();
+                                if (groupName && groupName.length > 2) {
+                                  return { label: '', value: groupName, color: 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border border-emerald-200 dark:border-emerald-800', textColor: 'text-emerald-700 dark:text-emerald-300', icon: BookOpen };
+                                }
+                                return null;
+                              }
                               
                               // Extract only group name - look for patterns like "مجموعة X" or "group X"
                               let displayText = subjectText;
