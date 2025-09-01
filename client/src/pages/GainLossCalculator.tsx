@@ -532,7 +532,7 @@ export default function GainLossCalculator() {
                             {entry.type === 'gain' ? '+' : '-'}{parseFloat(entry.amount).toLocaleString('ar-DZ')} دج
                           </span>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {entry.type === 'gain' ? 'ربح' : 'خسارة'}
+                            {entry.type === 'gain' ? 'ربح' : (entry.remarks.includes('إيصال دفع رقم:') ? 'خسارة - استرجاع أموال' : 'خسارة')}
                           </div>
                         </div>
                       </div>
