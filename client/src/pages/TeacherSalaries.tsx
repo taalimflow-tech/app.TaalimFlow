@@ -88,6 +88,7 @@ export default function TeacherSalaries() {
 
   // State for individual teacher calculation results
   const [individualResults, setIndividualResults] = useState<{ [teacherId: number]: number }>({});
+  const [showPaymentHistory, setShowPaymentHistory] = useState<{ [teacherId: number]: boolean }>({});
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -466,16 +467,16 @@ export default function TeacherSalaries() {
     `;
   };
 
-  // View payment history function
-  const viewPaymentHistory = (teacherId: number) => {
-    const teacher = teachers?.find(t => t.id === teacherId);
-    
-    if (!teacher) {
-      alert('لم يتم العثور على بيانات الأستاذ');
-      return;
-    }
+  // Toggle payment history visibility
+  const togglePaymentHistory = (teacherId: number) => {
+    setShowPaymentHistory(prev => ({
+      ...prev,
+      [teacherId]: !prev[teacherId]
+    }));
+  };
 
-    // Get stored payment history from localStorage
+  // Get payment history for a teacher
+  const getPaymentHistory = (teacherId: number) => {
     const savedPayments = localStorage.getItem('teacherPaymentHistory');
     let paymentHistory = [];
     
@@ -484,26 +485,15 @@ export default function TeacherSalaries() {
         paymentHistory = JSON.parse(savedPayments);
       } catch (error) {
         console.error('Error parsing payment history:', error);
+        return [];
       }
     }
     
     // Filter payments for this teacher
     const teacherPayments = paymentHistory.filter((payment: any) => payment.teacherId === teacherId);
     
-    if (teacherPayments.length === 0) {
-      alert(`لا توجد سجلات دفع سابقة للأستاذ ${teacher.name}`);
-      return;
-    }
-    
     // Sort by date (most recent first)
-    teacherPayments.sort((a: any, b: any) => new Date(b.paidDate).getTime() - new Date(a.paidDate).getTime());
-    
-    // Display payment history
-    const historyText = teacherPayments.map((payment: any, index: number) => 
-      `${index + 1}. ${payment.month}: ${payment.amount.toLocaleString()} دج (تاريخ الدفع: ${new Date(payment.paidDate).toLocaleDateString('ar-DZ')})`
-    ).join('\n');
-    
-    alert(`سجل المدفوعات للأستاذ ${teacher.name}:\n\n${historyText}`);
+    return teacherPayments.sort((a: any, b: any) => new Date(b.paidDate).getTime() - new Date(a.paidDate).getTime());
   };
 
   // Save payment record (called when salary is calculated)
@@ -956,7 +946,7 @@ export default function TeacherSalaries() {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => viewPaymentHistory(teacher.id)}
+                          onClick={() => togglePaymentHistory(teacher.id)}
                         >
                           <History className="w-4 h-4 mr-2" />
                           الأشهر المدفوعة
@@ -982,6 +972,47 @@ export default function TeacherSalaries() {
                           طباعة
                         </Button>
                       </div>
+
+                      {/* Payment History Section */}
+                      {showPaymentHistory[teacher.id] && (
+                        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-t border-gray-200 dark:border-gray-700">
+                          <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3 flex items-center">
+                            <History className="w-4 h-4 mr-2" />
+                            سجل المدفوعات
+                          </h4>
+                          {(() => {
+                            const paymentHistory = getPaymentHistory(teacher.id);
+                            if (paymentHistory.length === 0) {
+                              return (
+                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                                  لا توجد سجلات دفع سابقة
+                                </p>
+                              );
+                            }
+                            return (
+                              <div className="space-y-2">
+                                {paymentHistory.map((payment: any, index: number) => (
+                                  <div key={index} className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600">
+                                    <div className="flex-1">
+                                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                        {payment.month}
+                                      </span>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        تاريخ الحساب: {new Date(payment.paidDate).toLocaleDateString('ar-DZ')}
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                        {payment.amount.toLocaleString()} دج
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 )}
