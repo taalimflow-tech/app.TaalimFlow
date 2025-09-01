@@ -620,6 +620,12 @@ export default function TeacherSalaries() {
                                         return `${counts.present}/${counts.total}`;
                                       })()}
                                     </span>
+                                    <span className="inline-flex items-center px-2 py-1 ml-1 rounded-md text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                      {(() => {
+                                        const counts = getAttendanceCountsForGroup(group.id);
+                                        return `${counts.total} دروس`;
+                                      })()}
+                                    </span>
                                   </p>
                                   {group.grade && (
                                     <p className="text-xs text-gray-600 dark:text-gray-400">
