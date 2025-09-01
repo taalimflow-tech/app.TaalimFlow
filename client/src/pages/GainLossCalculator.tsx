@@ -28,7 +28,6 @@ export default function GainLossCalculator() {
   const [amount, setAmount] = useState('');
   const [remarks, setRemarks] = useState('');
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
-  const [balanceFilter, setBalanceFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
 
   // Check if user is admin
   if (!loading && (!user || user.role !== 'admin')) {
@@ -123,34 +122,6 @@ export default function GainLossCalculator() {
     });
   }, [entries, timeFilter]);
 
-  // Filter entries for balance calculation
-  const balanceFilteredEntries = React.useMemo(() => {
-    if (balanceFilter === 'all') return entries as FinancialEntry[];
-    
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekStart = new Date(todayStart);
-    weekStart.setDate(todayStart.getDate() - todayStart.getDay());
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const yearStart = new Date(now.getFullYear(), 0, 1);
-    
-    return (entries as FinancialEntry[]).filter((entry: FinancialEntry) => {
-      const entryDate = new Date(entry.createdAt);
-      
-      switch (balanceFilter) {
-        case 'today':
-          return entryDate >= todayStart;
-        case 'week':
-          return entryDate >= weekStart;
-        case 'month':
-          return entryDate >= monthStart;
-        case 'year':
-          return entryDate >= yearStart;
-        default:
-          return true;
-      }
-    });
-  }, [entries, balanceFilter]);
 
   // Calculate current balance from all entries (not just filtered)
   const currentBalance = (entries as FinancialEntry[]).reduce((total: number, entry: FinancialEntry) => {
@@ -164,11 +135,41 @@ export default function GainLossCalculator() {
     return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
   }, 0);
 
-  // Calculate balance for balance card display
-  const displayBalance = balanceFilteredEntries.reduce((total: number, entry: FinancialEntry) => {
-    const entryAmount = parseFloat(entry.amount);
-    return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
-  }, 0);
+  // Calculate balances for all time periods
+  const calculateBalanceForPeriod = (period: 'today' | 'week' | 'month' | 'all') => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - 7);
+    const monthStart = new Date(todayStart);
+    monthStart.setDate(todayStart.getDate() - 30);
+    
+    const filteredByPeriod = (entries as FinancialEntry[]).filter((entry: FinancialEntry) => {
+      const entryDate = new Date(entry.createdAt);
+      
+      switch (period) {
+        case 'today':
+          return entryDate >= todayStart;
+        case 'week':
+          return entryDate >= weekStart;
+        case 'month':
+          return entryDate >= monthStart;
+        case 'all':
+        default:
+          return true;
+      }
+    });
+    
+    return filteredByPeriod.reduce((total: number, entry: FinancialEntry) => {
+      const entryAmount = parseFloat(entry.amount);
+      return entry.type === 'gain' ? total + entryAmount : total - entryAmount;
+    }, 0);
+  };
+
+  const todayBalance = calculateBalanceForPeriod('today');
+  const weekBalance = calculateBalanceForPeriod('week');
+  const monthBalance = calculateBalanceForPeriod('month');
+  const allTimeBalance = calculateBalanceForPeriod('all');
 
   // Create entry mutation
   const createEntryMutation = useMutation({
@@ -237,16 +238,6 @@ export default function GainLossCalculator() {
     }
   };
 
-  // Helper function to get balance filter label
-  const getBalanceFilterLabel = () => {
-    switch (balanceFilter) {
-      case 'today': return 'اليوم';
-      case 'week': return 'هذا الأسبوع';
-      case 'month': return 'هذا الشهر';
-      case 'year': return 'هذا العام';
-      default: return 'جميع الأوقات';
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,50 +294,60 @@ export default function GainLossCalculator() {
         <p className="text-gray-600 dark:text-gray-400">أداة بسيطة لتتبع الأرباح والخسائر المالية</p>
       </div>
 
-      {/* Current Balance Display */}
+      {/* Balance Display Grid - All Time Periods */}
       <Card className="border-2 border-primary/20 bg-gradient-to-l from-primary/5 to-primary/10">
-        <CardHeader className="space-y-4">
+        <CardHeader>
           <div className="text-center">
-            <CardTitle className="text-2xl font-bold text-primary">
-              {balanceFilter === 'all' ? 'الرصيد الحالي' : `الرصيد لفترة: ${getBalanceFilterLabel()}`}
+            <CardTitle className="text-2xl font-bold text-primary mb-2">
+              الرصيد حسب الفترة الزمنية
             </CardTitle>
-          </div>
-          
-          {/* Balance Filter Section */}
-          <div className="flex items-center justify-center gap-3 pt-2 border-t border-primary/20">
-            <Filter className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">فلترة الرصيد:</span>
-            <Select value={balanceFilter} onValueChange={(value: 'all' | 'today' | 'week' | 'month' | 'year') => setBalanceFilter(value)}>
-              <SelectTrigger className="w-[160px] h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع الأوقات</SelectItem>
-                <SelectItem value="today">اليوم</SelectItem>
-                <SelectItem value="week">هذا الأسبوع</SelectItem>
-                <SelectItem value="month">هذا الشهر</SelectItem>
-                <SelectItem value="year">هذا العام</SelectItem>
-              </SelectContent>
-            </Select>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              النتيجة الصافية = إجمالي الدخل - إجمالي المصروفات
+            </p>
           </div>
         </CardHeader>
-        <CardContent className="text-center">
-          <div className={`text-4xl font-bold ${displayBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {displayBalance.toLocaleString('ar-DZ')} دج
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            {balanceFilter === 'all' 
-              ? 'النتيجة الصافية = إجمالي الدخل - إجمالي المصروفات'
-              : `النتيجة الصافية لفترة ${getBalanceFilterLabel()}`
-            }
-          </p>
-          {balanceFilter !== 'all' && (
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                الرصيد الإجمالي: {currentBalance >= 0 ? '+' : ''}{currentBalance.toLocaleString('ar-DZ')} دج
-              </p>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Today */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="text-center">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">اليوم</div>
+                <div className={`text-2xl font-bold ${todayBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {todayBalance.toLocaleString('ar-DZ')} دج
+                </div>
+              </div>
             </div>
-          )}
+            
+            {/* Last 7 Days */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="text-center">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">آخر 7 أيام</div>
+                <div className={`text-2xl font-bold ${weekBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {weekBalance.toLocaleString('ar-DZ')} دج
+                </div>
+              </div>
+            </div>
+            
+            {/* Last 30 Days */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="text-center">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">آخر 30 يوم</div>
+                <div className={`text-2xl font-bold ${monthBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {monthBalance.toLocaleString('ar-DZ')} دج
+                </div>
+              </div>
+            </div>
+            
+            {/* All Time */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="text-center">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">جميع الأوقات</div>
+                <div className={`text-2xl font-bold ${allTimeBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {allTimeBalance.toLocaleString('ar-DZ')} دج
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
