@@ -316,8 +316,8 @@ export default function TeacherSalaries() {
     }
 
     // Get teacher groups and their details
-    const teacherGroups = filteredGroups.filter(group => group.teacherId === teacherId);
-    const groupDetails = teacherGroups.map(group => {
+    const teacherGroups = groups.filter((group: Group) => group.teacherId === teacherId);
+    const groupDetails = teacherGroups.map((group: Group) => {
       const payment = groupPayments[group.id];
       const counts = getAttendanceCountsForGroup(group.id);
       const scheduledLessons = getScheduledLessonsForMonth(group.id);
@@ -376,10 +376,10 @@ export default function TeacherSalaries() {
 
   // Generate HTML for payslip printing
   const generatePayslipHTML = (teacher: any, salary: number, teacherId: number) => {
-    const teacherGroups = filteredGroups.filter(group => group.teacherId === teacherId);
+    const teacherGroups = groups.filter((group: Group) => group.teacherId === teacherId);
     const schoolName = JSON.parse(localStorage.getItem('selectedSchool') || '{}').name || 'المدرسة';
     
-    const groupRows = teacherGroups.map(group => {
+    const groupRows = teacherGroups.map((group: Group) => {
       const payment = groupPayments[group.id];
       const counts = getAttendanceCountsForGroup(group.id);
       const scheduledLessons = getScheduledLessonsForMonth(group.id);
