@@ -1016,73 +1016,76 @@ export default function TeacherSalaries() {
                               );
                             }
                             return (
-                              <div className="space-y-3">
+                              <div className="space-y-4">
                                 {paymentHistory.map((payment: any, index: number) => (
-                                  <div key={index} className="p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                                    {/* Header with month and total amount */}
-                                    <div className="flex justify-between items-center mb-3">
-                                      <div>
-                                        <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                          {payment.month}
-                                        </span>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                          تاريخ الحساب: {new Date(payment.paidDate).toLocaleDateString('ar-DZ')}
-                                        </p>
-                                      </div>
-                                      <div className="text-right">
-                                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                                          {payment.amount.toLocaleString()} دج
-                                        </span>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">إجمالي الراتب</p>
-                                      </div>
-                                    </div>
-
-                                    {/* Summary statistics */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                      <div className="text-center">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">المجموعات</p>
-                                        <p className="font-semibold text-blue-600 dark:text-blue-400">{payment.groupsCount || 0}</p>
-                                      </div>
-                                      <div className="text-center">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">الطلاب</p>
-                                        <p className="font-semibold text-purple-600 dark:text-purple-400">{payment.totalStudents || 0}</p>
-                                      </div>
-                                      <div className="text-center">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">الدروس</p>
-                                        <p className="font-semibold text-orange-600 dark:text-orange-400">{payment.totalLessons || 0}</p>
-                                      </div>
-                                      <div className="text-center">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">الحضور</p>
-                                        <p className="font-semibold text-green-600 dark:text-green-400">{payment.totalAttendance || 0}</p>
+                                  <div key={index} className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
+                                    {/* Header */}
+                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
+                                      <div className="flex justify-between items-center">
+                                        <div>
+                                          <h5 className="font-bold text-blue-800 dark:text-blue-200">
+                                            شهر {payment.month}
+                                          </h5>
+                                          <p className="text-xs text-blue-600 dark:text-blue-300">
+                                            تاريخ الحساب: {new Date(payment.paidDate).toLocaleDateString('ar-DZ')}
+                                          </p>
+                                        </div>
+                                        <div className="text-right">
+                                          <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                            {payment.amount.toLocaleString()} دج
+                                          </span>
+                                          <p className="text-xs text-blue-600 dark:text-blue-300">إجمالي الراتب</p>
+                                        </div>
                                       </div>
                                     </div>
 
-                                    {/* Groups breakdown */}
+                                    {/* Groups Table */}
                                     {payment.groups && payment.groups.length > 0 && (
-                                      <div className="space-y-2">
-                                        <h5 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                          تفاصيل المجموعات
-                                        </h5>
-                                        {payment.groups.map((group: any, groupIndex: number) => (
-                                          <div key={groupIndex} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
-                                            <div className="flex-1">
-                                              <span className="font-medium text-gray-800 dark:text-gray-200">
-                                                {group.groupName}
-                                              </span>
-                                              <p className="text-gray-500 dark:text-gray-400">
-                                                {group.subject} • {group.level} • {group.students} طالب
-                                              </p>
-                                              <p className="text-gray-500 dark:text-gray-400">
-                                                {group.attendance} حضور من {group.lessons} دروس • {group.percentage}% نسبة
-                                              </p>
-                                            </div>
-                                            <div className="text-right ml-3">
-                                              <span className="font-bold text-green-600 dark:text-green-400">
-                                                {group.groupSalary ? group.groupSalary.toLocaleString() : '0'} دج
-                                              </span>
-                                            </div>
-                                          </div>
-                                        ))}
+                                      <div className="overflow-x-auto">
+                                        <table className="w-full text-xs">
+                                          <thead className="bg-gray-50 dark:bg-gray-800">
+                                            <tr>
+                                              <th className="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-300">اسم المجموعة</th>
+                                              <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">المادة</th>
+                                              <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">المستوى</th>
+                                              <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">الحضور</th>
+                                              <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">عدد الدروس</th>
+                                              <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">المبلغ</th>
+                                              <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">النسبة</th>
+                                              <th className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">الأجر</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {payment.groups.map((group: any, groupIndex: number) => (
+                                              <tr key={groupIndex} className="border-t border-gray-200 dark:border-gray-600">
+                                                <td className="px-3 py-2 text-right font-medium text-gray-800 dark:text-gray-200">
+                                                  {group.groupName}
+                                                </td>
+                                                <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                                                  {group.subject}
+                                                </td>
+                                                <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                                                  {group.level}
+                                                </td>
+                                                <td className="px-3 py-2 text-center font-medium text-blue-600 dark:text-blue-400">
+                                                  {group.attendance}
+                                                </td>
+                                                <td className="px-3 py-2 text-center font-medium text-orange-600 dark:text-orange-400">
+                                                  {group.lessons}
+                                                </td>
+                                                <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                                                  {group.amount} دج
+                                                </td>
+                                                <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-400">
+                                                  {group.percentage}%
+                                                </td>
+                                                <td className="px-3 py-2 text-center font-bold text-green-600 dark:text-green-400">
+                                                  {group.groupSalary ? group.groupSalary.toLocaleString() : '0'} دج
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
                                       </div>
                                     )}
                                   </div>
