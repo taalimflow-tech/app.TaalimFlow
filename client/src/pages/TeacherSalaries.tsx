@@ -20,7 +20,8 @@ import {
   Calculator,
   RefreshCw,
   FileText,
-  Printer
+  Printer,
+  History
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -299,6 +300,12 @@ export default function TeacherSalaries() {
     });
 
     console.log(`🎯 Final teacher ${teacherId} salary:`, teacherSalary);
+    
+    // Save payment record for history tracking
+    if (teacherSalary > 0) {
+      savePaymentRecord(teacherId, teacherSalary, selectedMonth);
+    }
+    
     setIndividualResults(prev => ({
       ...prev,
       [teacherId]: teacherSalary
@@ -457,6 +464,84 @@ export default function TeacherSalaries() {
       </body>
       </html>
     `;
+  };
+
+  // View payment history function
+  const viewPaymentHistory = (teacherId: number) => {
+    const teacher = teachers?.find(t => t.id === teacherId);
+    
+    if (!teacher) {
+      alert('لم يتم العثور على بيانات الأستاذ');
+      return;
+    }
+
+    // Get stored payment history from localStorage
+    const savedPayments = localStorage.getItem('teacherPaymentHistory');
+    let paymentHistory = [];
+    
+    if (savedPayments) {
+      try {
+        paymentHistory = JSON.parse(savedPayments);
+      } catch (error) {
+        console.error('Error parsing payment history:', error);
+      }
+    }
+    
+    // Filter payments for this teacher
+    const teacherPayments = paymentHistory.filter((payment: any) => payment.teacherId === teacherId);
+    
+    if (teacherPayments.length === 0) {
+      alert(`لا توجد سجلات دفع سابقة للأستاذ ${teacher.name}`);
+      return;
+    }
+    
+    // Sort by date (most recent first)
+    teacherPayments.sort((a: any, b: any) => new Date(b.paidDate).getTime() - new Date(a.paidDate).getTime());
+    
+    // Display payment history
+    const historyText = teacherPayments.map((payment: any, index: number) => 
+      `${index + 1}. ${payment.month}: ${payment.amount.toLocaleString()} دج (تاريخ الدفع: ${new Date(payment.paidDate).toLocaleDateString('ar-DZ')})`
+    ).join('\n');
+    
+    alert(`سجل المدفوعات للأستاذ ${teacher.name}:\n\n${historyText}`);
+  };
+
+  // Save payment record (called when salary is calculated)
+  const savePaymentRecord = (teacherId: number, salary: number, month: string) => {
+    const savedPayments = localStorage.getItem('teacherPaymentHistory');
+    let paymentHistory = [];
+    
+    if (savedPayments) {
+      try {
+        paymentHistory = JSON.parse(savedPayments);
+      } catch (error) {
+        console.error('Error parsing payment history:', error);
+      }
+    }
+    
+    // Check if payment for this teacher and month already exists
+    const existingPaymentIndex = paymentHistory.findIndex(
+      (payment: any) => payment.teacherId === teacherId && payment.month === month
+    );
+    
+    const paymentRecord = {
+      teacherId,
+      month,
+      amount: salary,
+      paidDate: new Date().toISOString(),
+      calculatedAt: new Date().toISOString()
+    };
+    
+    if (existingPaymentIndex >= 0) {
+      // Update existing record
+      paymentHistory[existingPaymentIndex] = paymentRecord;
+    } else {
+      // Add new record
+      paymentHistory.push(paymentRecord);
+    }
+    
+    // Save back to localStorage
+    localStorage.setItem('teacherPaymentHistory', JSON.stringify(paymentHistory));
   };
 
   // Filter teachers based on search query
@@ -866,6 +951,15 @@ export default function TeacherSalaries() {
                         >
                           <Clock className="w-4 h-4 mr-2" />
                           حساب الأجر
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => viewPaymentHistory(teacher.id)}
+                        >
+                          <History className="w-4 h-4 mr-2" />
+                          الأشهر المدفوعة
                         </Button>
                         
                         <Button 
