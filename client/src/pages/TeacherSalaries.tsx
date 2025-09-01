@@ -1045,21 +1045,46 @@ export default function TeacherSalaries() {
                                                   const teacherName = teachers?.find(t => t.id === teacher.id)?.name || 'معلم غير محدد';
                                                   const paymentDate = new Date(payment.paidDate);
                                                   
-                                                  await apiRequest('POST', '/api/financial-entries', {
-                                                    type: 'loss',
-                                                    amount: payment.amount,
+                                                  const financialEntry = {
+                                                    type: 'loss' as const,
+                                                    amount: Number(payment.amount),
                                                     remarks: `راتب ${teacherName} - ${payment.month}`,
                                                     year: paymentDate.getFullYear(),
-                                                    month: paymentDate.getMonth() + 1
-                                                  });
-                                                } catch (error) {
+                                                    month: paymentDate.getMonth() + 1,
+                                                    receiptId: null
+                                                  };
+                                                  
+                                                  console.log('Sending financial entry:', financialEntry);
+                                                  
+                                                  const response = await apiRequest('POST', '/api/financial-entries', financialEntry);
+                                                  
+                                                  if (!response.ok) {
+                                                    const errorData = await response.json();
+                                                    throw new Error(errorData.error || 'فشل في إضافة الإدخال المالي');
+                                                  }
+                                                  
+                                                  console.log('Financial entry created successfully');
+                                                } catch (error: any) {
                                                   console.error('Failed to record salary payment as expense:', error);
-                                                  // Optionally show toast notification
+                                                  
+                                                  // Get more detailed error message
+                                                  let errorMessage = 'فشل في تسجيل راتب المعلم في نظام الأرباح والخسائر';
+                                                  if (error.response) {
+                                                    const responseData = await error.response.json().catch(() => ({}));
+                                                    errorMessage = responseData.error || errorMessage;
+                                                  }
+                                                  
                                                   toast({
                                                     title: 'خطأ في تسجيل المصروف',
-                                                    description: 'فشل في تسجيل راتب المعلم في نظام الأرباح والخسائر',
+                                                    description: errorMessage,
                                                     variant: 'destructive'
                                                   });
+                                                  
+                                                  // Uncheck the checkbox since the operation failed
+                                                  setSelectedPayments(prev => ({
+                                                    ...prev,
+                                                    [key]: false
+                                                  }));
                                                 }
                                               }
                                             }}
