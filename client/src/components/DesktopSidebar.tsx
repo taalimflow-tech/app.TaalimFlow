@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator, Bell, CreditCard, Building2 } from 'lucide-react';
+import { Home, Calendar, MessageCircle, Mail, Shield, BookOpen, FileText, User, Settings, LogOut, Lightbulb, Book, QrCode, Calculator, Bell, CreditCard, Building2, DollarSign } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -47,6 +47,7 @@ export function DesktopSidebar() {
       { icon: Shield, label: 'لوحة الإدارة', path: `${basePath}/admin` || '/admin' },
       { icon: QrCode, label: 'الماسح المكتبي', path: `${basePath}/desktop-scanner` || '/desktop-scanner' },
       { icon: Calculator, label: 'الأرباح والخسائر', path: `${basePath}/gain-loss-calculator` || '/gain-loss-calculator' },
+      { icon: DollarSign, label: 'أجور الأساتذة', path: `${basePath}/teacher-salaries` || '/teacher-salaries' },
       { icon: CreditCard, label: 'اشتراك المدرسة', path: `${basePath}/school-subscription` || '/school-subscription' }
     ];
   } else if (user?.role === 'teacher') {

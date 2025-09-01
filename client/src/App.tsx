@@ -37,6 +37,7 @@ import StudentStatus from "@/pages/StudentStatus";
 import DesktopQRScanner from "@/pages/DesktopQRScanner";
 import FinancialReports from "@/pages/FinancialReports";
 import GainLossCalculator from "@/pages/GainLossCalculator";
+import TeacherSalaries from "@/pages/TeacherSalaries";
 import { Notifications } from "@/pages/Notifications";
 import AdminFormationRegistrations from "@/pages/AdminFormationRegistrations";
 import SchoolSubscription from "@/pages/SchoolSubscription";
@@ -176,6 +177,10 @@ function AppRoutes() {
           
           <Route path="/school/:code/gain-loss-calculator">
             <AuthWrapper><Layout><GainLossCalculator /></Layout></AuthWrapper>
+          </Route>
+          
+          <Route path="/school/:code/teacher-salaries">
+            <AuthWrapper><Layout><TeacherSalaries /></Layout></AuthWrapper>
           </Route>
           
           <Route path="/school/:code/school-subscription">
