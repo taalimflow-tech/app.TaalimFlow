@@ -814,13 +814,13 @@ export default function TeacherSalaries() {
                     <div className="flex items-center gap-4">
                       {/* Summary Stats */}
                       <div className="text-right">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">المجموعات:</span>
+                        <div className="flex items-center justify-end gap-2">
                           <Badge variant="secondary">{teacherGroups.length}</Badge>
+                          <span className="text-sm text-gray-500">المجموعات:</span>
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-gray-500">الطلاب:</span>
+                        <div className="flex items-center justify-end gap-2 mt-1">
                           <Badge variant="secondary">{totalStudents}</Badge>
+                          <span className="text-sm text-gray-500">الطلاب:</span>
                         </div>
                       </div>
 
