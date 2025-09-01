@@ -1047,7 +1047,7 @@ export default function TeacherSalaries() {
                                                   
                                                   const financialEntry = {
                                                     type: 'loss' as const,
-                                                    amount: Number(payment.amount),
+                                                    amount: payment.amount.toString(),
                                                     remarks: `راتب ${teacherName} - ${payment.month}`,
                                                     year: paymentDate.getFullYear(),
                                                     month: paymentDate.getMonth() + 1,
