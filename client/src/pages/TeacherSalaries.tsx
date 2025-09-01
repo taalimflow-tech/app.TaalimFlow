@@ -163,8 +163,8 @@ export default function TeacherSalaries() {
       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
     
-    // Generate 12 months: 6 months back, current month, 5 months forward
-    for (let i = -6; i <= 5; i++) {
+    // Generate 24 months: 12 months back, current month, 11 months forward
+    for (let i = -12; i <= 11; i++) {
       const targetDate = new Date(currentYear, currentMonth - 1 + i, 1);
       const year = targetDate.getFullYear();
       const month = targetDate.getMonth() + 1;
