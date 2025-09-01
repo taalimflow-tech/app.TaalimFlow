@@ -54,6 +54,9 @@ export default function TeacherSalaries() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
+  
+  // State for group payment settings
+  const [groupPayments, setGroupPayments] = useState<{ [groupId: number]: { amount: string; teacherPercentage: string } }>({});
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -127,6 +130,18 @@ export default function TeacherSalaries() {
     }).length;
     
     return { present: presentCount, total: totalCount };
+  };
+
+  // Handle payment input changes
+  const updateGroupPayment = (groupId: number, field: 'amount' | 'teacherPercentage', value: string) => {
+    setGroupPayments(prev => ({
+      ...prev,
+      [groupId]: {
+        ...prev[groupId],
+        amount: field === 'amount' ? value : prev[groupId]?.amount || '',
+        teacherPercentage: field === 'teacherPercentage' ? value : prev[groupId]?.teacherPercentage || ''
+      }
+    }));
   };
 
   // Filter teachers based on search query
@@ -422,6 +437,37 @@ export default function TeacherSalaries() {
                                       {group.grade}
                                     </p>
                                   )}
+                                </div>
+                                
+                                {/* Payment Settings */}
+                                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 space-y-2">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                      المبلغ المدفوع (دج)
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      placeholder="0"
+                                      value={groupPayments[group.id]?.amount || ''}
+                                      onChange={(e) => updateGroupPayment(group.id, 'amount', e.target.value)}
+                                      className="h-8 text-xs"
+                                      min="0"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                      نسبة الأستاذ (%)
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      placeholder="0"
+                                      value={groupPayments[group.id]?.teacherPercentage || ''}
+                                      onChange={(e) => updateGroupPayment(group.id, 'teacherPercentage', e.target.value)}
+                                      className="h-8 text-xs"
+                                      min="0"
+                                      max="100"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             ))}
