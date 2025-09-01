@@ -197,11 +197,11 @@ export default function TeacherSalaries() {
           const percentage = parseFloat(payment.teacherPercentage) || 0;
           const attendanceCounts = getAttendanceCountsForGroup(group.id);
           
-          // Calculate based on: (amount * (percentage / 100) * lessons_count) * total_attendance
+          // Calculate based on: (amount * percentage) / (100 * lessons_count) * total_attendance
           // lessons_count = total possible attendance days for the month
           const lessonsCount = attendanceCounts.total;
           const totalAttendance = attendanceCounts.present;
-          const groupSalary = (amount * (percentage / 100) * lessonsCount) * totalAttendance;
+          const groupSalary = (amount * percentage) / (100 * lessonsCount) * totalAttendance;
           teacherSalary += groupSalary;
         }
       });
@@ -246,10 +246,10 @@ export default function TeacherSalaries() {
         const percentage = parseFloat(payment.teacherPercentage) || 0;
         const attendanceCounts = getAttendanceCountsForGroup(group.id);
         
-        // Calculate based on: (amount * (percentage / 100) * lessons_count) * total_attendance
+        // Calculate based on: (amount * percentage) / (100 * lessons_count) * total_attendance
         const lessonsCount = attendanceCounts.total;
         const totalAttendance = attendanceCounts.present;
-        const groupSalary = (amount * (percentage / 100) * lessonsCount) * totalAttendance;
+        const groupSalary = (amount * percentage) / (100 * lessonsCount) * totalAttendance;
         teacherSalary += groupSalary;
       }
     });
