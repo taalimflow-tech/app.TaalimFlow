@@ -1,5 +1,5 @@
 
-import { Bell, Menu, LogOut, User, Settings, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { Bell, Menu, LogOut, User, Settings, Sun, Moon, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLocation } from 'wouter';
@@ -103,6 +103,14 @@ export function Header() {
         </div>
         
         <div className="flex items-center space-x-reverse space-x-2">
+          <button 
+            onClick={() => window.location.reload()}
+            className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            title="تحديث البيانات"
+          >
+            <RefreshCw className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+          
           <button 
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

@@ -386,17 +386,8 @@ export default function TeacherSalaries() {
           </div>
         </div>
 
-        {/* Search, Month Selector, and Refresh Button */}
+        {/* Search and Month Selector */}
         <div className="flex flex-col md:flex-row gap-3">
-          {/* Refresh Button */}
-          <Button 
-            variant="outline" 
-            onClick={() => window.location.reload()}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            تحديث البيانات
-          </Button>
           {/* Month Selector */}
           <div className="flex items-center gap-2 w-full md:w-48">
             <Calendar className="w-4 h-4 text-gray-400" />
