@@ -82,6 +82,9 @@ export default function TeacherSalaries() {
   // State for bulk calculation results
   const [bulkResults, setBulkResults] = useState<BulkCalculationResult | null>(null);
 
+  // State for individual teacher calculation results
+  const [individualResults, setIndividualResults] = useState<{ [teacherId: number]: number }>({});
+
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
     queryKey: ['/api/teachers'],
@@ -194,9 +197,11 @@ export default function TeacherSalaries() {
           const percentage = parseFloat(payment.teacherPercentage) || 0;
           const attendanceCounts = getAttendanceCounts(group.id);
           
-          // Calculate based on attendance ratio
-          const attendanceRatio = attendanceCounts.total > 0 ? attendanceCounts.present / attendanceCounts.total : 0;
-          const groupSalary = (amount * percentage / 100) * attendanceRatio;
+          // Calculate based on: (amount * (percentage / 100) * lessons_count) * total_attendance
+          // lessons_count = total possible attendance days for the month
+          const lessonsCount = attendanceCounts.total;
+          const totalAttendance = attendanceCounts.present;
+          const groupSalary = (amount * (percentage / 100) * lessonsCount) * totalAttendance;
           teacherSalary += groupSalary;
         }
       });
@@ -227,6 +232,32 @@ export default function TeacherSalaries() {
       totalSalary,
       teacherBreakdown: teacherBreakdown.sort((a, b) => b.salary - a.salary) // Sort by highest salary
     });
+  };
+
+  // Calculate salary for individual teacher
+  const calculateIndividualTeacherSalary = (teacherId: number) => {
+    const teacherGroups = getTeacherGroups(teacherId);
+    let teacherSalary = 0;
+
+    teacherGroups.forEach(group => {
+      const payment = groupPayments[group.id];
+      if (payment?.amount && payment?.teacherPercentage) {
+        const amount = parseFloat(payment.amount) || 0;
+        const percentage = parseFloat(payment.teacherPercentage) || 0;
+        const attendanceCounts = getAttendanceCounts(group.id);
+        
+        // Calculate based on: (amount * (percentage / 100) * lessons_count) * total_attendance
+        const lessonsCount = attendanceCounts.total;
+        const totalAttendance = attendanceCounts.present;
+        const groupSalary = (amount * (percentage / 100) * lessonsCount) * totalAttendance;
+        teacherSalary += groupSalary;
+      }
+    });
+
+    setIndividualResults(prev => ({
+      ...prev,
+      [teacherId]: teacherSalary
+    }));
   };
 
   // Filter teachers based on search query
@@ -607,9 +638,27 @@ export default function TeacherSalaries() {
                         )}
                       </div>
 
+                      {/* Individual Teacher Calculation Result */}
+                      {individualResults[teacher.id] !== undefined && (
+                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                              إجمالي الأجر لشهر {selectedMonth}:
+                            </span>
+                            <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                              {individualResults[teacher.id].toLocaleString()} دج
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Action Buttons */}
                       <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => calculateIndividualTeacherSalary(teacher.id)}
+                        >
                           <Clock className="w-4 h-4 mr-2" />
                           حساب الأجر
                         </Button>
