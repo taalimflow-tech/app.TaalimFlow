@@ -509,6 +509,27 @@ export default function TeacherSalaries() {
       }
     }
     
+    // Get teacher groups and their details for this month
+    const teacherGroups = groups.filter((group: Group) => group.teacherId === teacherId);
+    const groupDetails = teacherGroups.map((group: Group) => {
+      const payment = groupPayments[group.id];
+      const counts = getAttendanceCountsForGroup(group.id);
+      const scheduledLessons = getScheduledLessonsForMonth(group.id);
+      
+      return {
+        groupName: group.name,
+        subject: group.subjectNameAr,
+        level: group.educationLevel,
+        students: group.studentsAssigned?.length || 0,
+        attendance: counts.present,
+        lessons: scheduledLessons,
+        amount: payment?.amount || 0,
+        percentage: payment?.teacherPercentage || 0,
+        groupSalary: payment?.amount && payment?.teacherPercentage ? 
+          (parseFloat(payment.amount) * parseFloat(payment.teacherPercentage)) / (100 * scheduledLessons) * counts.present : 0
+      };
+    });
+    
     // Check if payment for this teacher and month already exists
     const existingPaymentIndex = paymentHistory.findIndex(
       (payment: any) => payment.teacherId === teacherId && payment.month === month
@@ -519,7 +540,12 @@ export default function TeacherSalaries() {
       month,
       amount: salary,
       paidDate: new Date().toISOString(),
-      calculatedAt: new Date().toISOString()
+      calculatedAt: new Date().toISOString(),
+      groupsCount: teacherGroups.length,
+      totalStudents: groupDetails.reduce((sum, group) => sum + group.students, 0),
+      totalLessons: groupDetails.reduce((sum, group) => sum + group.lessons, 0),
+      totalAttendance: groupDetails.reduce((sum, group) => sum + group.attendance, 0),
+      groups: groupDetails
     };
     
     if (existingPaymentIndex >= 0) {
@@ -990,22 +1016,75 @@ export default function TeacherSalaries() {
                               );
                             }
                             return (
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {paymentHistory.map((payment: any, index: number) => (
-                                  <div key={index} className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600">
-                                    <div className="flex-1">
-                                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                                        {payment.month}
-                                      </span>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        تاريخ الحساب: {new Date(payment.paidDate).toLocaleDateString('ar-DZ')}
-                                      </p>
+                                  <div key={index} className="p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                                    {/* Header with month and total amount */}
+                                    <div className="flex justify-between items-center mb-3">
+                                      <div>
+                                        <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                          {payment.month}
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                          تاريخ الحساب: {new Date(payment.paidDate).toLocaleDateString('ar-DZ')}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                                          {payment.amount.toLocaleString()} دج
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">إجمالي الراتب</p>
+                                      </div>
                                     </div>
-                                    <div className="text-right">
-                                      <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                                        {payment.amount.toLocaleString()} دج
-                                      </span>
+
+                                    {/* Summary statistics */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                      <div className="text-center">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">المجموعات</p>
+                                        <p className="font-semibold text-blue-600 dark:text-blue-400">{payment.groupsCount || 0}</p>
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">الطلاب</p>
+                                        <p className="font-semibold text-purple-600 dark:text-purple-400">{payment.totalStudents || 0}</p>
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">الدروس</p>
+                                        <p className="font-semibold text-orange-600 dark:text-orange-400">{payment.totalLessons || 0}</p>
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">الحضور</p>
+                                        <p className="font-semibold text-green-600 dark:text-green-400">{payment.totalAttendance || 0}</p>
+                                      </div>
                                     </div>
+
+                                    {/* Groups breakdown */}
+                                    {payment.groups && payment.groups.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h5 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                          تفاصيل المجموعات
+                                        </h5>
+                                        {payment.groups.map((group: any, groupIndex: number) => (
+                                          <div key={groupIndex} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                                            <div className="flex-1">
+                                              <span className="font-medium text-gray-800 dark:text-gray-200">
+                                                {group.groupName}
+                                              </span>
+                                              <p className="text-gray-500 dark:text-gray-400">
+                                                {group.subject} • {group.level} • {group.students} طالب
+                                              </p>
+                                              <p className="text-gray-500 dark:text-gray-400">
+                                                {group.attendance} حضور من {group.lessons} دروس • {group.percentage}% نسبة
+                                              </p>
+                                            </div>
+                                            <div className="text-right ml-3">
+                                              <span className="font-bold text-green-600 dark:text-green-400">
+                                                {group.groupSalary ? group.groupSalary.toLocaleString() : '0'} دج
+                                              </span>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
