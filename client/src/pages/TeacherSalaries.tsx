@@ -264,9 +264,10 @@ export default function TeacherSalaries() {
 
     // Get month name for display
     const [year, month] = selectedMonth.split('-');
-    const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('ar-SA', { 
+    const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('ar-DZ', { 
       year: 'numeric', 
-      month: 'long' 
+      month: 'long',
+      calendar: 'gregory'
     });
 
     setBulkResults({
