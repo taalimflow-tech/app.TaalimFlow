@@ -55,8 +55,15 @@ export default function TeacherSalaries() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   
-  // State for group payment settings
-  const [groupPayments, setGroupPayments] = useState<{ [groupId: number]: { amount: string; teacherPercentage: string } }>({});
+  // State for group payment settings with localStorage persistence
+  const [groupPayments, setGroupPayments] = useState<{ [groupId: number]: { amount: string; teacherPercentage: string } }>(() => {
+    try {
+      const saved = localStorage.getItem('teacherSalariesGroupPayments');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -134,14 +141,23 @@ export default function TeacherSalaries() {
 
   // Handle payment input changes
   const updateGroupPayment = (groupId: number, field: 'amount' | 'teacherPercentage', value: string) => {
-    setGroupPayments(prev => ({
-      ...prev,
+    const newPayments = {
+      ...groupPayments,
       [groupId]: {
-        ...prev[groupId],
-        amount: field === 'amount' ? value : prev[groupId]?.amount || '',
-        teacherPercentage: field === 'teacherPercentage' ? value : prev[groupId]?.teacherPercentage || ''
+        ...groupPayments[groupId],
+        amount: field === 'amount' ? value : groupPayments[groupId]?.amount || '',
+        teacherPercentage: field === 'teacherPercentage' ? value : groupPayments[groupId]?.teacherPercentage || ''
       }
-    }));
+    };
+    
+    setGroupPayments(newPayments);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('teacherSalariesGroupPayments', JSON.stringify(newPayments));
+    } catch (error) {
+      console.error('Failed to save group payments to localStorage:', error);
+    }
   };
 
   // Filter teachers based on search query
