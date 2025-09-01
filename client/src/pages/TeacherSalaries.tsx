@@ -156,20 +156,24 @@ export default function TeacherSalaries() {
     const options = [];
     const now = new Date();
     const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // JS months are 0-indexed
     
-    // Generate months for current year and previous year
-    for (let year = currentYear; year >= currentYear - 1; year--) {
-      const startMonth = year === currentYear ? now.getMonth() + 1 : 12;
-      for (let month = startMonth; month >= 1; month--) {
-        const value = `${year}-${String(month).padStart(2, '0')}`;
-        const arabicMonths = [
-          'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-          'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-        ];
-        const label = `${arabicMonths[month - 1]} ${year}`;
-        options.push({ value, label });
-      }
+    const arabicMonths = [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ];
+    
+    // Generate 12 months: 6 months back, current month, 5 months forward
+    for (let i = -6; i <= 5; i++) {
+      const targetDate = new Date(currentYear, currentMonth - 1 + i, 1);
+      const year = targetDate.getFullYear();
+      const month = targetDate.getMonth() + 1;
+      
+      const value = `${year}-${String(month).padStart(2, '0')}`;
+      const label = `${arabicMonths[month - 1]} ${year}`;
+      options.push({ value, label });
     }
+    
     return options;
   };
 
