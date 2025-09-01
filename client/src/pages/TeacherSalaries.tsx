@@ -17,7 +17,8 @@ import {
   GraduationCap,
   Clock,
   Calendar,
-  Calculator
+  Calculator,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -385,8 +386,17 @@ export default function TeacherSalaries() {
           </div>
         </div>
 
-        {/* Search and Month Selector */}
+        {/* Search, Month Selector, and Refresh Button */}
         <div className="flex flex-col md:flex-row gap-3">
+          {/* Refresh Button */}
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            تحديث البيانات
+          </Button>
           {/* Month Selector */}
           <div className="flex items-center gap-2 w-full md:w-48">
             <Calendar className="w-4 h-4 text-gray-400" />
@@ -632,7 +642,7 @@ export default function TeacherSalaries() {
                                     الحضور: <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                       {(() => {
                                         const counts = getAttendanceCountsForGroup(group.id);
-                                        return `${counts.present}/${counts.total}`;
+                                        return `${counts.present}`;
                                       })()}
                                     </span>
                                     <span className="inline-flex items-center px-2 py-1 ml-1 rounded-md text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
