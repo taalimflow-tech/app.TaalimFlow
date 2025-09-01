@@ -668,6 +668,158 @@ export default function TeacherSalaries() {
     }
   };
 
+  // Create bulk payslips for all teachers
+  const createBulkPayslips = () => {
+    if (!bulkResults) return;
+    
+    // Generate payslips for all teachers in the bulk results
+    bulkResults.teacherBreakdown.forEach(teacherResult => {
+      const teacher = teachers?.find(t => t.id === teacherResult.teacherId);
+      if (!teacher) return;
+
+      // Create payslip data structure similar to individual payslip
+      const payslipData = {
+        teacherName: teacher.name,
+        month: bulkResults.month,
+        totalSalary: teacherResult.salary,
+        groups: teacherResult.groups,
+        generatedAt: new Date().toLocaleDateString('ar-DZ')
+      };
+
+      // Store payslip in payment history
+      const paymentHistoryKey = `teacherPaymentHistory_${teacher.id}`;
+      const existingHistory = JSON.parse(localStorage.getItem(paymentHistoryKey) || '[]');
+      
+      // Check if payslip for this month already exists
+      const existingPayslipIndex = existingHistory.findIndex((p: any) => p.month === bulkResults.month);
+      
+      if (existingPayslipIndex >= 0) {
+        // Update existing payslip
+        existingHistory[existingPayslipIndex] = {
+          ...payslipData,
+          amount: teacherResult.salary,
+          paidDate: new Date().toISOString()
+        };
+      } else {
+        // Add new payslip
+        existingHistory.push({
+          ...payslipData,
+          amount: teacherResult.salary,
+          paidDate: new Date().toISOString()
+        });
+      }
+      
+      localStorage.setItem(paymentHistoryKey, JSON.stringify(existingHistory));
+    });
+
+    toast({
+      title: 'تم إنشاء كشوف الرواتب بنجاح',
+      description: `تم إنشاء كشوف رواتب لجميع المعلمين (${bulkResults.teacherBreakdown.length} معلم)`,
+      variant: 'default'
+    });
+  };
+
+  // Print bulk payslips for all teachers
+  const printBulkPayslips = () => {
+    if (!bulkResults) return;
+    
+    // Generate combined print document for all teachers
+    let combinedHTML = `
+      <html dir="rtl">
+        <head>
+          <meta charset="UTF-8">
+          <title>كشوف رواتب جماعية - ${bulkResults.month}</title>
+          <style>
+            body { font-family: 'Noto Sans Arabic', Arial, sans-serif; margin: 0; padding: 20px; }
+            .payslip { margin-bottom: 40px; page-break-after: always; border: 2px solid #2563eb; padding: 20px; }
+            .payslip:last-child { page-break-after: avoid; }
+            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+            .school-name { font-size: 24px; font-weight: bold; color: #2563eb; margin-bottom: 5px; }
+            .document-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+            .info-section { margin-bottom: 20px; }
+            .info-row { margin: 8px 0; padding: 5px; background-color: #f8fafc; }
+            .groups-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            .groups-table th, .groups-table td { border: 1px solid #2563eb; padding: 8px; text-align: center; }
+            .groups-table th { background-color: #2563eb; color: white; font-weight: bold; }
+            .total-section { margin-top: 20px; padding: 15px; background-color: #dbeafe; border: 2px solid #2563eb; text-align: center; }
+            .total-amount { font-size: 24px; font-weight: bold; color: #2563eb; }
+            @media print { body { margin: 0; } .payslip { page-break-after: always; } }
+          </style>
+        </head>
+        <body>
+    `;
+
+    bulkResults.teacherBreakdown.forEach((teacherResult, index) => {
+      const teacher = teachers?.find(t => t.id === teacherResult.teacherId);
+      if (!teacher) return;
+
+      combinedHTML += `
+        <div class="payslip">
+          <div class="header">
+            <div class="school-name">مؤسسة تعليمية خاصة</div>
+            <div class="document-title">كشف راتب المعلم</div>
+          </div>
+          
+          <div class="info-section">
+            <div class="info-row"><strong>اسم الأستاذ:</strong> ${teacher.name}</div>
+            <div class="info-row"><strong>الشهر:</strong> ${bulkResults.month}</div>
+            <div class="info-row"><strong>تاريخ الإصدار:</strong> ${new Date().toLocaleDateString('ar-DZ')}</div>
+          </div>
+
+          <table class="groups-table">
+            <thead>
+              <tr>
+                <th>اسم المجموعة</th>
+                <th>المادة</th>
+                <th>المستوى</th>
+                <th>الحضور</th>
+                <th>عدد الدروس</th>
+                <th>المبلغ (دج)</th>
+                <th>النسبة (%)</th>
+                <th>الأجر (دج)</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      teacherResult.groups.forEach(group => {
+        combinedHTML += `
+          <tr>
+            <td>${group.groupName}</td>
+            <td>${group.subject}</td>
+            <td>${group.level}</td>
+            <td>${group.attendance}</td>
+            <td>${group.lessons}</td>
+            <td>${group.amount}</td>
+            <td>${group.percentage}</td>
+            <td>${group.groupSalary.toLocaleString()}</td>
+          </tr>
+        `;
+      });
+
+      combinedHTML += `
+            </tbody>
+          </table>
+
+          <div class="total-section">
+            <div><strong>إجمالي الراتب الشهري</strong></div>
+            <div class="total-amount">${teacherResult.salary.toLocaleString()} دج</div>
+          </div>
+        </div>
+      `;
+    });
+
+    combinedHTML += '</body></html>';
+
+    // Open print window
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(combinedHTML);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   if (user?.role !== 'admin') {
     return (
       <div className="p-4 text-center">
@@ -946,6 +1098,28 @@ export default function TeacherSalaries() {
                 )}
               </div>
             ))}
+          </div>
+          
+          {/* Bulk Actions */}
+          <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700 flex justify-center gap-4">
+            <Button
+              onClick={createBulkPayslips}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              disabled={!bulkResults || bulkResults.teacherBreakdown.length === 0}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              إنشاء كشوف رواتب جماعية
+            </Button>
+            
+            <Button
+              onClick={printBulkPayslips}
+              variant="outline"
+              className="border-purple-600 text-purple-600 hover:bg-purple-50"
+              disabled={!bulkResults || bulkResults.teacherBreakdown.length === 0}
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              طباعة الكشوف الجماعية
+            </Button>
           </div>
         </div>
       )}
