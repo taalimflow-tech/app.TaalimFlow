@@ -1310,7 +1310,13 @@ export default function Schedule() {
                             <div>
                               <div className="font-medium text-sm dark:text-gray-200">{group.name}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {group.studentsCount || group.studentsAssigned?.length || 0} طالب
+                                {group.studentsCount || 0} طالب
+                                {/* Show grade if available */}
+                                {group.grade && (
+                                  <span className="mr-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">
+                                    {group.grade}
+                                  </span>
+                                )}
                                 {/* Show match type badge */}
                                 {group.matchType && (
                                   <span className={`mr-2 px-1.5 py-0.5 rounded text-xs ${
