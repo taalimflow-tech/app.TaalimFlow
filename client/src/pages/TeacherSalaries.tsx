@@ -360,7 +360,7 @@ export default function TeacherSalaries() {
     }));
   };
 
-  // Create payslip function
+  // Create individual payslip function
   const createPayslip = (teacherId: number) => {
     const teacher = teachers?.find(t => t.id === teacherId);
     const salary = individualResults[teacherId];
@@ -370,7 +370,7 @@ export default function TeacherSalaries() {
       return;
     }
 
-    // Get teacher groups and their details
+    // Get teacher groups with comprehensive details
     const teacherGroups = groups.filter((group: Group) => group.teacherId === teacherId);
     const groupDetails = teacherGroups.map((group: Group) => {
       const payment = groupPayments[group.id];
@@ -379,35 +379,70 @@ export default function TeacherSalaries() {
       
       return {
         groupName: group.name || group.subjectNameAr,
-        subject: group.subjectNameAr,
+        subject: group.subjectNameAr || group.subjectName,
         level: group.educationLevel,
         grade: group.grade,
         students: group.studentsAssigned?.length || 0,
         attendance: counts.present,
-        lessons: scheduledLessons,
+        lessons: scheduledLessons || counts.total,
         amount: payment?.amount || 0,
         percentage: payment?.teacherPercentage || 0
       };
     });
 
-    // Generate payslip content
+    // Generate comprehensive payslip data
     const payslipData = {
-      teacher: teacher.name,
+      teacherName: teacher.name,
+      teacherEmail: teacher.email,
       month: selectedMonth,
       totalSalary: salary,
       groups: groupDetails,
-      generatedAt: new Date().toLocaleDateString('ar-DZ')
+      generatedAt: new Date().toLocaleDateString('ar-DZ', { 
+        calendar: 'gregory',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      schoolInfo: JSON.parse(localStorage.getItem('selectedSchool') || '{}')
     };
 
-    // Store payslip data in localStorage for printing
+    // Store payslip data for history tracking
+    const paymentHistoryKey = `teacherPaymentHistory_${teacherId}`;
+    const existingHistory = JSON.parse(localStorage.getItem(paymentHistoryKey) || '[]');
+    
+    // Check if payslip for this month already exists
+    const existingPayslipIndex = existingHistory.findIndex((p: any) => p.month === selectedMonth);
+    
+    if (existingPayslipIndex >= 0) {
+      // Update existing payslip
+      existingHistory[existingPayslipIndex] = {
+        ...payslipData,
+        amount: salary,
+        paidDate: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } else {
+      // Add new payslip
+      existingHistory.push({
+        ...payslipData,
+        amount: salary,
+        paidDate: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      });
+    }
+    
+    localStorage.setItem(paymentHistoryKey, JSON.stringify(existingHistory));
     localStorage.setItem('currentPayslip', JSON.stringify(payslipData));
     
-    // Show success message
-    console.log('📄 Payslip created:', payslipData);
-    alert(`تم إنشاء كشف الراتب للأستاذ ${teacher.name}\nالراتب الإجمالي: ${salary.toLocaleString()} دج`);
+    // Show enhanced success message
+    toast({
+      title: 'تم إنشاء كشف الراتب بنجاح',
+      description: `كشف راتب ${teacher.name} لشهر ${selectedMonth} - ${salary.toLocaleString()} دج`,
+      variant: 'default'
+    });
   };
 
-  // Print payslip function
+  // Print individual payslip function
   const printPayslip = (teacherId: number) => {
     const teacher = teachers?.find(t => t.id === teacherId);
     const salary = individualResults[teacherId];
@@ -417,8 +452,28 @@ export default function TeacherSalaries() {
       return;
     }
 
-    // Create printable HTML content
-    const printContent = generatePayslipHTML(teacher, salary, teacherId);
+    // Get teacher groups with comprehensive details
+    const teacherGroups = groups.filter((group: Group) => group.teacherId === teacherId);
+    const groupDetails = teacherGroups.map((group: Group) => {
+      const payment = groupPayments[group.id];
+      const counts = getAttendanceCountsForGroup(group.id);
+      const scheduledLessons = getScheduledLessonsForMonth(group.id);
+      
+      return {
+        groupName: group.name || group.subjectNameAr,
+        subject: group.subjectNameAr || group.subjectName,
+        level: group.educationLevel,
+        grade: group.grade,
+        students: group.studentsAssigned?.length || 0,
+        attendance: counts.present,
+        lessons: scheduledLessons || counts.total,
+        amount: payment?.amount || 0,
+        percentage: payment?.teacherPercentage || 0
+      };
+    });
+
+    // Create printable HTML content using unified template
+    const printContent = generateUnifiedPayslipHTML(teacher, salary, groupDetails, selectedMonth);
     
     // Open print window
     const printWindow = window.open('', '_blank');
@@ -429,85 +484,351 @@ export default function TeacherSalaries() {
     }
   };
 
-  // Generate HTML for payslip printing
-  const generatePayslipHTML = (teacher: any, salary: number, teacherId: number) => {
-    const teacherGroups = groups.filter((group: Group) => group.teacherId === teacherId);
-    const schoolName = JSON.parse(localStorage.getItem('selectedSchool') || '{}').name || 'المدرسة';
+  // Generate unified payslip HTML template with comprehensive information
+  const generateUnifiedPayslipHTML = (teacher: any, salary: number, teacherGroups: any[], month: string, issuedDate?: string) => {
+    const selectedSchool = JSON.parse(localStorage.getItem('selectedSchool') || '{}');
+    const schoolName = selectedSchool.name || 'المؤسسة التعليمية';
+    const schoolLogo = selectedSchool.logoUrl;
+    const currentDate = issuedDate || new Date().toLocaleDateString('ar-DZ', { 
+      calendar: 'gregory', 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
     
-    const groupRows = teacherGroups.map((group: Group) => {
-      const payment = groupPayments[group.id];
-      const counts = getAttendanceCountsForGroup(group.id);
-      const scheduledLessons = getScheduledLessonsForMonth(group.id);
+    const groupRows = teacherGroups.map((group) => {
+      const groupSalary = (group.amount * group.percentage) / (100 * group.lessons) * group.attendance;
       
       return `
         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${group.name}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${group.subjectNameAr}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${group.educationLevel}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${counts.present}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${scheduledLessons}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${payment?.amount || 0} دج</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${payment?.teacherPercentage || 0}%</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: right; font-weight: 500;">${group.groupName}</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: center;">${group.subject}</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: center; font-size: 11px;">${group.level}${group.grade ? ' - ' + group.grade : ''}</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: center; color: #2563eb; font-weight: bold;">${group.attendance}</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: center; color: #ea580c; font-weight: bold;">${group.lessons}</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: center;">${group.amount.toLocaleString()} دج</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: center;">${group.percentage}%</td>
+          <td style="border: 1px solid #2563eb; padding: 8px; text-align: center; background-color: #dbeafe; font-weight: bold; color: #059669;">${groupSalary.toLocaleString()} دج</td>
         </tr>
       `;
     }).join('');
+
+    const totalStudents = teacherGroups.reduce((total, group) => total + (group.students || 0), 0);
+    const totalGroups = teacherGroups.length;
+    const totalAttendance = teacherGroups.reduce((total, group) => total + group.attendance, 0);
+    const totalLessons = teacherGroups.reduce((total, group) => total + group.lessons, 0);
 
     return `
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="UTF-8">
-        <title>كشف راتب - ${teacher.name}</title>
+        <title>كشف راتب - ${teacher.name} - ${month}</title>
         <style>
-          body { font-family: 'Arial', sans-serif; margin: 20px; direction: rtl; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .school-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-          .title { font-size: 20px; margin-bottom: 20px; }
-          .info { margin-bottom: 20px; }
-          .info-row { margin: 10px 0; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-          th { background-color: #f5f5f5; font-weight: bold; }
-          .total { font-size: 18px; font-weight: bold; margin: 20px 0; text-align: center; }
-          .footer { margin-top: 40px; text-align: left; }
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+          
+          body { 
+            font-family: 'Noto Sans Arabic', Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            direction: rtl; 
+            background: white;
+            font-size: 14px;
+            line-height: 1.4;
+          }
+          
+          .payslip-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 3px solid #2563eb;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+          }
+          
+          .header { 
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            text-align: center; 
+            padding: 20px;
+            position: relative;
+          }
+          
+          .school-logo {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+          }
+          
+          .school-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          
+          .school-name { 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          
+          .document-title { 
+            font-size: 20px; 
+            font-weight: 600;
+            opacity: 0.95;
+          }
+          
+          .teacher-info {
+            padding: 20px;
+            background: #f8fafc;
+            border-bottom: 2px solid #e5e7eb;
+          }
+          
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+          }
+          
+          .info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+          }
+          
+          .info-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+            font-size: 12px;
+          }
+          
+          .info-value {
+            font-weight: 500;
+            color: #1f2937;
+            font-size: 14px;
+          }
+          
+          .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+          }
+          
+          .stat-item {
+            background: #2563eb;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+          }
+          
+          .stat-number {
+            font-size: 16px;
+            font-weight: 700;
+            display: block;
+          }
+          
+          .stat-label {
+            font-size: 10px;
+            opacity: 0.9;
+            margin-top: 2px;
+          }
+          
+          .groups-section {
+            padding: 20px;
+          }
+          
+          .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2563eb;
+          }
+          
+          .groups-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          
+          .groups-table th {
+            background: #2563eb;
+            color: white;
+            font-weight: 600;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 12px;
+            border: 1px solid #1e40af;
+          }
+          
+          .groups-table td {
+            padding: 10px 8px;
+            font-size: 12px;
+            border: 1px solid #2563eb;
+          }
+          
+          .groups-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+          }
+          
+          .groups-table tbody tr:hover {
+            background-color: #e0e7ff;
+          }
+          
+          .total-section { 
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            border: 2px solid #2563eb;
+            text-align: center;
+          }
+          
+          .total-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 8px;
+          }
+          
+          .total-amount { 
+            font-size: 28px; 
+            font-weight: 700; 
+            color: #1e40af;
+            text-shadow: 0 2px 4px rgba(30, 64, 175, 0.1);
+          }
+          
+          .footer { 
+            padding: 20px;
+            background: #f9fafb;
+            border-top: 2px solid #e5e7eb;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+          }
+          
+          .signature-box {
+            text-align: center;
+          }
+          
+          .signature-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 20px;
+          }
+          
+          .signature-line {
+            border-bottom: 2px solid #6b7280;
+            height: 40px;
+            margin-bottom: 8px;
+          }
+          
+          @media print { 
+            body { margin: 0; padding: 10px; }
+            .payslip-container { border: 2px solid #2563eb; }
+          }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="school-name">${schoolName}</div>
-          <div class="title">كشف راتب الأستاذ</div>
-        </div>
-        
-        <div class="info">
-          <div class="info-row"><strong>اسم الأستاذ:</strong> ${teacher.name}</div>
-          <div class="info-row"><strong>الشهر:</strong> ${selectedMonth}</div>
-          <div class="info-row"><strong>تاريخ الإصدار:</strong> ${new Date().toLocaleDateString('ar-DZ')}</div>
-        </div>
+        <div class="payslip-container">
+          <div class="header">
+            ${schoolLogo ? `
+              <div class="school-logo">
+                <img src="${schoolLogo}" alt="${schoolName}" />
+              </div>
+            ` : ''}
+            <div class="school-name">${schoolName}</div>
+            <div class="document-title">كشف راتب المعلم</div>
+          </div>
+          
+          <div class="teacher-info">
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">اسم الأستاذ</div>
+                <div class="info-value">${teacher.name}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">الشهر</div>
+                <div class="info-value">${month}</div>
+              </div>
+            </div>
+            
+            <div class="summary-stats">
+              <div class="stat-item">
+                <span class="stat-number">${totalGroups}</span>
+                <div class="stat-label">مجموعة</div>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">${totalStudents}</span>
+                <div class="stat-label">طالب</div>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">${totalAttendance}</span>
+                <div class="stat-label">إجمالي الحضور</div>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">${totalLessons}</span>
+                <div class="stat-label">إجمالي الدروس</div>
+              </div>
+            </div>
+          </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>اسم المجموعة</th>
-              <th>المادة</th>
-              <th>المستوى</th>
-              <th>الحضور</th>
-              <th>عدد الدروس</th>
-              <th>المبلغ</th>
-              <th>النسبة</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${groupRows}
-          </tbody>
-        </table>
+          <div class="groups-section">
+            <div class="section-title">تفاصيل المجموعات والأجور</div>
+            <table class="groups-table">
+              <thead>
+                <tr>
+                  <th>اسم المجموعة</th>
+                  <th>المادة</th>
+                  <th>المستوى والصف</th>
+                  <th>الحضور</th>
+                  <th>عدد الدروس</th>
+                  <th>المبلغ (دج)</th>
+                  <th>النسبة (%)</th>
+                  <th>الأجر (دج)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${groupRows}
+              </tbody>
+            </table>
+          </div>
 
-        <div class="total">
-          إجمالي الراتب: ${salary.toLocaleString()} دج
-        </div>
-
-        <div class="footer">
-          <p>التوقيع: ________________</p>
-          <p>التاريخ: ________________</p>
+          <div class="total-section">
+            <div class="total-label">إجمالي الراتب الشهري</div>
+            <div class="total-amount">${salary.toLocaleString()} دج</div>
+          </div>
+          
+          <div class="footer">
+            <div class="signature-box">
+              <div class="signature-label">توقيع المعلم</div>
+              <div class="signature-line"></div>
+            </div>
+            <div class="signature-box">
+              <div class="signature-label">توقيع الإدارة</div>
+              <div class="signature-line"></div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 10px;">التاريخ: ${currentDate}</div>
+            </div>
+          </div>
         </div>
       </body>
       </html>
@@ -672,40 +993,63 @@ export default function TeacherSalaries() {
   const createBulkPayslips = () => {
     if (!bulkResults) return;
     
-    // Generate payslips for all teachers in the bulk results
+    const currentDate = new Date().toLocaleDateString('ar-DZ', { 
+      calendar: 'gregory',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // Generate comprehensive payslips for all teachers
     bulkResults.teacherBreakdown.forEach(teacherResult => {
       const teacher = teachers?.find(t => t.id === teacherResult.teacherId);
       if (!teacher) return;
 
-      // Create payslip data structure similar to individual payslip
+      // Create comprehensive payslip data structure
       const payslipData = {
         teacherName: teacher.name,
+        teacherEmail: teacher.email,
         month: bulkResults.month,
         totalSalary: teacherResult.salary,
-        groups: teacherResult.groups,
-        generatedAt: new Date().toLocaleDateString('ar-DZ')
+        groups: teacherResult.groups.map(group => ({
+          ...group,
+          // Ensure all required fields are present
+          groupName: group.groupName || group.subject,
+          grade: (group as any).grade || '',
+          students: (group as any).students || 0
+        })),
+        generatedAt: currentDate,
+        schoolInfo: JSON.parse(localStorage.getItem('selectedSchool') || '{}'),
+        totalGroups: teacherResult.groupCount,
+        batchGenerated: true
       };
 
-      // Store payslip in payment history
+      // Store payslip in payment history with enhanced structure
       const paymentHistoryKey = `teacherPaymentHistory_${teacher.id}`;
       const existingHistory = JSON.parse(localStorage.getItem(paymentHistoryKey) || '[]');
       
       // Check if payslip for this month already exists
       const existingPayslipIndex = existingHistory.findIndex((p: any) => p.month === bulkResults.month);
       
+      const paymentRecord = {
+        ...payslipData,
+        amount: teacherResult.salary,
+        paidDate: new Date().toISOString(),
+        method: 'bulk',
+        status: 'generated'
+      };
+      
       if (existingPayslipIndex >= 0) {
         // Update existing payslip
         existingHistory[existingPayslipIndex] = {
-          ...payslipData,
-          amount: teacherResult.salary,
-          paidDate: new Date().toISOString()
+          ...paymentRecord,
+          updatedAt: new Date().toISOString()
         };
       } else {
         // Add new payslip
         existingHistory.push({
-          ...payslipData,
-          amount: teacherResult.salary,
-          paidDate: new Date().toISOString()
+          ...paymentRecord,
+          createdAt: new Date().toISOString()
         });
       }
       
@@ -714,36 +1058,36 @@ export default function TeacherSalaries() {
 
     toast({
       title: 'تم إنشاء كشوف الرواتب بنجاح',
-      description: `تم إنشاء كشوف رواتب لجميع المعلمين (${bulkResults.teacherBreakdown.length} معلم)`,
+      description: `تم إنشاء ${bulkResults.teacherBreakdown.length} كشف راتب لشهر ${bulkResults.month} بنجاح`,
       variant: 'default'
     });
   };
 
-  // Print bulk payslips for all teachers
+  // Print bulk payslips for all teachers using unified template
   const printBulkPayslips = () => {
     if (!bulkResults) return;
     
-    // Generate combined print document for all teachers
+    const currentDate = new Date().toLocaleDateString('ar-DZ', { 
+      calendar: 'gregory',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // Generate combined print document using unified template
     let combinedHTML = `
-      <html dir="rtl">
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
         <head>
           <meta charset="UTF-8">
           <title>كشوف رواتب جماعية - ${bulkResults.month}</title>
           <style>
-            body { font-family: 'Noto Sans Arabic', Arial, sans-serif; margin: 0; padding: 20px; }
-            .payslip { margin-bottom: 40px; page-break-after: always; border: 2px solid #2563eb; padding: 20px; }
-            .payslip:last-child { page-break-after: avoid; }
-            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
-            .school-name { font-size: 24px; font-weight: bold; color: #2563eb; margin-bottom: 5px; }
-            .document-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
-            .info-section { margin-bottom: 20px; }
-            .info-row { margin: 8px 0; padding: 5px; background-color: #f8fafc; }
-            .groups-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            .groups-table th, .groups-table td { border: 1px solid #2563eb; padding: 8px; text-align: center; }
-            .groups-table th { background-color: #2563eb; color: white; font-weight: bold; }
-            .total-section { margin-top: 20px; padding: 15px; background-color: #dbeafe; border: 2px solid #2563eb; text-align: center; }
-            .total-amount { font-size: 24px; font-weight: bold; color: #2563eb; }
-            @media print { body { margin: 0; } .payslip { page-break-after: always; } }
+            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+            body { font-family: 'Noto Sans Arabic', Arial, sans-serif; margin: 0; padding: 10px; direction: rtl; }
+            .payslip-page { page-break-after: always; margin-bottom: 20px; }
+            .payslip-page:last-child { page-break-after: avoid; }
+            @media print { body { margin: 0; padding: 5px; } .payslip-page { page-break-after: always; margin-bottom: 10px; } }
           </style>
         </head>
         <body>
@@ -753,58 +1097,35 @@ export default function TeacherSalaries() {
       const teacher = teachers?.find(t => t.id === teacherResult.teacherId);
       if (!teacher) return;
 
-      combinedHTML += `
-        <div class="payslip">
-          <div class="header">
-            <div class="school-name">مؤسسة تعليمية خاصة</div>
-            <div class="document-title">كشف راتب المعلم</div>
-          </div>
-          
-          <div class="info-section">
-            <div class="info-row"><strong>اسم الأستاذ:</strong> ${teacher.name}</div>
-            <div class="info-row"><strong>الشهر:</strong> ${bulkResults.month}</div>
-            <div class="info-row"><strong>تاريخ الإصدار:</strong> ${new Date().toLocaleDateString('ar-DZ')}</div>
-          </div>
+      // Prepare group details with comprehensive information
+      const groupDetails = teacherResult.groups.map(group => ({
+        groupName: group.groupName || group.subject,
+        subject: group.subject,
+        level: group.level,
+        grade: (group as any).grade || '',
+        students: (group as any).students || 0,
+        attendance: group.attendance,
+        lessons: group.lessons,
+        amount: group.amount,
+        percentage: group.percentage
+      }));
 
-          <table class="groups-table">
-            <thead>
-              <tr>
-                <th>اسم المجموعة</th>
-                <th>المادة</th>
-                <th>المستوى</th>
-                <th>الحضور</th>
-                <th>عدد الدروس</th>
-                <th>المبلغ (دج)</th>
-                <th>النسبة (%)</th>
-                <th>الأجر (دج)</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
+      // Generate individual payslip using unified template
+      const payslipHTML = generateUnifiedPayslipHTML(
+        teacher, 
+        teacherResult.salary, 
+        groupDetails, 
+        bulkResults.month,
+        currentDate
+      );
 
-      teacherResult.groups.forEach(group => {
-        combinedHTML += `
-          <tr>
-            <td>${group.groupName}</td>
-            <td>${group.subject}</td>
-            <td>${group.level}</td>
-            <td>${group.attendance}</td>
-            <td>${group.lessons}</td>
-            <td>${group.amount}</td>
-            <td>${group.percentage}</td>
-            <td>${group.groupSalary.toLocaleString()}</td>
-          </tr>
-        `;
-      });
+      // Extract body content from the generated HTML
+      const bodyMatch = payslipHTML.match(/<body[^>]*>([\s\S]*?)<\/body>/);
+      const bodyContent = bodyMatch ? bodyMatch[1] : payslipHTML;
 
       combinedHTML += `
-            </tbody>
-          </table>
-
-          <div class="total-section">
-            <div><strong>إجمالي الراتب الشهري</strong></div>
-            <div class="total-amount">${teacherResult.salary.toLocaleString()} دج</div>
-          </div>
+        <div class="payslip-page">
+          ${bodyContent}
         </div>
       `;
     });
@@ -816,8 +1137,18 @@ export default function TeacherSalaries() {
     if (printWindow) {
       printWindow.document.write(combinedHTML);
       printWindow.document.close();
-      printWindow.print();
+      
+      // Add a small delay before printing to ensure content is fully loaded
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
     }
+    
+    toast({
+      title: 'تم فتح كشوف الرواتب للطباعة',
+      description: `تم إعداد ${bulkResults.teacherBreakdown.length} كشف راتب للطباعة`,
+      variant: 'default'
+    });
   };
 
   if (user?.role !== 'admin') {
