@@ -3885,6 +3885,39 @@ export class DatabaseStorage implements IStorage {
       .orderBy(groupAttendance.attendanceDate);
   }
 
+  async getGroupAttendanceCountsByMonth(
+    groupIds: number[], 
+    year: number, 
+    month: number
+  ): Promise<{ [groupId: number]: { present: number; total: number } }> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    
+    const results: { [groupId: number]: { present: number; total: number } } = {};
+    
+    for (const groupId of groupIds) {
+      const attendanceRecords = await db
+        .select()
+        .from(groupAttendance)
+        .where(
+          and(
+            eq(groupAttendance.groupId, groupId),
+            sql`${groupAttendance.attendanceDate} >= ${startDate.toISOString().split("T")[0]}`,
+            sql`${groupAttendance.attendanceDate} <= ${endDate.toISOString().split("T")[0]}`,
+          ),
+        );
+      
+      const presentCount = attendanceRecords.filter(record => record.status === 'present').length;
+      const totalCount = attendanceRecords.length;
+      
+      results[groupId] = {
+        present: presentCount,
+        total: totalCount
+      };
+    }
+    
+    return results;
+  }
 
   // Group Financial Transaction methods
   async getGroupTransactions(
