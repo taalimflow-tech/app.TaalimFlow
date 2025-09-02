@@ -494,21 +494,21 @@ export default function AdminStudentManagement() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <p className="text-center text-gray-600">جاري التحميل...</p>
+                <p className="text-center text-gray-600 dark:text-gray-400">جاري التحميل...</p>
               ) : unclaimedStudents && unclaimedStudents.length > 0 ? (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {unclaimedStudents.map((student: Student) => (
-                    <div key={student.id} className="p-3 border rounded-lg bg-gray-50">
+                    <div key={student.id} className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-800">{student.name}</h4>
-                          <p className="text-sm text-gray-600">
+                          <h4 className="font-semibold text-gray-800 dark:text-gray-100">{student.name}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
                             {student.educationLevel} - {student.grade}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
                             {student.gender === 'male' ? 'ذكر' : 'أنثى'}
                           </p>
-                          <p className="text-xs text-blue-600 mt-1">
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                             <strong>المواد:</strong> {getSubjectNames(student.selectedSubjects)}
                           </p>
                         </div>
@@ -529,14 +529,14 @@ export default function AdminStudentManagement() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleShowQRCode(student)}
-                            className="text-xs bg-green-50 hover:bg-green-100 text-green-700"
+                            className="text-xs bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-800/30 text-green-700 dark:text-green-400"
                           >
                             <QrCode className="w-3 h-3 ml-1" />
                             QR
                           </Button>
                           <button
                             onClick={() => openEditDialog(student)}
-                            className="text-blue-600 hover:text-blue-800 p-2 rounded-md border border-blue-200 hover:bg-blue-50"
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-2 rounded-md border border-blue-200 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             title="تعديل بيانات الطالب"
                           >
                             <Edit className="h-4 w-4" />
@@ -544,7 +544,7 @@ export default function AdminStudentManagement() {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <button
-                                className="text-red-600 hover:text-red-800 p-2 rounded-md border border-red-200 hover:bg-red-50"
+                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-md border border-red-200 dark:border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 title="حذف الطالب"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -574,12 +574,12 @@ export default function AdminStudentManagement() {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-600">لا توجد طلاب غير مربوطين</p>
+                <p className="text-center text-gray-600 dark:text-gray-400">لا توجد طلاب غير مربوطين</p>
               )}
 
-              <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                <h3 className="font-semibold text-green-800 mb-2">إرشادات للطلاب:</h3>
-                <p className="text-sm text-green-700">
+              <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <h3 className="font-semibold text-green-800 dark:text-green-300 mb-2">إرشادات للطلاب:</h3>
+                <p className="text-sm text-green-700 dark:text-green-400">
                   أخبر الطلاب بالذهاب إلى صفحة التسجيل واختيار "ربط حساب طالب موجود" 
                   واستخدام الرقم المعطى لهم
                 </p>
