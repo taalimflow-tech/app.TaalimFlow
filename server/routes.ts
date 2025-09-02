@@ -163,18 +163,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Check if school service is paused (not for super admins)
-        if (user.role !== "super_admin" && user.schoolId) {
-          const school = await storage.getSchoolById(user.schoolId);
-          if (school?.servicePaused) {
-            return res.status(403).json({
-              error: "تم إيقاف الخدمة مؤقتاً لهذه المدرسة. يرجى التواصل مع الإدارة",
-              servicePaused: true,
-              schoolName: school.name
-            });
-          }
-        }
-
         // Store user session properly with school context
         req.session.user = {
           id: user.id,
@@ -4773,38 +4761,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching expiring subscriptions:", error);
       res.status(500).json({ error: "فشل في جلب الاشتراكات المنتهية" });
-    }
-  });
-
-  // Super Admin - Service Pause/Resume Management
-  app.patch("/api/super-admin/schools/:id/service-status", async (req, res) => {
-    try {
-      if (!req.session?.user || req.session.user.role !== "super_admin") {
-        return res
-          .status(403)
-          .json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
-      }
-
-      const schoolId = parseInt(req.params.id);
-      const { servicePaused } = req.body;
-
-      if (typeof servicePaused !== 'boolean') {
-        return res.status(400).json({ error: "حالة الخدمة يجب أن تكون true أو false" });
-      }
-
-      await storage.updateSchoolServiceStatus(schoolId, {
-        servicePaused,
-        servicePausedAt: servicePaused ? new Date() : null,
-        servicePausedBy: servicePaused ? req.session.user.id : null,
-      });
-
-      res.json({ 
-        message: servicePaused ? "تم إيقاف الخدمة بنجاح" : "تم استئناف الخدمة بنجاح",
-        servicePaused 
-      });
-    } catch (error) {
-      console.error("Error updating school service status:", error);
-      res.status(500).json({ error: "فشل في تحديث حالة الخدمة" });
     }
   });
 

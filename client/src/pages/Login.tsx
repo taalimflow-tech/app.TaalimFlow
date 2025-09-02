@@ -139,15 +139,6 @@ export default function Login() {
       
       if (!response.ok) {
         const error = await response.json();
-        
-        // Check if service is paused
-        if (error.servicePaused && error.schoolName) {
-          // Redirect to service suspended page
-          const schoolCode = sessionStorage.getItem('schoolCode') || 'unknown';
-          window.location.href = `/school/${schoolCode}/service-suspended`;
-          return;
-        }
-        
         throw new Error(error.error || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
       }
       

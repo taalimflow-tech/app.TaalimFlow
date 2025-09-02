@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw, BarChart, CreditCard, Pause, Play } from "lucide-react";
+import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw, BarChart, CreditCard } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -33,7 +33,7 @@ export default function SuperAdminSimple() {
   const [showLogin, setShowLogin] = useState(true);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showCreateSchool, setShowCreateSchool] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState<any>(null);
+  const [selectedSchool, setSelectedSchool] = useState(null);
   const [showKeysModal, setShowKeysModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -92,7 +92,7 @@ export default function SuperAdminSimple() {
   const { data: schools = [], isLoading: schoolsLoading } = useQuery({
     queryKey: ["/api/super-admin/schools"],
     enabled: user?.role === "super_admin"
-  }) as { data: any[], isLoading: boolean };
+  });
 
   // Create school mutation
   const createSchoolMutation = useMutation({
@@ -184,19 +184,6 @@ export default function SuperAdminSimple() {
     },
     onError: (error: any) => {
       setError(error.message || "فشل في تحديث بيانات الاشتراك");
-    }
-  });
-
-  // Update school service status mutation
-  const updateServiceStatusMutation = useMutation({
-    mutationFn: ({ schoolId, servicePaused }: { schoolId: number, servicePaused: boolean }) => {
-      return apiRequest('PATCH', `/api/super-admin/schools/${schoolId}/service-status`, { servicePaused });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/schools'] });
-    },
-    onError: (error: any) => {
-      setError(error.message || "فشل في تحديث حالة الخدمة");
     }
   });
 
@@ -734,16 +721,7 @@ export default function SuperAdminSimple() {
               </div>
             ) : (
               <div className="space-y-3">
-                {schools
-                  .sort((a: any, b: any) => {
-                    // Sort by subscription expiry date (earliest first)
-                    // Schools without expiry date go to the end
-                    if (!a.subscriptionExpiry && !b.subscriptionExpiry) return 0;
-                    if (!a.subscriptionExpiry) return 1;
-                    if (!b.subscriptionExpiry) return -1;
-                    return new Date(a.subscriptionExpiry).getTime() - new Date(b.subscriptionExpiry).getTime();
-                  })
-                  .map((school: any) => (
+                {schools.map((school: any) => (
                   <div key={school.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -768,11 +746,6 @@ export default function SuperAdminSimple() {
                             <Badge variant="outline" className="text-xs px-1 py-0">
                               {school.userCount || 0}
                             </Badge>
-                            {school.servicePaused && (
-                              <Badge variant="destructive" className="text-xs px-1 py-0">
-                                متوقف
-                              </Badge>
-                            )}
                           </div>
                           {school.location && (
                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{school.location}</div>
@@ -824,17 +797,6 @@ export default function SuperAdminSimple() {
                           title="إدارة الاشتراك"
                         >
                           <CreditCard className="h-3 w-3" />
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className={`h-7 w-7 p-0 ${school.servicePaused ? 'text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20' : 'text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20'}`}
-                          onClick={() => updateServiceStatusMutation.mutate({ schoolId: school.id, servicePaused: !school.servicePaused })}
-                          disabled={updateServiceStatusMutation.isPending}
-                          title={school.servicePaused ? "استئناف الخدمة" : "إيقاف الخدمة"}
-                        >
-                          {school.servicePaused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
                         </Button>
                         
                         <Button

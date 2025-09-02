@@ -140,14 +140,6 @@ export interface IStorage {
   ): Promise<void>;
   getSchoolSubscriptionStatus(schoolId: number): Promise<any>;
   getSchoolsWithExpiringSubscriptions(daysThreshold: number): Promise<any[]>;
-  updateSchoolServiceStatus(
-    schoolId: number,
-    serviceData: {
-      servicePaused: boolean;
-      servicePausedAt?: Date | null;
-      servicePausedBy?: number | null;
-    },
-  ): Promise<void>;
 
   // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
@@ -3885,39 +3877,6 @@ export class DatabaseStorage implements IStorage {
       .orderBy(groupAttendance.attendanceDate);
   }
 
-  async getGroupAttendanceCountsByMonth(
-    groupIds: number[], 
-    year: number, 
-    month: number
-  ): Promise<{ [groupId: number]: { present: number; total: number } }> {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-    
-    const results: { [groupId: number]: { present: number; total: number } } = {};
-    
-    for (const groupId of groupIds) {
-      const attendanceRecords = await db
-        .select()
-        .from(groupAttendance)
-        .where(
-          and(
-            eq(groupAttendance.groupId, groupId),
-            sql`${groupAttendance.attendanceDate} >= ${startDate.toISOString().split("T")[0]}`,
-            sql`${groupAttendance.attendanceDate} <= ${endDate.toISOString().split("T")[0]}`,
-          ),
-        );
-      
-      const presentCount = attendanceRecords.filter(record => record.status === 'present').length;
-      const totalCount = attendanceRecords.length;
-      
-      results[groupId] = {
-        present: presentCount,
-        total: totalCount
-      };
-    }
-    
-    return results;
-  }
 
   // Group Financial Transaction methods
   async getGroupTransactions(
@@ -4767,24 +4726,6 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(schools)
       .set(updateData)
-      .where(eq(schools.id, schoolId));
-  }
-
-  async updateSchoolServiceStatus(
-    schoolId: number,
-    serviceData: {
-      servicePaused: boolean;
-      servicePausedAt?: Date | null;
-      servicePausedBy?: number | null;
-    },
-  ): Promise<void> {
-    await db
-      .update(schools)
-      .set({
-        servicePaused: serviceData.servicePaused,
-        servicePausedAt: serviceData.servicePausedAt,
-        servicePausedBy: serviceData.servicePausedBy,
-      })
       .where(eq(schools.id, schoolId));
   }
 
