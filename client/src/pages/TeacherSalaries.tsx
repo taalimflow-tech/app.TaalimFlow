@@ -116,13 +116,56 @@ export default function TeacherSalaries() {
       
       // Create payment status map from the database
       paymentStatuses.forEach((status: any) => {
-        const key = `${status.teacherId}-${status.paymentMonth}`;
-        paymentMap[key] = status.isPaid;
+        const monthKey = `${status.teacherId}-${status.paymentMonth}`;
+        
+        // Set month-based key for payment history
+        paymentMap[monthKey] = status.isPaid;
+        
+        // If current bulk results exist and this status matches the bulk month,
+        // also set the bulk key for the bulk calculation checkbox
+        if (bulkResults && status.paymentMonth === bulkResults.month) {
+          const bulkKey = `${status.teacherId}-bulk`;
+          paymentMap[bulkKey] = status.isPaid;
+        }
       });
       
-      setSelectedPayments(paymentMap);
+      setSelectedPayments(prev => ({
+        ...prev,
+        ...paymentMap
+      }));
     }
-  }, [paymentStatuses]);
+  }, [paymentStatuses, bulkResults]);
+
+  // Additional effect to sync bulk checkboxes when bulk results change
+  useEffect(() => {
+    if (bulkResults && paymentStatuses && Array.isArray(paymentStatuses)) {
+      const updatedPayments: { [key: string]: boolean } = {};
+      
+      // Check if we have payment status for the bulk calculation month
+      bulkResults.teacherBreakdown.forEach((result) => {
+        const monthKey = `${result.teacherId}-${bulkResults.month}`;
+        const bulkKey = `${result.teacherId}-bulk`;
+        
+        // Find existing payment status for this teacher and month
+        const existingStatus = paymentStatuses.find(
+          (status: any) => status.teacherId === result.teacherId && status.paymentMonth === bulkResults.month
+        );
+        
+        if (existingStatus) {
+          updatedPayments[bulkKey] = existingStatus.isPaid;
+          updatedPayments[monthKey] = existingStatus.isPaid;
+        }
+      });
+      
+      // Update only if we have changes
+      if (Object.keys(updatedPayments).length > 0) {
+        setSelectedPayments(prev => ({
+          ...prev,
+          ...updatedPayments
+        }));
+      }
+    }
+  }, [bulkResults]);
 
   // Fetch teachers
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({
@@ -1710,9 +1753,9 @@ export default function TeacherSalaries() {
                                         <div className="flex items-center gap-3">
                                           <input
                                             type="checkbox"
-                                            checked={selectedPayments[`${teacher.id}-${index}`] || false}
+                                            checked={selectedPayments[`${teacher.id}-${payment.month}`] || false}
                                             onChange={async (e) => {
-                                              const key = `${teacher.id}-${index}`;
+                                              const key = `${teacher.id}-${payment.month}`;
                                               const isChecked = e.target.checked;
                                               
                                               // Update checkbox state locally first
