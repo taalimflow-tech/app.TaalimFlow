@@ -1499,7 +1499,12 @@ export default function SuperAdminSimple() {
                       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                         <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">معلومات الاشتراك الحالي:</h4>
                         <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                          <p><strong>تاريخ الانتهاء:</strong> {new Date(selectedSchool.subscriptionExpiry).toLocaleDateString('ar-EG')}</p>
+                          <p><strong>تاريخ الانتهاء:</strong> {new Date(selectedSchool.subscriptionExpiry).toLocaleDateString('ar-DZ', { 
+                            calendar: 'gregory',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                          })}</p>
                           <p><strong>الحالة:</strong> {selectedSchool.subscriptionStatus === 'active' ? 'نشط' : 
                                                       selectedSchool.subscriptionStatus === 'expired' ? 'منتهي الصلاحية' : 
                                                       selectedSchool.subscriptionStatus === 'suspended' ? 'معلق' : 
