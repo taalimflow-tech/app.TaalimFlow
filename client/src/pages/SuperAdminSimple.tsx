@@ -744,137 +744,138 @@ export default function SuperAdminSimple() {
                     const daysRemaining = getDaysRemaining(school.subscriptionExpiry);
                     
                     return (
-                  <div key={school.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        {school.logoUrl ? (
-                          <img 
-                            src={school.logoUrl} 
-                            alt={`شعار ${school.name}`}
-                            className="w-6 h-6 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div 
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                            style={{ backgroundColor: school.primaryColor }}
-                          >
-                            {school.name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 rtl:space-x-reverse flex-wrap">
-                            <h3 className="text-sm font-medium dark:text-white">{school.name}</h3>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">({school.code})</span>
-                            <Badge variant="outline" className="text-xs px-1 py-0">
-                              {school.userCount || 0}
-                            </Badge>
-                            
-                            {/* Days remaining badge */}
-                            {daysRemaining !== null && (
-                              <Badge 
-                                variant={daysRemaining <= 7 ? "destructive" : daysRemaining <= 30 ? "default" : "secondary"}
-                                className={`text-xs px-2 py-0 ${
-                                  daysRemaining <= 0 ? 'bg-red-600 text-white' :
-                                  daysRemaining <= 7 ? 'bg-red-500 text-white' :
-                                  daysRemaining <= 30 ? 'bg-yellow-500 text-white' :
-                                  'bg-green-500 text-white'
-                                }`}
+                      <div key={school.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                            {school.logoUrl ? (
+                              <img 
+                                src={school.logoUrl} 
+                                alt={`شعار ${school.name}`}
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div 
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                style={{ backgroundColor: school.primaryColor }}
                               >
-                                {daysRemaining <= 0 ? 'منتهي' : 
-                                 daysRemaining === 1 ? 'يوم واحد' :
-                                 daysRemaining <= 10 ? `${daysRemaining} أيام` :
-                                 `${daysRemaining} يوم`}
-                              </Badge>
+                                {school.name.charAt(0)}
+                              </div>
                             )}
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 rtl:space-x-reverse flex-wrap">
+                                <h3 className="text-sm font-medium dark:text-white">{school.name}</h3>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">({school.code})</span>
+                                <Badge variant="outline" className="text-xs px-1 py-0">
+                                  {school.userCount || 0}
+                                </Badge>
+                                
+                                {/* Days remaining badge */}
+                                {daysRemaining !== null && (
+                                  <Badge 
+                                    variant={daysRemaining <= 7 ? "destructive" : daysRemaining <= 30 ? "default" : "secondary"}
+                                    className={`text-xs px-2 py-0 ${
+                                      daysRemaining <= 0 ? 'bg-red-600 text-white' :
+                                      daysRemaining <= 7 ? 'bg-red-500 text-white' :
+                                      daysRemaining <= 30 ? 'bg-yellow-500 text-white' :
+                                      'bg-green-500 text-white'
+                                    }`}
+                                  >
+                                    {daysRemaining <= 0 ? 'منتهي' : 
+                                     daysRemaining === 1 ? 'يوم واحد' :
+                                     daysRemaining <= 10 ? `${daysRemaining} أيام` :
+                                     `${daysRemaining} يوم`}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2 rtl:space-x-reverse mt-1">
+                                {school.location && (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">{school.location}</span>
+                                )}
+                                {school.subscriptionExpiry && (
+                                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                                    • انتهاء: {new Date(school.subscriptionExpiry).toLocaleDateString('ar-DZ', { 
+                                      calendar: 'gregory',
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit'
+                                    })}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-2 rtl:space-x-reverse mt-1">
-                            {school.location && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{school.location}</span>
-                            )}
-                            {school.subscriptionExpiry && (
-                              <span className="text-xs text-gray-400 dark:text-gray-500">
-                                • انتهاء: {new Date(school.subscriptionExpiry).toLocaleDateString('ar-DZ', { 
-                                  calendar: 'gregory',
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit'
-                                })}
-                              </span>
-                            )}
+                          
+                          <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => {
+                                setSelectedSchool(school);
+                                setShowStatsModal(true);
+                              }}
+                              title="إحصائيات"
+                            >
+                              <BarChart className="h-3 w-3" />
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => {
+                                setSelectedSchool(school);
+                                setEditingKeys({ adminKey: school.adminKey, teacherKey: school.teacherKey });
+                                setShowKeysModal(true);
+                              }}
+                              title="مفاتيح"
+                            >
+                              <Key className="h-3 w-3" />
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => {
+                                setSelectedSchool(school);
+                                setSubscriptionData({
+                                  subscriptionExpiry: school.subscriptionExpiry ? new Date(school.subscriptionExpiry).toISOString().split('T')[0] : '',
+                                  subscriptionStatus: school.subscriptionStatus || 'active',
+                                  subscriptionNotes: school.subscriptionNotes || ''
+                                });
+                                setShowSubscriptionModal(true);
+                              }}
+                              title="إدارة الاشتراك"
+                            >
+                              <CreditCard className="h-3 w-3" />
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => window.open(`/school/${school.code}`, '_blank')}
+                              title="عرض"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              onClick={() => handleDeleteSchool(school.id, school.name)}
+                              disabled={deleteSchoolMutation.isPending}
+                              title="حذف"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 p-0"
-                          onClick={() => {
-                            setSelectedSchool(school);
-                            setShowStatsModal(true);
-                          }}
-                          title="إحصائيات"
-                        >
-                          <BarChart className="h-3 w-3" />
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 p-0"
-                          onClick={() => {
-                            setSelectedSchool(school);
-                            setEditingKeys({ adminKey: school.adminKey, teacherKey: school.teacherKey });
-                            setShowKeysModal(true);
-                          }}
-                          title="مفاتيح"
-                        >
-                          <Key className="h-3 w-3" />
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 p-0"
-                          onClick={() => {
-                            setSelectedSchool(school);
-                            setSubscriptionData({
-                              subscriptionExpiry: school.subscriptionExpiry ? new Date(school.subscriptionExpiry).toISOString().split('T')[0] : '',
-                              subscriptionStatus: school.subscriptionStatus || 'active',
-                              subscriptionNotes: school.subscriptionNotes || ''
-                            });
-                            setShowSubscriptionModal(true);
-                          }}
-                          title="إدارة الاشتراك"
-                        >
-                          <CreditCard className="h-3 w-3" />
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 p-0"
-                          onClick={() => window.open(`/school/${school.code}`, '_blank')}
-                          title="عرض"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          onClick={() => handleDeleteSchool(school.id, school.name)}
-                          disabled={deleteSchoolMutation.isPending}
-                          title="حذف"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
               </div>
             )}
           </CardContent>
