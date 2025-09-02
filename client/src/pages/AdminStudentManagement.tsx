@@ -421,7 +421,7 @@ export default function AdminStudentManagement() {
                 {formData.educationLevel && (
                   <div>
                     <Label>المواد الدراسية (اختياري)</Label>
-                    <div className="mt-2 p-4 border rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
+                    <div className="mt-2 p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 max-h-48 overflow-y-auto">
                       {getAvailableSubjects(formData.educationLevel).length > 0 ? (
                         <div className="grid grid-cols-1 gap-3">
                           {getAvailableSubjects(formData.educationLevel).map((module) => (
@@ -445,7 +445,7 @@ export default function AdminStudentManagement() {
                               />
                               <Label 
                                 htmlFor={`subject-${module.id}`}
-                                className="text-sm font-normal cursor-pointer"
+                                className="text-sm font-normal cursor-pointer text-gray-900 dark:text-gray-100"
                               >
                                 {module.name}
                               </Label>
@@ -453,10 +453,10 @@ export default function AdminStudentManagement() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500">لا توجد مواد متاحة لهذه المرحلة التعليمية</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">لا توجد مواد متاحة لهذه المرحلة التعليمية</p>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       يمكن للطالب تعديل اختيار المواد لاحقاً من حسابه
                     </p>
                   </div>
