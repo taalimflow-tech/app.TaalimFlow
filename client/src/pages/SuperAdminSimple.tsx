@@ -697,7 +697,7 @@ export default function SuperAdminSimple() {
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle>قائمة المدارس المسجلة</CardTitle>
-                <CardDescription>جميع المدارس والمؤسسات التعليمية في النظام</CardDescription>
+                <CardDescription>جميع المدارس والمؤسسات التعليمية مرتبة حسب تاريخ انتهاء الاشتراك</CardDescription>
               </div>
               <Button onClick={() => setShowCreateSchool(true)}>
                 <Plus className="h-4 w-4 ml-2" />
@@ -721,7 +721,29 @@ export default function SuperAdminSimple() {
               </div>
             ) : (
               <div className="space-y-3">
-                {schools.map((school: any) => (
+                {schools
+                  .sort((a: any, b: any) => {
+                    // Schools with no subscription expiry go to the end
+                    if (!a.subscriptionExpiry && !b.subscriptionExpiry) return 0;
+                    if (!a.subscriptionExpiry) return 1;
+                    if (!b.subscriptionExpiry) return -1;
+                    
+                    // Sort by subscription expiry date (earliest first)
+                    return new Date(a.subscriptionExpiry).getTime() - new Date(b.subscriptionExpiry).getTime();
+                  })
+                  .map((school: any) => {
+                    // Calculate days remaining
+                    const getDaysRemaining = (expiryDate: string) => {
+                      if (!expiryDate) return null;
+                      const today = new Date();
+                      const expiry = new Date(expiryDate);
+                      const diffTime = expiry.getTime() - today.getTime();
+                      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    };
+                    
+                    const daysRemaining = getDaysRemaining(school.subscriptionExpiry);
+                    
+                    return (
                   <div key={school.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -740,16 +762,46 @@ export default function SuperAdminSimple() {
                           </div>
                         )}
                         <div className="flex-1">
-                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse flex-wrap">
                             <h3 className="text-sm font-medium dark:text-white">{school.name}</h3>
                             <span className="text-xs text-gray-500 dark:text-gray-400">({school.code})</span>
                             <Badge variant="outline" className="text-xs px-1 py-0">
                               {school.userCount || 0}
                             </Badge>
+                            
+                            {/* Days remaining badge */}
+                            {daysRemaining !== null && (
+                              <Badge 
+                                variant={daysRemaining <= 7 ? "destructive" : daysRemaining <= 30 ? "default" : "secondary"}
+                                className={`text-xs px-2 py-0 ${
+                                  daysRemaining <= 0 ? 'bg-red-600 text-white' :
+                                  daysRemaining <= 7 ? 'bg-red-500 text-white' :
+                                  daysRemaining <= 30 ? 'bg-yellow-500 text-white' :
+                                  'bg-green-500 text-white'
+                                }`}
+                              >
+                                {daysRemaining <= 0 ? 'منتهي' : 
+                                 daysRemaining === 1 ? 'يوم واحد' :
+                                 daysRemaining <= 10 ? `${daysRemaining} أيام` :
+                                 `${daysRemaining} يوم`}
+                              </Badge>
+                            )}
                           </div>
-                          {school.location && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{school.location}</div>
-                          )}
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse mt-1">
+                            {school.location && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">{school.location}</span>
+                            )}
+                            {school.subscriptionExpiry && (
+                              <span className="text-xs text-gray-400 dark:text-gray-500">
+                                • انتهاء: {new Date(school.subscriptionExpiry).toLocaleDateString('ar-DZ', { 
+                                  calendar: 'gregory',
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit'
+                                })}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
