@@ -21,8 +21,7 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
           <img 
             src={announcement.imageUrl} 
             alt={announcement.title}
-            className="w-full h-32 lg:h-40 xl:h-48 object-cover rounded-lg cursor-pointer transition-transform hover:scale-[1.02]"
-            style={{ aspectRatio: '16/9' }}
+            className="w-full h-auto object-contain rounded-lg cursor-pointer transition-transform hover:scale-[1.02] max-h-96"
             onClick={() => setShowFullView(true)}
           />
           {/* Expand icon overlay */}
