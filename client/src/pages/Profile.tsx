@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { FirebaseEmailVerification } from '@/lib/firebase-email';
 import { ensureFirebaseInitialized } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Settings, Shield, GraduationCap, Users, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar, Bell } from 'lucide-react';
+import { User, Settings, Shield, GraduationCap, Users, Mail, Save, Plus, Trash2, Baby, LogOut, CheckCircle, XCircle, BookOpen, Calendar, Bell, Moon, Sun } from 'lucide-react';
 import { GroupDetailsModal } from '@/components/GroupDetailsModal';
 import NotificationSettings from '@/components/NotificationSettings';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,7 @@ interface EnrolledGroup {
 
 export default function Profile() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
@@ -622,6 +624,60 @@ export default function Profile() {
                     </Button>
                   ) : null}
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Theme Settings Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {theme === 'light' ? (
+                  <Moon className="w-5 h-5" />
+                ) : (
+                  <Sun className="w-5 h-5 text-yellow-500" />
+                )}
+                إعدادات المظهر
+              </CardTitle>
+              <CardDescription>
+                اختر المظهر المفضل لديك للتطبيق
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {theme === 'light' ? (
+                    <Moon className="w-6 h-6 text-gray-600" />
+                  ) : (
+                    <Sun className="w-6 h-6 text-yellow-500" />
+                  )}
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-gray-200">
+                      {theme === 'light' ? 'الوضع النهاري' : 'الوضع الليلي'}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {theme === 'light' ? 'مظهر مشرق ومناسب للنهار' : 'مظهر داكن ومريح للعينين'}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={toggleTheme}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  {theme === 'light' ? (
+                    <>
+                      <Moon className="w-4 h-4" />
+                      تفعيل الوضع الليلي
+                    </>
+                  ) : (
+                    <>
+                      <Sun className="w-4 h-4" />
+                      تفعيل الوضع النهاري
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>

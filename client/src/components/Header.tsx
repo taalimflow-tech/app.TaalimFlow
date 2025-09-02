@@ -113,7 +113,7 @@ export function Header() {
           
           <button 
             onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="hidden lg:flex p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             title={theme === 'light' ? 'تفعيل الوضع الليلي' : 'تفعيل الوضع النهاري'}
           >
             {theme === 'light' ? (
@@ -139,7 +139,7 @@ export function Header() {
             <>
               <button 
                 onClick={() => navigate(schoolCode ? `/school/${schoolCode}/profile` : '/profile')}
-                className="p-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="hidden lg:flex p-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 {user.profilePicture ? (
                   <img 
