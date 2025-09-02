@@ -439,19 +439,7 @@ export default function GainLossCalculator() {
         {/* Recent Entries */}
         <Card>
           <CardHeader className="space-y-4">
-            <div className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg font-semibold">العمليات الأخيرة</CardTitle>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleReset}
-                disabled={resetBalanceMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                <RotateCcw className="w-4 h-4" />
-                إعادة تعيين
-              </Button>
-            </div>
+            <CardTitle className="text-lg font-semibold">العمليات الأخيرة</CardTitle>
             
             {/* Time Filter Section */}
             <div className="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
