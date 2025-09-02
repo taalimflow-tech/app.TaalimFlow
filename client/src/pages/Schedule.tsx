@@ -1250,9 +1250,9 @@ export default function Schedule() {
       {/* Group Link Modal - Admin Only */}
       {isAdmin && showGroupLinkModal && linkingCell && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 ربط المجموعات بالحصة
               </h3>
               <Button
@@ -1270,9 +1270,9 @@ export default function Schedule() {
             
             <div className="space-y-4">
               {/* Schedule Cell Info */}
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">معلومات الحصة:</h4>
-                <div className="space-y-1 text-sm text-gray-600">
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">معلومات الحصة:</h4>
+                <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
                   <div>المادة: {linkingCell.subject?.nameAr}</div>
                   <div>المعلم: {linkingCell.teacher?.name}</div>
                   <div>المستوى: {getSimpleLevelFormat(linkingCell.educationLevel, linkingCell.grade, linkingCell.subject, linkingCell.gender)}</div>
@@ -1284,7 +1284,7 @@ export default function Schedule() {
 
               {/* Compatible Groups */}
               <div>
-                <h4 className="font-medium text-sm mb-3">المجموعات المتوافقة:</h4>
+                <h4 className="font-medium text-sm mb-3 text-gray-900 dark:text-gray-100">المجموعات المتوافقة:</h4>
                 {compatibleGroups.length > 0 ? (
                   <>
                     {/* Show match type explanation if showing fallback groups */}
@@ -1302,7 +1302,7 @@ export default function Schedule() {
                           className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                             selectedGroups.includes(group.id)
                               ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-700'
                           }`}
                           onClick={() => handleGroupToggle(group.id)}
                         >
@@ -1350,7 +1350,7 @@ export default function Schedule() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-reverse space-x-2 pt-4 border-t">
+              <div className="flex justify-end space-x-reverse space-x-2 pt-4 border-t border-gray-200 dark:border-gray-600">
                 <Button
                   onClick={handleLinkGroups}
                   disabled={linkGroupsMutation.isPending}
