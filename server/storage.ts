@@ -4904,10 +4904,12 @@ export class DatabaseStorage implements IStorage {
           grade: groups.grade,
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
+          teacherName: users.name,
           studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
           matchType: sql<string>`'exact'`,
         })
         .from(groups)
+        .leftJoin(users, eq(groups.teacherId, users.id))
         .where(
           and(
             eq(groups.schoolId, schoolId),
@@ -4952,11 +4954,13 @@ export class DatabaseStorage implements IStorage {
             grade: groups.grade,
             subjectId: groups.subjectId,
             teacherId: groups.teacherId,
+            teacherName: users.name,
             studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
             matchType: sql<string>`'subject_compatible'`,
           })
           .from(groups)
           .leftJoin(teachingModules, eq(groups.subjectId, teachingModules.id))
+          .leftJoin(users, eq(groups.teacherId, users.id))
           .where(
             and(
               eq(groups.schoolId, schoolId),
@@ -4997,10 +5001,12 @@ export class DatabaseStorage implements IStorage {
           grade: groups.grade,
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
+          teacherName: users.name,
           studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
           matchType: sql<string>`'partial'`,
         })
         .from(groups)
+        .leftJoin(users, eq(groups.teacherId, users.id))
         .where(
           and(
             eq(groups.schoolId, schoolId),
@@ -5049,10 +5055,12 @@ export class DatabaseStorage implements IStorage {
           grade: groups.grade,
           subjectId: groups.subjectId,
           teacherId: groups.teacherId,
+          teacherName: users.name,
           studentsCount: sql<number>`array_length(${groups.studentsAssigned}, 1)`,
           matchType: sql<string>`'unlinked_fallback'`,
         })
         .from(groups)
+        .leftJoin(users, eq(groups.teacherId, users.id))
         .where(
           and(
             eq(groups.schoolId, schoolId),
