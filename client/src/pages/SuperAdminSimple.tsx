@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw, BarChart, CreditCard } from "lucide-react";
+import { Shield, Building2, Plus, School, Users, Globe, Palette, Trash2, Eye, Edit, Calendar, MapPin, Key, RefreshCw, BarChart, CreditCard, Pause, Play } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -186,6 +186,24 @@ export default function SuperAdminSimple() {
       setError(error.message || "فشل في تحديث بيانات الاشتراك");
     }
   });
+
+  // Toggle school access mutation
+  const toggleAccessMutation = useMutation({
+    mutationFn: ({ schoolId, isAccessEnabled }: { schoolId: number, isAccessEnabled: boolean }) => {
+      return apiRequest('PATCH', `/api/super-admin/schools/${schoolId}/access`, { isAccessEnabled });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/schools'] });
+    },
+    onError: (error: any) => {
+      setError(error.message || "فشل في تغيير حالة الوصول للمدرسة");
+    }
+  });
+
+  const handleToggleSchoolAccess = (schoolId: number, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    toggleAccessMutation.mutate({ schoolId, isAccessEnabled: newStatus });
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -744,7 +762,11 @@ export default function SuperAdminSimple() {
                     const daysRemaining = getDaysRemaining(school.subscriptionExpiry);
                     
                     return (
-                      <div key={school.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
+                      <div key={school.id} className={`border rounded-lg p-3 ${
+                        school.isAccessEnabled === false 
+                          ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10 opacity-75' 
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3 rtl:space-x-reverse">
                             {school.logoUrl ? (
@@ -768,6 +790,16 @@ export default function SuperAdminSimple() {
                                 <Badge variant="outline" className="text-xs px-1 py-0">
                                   {school.userCount || 0}
                                 </Badge>
+                                
+                                {/* Access status badge */}
+                                {school.isAccessEnabled === false && (
+                                  <Badge 
+                                    variant="destructive"
+                                    className="text-xs px-2 py-0 bg-red-600 text-white"
+                                  >
+                                    معطل
+                                  </Badge>
+                                )}
                                 
                                 {/* Days remaining badge */}
                                 {daysRemaining !== null && (
@@ -849,6 +881,16 @@ export default function SuperAdminSimple() {
                               title="إدارة الاشتراك"
                             >
                               <CreditCard className="h-3 w-3" />
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className={`h-7 w-7 p-0 ${school.isAccessEnabled === false ? 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20' : 'text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'}`}
+                              onClick={() => handleToggleSchoolAccess(school.id, school.isAccessEnabled)}
+                              title={school.isAccessEnabled === false ? "تفعيل الوصول" : "إيقاف الوصول"}
+                            >
+                              {school.isAccessEnabled === false ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
                             </Button>
                             
                             <Button

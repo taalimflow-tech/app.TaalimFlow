@@ -140,6 +140,7 @@ export interface IStorage {
   ): Promise<void>;
   getSchoolSubscriptionStatus(schoolId: number): Promise<any>;
   getSchoolsWithExpiringSubscriptions(daysThreshold: number): Promise<any[]>;
+  toggleSchoolAccess(schoolId: number, isAccessEnabled: boolean): Promise<void>;
 
   // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
@@ -4800,6 +4801,13 @@ export class DatabaseStorage implements IStorage {
         isExpired: daysRemaining !== null && daysRemaining <= 0,
       };
     });
+  }
+
+  async toggleSchoolAccess(schoolId: number, isAccessEnabled: boolean): Promise<void> {
+    await db
+      .update(schools)
+      .set({ isAccessEnabled })
+      .where(eq(schools.id, schoolId));
   }
 
   // Group Schedule methods implementation

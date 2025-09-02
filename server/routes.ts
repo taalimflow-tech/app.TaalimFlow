@@ -4724,6 +4724,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle school access (pause/resume authentication)
+  app.patch("/api/super-admin/schools/:id/access", async (req, res) => {
+    try {
+      if (!req.session?.user || req.session.user.role !== "super_admin") {
+        return res
+          .status(403)
+          .json({ error: "غير مصرح بالوصول - المسؤولين العامين فقط" });
+      }
+
+      const schoolId = parseInt(req.params.id);
+      const { isAccessEnabled } = req.body;
+
+      if (typeof isAccessEnabled !== "boolean") {
+        return res.status(400).json({ error: "قيمة التحكم في الوصول يجب أن تكون true أو false" });
+      }
+
+      await storage.toggleSchoolAccess(schoolId, isAccessEnabled);
+      
+      const statusMessage = isAccessEnabled 
+        ? "تم تفعيل الوصول للمدرسة بنجاح" 
+        : "تم إيقاف الوصول للمدرسة بنجاح";
+      
+      res.json({ message: statusMessage, isAccessEnabled });
+    } catch (error) {
+      console.error("Error toggling school access:", error);
+      res.status(500).json({ error: "فشل في تغيير حالة الوصول للمدرسة" });
+    }
+  });
+
   // Get school subscription status (for school admins)
   app.get("/api/school/subscription", async (req, res) => {
     try {
