@@ -1310,36 +1310,17 @@ export default function Schedule() {
                             <div>
                               <div className="font-medium text-sm dark:text-gray-200">{group.name}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex items-center gap-2">
                                   <span>{group.studentsCount || 0} طالب</span>
-                                  {/* Show assigned teacher */}
-                                  {group.teacherName && (
-                                    <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs">
-                                      المعلم: {group.teacherName}
+                                  {/* Show grade and teacher in one line */}
+                                  {(group.grade || group.teacherName) && (
+                                    <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">
+                                      {group.grade && group.teacherName ? `${group.grade} - ${group.teacherName}` :
+                                       group.grade ? group.grade :
+                                       `المعلم: ${group.teacherName}`}
                                     </span>
                                   )}
                                 </div>
-                                {/* Show grade if available */}
-                                {group.grade && (
-                                  <span className="mr-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">
-                                    {group.grade}
-                                  </span>
-                                )}
-                                {/* Show match type badge */}
-                                {group.matchType && (
-                                  <span className={`mr-2 px-1.5 py-0.5 rounded text-xs ${
-                                    group.matchType === 'exact' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                                    group.matchType === 'subject_compatible' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
-                                    group.matchType === 'partial' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200' :
-                                    group.matchType === 'unlinked_fallback' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
-                                    'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                                  }`}>
-                                    {group.matchType === 'exact' ? 'مطابق' :
-                                     group.matchType === 'subject_compatible' ? 'مادة مشابهة' :
-                                     group.matchType === 'partial' ? 'جزئي' :
-                                     group.matchType === 'unlinked_fallback' ? 'غير مربوط' : group.matchType}
-                                  </span>
-                                )}
                               </div>
                             </div>
                             <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
