@@ -163,6 +163,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        // Check if school access is enabled
+        if (user.schoolId) {
+          const school = await storage.getSchoolById(user.schoolId);
+          if (school && school.isAccessEnabled === false) {
+            return res.status(403).json({
+              error: "تم إيقاف الوصول لهذه المدرسة مؤقتاً. يرجى المحاولة لاحقاً أو التواصل مع الإدارة",
+            });
+          }
+        }
+
         // Store user session properly with school context
         req.session.user = {
           id: user.id,
