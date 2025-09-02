@@ -36,6 +36,10 @@ export const schools = pgTable("schools", {
   subscriptionNotes: text("subscription_notes"), // Admin notes about subscription
   subscriptionLastUpdated: timestamp("subscription_last_updated"),
   subscriptionUpdatedBy: integer("subscription_updated_by"), // Super admin who updated
+  // Service control
+  servicePaused: boolean("service_paused").default(false), // Manual service pause by super admin
+  servicePausedAt: timestamp("service_paused_at"), // When service was paused
+  servicePausedBy: integer("service_paused_by"), // Super admin who paused service
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

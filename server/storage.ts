@@ -140,6 +140,14 @@ export interface IStorage {
   ): Promise<void>;
   getSchoolSubscriptionStatus(schoolId: number): Promise<any>;
   getSchoolsWithExpiringSubscriptions(daysThreshold: number): Promise<any[]>;
+  updateSchoolServiceStatus(
+    schoolId: number,
+    serviceData: {
+      servicePaused: boolean;
+      servicePausedAt?: Date | null;
+      servicePausedBy?: number | null;
+    },
+  ): Promise<void>;
 
   // User methods (with schoolId context)
   getUser(id: number): Promise<User | undefined>;
@@ -4726,6 +4734,24 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(schools)
       .set(updateData)
+      .where(eq(schools.id, schoolId));
+  }
+
+  async updateSchoolServiceStatus(
+    schoolId: number,
+    serviceData: {
+      servicePaused: boolean;
+      servicePausedAt?: Date | null;
+      servicePausedBy?: number | null;
+    },
+  ): Promise<void> {
+    await db
+      .update(schools)
+      .set({
+        servicePaused: serviceData.servicePaused,
+        servicePausedAt: serviceData.servicePausedAt,
+        servicePausedBy: serviceData.servicePausedBy,
+      })
       .where(eq(schools.id, schoolId));
   }
 

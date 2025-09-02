@@ -42,6 +42,7 @@ import { Notifications } from "@/pages/Notifications";
 import AdminFormationRegistrations from "@/pages/AdminFormationRegistrations";
 import SchoolSubscription from "@/pages/SchoolSubscription";
 import SchoolInfo from "@/pages/SchoolInfo";
+import ServiceSuspended from "@/pages/ServiceSuspended";
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -189,6 +190,11 @@ function AppRoutes() {
           
           <Route path="/school/:code/school-info">
             <AuthWrapper><Layout><SchoolInfo /></Layout></AuthWrapper>
+          </Route>
+          
+          {/* Service Suspended Route */}
+          <Route path="/school/:code/service-suspended">
+            {(params) => <ServiceSuspended schoolName={params.code} />}
           </Route>
           
           {/* School Selection Route (must come after specific routes) */}
