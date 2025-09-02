@@ -2184,7 +2184,8 @@ export class DatabaseStorage implements IStorage {
 
             // CORRECT: Use separate IDs for different purposes
             const actualStudentId = studentId; // Student ID for payment/display (e.g., 18 for student5)
-            const actualUserId = studentInfo.userId; // User ID for attendance (e.g., 34 for student5)
+            // For pre-registered students, userId is null - use student ID as fallback
+            const actualUserId = studentInfo.userId || studentId; // User ID for attendance (e.g., 34 for student5, or studentId for pre-registered)
 
             console.log(`🔧 Creating assignment with dual IDs:`, {
               studentId: actualStudentId, // Payment system & group display use this
@@ -2198,7 +2199,7 @@ export class DatabaseStorage implements IStorage {
               groupId: actualGroupId,
               studentId: actualStudentId, // For payment system and group display
               userId: actualUserId, // For attendance system
-              studentType: studentInfo.type as "student" | "child",
+              studentType: (studentInfo.type === 'preregistered' ? 'student' : studentInfo.type) as "student" | "child",
               assignedBy: adminId || null,
             };
           })
@@ -2309,8 +2310,43 @@ export class DatabaseStorage implements IStorage {
           }
         }
       } else {
-        // Handle assignments without userId - this shouldn't happen but let's be safe
-        if (assignment.studentType === "child" && assignment.studentId) {
+        // Handle pre-registered students (userId is null but studentId exists)
+        if (assignment.studentType === "student" && assignment.studentId) {
+          // Get pre-registered student details directly from students table
+          const studentDetails = await db
+            .select({
+              id: students.id,
+              name: students.name,
+              educationLevel: students.educationLevel,
+              grade: students.grade,
+              verified: students.verified,
+              schoolId: students.schoolId,
+            })
+            .from(students)
+            .where(
+              and(
+                eq(students.id, assignment.studentId),
+                eq(students.verified, true),
+                isNull(students.userId) // Pre-registered students
+              )
+            )
+            .limit(1);
+
+          if (studentDetails[0]) {
+            result.push({
+              id: assignment.studentId, // Use studentId as primary ID for UI consistency
+              userId: assignment.studentId, // Use studentId as fallback userId for pre-registered
+              studentId: assignment.studentId,
+              name: studentDetails[0].name,
+              email: `preregistered_${assignment.studentId}@school.local`, // Synthetic email
+              phone: "", // Pre-registered students don't have phone yet
+              educationLevel: studentDetails[0].educationLevel,
+              grade: studentDetails[0].grade,
+              type: "student",
+              studentType: "student",
+            });
+          }
+        } else if (assignment.studentType === "child" && assignment.studentId) {
           // For children without userId, try to find the parent
           const childWithParent = await db
             .select({
@@ -2453,6 +2489,7 @@ export class DatabaseStorage implements IStorage {
         educationLevel: students.educationLevel,
         grade: students.grade,
         type: sql<string>`'preregistered'`.as("type"),
+        userId: sql<number | null>`NULL`.as("userId"), // Pre-registered students have no userId yet
       })
       .from(students)
       .where(
@@ -2485,6 +2522,7 @@ export class DatabaseStorage implements IStorage {
         educationLevel: children.educationLevel,
         grade: children.grade,
         type: sql<string>`'child'`.as("type"),
+        userId: children.parentId, // Children use their parent's userId for attendance
       })
       .from(children)
       .where(
