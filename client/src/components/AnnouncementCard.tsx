@@ -14,7 +14,7 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   const isLongContent = announcement.content.length > 120;
 
   return (
-    <div className="announcement-card rounded-xl p-4 lg:p-6 text-white h-fit cursor-pointer transition-transform hover:scale-[1.01]" onClick={() => setShowFullView(true)}>
+    <div className="announcement-card rounded-xl p-4 lg:p-6 text-white h-fit">
       {/* Display image if available */}
       {announcement.imageUrl && (
         <div className="mb-4 relative group">
@@ -23,13 +23,10 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
             alt={announcement.title}
             className="w-full h-32 lg:h-40 xl:h-48 object-cover rounded-lg cursor-pointer transition-transform hover:scale-[1.02]"
             style={{ aspectRatio: '16/9' }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowFullView(true);
-            }}
+            onClick={() => setShowFullView(true)}
           />
           {/* Expand icon overlay */}
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
             <Maximize2 className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -49,7 +46,12 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
       </div>
-      <h4 className="font-bold text-lg lg:text-xl mb-2 lg:mb-3 line-clamp-2">{announcement.title}</h4>
+      <h4 
+        className="font-bold text-lg lg:text-xl mb-2 lg:mb-3 line-clamp-2 cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={() => setShowFullView(true)}
+      >
+        {announcement.title}
+      </h4>
       <p className="text-sm lg:text-base opacity-90 leading-relaxed">
         {isLongContent && !isExpanded 
           ? `${announcement.content.substring(0, 120)}...`
@@ -58,15 +60,21 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
       </p>
       {isLongContent && (
         <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsExpanded(!isExpanded);
-          }}
+          onClick={() => setIsExpanded(!isExpanded)}
           className="mt-3 lg:mt-4 bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm lg:text-base font-medium hover:bg-white/30 dark:hover:bg-gray-700/60 transition-colors"
         >
           {isExpanded ? 'إخفاء' : 'اقرأ المزيد'}
         </button>
       )}
+      
+      {/* View Full Post Button */}
+      <button 
+        onClick={() => setShowFullView(true)}
+        className="mt-3 lg:mt-4 bg-blue-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm lg:text-base font-medium hover:bg-blue-500/30 transition-colors flex items-center gap-2"
+      >
+        <Maximize2 className="w-4 h-4" />
+        عرض كامل
+      </button>
       
       {/* Full View Modal */}
       {showFullView && (
