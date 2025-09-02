@@ -654,7 +654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Middleware to check authentication and school access
-  const requireAuth = (req: any, res: any, next: any) => {
+  const requireAuth = async (req: any, res: any, next: any) => {
     console.log("Auth check - Session data:", req.session);
     console.log("Auth check - Session user:", req.session?.user);
     const currentUser = req.session.user;
@@ -672,6 +672,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.session.user.schoolId) {
         return res.status(403).json({
           error: "المستخدم غير مرتبط بأي مدرسة",
+        });
+      }
+
+      // Check if school access is still enabled - CRITICAL SECURITY
+      try {
+        const school = await storage.getSchoolById(req.session.user.schoolId);
+        if (school && school.isAccessEnabled === false) {
+          // Destroy the session to force re-authentication
+          req.session.destroy((err: any) => {
+            if (err) {
+              console.error("Error destroying session:", err);
+            }
+          });
+          return res.status(403).json({
+            error: "تم إيقاف الوصول لهذه المدرسة مؤقتاً. يرجى المحاولة لاحقاً أو التواصل مع الإدارة",
+          });
+        }
+      } catch (error) {
+        console.error("Error checking school access:", error);
+        return res.status(500).json({
+          error: "خطأ في التحقق من حالة المدرسة",
         });
       }
 
